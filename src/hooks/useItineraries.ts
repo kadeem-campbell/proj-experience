@@ -9,7 +9,89 @@ export interface Itinerary {
   updatedAt: string;
   isPublic: boolean;
   collaborators: string[];
+  creatorName?: string;
+  coverImage?: string;
 }
+
+// Sample public itineraries from other users
+export const publicItinerariesData: Itinerary[] = [
+  {
+    id: 'public-london-1',
+    name: 'My London Trip',
+    experiences: [
+      { id: 'london-1', title: 'Tower of London Tour', creator: 'LondonGuide', videoThumbnail: '', category: 'Culture', location: 'London', price: '$45', likedAt: new Date().toISOString() },
+      { id: 'london-2', title: 'Thames River Cruise', creator: 'RiverTours', videoThumbnail: '', category: 'Adventure', location: 'London', price: '$30', likedAt: new Date().toISOString() },
+      { id: 'london-3', title: 'West End Show', creator: 'TheatreLover', videoThumbnail: '', category: 'Entertainment', location: 'London', price: '$80', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-01-15T10:00:00Z',
+    updatedAt: '2024-01-20T14:30:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'TravellerEmma',
+    coverImage: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400'
+  },
+  {
+    id: 'public-nigeria-1',
+    name: 'Nigeria Trail',
+    experiences: [
+      { id: 'nigeria-1', title: 'Lagos Street Food Tour', creator: 'NaijaFoodie', videoThumbnail: '', category: 'Food', location: 'Lagos', price: '$25', likedAt: new Date().toISOString() },
+      { id: 'nigeria-2', title: 'Lekki Conservation Centre', creator: 'WildNigeria', videoThumbnail: '', category: 'Wildlife', location: 'Lagos', price: '$15', likedAt: new Date().toISOString() },
+      { id: 'nigeria-3', title: 'Nike Art Gallery Visit', creator: 'ArtExplorer', videoThumbnail: '', category: 'Culture', location: 'Lagos', price: '$10', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-02-10T08:00:00Z',
+    updatedAt: '2024-02-15T16:00:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'AfricanAdventurer',
+    coverImage: 'https://images.unsplash.com/photo-1618828665011-0abd973f7bb8?w=400'
+  },
+  {
+    id: 'public-sa-1',
+    name: 'SA at Dusk',
+    experiences: [
+      { id: 'sa-1', title: 'Table Mountain Sunset', creator: 'CapeTownVibes', videoThumbnail: '', category: 'Adventure', location: 'Cape Town', price: '$40', likedAt: new Date().toISOString() },
+      { id: 'sa-2', title: 'Camps Bay Beach Evening', creator: 'BeachLover', videoThumbnail: '', category: 'Beach', location: 'Cape Town', price: '$0', likedAt: new Date().toISOString() },
+      { id: 'sa-3', title: 'Stellenbosch Wine Tasting', creator: 'WineSommelier', videoThumbnail: '', category: 'Food', location: 'Stellenbosch', price: '$55', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-03-05T12:00:00Z',
+    updatedAt: '2024-03-10T18:00:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'SunsetChaser',
+    coverImage: 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=400'
+  },
+  {
+    id: 'public-brazil-1',
+    name: 'Water Sports in Brazil',
+    experiences: [
+      { id: 'brazil-1', title: 'Rio Surfing Lessons', creator: 'BrazilSurf', videoThumbnail: '', category: 'Water Sports', location: 'Rio de Janeiro', price: '$60', likedAt: new Date().toISOString() },
+      { id: 'brazil-2', title: 'Jet Ski Adventure', creator: 'WaterSportsPro', videoThumbnail: '', category: 'Water Sports', location: 'Florianópolis', price: '$85', likedAt: new Date().toISOString() },
+      { id: 'brazil-3', title: 'Kayak through Mangroves', creator: 'EcoTours', videoThumbnail: '', category: 'Water Sports', location: 'Paraty', price: '$45', likedAt: new Date().toISOString() },
+      { id: 'brazil-4', title: 'Stand-up Paddleboard', creator: 'SUPBrazil', videoThumbnail: '', category: 'Water Sports', location: 'Búzios', price: '$35', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-04-01T09:00:00Z',
+    updatedAt: '2024-04-08T11:00:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'WaterSportsJunkie',
+    coverImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400'
+  },
+  {
+    id: 'public-zanzibar-1',
+    name: 'Zanzibar Paradise',
+    experiences: [
+      { id: 'zanzibar-1', title: 'Stone Town Walking Tour', creator: 'ZanzibarGuide', videoThumbnail: '', category: 'Culture', location: 'Stone Town', price: '$20', likedAt: new Date().toISOString() },
+      { id: 'zanzibar-2', title: 'Spice Farm Visit', creator: 'SpiceExpert', videoThumbnail: '', category: 'Food', location: 'Zanzibar', price: '$30', likedAt: new Date().toISOString() },
+      { id: 'zanzibar-3', title: 'Nungwi Beach Day', creator: 'BeachLife', videoThumbnail: '', category: 'Beach', location: 'Nungwi', price: '$0', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-05-12T14:00:00Z',
+    updatedAt: '2024-05-18T10:00:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'IslandHopper',
+    coverImage: 'https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?w=400'
+  }
+];
 
 const STORAGE_KEY = 'itineraries';
 const ACTIVE_ITINERARY_KEY = 'activeItineraryId';
