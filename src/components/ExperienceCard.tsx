@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Heart, User } from "lucide-react";
+import { Heart, User, Plus, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useLikedExperiences } from "@/hooks/useLikedExperiences";
+import { useItineraries } from "@/hooks/useItineraries";
 import { Link } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ExperienceCardProps {
   id: string;
@@ -30,7 +31,10 @@ export const ExperienceCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isLiked, toggleLike } = useLikedExperiences();
+  const { isInItinerary, addExperience, removeExperience } = useItineraries();
+  const { toast } = useToast();
+
+  const inItinerary = isInItinerary(id);
 
   useEffect(() => {
     if (isHovered && videoRef.current && videoUrl) {
@@ -42,18 +46,31 @@ export const ExperienceCard = ({
     }
   }, [isHovered, videoUrl]);
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleToggleItinerary = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    toggleLike({
-      id,
-      title,
-      creator,
-      videoThumbnail,
-      category,
-      location,
-      price
-    });
+    
+    if (inItinerary) {
+      removeExperience(id);
+      toast({
+        title: "Removed from itinerary",
+        description: `${title} has been removed`,
+      });
+    } else {
+      addExperience({
+        id,
+        title,
+        creator,
+        videoThumbnail,
+        category,
+        location,
+        price
+      });
+      toast({
+        title: "Added to itinerary",
+        description: `${title} has been added to your trip`,
+      });
+    }
   };
 
   return (
@@ -89,18 +106,20 @@ export const ExperienceCard = ({
         {/* Gradient Overlay */}
         <div className="absolute inset-0 video-overlay" />
         
-        {/* Heart/Like Button */}
+        {/* Add to Itinerary Button */}
         <button
-          onClick={handleLike}
+          onClick={handleToggleItinerary}
           className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-200 ${
-            isLiked(id) 
-              ? 'bg-red-500 text-white' 
-              : 'bg-black/50 text-white hover:bg-black/70'
+            inItinerary 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-background/80 text-foreground hover:bg-primary hover:text-primary-foreground'
           }`}
         >
-          <Heart 
-            className={`w-5 h-5 ${isLiked(id) ? 'fill-current bounce-heart' : ''}`} 
-          />
+          {inItinerary ? (
+            <Check className="w-5 h-5" />
+          ) : (
+            <Plus className="w-5 h-5" />
+          )}
         </button>
 
         {/* Category Badge */}
@@ -111,19 +130,19 @@ export const ExperienceCard = ({
         </div>
 
         {/* Content Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+        <div className="absolute bottom-0 left-0 right-0 p-4 text-primary-foreground">
           <h3 className="font-bold text-lg mb-2 line-clamp-2">{title}</h3>
           
           {/* Creator Info */}
           <div className="flex items-center gap-2 mb-2">
             <User className="w-4 h-4" />
             <span className="text-sm font-medium">{creator}</span>
-            <span className="text-xs text-white/70">• {views} views</span>
+            <span className="text-xs text-primary-foreground/70">• {views} views</span>
           </div>
           
           {/* Location & Price */}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-white/80">{location}</span>
+            <span className="text-sm text-primary-foreground/80">{location}</span>
             <span className="font-bold text-accent">{price}</span>
           </div>
         </div>

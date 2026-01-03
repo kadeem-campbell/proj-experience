@@ -3,13 +3,8 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { SearchBar } from "@/components/SearchBar";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { ExperienceCard } from "@/components/ExperienceCard";
-import { ChatbotIntegration } from "@/components/ChatbotIntegration";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Link } from "react-router-dom";
-import { MapPin, Plus, ArrowRight } from "lucide-react";
-import { useItineraries } from "@/hooks/useItineraries";
 
 // Import experience images
 import partyImage from "@/assets/party-experience.jpg";
@@ -87,14 +82,13 @@ const mockExperiences = [
   }
 ];
 
-const Index = () => {
+const Search = () => {
   const [selectedCity, setSelectedCity] = useState("Dar Es Salaam");
   const [selectedCategory, setSelectedCategory] = useState("All Experiences");
   const [searchQuery, setSearchQuery] = useState("");
   const [experiences, setExperiences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { activeItinerary, experienceCount } = useItineraries();
 
   useEffect(() => {
     fetchExperiences();
@@ -102,7 +96,6 @@ const Index = () => {
 
   const fetchExperiences = async () => {
     try {
-      console.debug('[Index] Fetching experiences from Supabase...')
       const { data, error } = await supabase
         .from('experiences')
         .select('id,title,creator,category,location,price,video_thumbnail,created_at,status')
@@ -124,7 +117,6 @@ const Index = () => {
       }));
 
       if (!formattedExperiences.length) {
-        console.warn('[Index] No active experiences found. Falling back to samples.')
         setExperiences(mockExperiences);
       } else {
         setExperiences([...formattedExperiences, ...mockExperiences]);
@@ -160,6 +152,17 @@ const Index = () => {
     setSearchQuery(query);
   };
 
+  // Synonym-based filtering
+  const synonyms: Record<string, string[]> = {
+    Party: ["party", "nightlife", "club", "clubbing", "rave", "dj", "dance", "turn up", "night out", "bar hopping", "drinks", "afterparty", "go out", "going out"],
+    "Water Sports": ["water sports", "watersports", "jet ski", "jetski", "kayak", "kayaking", "surf", "surfing", "snorkel", "snorkeling", "dive", "diving", "boat", "sail", "paddle board", "paddleboard"],
+    Beach: ["beach", "sun", "sand", "sea", "ocean", "coast", "shore", "tropical"],
+    Food: ["food", "eat", "dine", "dining", "restaurant", "cuisine", "street food", "tasting", "dinner", "lunch", "brunch", "cook", "cooking"],
+    Wildlife: ["wildlife", "safari", "animals", "nature", "reserve", "park"],
+    Adventure: ["adventure", "hike", "hiking", "trek", "trekking", "zipline", "climb", "climbing", "mountain", "explore", "exploring"],
+    Culture: ["culture", "museum", "art", "heritage", "history", "local", "traditional"],
+  };
+
   const filteredExperiences = experiences.filter((experience) => {
     const matchesCategory =
       selectedCategory === "All Experiences" || experience.category === selectedCategory;
@@ -174,7 +177,19 @@ const Index = () => {
       experience.location?.toLowerCase().includes(q) ||
       experience.category?.toLowerCase().includes(q);
 
-    return matchesCategory && textMatch;
+    const hintedCategories = new Set<string>();
+    Object.entries(synonyms).forEach(([cat, terms]) => {
+      if (terms.some((t) => q.includes(t))) hintedCategories.add(cat.toLowerCase());
+    });
+
+    const synonymMatch =
+      hintedCategories.size > 0
+        ? hintedCategories.has((experience.category || "").toLowerCase())
+        : false;
+
+    const matchesSearch = textMatch || synonymMatch;
+
+    return matchesCategory && matchesSearch;
   });
 
   if (loading) {
@@ -183,7 +198,7 @@ const Index = () => {
         <div className="flex items-center justify-center h-full">
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading amazing experiences...</p>
+            <p className="mt-4 text-muted-foreground">Loading experiences...</p>
           </div>
         </div>
       </MainLayout>
@@ -192,111 +207,52 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="p-6">
-        {/* Hero Section - Itinerary First Messaging */}
-        <div className="max-w-4xl mx-auto text-center mb-12 animate-fade-in">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <MapPin className="w-4 h-4" />
-            Plan your perfect trip
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Build Your{" "}
-            <span className="gradient-primary bg-clip-text text-transparent">
-              Dream Itinerary
-            </span>
-          </h1>
-          
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Add experiences to your itinerary, share with friends, and plan your adventure together.
+      <div className="p-6 max-w-7xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Search Experiences</h1>
+          <p className="text-muted-foreground">
+            Find the perfect experiences for your trip
           </p>
-
-          {/* Quick Stats / CTA */}
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            {experienceCount > 0 ? (
-              <Link to="/itinerary">
-                <Button size="lg" className="gap-2">
-                  View Itinerary ({experienceCount} experiences)
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            ) : (
-              <div className="text-muted-foreground">
-                <Plus className="w-5 h-5 inline mr-2" />
-                Click + on any experience to add it to your itinerary
-              </div>
-            )}
-          </div>
-
-          {/* Creator Link */}
-          <div className="mt-8 pt-6 border-t border-border">
-            <p className="text-muted-foreground mb-2">Want to share your own experiences?</p>
-            <Link to="/creators" className="text-primary hover:underline font-medium">
-              Become a Creator →
-            </Link>
-          </div>
         </div>
+
+        {/* Search Bar */}
+        <SearchBar 
+          onSearch={handleSearch}
+          selectedCity={selectedCity}
+          onCityChange={setSelectedCity}
+        />
 
         {/* Category Filter */}
-        <div className="max-w-7xl mx-auto">
-          <CategoryFilter 
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-          />
-        </div>
+        <CategoryFilter 
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
 
-        {/* Experience Grid */}
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-            {filteredExperiences.map((experience, index) => (
-              <div
-                key={experience.id}
-                className="animate-slide-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <ExperienceCard {...experience} />
-              </div>
-            ))}
-          </div>
-
-          {/* Empty State */}
-          {filteredExperiences.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">
-                No experiences found. Try adjusting your filters.
-              </p>
+        {/* Results Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+          {filteredExperiences.map((experience, index) => (
+            <div
+              key={experience.id}
+              className="animate-slide-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <ExperienceCard {...experience} />
             </div>
-          )}
+          ))}
         </div>
 
-        {/* Search Section at Bottom */}
-        <div className="max-w-4xl mx-auto mt-16 pt-12 border-t border-border">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">Looking for something specific?</h2>
-            <p className="text-muted-foreground">Search all experiences or use advanced filters</p>
+        {/* Empty State */}
+        {filteredExperiences.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg">
+              No experiences found. Try adjusting your filters or search query.
+            </p>
           </div>
-          
-          <SearchBar 
-            onSearch={handleSearch}
-            selectedCity={selectedCity}
-            onCityChange={setSelectedCity}
-          />
-
-          <div className="text-center mt-6">
-            <Link to="/search">
-              <Button variant="outline" size="lg">
-                Advanced Search
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-        
-        {/* Chatbot Integration */}
-        <ChatbotIntegration />
+        )}
       </div>
     </MainLayout>
   );
 };
 
-export default Index;
+export default Search;
