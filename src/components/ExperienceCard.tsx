@@ -5,6 +5,7 @@ import { useItineraries } from "@/hooks/useItineraries";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { ItinerarySelector } from "@/components/ItinerarySelector";
 
 interface ExperienceCardProps {
   id: string;
@@ -34,7 +35,7 @@ export const ExperienceCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isInItinerary, addExperience, removeExperience } = useItineraries();
+  const { isInItinerary } = useItineraries();
   const { toast } = useToast();
 
   const inItinerary = isInItinerary(id);
@@ -49,31 +50,21 @@ export const ExperienceCard = ({
     }
   }, [isHovered, videoUrl]);
 
-  const handleToggleItinerary = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    
-    if (inItinerary) {
-      removeExperience(id);
-      toast({
-        title: "Removed from itinerary",
-        description: `${title} has been removed`,
-      });
-    } else {
-      addExperience({
-        id,
-        title,
-        creator,
-        videoThumbnail,
-        category,
-        location,
-        price
-      });
-      toast({
-        title: "Added to itinerary",
-        description: `${title} has been added to your trip`,
-      });
-    }
+  const experienceData = {
+    id,
+    title,
+    creator,
+    videoThumbnail,
+    category,
+    location,
+    price
+  };
+
+  const handleAddSuccess = () => {
+    toast({
+      title: "Added to itinerary",
+      description: `${title} has been added to your trip`,
+    });
   };
 
   return (
@@ -110,22 +101,32 @@ export const ExperienceCard = ({
           )}
           
           {/* Add to Itinerary Button - Shows on Hover */}
-          <button
-            onClick={handleToggleItinerary}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+            }}
             className={cn(
-              "absolute bottom-2 right-2 p-2.5 rounded-full shadow-lg transition-all duration-200",
-              "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0",
-              inItinerary 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-primary text-primary-foreground hover:scale-110"
+              "absolute bottom-2 right-2 transition-all duration-200",
+              "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
             )}
           >
             {inItinerary ? (
-              <Check className="w-4 h-4" />
+              <div className="p-2.5 rounded-full shadow-lg bg-primary text-primary-foreground">
+                <Check className="w-4 h-4" />
+              </div>
             ) : (
-              <Plus className="w-4 h-4" />
+              <ItinerarySelector
+                experienceId={id}
+                experienceData={experienceData}
+                onAdd={handleAddSuccess}
+              >
+                <button className="p-2.5 rounded-full shadow-lg bg-primary text-primary-foreground hover:scale-110 transition-transform">
+                  <Plus className="w-4 h-4" />
+                </button>
+              </ItinerarySelector>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Content - Compact Info */}

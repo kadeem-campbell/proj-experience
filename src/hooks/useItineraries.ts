@@ -223,6 +223,23 @@ export const useItineraries = () => {
     return true;
   }, [activeItineraryId, itineraries, saveItineraries]);
 
+  const addExperienceToItinerary = useCallback((itineraryId: string, experience: Omit<LikedExperience, 'likedAt'>) => {
+    const updated = itineraries.map(i => {
+      if (i.id !== itineraryId) return i;
+      
+      // Check if already exists
+      if (i.experiences.some(e => e.id === experience.id)) return i;
+      
+      return {
+        ...i,
+        experiences: [...i.experiences, { ...experience, likedAt: new Date().toISOString() }],
+        updatedAt: new Date().toISOString()
+      };
+    });
+    saveItineraries(updated);
+    return true;
+  }, [itineraries, saveItineraries]);
+
   const removeExperience = useCallback((experienceId: string) => {
     if (!activeItineraryId) return;
     
@@ -301,6 +318,7 @@ export const useItineraries = () => {
     deleteItinerary,
     renameItinerary,
     addExperience,
+    addExperienceToItinerary,
     removeExperience,
     reorderExperiences,
     togglePublic,
