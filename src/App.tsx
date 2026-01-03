@@ -15,6 +15,8 @@ import About from "./pages/About";
 import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
 import ManagementDashboard from "./pages/ManagementDashboard";
+import Search from "./pages/Search";
+import SocialFinder from "./pages/SocialFinder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,7 @@ const App = () => (
           <Route path="/creators" element={<Creators />} />
           <Route path="/create-experience" element={<CreateExperience />} />
           <Route path="/itinerary" element={<Itinerary />} />
+          <Route path="/itinerary/:id" element={<Itinerary />} />
           <Route path="/monetise" element={<Monetise />} />
           <Route path="/map" element={<Map />} />
           <Route path="/travellers" element={<Travellers />} />
@@ -38,6 +41,8 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/management" element={<ManagementDashboard />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/social-finder" element={<SocialFinder />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

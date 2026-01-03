@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Navigation } from "@/components/Navigation";
+import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -238,11 +238,8 @@ export default function Map() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      <Navigation />
-      
-      <div className="pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-6">
+    <MainLayout showItineraryPanel={false}>
+      <div className="p-6 max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-6xl font-bold mb-4 gradient-primary bg-clip-text text-transparent">
@@ -424,9 +421,8 @@ export default function Map() {
                 </div>
               </Card>
             </div>
-          </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }
