@@ -10,7 +10,7 @@ import { Users, ArrowRight, Plus, MapPin, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { City, ExperienceCategory, cities } from "@/data/browseData";
+import { City, cities } from "@/data/browseData";
 
 // Import experience images
 import partyImage from "@/assets/party-experience.jpg";
@@ -91,7 +91,7 @@ const mockExperiences = [
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<ExperienceCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [experiences, setExperiences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -166,12 +166,11 @@ const SearchPage = () => {
     setSelectedCategory(null);
   };
 
-  const handleCategorySelect = (city: City, category: ExperienceCategory) => {
-    setSelectedCity(city);
-    setSelectedCategory(category);
+  const handleCategorySelect = (categoryName: string) => {
+    setSelectedCategory(categoryName);
     toast({
-      title: `Browsing ${category.name}`,
-      description: `Showing ${category.name} experiences in ${city.name}`,
+      title: `Browsing ${categoryName}`,
+      description: `Showing ${categoryName} experiences${selectedCity ? ` in ${selectedCity.name}` : ''}`,
     });
   };
 
@@ -201,7 +200,7 @@ const SearchPage = () => {
 
     // Category filter (from browse)
     if (selectedCategory) {
-      const catMatch = experience.category?.toLowerCase().includes(selectedCategory.name.toLowerCase());
+      const catMatch = experience.category?.toLowerCase().includes(selectedCategory.toLowerCase());
       if (!catMatch) return false;
     }
 
@@ -260,7 +259,7 @@ const SearchPage = () => {
             <div className="h-6 w-px bg-border" />
             <BrowseDropdown 
               onSelectCity={handleCitySelect}
-              onSelectCategory={handleCategorySelect}
+              onClearFilters={clearFilters}
             />
           </form>
 
@@ -276,11 +275,8 @@ const SearchPage = () => {
                 </span>
               )}
               {selectedCategory && (
-                <span 
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white"
-                  style={{ backgroundColor: selectedCategory.color }}
-                >
-                  {selectedCategory.name}
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-primary text-primary-foreground">
+                  {selectedCategory}
                 </span>
               )}
               <button
@@ -327,32 +323,60 @@ const SearchPage = () => {
             </div>
           </div>
 
-          {/* Public Itineraries Section */}
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-semibold">Public Itineraries</h2>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                Curated trips from travelers
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {publicItinerariesData.map((itinerary, index) => (
-                <div
-                  key={itinerary.id}
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <PublicItineraryCard itinerary={itinerary} />
+          {/* Public Itineraries Section - Only show when no city filter */}
+          {!selectedCity && (
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-semibold">Public Itineraries</h2>
                 </div>
-              ))}
-            </div>
-          </div>
+                <span className="text-sm text-muted-foreground">
+                  Curated trips from travelers
+                </span>
+              </div>
 
-          {/* City Category Rows - When a city is selected */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {publicItinerariesData.map((itinerary, index) => (
+                  <div
+                    key={itinerary.id}
+                    className="animate-slide-up"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <PublicItineraryCard itinerary={itinerary} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* City-specific Itineraries - When city is selected */}
+          {selectedCity && !selectedCategory && (
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-semibold">{selectedCity.name} Itineraries</h2>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {publicItinerariesData
+                  .filter(it => it.name.toLowerCase().includes(selectedCity.name.toLowerCase()) || 
+                    it.experiences.some(exp => exp.location?.toLowerCase().includes(selectedCity.name.toLowerCase())))
+                  .map((itinerary, index) => (
+                    <div
+                      key={itinerary.id}
+                      className="animate-slide-up"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <PublicItineraryCard itinerary={itinerary} />
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* City Category Rows - When a city is selected but no category */}
           {selectedCity && !selectedCategory && (
             <div className="mb-10">
               <h2 className="text-xl font-semibold mb-4">
@@ -362,13 +386,7 @@ const SearchPage = () => {
                 {selectedCity.categories.map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => {
-                      setSelectedCategory(cat);
-                      toast({
-                        title: `Browsing ${cat.name}`,
-                        description: `Showing ${cat.name} experiences in ${selectedCity.name}`,
-                      });
-                    }}
+                    onClick={() => handleCategorySelect(cat.name)}
                     className="relative h-24 rounded-lg overflow-hidden group transition-transform hover:scale-[1.02]"
                     style={{ backgroundColor: cat.color }}
                   >
@@ -386,9 +404,9 @@ const SearchPage = () => {
           <div>
             <h2 className="text-xl font-semibold mb-4">
               {selectedCategory 
-                ? `${selectedCategory.name} in ${selectedCity?.name}`
+                ? `${selectedCategory} in ${selectedCity?.name}`
                 : selectedCity 
-                  ? `All in ${selectedCity.name}`
+                  ? `${selectedCity.name} Experiences`
                   : "All Experiences"
               }
             </h2>

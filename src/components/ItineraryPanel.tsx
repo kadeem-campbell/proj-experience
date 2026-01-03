@@ -11,7 +11,11 @@ import {
   Check,
   MapPin,
   ChevronRight,
-  Plus
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  PanelRightClose,
+  PanelRightOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,6 +30,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -46,6 +55,8 @@ export const ItineraryPanel = () => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [copied, setCopied] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   if (!activeItinerary) return null;
 
@@ -93,13 +104,39 @@ export const ItineraryPanel = () => {
     }
   };
 
+  // Collapsed state - just show a thin bar with expand button
+  if (isCollapsed) {
+    return (
+      <aside className="hidden lg:flex w-12 flex-col border-l border-border bg-card/50 items-center py-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => setIsCollapsed(false)}
+        >
+          <PanelRightOpen className="w-4 h-4" />
+        </Button>
+      </aside>
+    );
+  }
+
   return (
     <aside className="hidden lg:flex w-80 flex-col border-l border-border bg-card/50">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="font-semibold text-lg">{activeItinerary.name}</h2>
+          <h2 className="font-semibold text-lg truncate flex-1">{activeItinerary.name}</h2>
           <div className="flex items-center gap-1">
+            {/* Collapse button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setIsCollapsed(true)}
+              title="Collapse panel"
+            >
+              <PanelRightClose className="w-4 h-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -213,76 +250,89 @@ export const ItineraryPanel = () => {
         </div>
       </div>
 
-      {/* Experiences List */}
-      <ScrollArea className="flex-1">
-        {activeItinerary.experiences.length === 0 ? (
-          <div className="p-6 text-center">
-            <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-            <h3 className="font-medium mb-2">Start planning</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Add experiences to build your perfect trip
-            </p>
-            <Link to="/">
-              <Button variant="outline" size="sm">
-                Discover Experiences
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="p-2 space-y-2">
-            {activeItinerary.experiences.map((experience, index) => (
-              <Card
-                key={experience.id}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDrop={() => handleDrop(index)}
-                onDragEnd={handleDragEnd}
-                className={cn(
-                  "p-3 cursor-move transition-all group",
-                  draggedIndex === index && "opacity-50",
-                  dragOverIndex === index && "ring-2 ring-primary"
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <GripVertical className="w-4 h-4 text-muted-foreground mt-1 shrink-0" />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center font-medium">
-                        {index + 1}
-                      </span>
-                      <h4 className="font-medium text-sm truncate">{experience.title}</h4>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <MapPin className="w-3 h-3" />
-                      <span className="truncate">{experience.location}</span>
-                      <span className="font-medium text-primary">{experience.price}</span>
-                    </div>
-                  </div>
+      {/* Experiences List - Collapsible */}
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded} className="flex-1 flex flex-col min-h-0">
+        <CollapsibleTrigger asChild>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-between px-4 py-2 h-auto rounded-none border-b border-border"
+          >
+            <span className="text-sm font-medium">Experiences</span>
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="flex-1 min-h-0">
+          <ScrollArea className="h-full">
+            {activeItinerary.experiences.length === 0 ? (
+              <div className="p-6 text-center">
+                <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                <h3 className="font-medium mb-2">Start planning</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add experiences to build your perfect trip
+                </p>
+                <Link to="/">
+                  <Button variant="outline" size="sm">
+                    Discover Experiences
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="p-2 space-y-2">
+                {activeItinerary.experiences.map((experience, index) => (
+                  <Card
+                    key={experience.id}
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDrop={() => handleDrop(index)}
+                    onDragEnd={handleDragEnd}
+                    className={cn(
+                      "p-3 cursor-move transition-all group",
+                      draggedIndex === index && "opacity-50",
+                      dragOverIndex === index && "ring-2 ring-primary"
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <GripVertical className="w-4 h-4 text-muted-foreground mt-1 shrink-0" />
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center font-medium">
+                            {index + 1}
+                          </span>
+                          <h4 className="font-medium text-sm truncate">{experience.title}</h4>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">{experience.location}</span>
+                          <span className="font-medium text-primary">{experience.price}</span>
+                        </div>
+                      </div>
 
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Link to={`/experience/${experience.id}`}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => removeExperience(experience.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </ScrollArea>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Link to={`/experience/${experience.id}`}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={() => removeExperience(experience.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Footer */}
       {activeItinerary.experiences.length > 0 && (
