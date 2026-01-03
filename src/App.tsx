@@ -17,6 +17,7 @@ import AdminPanel from "./pages/AdminPanel";
 import ManagementDashboard from "./pages/ManagementDashboard";
 import Search from "./pages/Search";
 import SocialFinder from "./pages/SocialFinder";
+import PublicItinerary from "./pages/PublicItinerary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,7 +43,9 @@ const App = () => (
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/management" element={<ManagementDashboard />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/discover" element={<Search />} />
           <Route path="/social-finder" element={<SocialFinder />} />
+          <Route path="/public-itinerary/:id" element={<PublicItinerary />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

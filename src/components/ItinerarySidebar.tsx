@@ -80,10 +80,10 @@ export const ItinerarySidebar = () => {
   };
 
   const navItems = [
-    { path: "/", label: "Discover", icon: Compass },
-    { path: "/search", label: "Search", icon: Search },
+    { path: "/", label: "Home", icon: MapPin },
+    { path: "/search", label: "Discover", icon: Compass },
     { path: "/social-finder", label: "Social Finder", icon: Users },
-    { path: "/map", label: "Map", icon: MapPin },
+    { path: "/map", label: "Map", icon: Globe },
   ];
 
   return (

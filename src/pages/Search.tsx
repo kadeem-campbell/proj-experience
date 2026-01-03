@@ -3,8 +3,13 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { SearchBar } from "@/components/SearchBar";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { ExperienceCard } from "@/components/ExperienceCard";
+import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { publicItinerariesData } from "@/hooks/useItineraries";
+import { Compass, Users, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 // Import experience images
 import partyImage from "@/assets/party-experience.jpg";
@@ -210,9 +215,12 @@ const Search = () => {
       <div className="p-6 max-w-7xl mx-auto">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Search Experiences</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <Compass className="w-8 h-8 text-primary" />
+            <h1 className="text-3xl font-bold">Discover</h1>
+          </div>
           <p className="text-muted-foreground">
-            Find the perfect experiences for your trip
+            Find experiences and explore public itineraries from other travelers
           </p>
         </div>
 
@@ -229,27 +237,56 @@ const Search = () => {
           onCategoryChange={setSelectedCategory}
         />
 
-        {/* Results Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {filteredExperiences.map((experience, index) => (
-            <div
-              key={experience.id}
-              className="animate-slide-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <ExperienceCard {...experience} />
+        {/* Public Itineraries Section */}
+        <div className="mt-10 mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">Public Itineraries</h2>
             </div>
-          ))}
+            <span className="text-sm text-muted-foreground">
+              Curated trips from travelers like you
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {publicItinerariesData.map((itinerary, index) => (
+              <div
+                key={itinerary.id}
+                className="animate-slide-up"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <PublicItineraryCard itinerary={itinerary} />
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Empty State */}
-        {filteredExperiences.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">
-              No experiences found. Try adjusting your filters or search query.
-            </p>
+        {/* Experiences Section */}
+        <div className="border-t border-border pt-10">
+          <h2 className="text-xl font-semibold mb-6">All Experiences</h2>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredExperiences.map((experience, index) => (
+              <div
+                key={experience.id}
+                className="animate-slide-up"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <ExperienceCard {...experience} />
+              </div>
+            ))}
           </div>
-        )}
+
+          {/* Empty State */}
+          {filteredExperiences.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">
+                No experiences found. Try adjusting your filters or search query.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </MainLayout>
   );
