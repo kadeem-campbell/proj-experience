@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { useItineraries, publicItinerariesData } from "@/hooks/useItineraries";
+import { publicItinerariesData } from "@/hooks/useItineraries";
+import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
 import { 
   ArrowLeft, 
   Copy, 
@@ -20,8 +21,8 @@ import { useState } from "react";
 const PublicItinerary = () => {
   const { id } = useParams();
   const { toast } = useToast();
-  const { createItinerary, addExperience, setActiveItinerary } = useItineraries();
   const [copied, setCopied] = useState(false);
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
 
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
@@ -32,7 +33,7 @@ const PublicItinerary = () => {
         <div className="p-6 max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold mb-4">Itinerary Not Found</h1>
           <p className="text-muted-foreground mb-6">This itinerary doesn't exist or has been removed.</p>
-          <Link to="/search">
+          <Link to="/">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Discover
@@ -42,30 +43,6 @@ const PublicItinerary = () => {
       </MainLayout>
     );
   }
-
-  const handleCopyToMine = () => {
-    // Create a new itinerary with the same name
-    const newItinerary = createItinerary(`${itinerary.name} (Copy)`);
-    
-    // Add all experiences to the new itinerary
-    setActiveItinerary(newItinerary.id);
-    itinerary.experiences.forEach(exp => {
-      addExperience({
-        id: exp.id,
-        title: exp.title,
-        creator: exp.creator,
-        videoThumbnail: exp.videoThumbnail,
-        category: exp.category,
-        location: exp.location,
-        price: exp.price
-      });
-    });
-
-    toast({
-      title: "Itinerary copied!",
-      description: `"${itinerary.name}" has been added to your itineraries.`,
-    });
-  };
 
   const handleShare = async () => {
     const shareUrl = window.location.href;
@@ -91,6 +68,13 @@ const PublicItinerary = () => {
     }
   };
 
+  const handleCopyComplete = () => {
+    toast({
+      title: "Itinerary copied!",
+      description: `The experiences have been added to your itinerary.`,
+    });
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -103,7 +87,7 @@ const PublicItinerary = () => {
     <MainLayout>
       <div className="p-6 max-w-4xl mx-auto">
         {/* Back Button */}
-        <Link to="/search" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors">
+        <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Discover
         </Link>
@@ -155,7 +139,7 @@ const PublicItinerary = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3">
-            <Button onClick={handleCopyToMine} className="gap-2">
+            <Button onClick={() => setCopyDialogOpen(true)} className="gap-2">
               <Copy className="w-4 h-4" />
               Copy to My Itineraries
             </Button>
@@ -216,11 +200,19 @@ const PublicItinerary = () => {
           <p className="text-muted-foreground mb-4">
             Copy it to your collection and customize it for your own trip.
           </p>
-          <Button onClick={handleCopyToMine} size="lg" className="gap-2">
+          <Button onClick={() => setCopyDialogOpen(true)} size="lg" className="gap-2">
             <Copy className="w-4 h-4" />
             Copy to My Itineraries
           </Button>
         </div>
+
+        {/* Copy Dialog */}
+        <CopyItineraryDialog
+          open={copyDialogOpen}
+          onOpenChange={setCopyDialogOpen}
+          sourceItinerary={itinerary}
+          onCopyComplete={handleCopyComplete}
+        />
       </div>
     </MainLayout>
   );
