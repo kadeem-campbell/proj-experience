@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import Search from "./pages/Search";
 import ExperienceDetail from "./pages/ExperienceDetail";
 import CreateExperience from "./pages/CreateExperience";
 import Creators from "./pages/Creators";
@@ -15,7 +15,6 @@ import About from "./pages/About";
 import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
 import ManagementDashboard from "./pages/ManagementDashboard";
-import Search from "./pages/Search";
 import SocialFinder from "./pages/SocialFinder";
 import PublicItinerary from "./pages/PublicItinerary";
 import NotFound from "./pages/NotFound";
@@ -29,7 +28,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Search />} />
           <Route path="/experience/:id" element={<ExperienceDetail />} />
           <Route path="/creators" element={<Creators />} />
           <Route path="/create-experience" element={<CreateExperience />} />
