@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Heart, User, Plus, Check } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useItineraries } from "@/hooks/useItineraries";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 interface ExperienceCardProps {
   id: string;
@@ -15,6 +16,7 @@ interface ExperienceCardProps {
   category: string;
   location: string;
   price: string;
+  compact?: boolean;
 }
 
 export const ExperienceCard = ({
@@ -27,6 +29,7 @@ export const ExperienceCard = ({
   category,
   location,
   price,
+  compact = false,
 }: ExperienceCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -76,76 +79,72 @@ export const ExperienceCard = ({
   return (
     <Link to={`/experience/${id}`}>
       <Card 
-        className="relative overflow-hidden rounded-2xl bg-card border-0 cursor-pointer hover-scale group"
+        className={cn(
+          "relative overflow-hidden rounded-lg bg-card border-0 cursor-pointer group transition-all duration-300",
+          "hover:bg-accent/10 hover:shadow-lg"
+        )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Video/Thumbnail with Gradient Overlay */}
-        <div className="relative aspect-[3/4] overflow-hidden">
-        {videoUrl ? (
-          <video
-            ref={videoRef}
-            poster={videoThumbnail}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            muted
-            loop
-            playsInline
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-          >
-            <source src={videoUrl} type="video/mp4" />
-          </video>
-        ) : (
-          <img
-            src={videoThumbnail}
-            alt={title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          />
-        )}
-        
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 video-overlay" />
-        
-        {/* Add to Itinerary Button */}
-        <button
-          onClick={handleToggleItinerary}
-          className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-200 ${
-            inItinerary 
-              ? 'bg-primary text-primary-foreground' 
-              : 'bg-background/80 text-foreground hover:bg-primary hover:text-primary-foreground'
-          }`}
-        >
-          {inItinerary ? (
-            <Check className="w-5 h-5" />
+        {/* Thumbnail - Square Aspect Ratio for Album Look */}
+        <div className="relative aspect-square overflow-hidden rounded-lg m-2 mb-0">
+          {videoUrl ? (
+            <video
+              ref={videoRef}
+              poster={videoThumbnail}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              muted
+              loop
+              playsInline
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            >
+              <source src={videoUrl} type="video/mp4" />
+            </video>
           ) : (
-            <Plus className="w-5 h-5" />
+            <img
+              src={videoThumbnail}
+              alt={title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
           )}
-        </button>
-
-        {/* Category Badge */}
-        <div className="absolute top-4 left-4">
-          <span className="bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
-            {category}
-          </span>
+          
+          {/* Add to Itinerary Button - Shows on Hover */}
+          <button
+            onClick={handleToggleItinerary}
+            className={cn(
+              "absolute bottom-2 right-2 p-2.5 rounded-full shadow-lg transition-all duration-200",
+              "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0",
+              inItinerary 
+                ? "bg-primary text-primary-foreground" 
+                : "bg-primary text-primary-foreground hover:scale-110"
+            )}
+          >
+            {inItinerary ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+          </button>
         </div>
 
-        {/* Content Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 text-primary-foreground">
-          <h3 className="font-bold text-lg mb-2 line-clamp-2">{title}</h3>
+        {/* Content - Compact Info */}
+        <div className="p-3 pt-2">
+          <h3 className={cn(
+            "font-semibold line-clamp-1 mb-1",
+            compact ? "text-sm" : "text-base"
+          )}>
+            {title}
+          </h3>
           
-          {/* Creator Info */}
-          <div className="flex items-center gap-2 mb-2">
-            <User className="w-4 h-4" />
-            <span className="text-sm font-medium">{creator}</span>
-            <span className="text-xs text-primary-foreground/70">• {views} views</span>
-          </div>
+          <p className="text-xs text-muted-foreground line-clamp-1">
+            {creator} • {location}
+          </p>
           
-          {/* Location & Price */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-primary-foreground/80">{location}</span>
-            <span className="font-bold text-accent">{price}</span>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-muted-foreground">{category}</span>
+            <span className="text-sm font-semibold text-primary">{price}</span>
           </div>
-        </div>
         </div>
       </Card>
     </Link>

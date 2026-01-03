@@ -6,8 +6,8 @@ import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { publicItinerariesData } from "@/hooks/useItineraries";
-import { Compass, Users, ArrowRight } from "lucide-react";
+import { publicItinerariesData, useItineraries } from "@/hooks/useItineraries";
+import { Users, ArrowRight, Plus, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +22,7 @@ import adventureImage from "@/assets/adventure-experience.jpg";
 const mockExperiences = [
   {
     id: "1",
-    title: "Jet Ski Adventure - where are you to do",
+    title: "Jet Ski Adventure",
     creator: "JohnDoe",
     views: "5000",
     videoThumbnail: jetskiImage,
@@ -94,6 +94,7 @@ const Search = () => {
   const [experiences, setExperiences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { activeItinerary, experienceCount } = useItineraries();
 
   useEffect(() => {
     fetchExperiences();
@@ -212,16 +213,37 @@ const Search = () => {
 
   return (
     <MainLayout>
-      <div className="p-6 max-w-7xl mx-auto">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Compass className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold">Discover</h1>
+      <div className="p-4 md:p-6">
+        {/* Itinerary CTA Header */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-primary mb-2">
+                <MapPin className="w-5 h-5" />
+                <span className="text-sm font-medium">Plan your perfect trip</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold">
+                Build Your <span className="gradient-primary bg-clip-text text-transparent">Dream Itinerary</span>
+              </h1>
+              <p className="text-muted-foreground mt-1">Add experiences, share with friends, and plan together</p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {experienceCount > 0 ? (
+                <Link to="/itinerary">
+                  <Button size="lg" className="gap-2">
+                    View Itinerary ({experienceCount})
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-4 py-2 rounded-lg">
+                  <Plus className="w-4 h-4" />
+                  <span className="text-sm">Click + to add experiences</span>
+                </div>
+              )}
+            </div>
           </div>
-          <p className="text-muted-foreground">
-            Find experiences and explore public itineraries from other travelers
-          </p>
         </div>
 
         {/* Search Bar */}
@@ -231,25 +253,19 @@ const Search = () => {
           onCityChange={setSelectedCity}
         />
 
-        {/* Category Filter */}
-        <CategoryFilter 
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-        />
-
         {/* Public Itineraries Section */}
-        <div className="mt-10 mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
+        <div className="mt-8 mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
               <h2 className="text-xl font-semibold">Public Itineraries</h2>
             </div>
             <span className="text-sm text-muted-foreground">
-              Curated trips from travelers like you
+              Curated trips from travelers
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {publicItinerariesData.map((itinerary, index) => (
               <div
                 key={itinerary.id}
@@ -262,18 +278,24 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Experiences Section */}
-        <div className="border-t border-border pt-10">
-          <h2 className="text-xl font-semibold mb-6">All Experiences</h2>
+        {/* Category Filter */}
+        <CategoryFilter 
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+        />
+
+        {/* Experiences Section - Spotify Album Style Grid */}
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">All Experiences</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {filteredExperiences.map((experience, index) => (
               <div
                 key={experience.id}
                 className="animate-slide-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
+                style={{ animationDelay: `${index * 0.03}s` }}
               >
-                <ExperienceCard {...experience} />
+                <ExperienceCard {...experience} compact />
               </div>
             ))}
           </div>
