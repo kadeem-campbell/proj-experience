@@ -52,11 +52,14 @@ const mockExperiences = [
     totalReviews: 127,
     date: "Available daily",
     time: "Flexible timing",
-    includes: ["Professional instructor", "Safety equipment", "Jet ski rental", "Refreshments", "Photography session", "Insurance coverage"],
     highlights: ["Crystal clear waters", "Professional guides", "Photo opportunities", "Beginner friendly"],
     gallery: [jetskiImage, beachImage, adventureImage, partyImage],
     languages: ["English", "Swahili", "French"],
-    meetingPoint: "Coco Beach Marina, Dar es Salaam",
+    meetingPoints: [
+      { name: "Coco Beach Marina", type: "Main Location" },
+      { name: "Ocean Road Pier", type: "Alternative" },
+      { name: "Slipway Waterfront", type: "Weekend only" }
+    ],
     cancellationPolicy: "Free cancellation up to 24 hours before"
   },
   {
@@ -77,11 +80,13 @@ const mockExperiences = [
     totalReviews: 89,
     date: "Every weekend",
     time: "8:00 PM - 1:00 AM",
-    includes: ["DJ set", "Welcome drink", "Security", "Lighting", "Beach access"],
     highlights: ["World-class DJs", "Beach setting", "Tropical cocktails", "Unforgettable atmosphere"],
-    gallery: [partyImage, beachImage, foodImage],
+    gallery: [partyImage, beachImage, foodImage, jetskiImage],
     languages: ["English", "Swahili"],
-    meetingPoint: "Nungwi Beach Club, Zanzibar",
+    meetingPoints: [
+      { name: "Nungwi Beach Club", type: "Main Venue" },
+      { name: "Kendwa Rocks", type: "Saturday nights" }
+    ],
     cancellationPolicy: "Free cancellation up to 48 hours before"
   },
   {
@@ -102,11 +107,14 @@ const mockExperiences = [
     totalReviews: 203,
     date: "Daily",
     time: "6:00 AM - 12:00 PM",
-    includes: ["Guide", "4x4 Vehicle", "Snacks", "Binoculars", "Park fees"],
     highlights: ["Big Five sightings", "Expert guides", "Premium vehicles", "Sunrise views"],
-    gallery: [wildlifeImage, adventureImage, beachImage],
+    gallery: [wildlifeImage, adventureImage, beachImage, foodImage],
     languages: ["English", "Swahili", "German"],
-    meetingPoint: "Seronera Airstrip, Serengeti",
+    meetingPoints: [
+      { name: "Seronera Airstrip", type: "Main pickup" },
+      { name: "Arusha Town", type: "Hotel pickup" },
+      { name: "Ngorongoro Gate", type: "Alternative" }
+    ],
     cancellationPolicy: "Free cancellation up to 72 hours before"
   },
   {
@@ -126,11 +134,13 @@ const mockExperiences = [
     totalReviews: 54,
     date: "Mon-Fri",
     time: "1:00 PM - 4:00 PM",
-    includes: ["Food samples", "Guide", "Water", "Market tour"],
     highlights: ["Authentic cuisine", "Spice markets", "Local secrets", "Cultural immersion"],
-    gallery: [foodImage, partyImage, beachImage],
+    gallery: [foodImage, partyImage, beachImage, wildlifeImage],
     languages: ["English", "Swahili", "Arabic"],
-    meetingPoint: "Forodhani Gardens, Stone Town",
+    meetingPoints: [
+      { name: "Forodhani Gardens", type: "Main spot" },
+      { name: "Darajani Market", type: "Alternative" }
+    ],
     cancellationPolicy: "Free cancellation up to 24 hours before"
   },
   {
@@ -151,11 +161,13 @@ const mockExperiences = [
     totalReviews: 178,
     date: "Daily",
     time: "10:00 AM - 2:00 PM",
-    includes: ["Sunbeds", "Umbrellas", "Soft drinks", "Towels"],
     highlights: ["White sand beaches", "Crystal clear water", "Relaxation", "Snorkeling spots"],
-    gallery: [beachImage, jetskiImage, partyImage],
+    gallery: [beachImage, jetskiImage, partyImage, adventureImage],
     languages: ["English", "Swahili", "Italian"],
-    meetingPoint: "Kendwa Rocks Beach, Zanzibar",
+    meetingPoints: [
+      { name: "Kendwa Rocks Beach", type: "Main beach" },
+      { name: "Nungwi Beach", type: "Alternative" }
+    ],
     cancellationPolicy: "Free cancellation up to 24 hours before"
   },
   {
@@ -176,11 +188,14 @@ const mockExperiences = [
     totalReviews: 92,
     date: "Weekends",
     time: "6:00 AM - 2:00 PM",
-    includes: ["Guide", "Safety gear", "Snacks", "First aid", "Permits"],
     highlights: ["Summit views", "Expert guides", "Achievement", "Stunning landscapes"],
-    gallery: [adventureImage, wildlifeImage, beachImage],
+    gallery: [adventureImage, wildlifeImage, beachImage, foodImage],
     languages: ["English", "Swahili"],
-    meetingPoint: "Machame Gate, Kilimanjaro",
+    meetingPoints: [
+      { name: "Machame Gate", type: "Main route" },
+      { name: "Marangu Gate", type: "Alternative route" },
+      { name: "Moshi Town", type: "Hotel pickup" }
+    ],
     cancellationPolicy: "Free cancellation up to 1 week before"
   }
 ];
@@ -310,6 +325,82 @@ export default function ExperienceDetail() {
 
   const experience = experienceData || mockExperiences.find(exp => exp.id === id);
   const inItinerary = experience ? isInItinerary(experience.id) : false;
+
+  // SEO: Update document meta tags
+  useEffect(() => {
+    if (experience) {
+      // Update title
+      document.title = `${experience.title} in ${experience.location} | Experience East Africa`;
+      
+      // Update/create meta description
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', 
+        `${experience.title} - ${experience.description?.slice(0, 150)}... Starting from $${experience.price}. Book ${experience.category} experiences in ${experience.location}.`
+      );
+
+      // Open Graph tags for social sharing
+      const ogTags = [
+        { property: 'og:title', content: experience.title },
+        { property: 'og:description', content: experience.description?.slice(0, 200) },
+        { property: 'og:image', content: experience.videoThumbnail },
+        { property: 'og:type', content: 'product' },
+        { property: 'og:url', content: window.location.href },
+      ];
+
+      ogTags.forEach(tag => {
+        let metaTag = document.querySelector(`meta[property="${tag.property}"]`);
+        if (!metaTag) {
+          metaTag = document.createElement('meta');
+          metaTag.setAttribute('property', tag.property);
+          document.head.appendChild(metaTag);
+        }
+        metaTag.setAttribute('content', tag.content || '');
+      });
+
+      // JSON-LD structured data for rich snippets
+      let scriptTag = document.querySelector('script[type="application/ld+json"]');
+      if (!scriptTag) {
+        scriptTag = document.createElement('script');
+        scriptTag.setAttribute('type', 'application/ld+json');
+        document.head.appendChild(scriptTag);
+      }
+      
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "TouristAttraction",
+        "name": experience.title,
+        "description": experience.description,
+        "image": experience.videoThumbnail,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": experience.location,
+          "addressCountry": "TZ"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": experience.rating,
+          "reviewCount": experience.totalReviews
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": experience.price,
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        }
+      };
+      scriptTag.textContent = JSON.stringify(structuredData);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.title = 'Experience East Africa';
+    };
+  }, [experience]);
 
   const handleToggleItinerary = () => {
     if (!experience) return;
@@ -517,11 +608,18 @@ export default function ExperienceDetail() {
               </Card>
 
               <Card className="p-5 bg-card/50 backdrop-blur-sm border-border/50">
-                <h3 className="font-semibold text-lg mb-4">Meeting Point</h3>
-                <p className="text-sm text-muted-foreground flex items-start gap-2">
-                  <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  {experience.meetingPoint || experience.location}
-                </p>
+                <h3 className="font-semibold text-lg mb-4">Meeting Points</h3>
+                <div className="space-y-3">
+                  {(experience.meetingPoints || [{ name: experience.meetingPoint || experience.location, type: "Main Location" }]).map((point: { name: string; type: string }, index: number) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <MapPin className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">{point.name}</p>
+                        <p className="text-xs text-muted-foreground">{point.type}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </Card>
             </div>
 
@@ -567,17 +665,6 @@ export default function ExperienceDetail() {
                 <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
               </Card>
 
-              <Card className="p-5 bg-card/50 backdrop-blur-sm border-border/50">
-                <h3 className="font-semibold text-lg mb-4">What's Included</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {experience.includes.map((item: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
             </div>
 
             {/* Right Column - Indicative Pricing & Info */}
@@ -673,62 +760,16 @@ export default function ExperienceDetail() {
             </div>
           </div>
 
-          {/* Where to Experience Section */}
+          {/* Experience Providers Section */}
           <Separator className="my-10" />
           
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Where to Experience</h2>
-              <p className="text-muted-foreground">Find locations and vendors offering this experience</p>
+              <h2 className="text-2xl font-bold mb-2">Experience Providers</h2>
+              <p className="text-muted-foreground">Find vendors offering this experience</p>
             </div>
 
-            {/* Locations - Meeting Points */}
-            <div>
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
-                Locations
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[
-                  { 
-                    name: experience.meetingPoint || experience.location, 
-                    area: experience.location,
-                    type: "Main Location",
-                    coordinates: "Popular spot"
-                  },
-                  ...(experience.category === "Water Sports" || experience.category === "Beach" ? [
-                    { name: "Coco Beach", area: experience.location, type: "Beach Access", coordinates: "Easy parking" },
-                    { name: "Ocean Road Pier", area: experience.location, type: "Marina", coordinates: "Equipment rental" }
-                  ] : experience.category === "Adventure" ? [
-                    { name: "Main Gate Entrance", area: experience.location, type: "Starting Point", coordinates: "Registration here" },
-                    { name: "Visitor Center", area: experience.location, type: "Info Point", coordinates: "Guides available" }
-                  ] : [
-                    { name: "City Center", area: experience.location, type: "Meeting Point", coordinates: "Central location" }
-                  ])
-                ].map((location, index) => (
-                  <Card key={index} className="p-4 hover:shadow-md transition-all hover:border-primary/30">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm">{location.name}</h4>
-                        <p className="text-xs text-muted-foreground">{location.type}</p>
-                        <p className="text-xs text-primary mt-1">{location.coordinates}</p>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Vendors */}
-            <div>
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                Experience Providers
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
                   {
                     name: `${experience.location} Adventures`,
@@ -779,7 +820,6 @@ export default function ExperienceDetail() {
                   </Card>
                 ))}
               </div>
-            </div>
 
             {/* Booking Tip */}
             {(experience.category === "Water Sports" || experience.category === "Beach" || experience.category === "Party") && (
