@@ -86,11 +86,36 @@ const mockExperiences = [
   }
 ];
 
+// Combine mock experiences with all experiences from public itineraries
+const getAllExperiences = () => {
+  const itineraryExperiences = publicItinerariesData.flatMap(itinerary => 
+    itinerary.experiences.map(exp => ({
+      id: exp.id,
+      title: exp.title,
+      creator: exp.creator,
+      views: "0",
+      videoThumbnail: exp.videoThumbnail,
+      videoUrl: "",
+      category: exp.category,
+      location: exp.location,
+      price: exp.price,
+    }))
+  );
+  
+  // Combine and deduplicate by id
+  const allExperiences = [...mockExperiences, ...itineraryExperiences];
+  const uniqueExperiences = allExperiences.filter((exp, index, self) => 
+    index === self.findIndex(e => e.id === exp.id)
+  );
+  
+  return uniqueExperiences;
+};
+
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [experiences, setExperiences] = useState<any[]>(mockExperiences);
+  const [experiences, setExperiences] = useState<any[]>(getAllExperiences());
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
   const { activeItinerary, experienceCount } = useItineraries();
