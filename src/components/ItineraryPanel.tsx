@@ -121,7 +121,10 @@ export const ItineraryPanel = () => {
   }
 
   return (
-    <aside className="hidden lg:flex w-80 flex-col border-l border-border bg-card/50">
+    <aside 
+      className="hidden lg:flex w-80 flex-col border-l border-border bg-card/50"
+      onDragOver={(e) => e.preventDefault()}
+    >
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">

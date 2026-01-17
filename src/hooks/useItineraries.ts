@@ -13,76 +13,16 @@ export interface Itinerary {
   coverImage?: string;
 }
 
-// Sample public itineraries from other users
+// Sample public itineraries from other users - now focused on East Africa
 export const publicItinerariesData: Itinerary[] = [
-  {
-    id: 'public-london-1',
-    name: 'My London Trip',
-    experiences: [
-      { id: 'london-1', title: 'Tower of London Tour', creator: 'LondonGuide', videoThumbnail: '', category: 'Culture', location: 'London', price: '$45', likedAt: new Date().toISOString() },
-      { id: 'london-2', title: 'Thames River Cruise', creator: 'RiverTours', videoThumbnail: '', category: 'Adventure', location: 'London', price: '$30', likedAt: new Date().toISOString() },
-      { id: 'london-3', title: 'West End Show', creator: 'TheatreLover', videoThumbnail: '', category: 'Entertainment', location: 'London', price: '$80', likedAt: new Date().toISOString() },
-    ],
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-20T14:30:00Z',
-    isPublic: true,
-    collaborators: [],
-    creatorName: 'TravellerEmma',
-    coverImage: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400'
-  },
-  {
-    id: 'public-nigeria-1',
-    name: 'Nigeria Trail',
-    experiences: [
-      { id: 'nigeria-1', title: 'Lagos Street Food Tour', creator: 'NaijaFoodie', videoThumbnail: '', category: 'Food', location: 'Lagos', price: '$25', likedAt: new Date().toISOString() },
-      { id: 'nigeria-2', title: 'Lekki Conservation Centre', creator: 'WildNigeria', videoThumbnail: '', category: 'Wildlife', location: 'Lagos', price: '$15', likedAt: new Date().toISOString() },
-      { id: 'nigeria-3', title: 'Nike Art Gallery Visit', creator: 'ArtExplorer', videoThumbnail: '', category: 'Culture', location: 'Lagos', price: '$10', likedAt: new Date().toISOString() },
-    ],
-    createdAt: '2024-02-10T08:00:00Z',
-    updatedAt: '2024-02-15T16:00:00Z',
-    isPublic: true,
-    collaborators: [],
-    creatorName: 'AfricanAdventurer',
-    coverImage: 'https://images.unsplash.com/photo-1618828665011-0abd973f7bb8?w=400'
-  },
-  {
-    id: 'public-sa-1',
-    name: 'SA at Dusk',
-    experiences: [
-      { id: 'sa-1', title: 'Table Mountain Sunset', creator: 'CapeTownVibes', videoThumbnail: '', category: 'Adventure', location: 'Cape Town', price: '$40', likedAt: new Date().toISOString() },
-      { id: 'sa-2', title: 'Camps Bay Beach Evening', creator: 'BeachLover', videoThumbnail: '', category: 'Beach', location: 'Cape Town', price: '$0', likedAt: new Date().toISOString() },
-      { id: 'sa-3', title: 'Stellenbosch Wine Tasting', creator: 'WineSommelier', videoThumbnail: '', category: 'Food', location: 'Stellenbosch', price: '$55', likedAt: new Date().toISOString() },
-    ],
-    createdAt: '2024-03-05T12:00:00Z',
-    updatedAt: '2024-03-10T18:00:00Z',
-    isPublic: true,
-    collaborators: [],
-    creatorName: 'SunsetChaser',
-    coverImage: 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=400'
-  },
-  {
-    id: 'public-brazil-1',
-    name: 'Water Sports in Brazil',
-    experiences: [
-      { id: 'brazil-1', title: 'Rio Surfing Lessons', creator: 'BrazilSurf', videoThumbnail: '', category: 'Water Sports', location: 'Rio de Janeiro', price: '$60', likedAt: new Date().toISOString() },
-      { id: 'brazil-2', title: 'Jet Ski Adventure', creator: 'WaterSportsPro', videoThumbnail: '', category: 'Water Sports', location: 'Florianópolis', price: '$85', likedAt: new Date().toISOString() },
-      { id: 'brazil-3', title: 'Kayak through Mangroves', creator: 'EcoTours', videoThumbnail: '', category: 'Water Sports', location: 'Paraty', price: '$45', likedAt: new Date().toISOString() },
-      { id: 'brazil-4', title: 'Stand-up Paddleboard', creator: 'SUPBrazil', videoThumbnail: '', category: 'Water Sports', location: 'Búzios', price: '$35', likedAt: new Date().toISOString() },
-    ],
-    createdAt: '2024-04-01T09:00:00Z',
-    updatedAt: '2024-04-08T11:00:00Z',
-    isPublic: true,
-    collaborators: [],
-    creatorName: 'WaterSportsJunkie',
-    coverImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400'
-  },
   {
     id: 'public-zanzibar-1',
     name: 'Zanzibar Paradise',
     experiences: [
-      { id: 'zanzibar-1', title: 'Stone Town Walking Tour', creator: 'ZanzibarGuide', videoThumbnail: '', category: 'Culture', location: 'Stone Town', price: '$20', likedAt: new Date().toISOString() },
-      { id: 'zanzibar-2', title: 'Spice Farm Visit', creator: 'SpiceExpert', videoThumbnail: '', category: 'Food', location: 'Zanzibar', price: '$30', likedAt: new Date().toISOString() },
-      { id: 'zanzibar-3', title: 'Nungwi Beach Day', creator: 'BeachLife', videoThumbnail: '', category: 'Beach', location: 'Nungwi', price: '$0', likedAt: new Date().toISOString() },
+      { id: 'zanzibar-1', title: 'Stone Town Walking Tour', creator: 'ZanzibarGuide', videoThumbnail: 'https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?w=400', category: 'Culture', location: 'Stone Town', price: '$20', likedAt: new Date().toISOString() },
+      { id: 'zanzibar-2', title: 'Spice Farm Visit', creator: 'SpiceExpert', videoThumbnail: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400', category: 'Food', location: 'Zanzibar', price: '$30', likedAt: new Date().toISOString() },
+      { id: 'zanzibar-3', title: 'Nungwi Beach Day', creator: 'BeachLife', videoThumbnail: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=400', category: 'Beach', location: 'Nungwi', price: '$0', likedAt: new Date().toISOString() },
+      { id: 'zanzibar-4', title: 'Sunset Dhow Cruise', creator: 'OceanViews', videoThumbnail: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=400', category: 'Adventure', location: 'Zanzibar', price: '$45', likedAt: new Date().toISOString() },
     ],
     createdAt: '2024-05-12T14:00:00Z',
     updatedAt: '2024-05-18T10:00:00Z',
@@ -90,7 +30,82 @@ export const publicItinerariesData: Itinerary[] = [
     collaborators: [],
     creatorName: 'IslandHopper',
     coverImage: 'https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?w=400'
-  }
+  },
+  {
+    id: 'public-dar-1',
+    name: 'Dar es Salaam Nights',
+    experiences: [
+      { id: 'dar-1', title: 'Kariakoo Market Tour', creator: 'DarGuide', videoThumbnail: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400', category: 'Culture', location: 'Dar es Salaam', price: '$15', likedAt: new Date().toISOString() },
+      { id: 'dar-2', title: 'Coco Beach Sunset', creator: 'BeachLover', videoThumbnail: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400', category: 'Beach', location: 'Dar es Salaam', price: '$0', likedAt: new Date().toISOString() },
+      { id: 'dar-3', title: 'Street Food Adventure', creator: 'FoodieExplorer', videoThumbnail: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400', category: 'Food', location: 'Dar es Salaam', price: '$20', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-04-10T08:00:00Z',
+    updatedAt: '2024-04-15T16:00:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'TanzaniaExplorer',
+    coverImage: 'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=400'
+  },
+  {
+    id: 'public-nairobi-1',
+    name: 'Nairobi Safari City',
+    experiences: [
+      { id: 'nairobi-1', title: 'Nairobi National Park', creator: 'SafariPro', videoThumbnail: 'https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=400', category: 'Wildlife', location: 'Nairobi', price: '$50', likedAt: new Date().toISOString() },
+      { id: 'nairobi-2', title: 'Giraffe Centre Visit', creator: 'WildlifeKenya', videoThumbnail: 'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?w=400', category: 'Wildlife', location: 'Nairobi', price: '$25', likedAt: new Date().toISOString() },
+      { id: 'nairobi-3', title: 'Karen Blixen Museum', creator: 'HistoryBuff', videoThumbnail: 'https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=400', category: 'Culture', location: 'Nairobi', price: '$15', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-03-05T12:00:00Z',
+    updatedAt: '2024-03-10T18:00:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'KenyaAdventurer',
+    coverImage: 'https://images.unsplash.com/photo-1611348524140-53c9a25263d6?w=400'
+  },
+  {
+    id: 'public-kigali-1',
+    name: 'Kigali Culture Trail',
+    experiences: [
+      { id: 'kigali-1', title: 'Genocide Memorial', creator: 'RwandaGuide', videoThumbnail: 'https://images.unsplash.com/photo-1580746738893-e6c7e79c4fc2?w=400', category: 'Culture', location: 'Kigali', price: '$10', likedAt: new Date().toISOString() },
+      { id: 'kigali-2', title: 'Inema Arts Center', creator: 'ArtLover', videoThumbnail: 'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=400', category: 'Art', location: 'Kigali', price: '$5', likedAt: new Date().toISOString() },
+      { id: 'kigali-3', title: 'Local Coffee Experience', creator: 'CoffeeMaster', videoThumbnail: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400', category: 'Food', location: 'Kigali', price: '$20', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-02-20T09:00:00Z',
+    updatedAt: '2024-02-25T14:00:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'RwandaExplorer',
+    coverImage: 'https://images.unsplash.com/photo-1580746738893-e6c7e79c4fc2?w=400'
+  },
+  {
+    id: 'public-addis-1',
+    name: 'Addis Ababa Coffee & Culture',
+    experiences: [
+      { id: 'addis-1', title: 'Ethiopian Coffee Ceremony', creator: 'CoffeeOrigins', videoThumbnail: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400', category: 'Food', location: 'Addis Ababa', price: '$15', likedAt: new Date().toISOString() },
+      { id: 'addis-2', title: 'Merkato Market Tour', creator: 'MarketGuide', videoThumbnail: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400', category: 'Culture', location: 'Addis Ababa', price: '$20', likedAt: new Date().toISOString() },
+      { id: 'addis-3', title: 'National Museum Visit', creator: 'HistoryBuff', videoThumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400', category: 'Culture', location: 'Addis Ababa', price: '$10', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-01-15T10:00:00Z',
+    updatedAt: '2024-01-20T14:30:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'EthiopiaLover',
+    coverImage: 'https://images.unsplash.com/photo-1578147488616-da9c23597803?w=400'
+  },
+  {
+    id: 'public-kampala-1',
+    name: 'Kampala Vibes',
+    experiences: [
+      { id: 'kampala-1', title: 'Owino Market Adventure', creator: 'UgandaGuide', videoThumbnail: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400', category: 'Culture', location: 'Kampala', price: '$10', likedAt: new Date().toISOString() },
+      { id: 'kampala-2', title: 'Rolex Street Food Tour', creator: 'StreetFoodie', videoThumbnail: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400', category: 'Food', location: 'Kampala', price: '$15', likedAt: new Date().toISOString() },
+      { id: 'kampala-3', title: 'Ndere Cultural Centre', creator: 'CultureKeeper', videoThumbnail: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400', category: 'Culture', location: 'Kampala', price: '$25', likedAt: new Date().toISOString() },
+    ],
+    createdAt: '2024-06-01T11:00:00Z',
+    updatedAt: '2024-06-05T15:00:00Z',
+    isPublic: true,
+    collaborators: [],
+    creatorName: 'UgandaAdventurer',
+    coverImage: 'https://images.unsplash.com/photo-1619451334792-150fd785ee74?w=400'
+  },
 ];
 
 const STORAGE_KEY = 'itineraries';
@@ -309,6 +324,41 @@ export const useItineraries = () => {
     return `${window.location.origin}/itinerary/${itineraryId}`;
   }, []);
 
+  const copyItinerary = useCallback((sourceItinerary: Itinerary, newName?: string, targetItineraryId?: string) => {
+    if (targetItineraryId) {
+      // Merge into existing itinerary
+      const updated = itineraries.map(i => {
+        if (i.id !== targetItineraryId) return i;
+        
+        const existingIds = new Set(i.experiences.map(e => e.id));
+        const newExperiences = sourceItinerary.experiences.filter(e => !existingIds.has(e.id));
+        
+        return {
+          ...i,
+          experiences: [...i.experiences, ...newExperiences],
+          updatedAt: new Date().toISOString()
+        };
+      });
+      saveItineraries(updated);
+      return itineraries.find(i => i.id === targetItineraryId) || null;
+    } else {
+      // Create new copy
+      const newItinerary: Itinerary = {
+        id: generateId(),
+        name: newName || `${sourceItinerary.name} (Copy)`,
+        experiences: sourceItinerary.experiences.map(e => ({ ...e, likedAt: new Date().toISOString() })),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isPublic: false,
+        collaborators: []
+      };
+      const updated = [...itineraries, newItinerary];
+      saveItineraries(updated);
+      setActiveItinerary(newItinerary.id);
+      return newItinerary;
+    }
+  }, [itineraries, saveItineraries, setActiveItinerary]);
+
   return {
     itineraries,
     activeItinerary,
@@ -326,6 +376,7 @@ export const useItineraries = () => {
     removeCollaborator,
     isInItinerary,
     getShareUrl,
+    copyItinerary,
     experienceCount: activeItinerary?.experiences.length || 0
   };
 };

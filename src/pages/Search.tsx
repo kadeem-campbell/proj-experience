@@ -323,20 +323,17 @@ const SearchPage = () => {
             </div>
           </div>
 
-          {/* Public Itineraries Section - Only show when no city filter */}
+          {/* Most Popular Experiences Section - Only show when no city filter */}
           {!selectedCity && (
             <div className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold">Public Itineraries</h2>
+                  <h2 className="text-xl font-semibold">Most Popular Experiences</h2>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  Curated trips from travelers
-                </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 {publicItinerariesData.map((itinerary, index) => (
                   <div
                     key={itinerary.id}
@@ -350,16 +347,16 @@ const SearchPage = () => {
             </div>
           )}
 
-          {/* City-specific Itineraries - When city is selected */}
+          {/* City-specific Popular Experiences - When city is selected */}
           {selectedCity && !selectedCategory && (
             <div className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold">{selectedCity.name} Itineraries</h2>
+                  <h2 className="text-xl font-semibold">{selectedCity.name} Popular Experiences</h2>
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 {publicItinerariesData
                   .filter(it => it.name.toLowerCase().includes(selectedCity.name.toLowerCase()) || 
                     it.experiences.some(exp => exp.location?.toLowerCase().includes(selectedCity.name.toLowerCase())))
