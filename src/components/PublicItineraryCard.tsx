@@ -10,14 +10,14 @@ interface PublicItineraryCardProps {
 export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => {
   return (
     <Link to={`/public-itinerary/${itinerary.id}`}>
-      <Card className="overflow-hidden border-0 bg-card hover:bg-accent/10 transition-all duration-300 group cursor-pointer rounded-lg p-2">
+      <Card className="overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 group cursor-pointer rounded-lg p-2">
         {/* Cover Image - Square Aspect Ratio */}
         <div className="relative aspect-square overflow-hidden rounded-md">
           {itinerary.coverImage ? (
             <img 
               src={itinerary.coverImage} 
               alt={itinerary.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-150"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">

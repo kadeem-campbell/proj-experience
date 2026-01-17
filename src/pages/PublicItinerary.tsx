@@ -226,7 +226,7 @@ const PublicItinerary = () => {
         onDragEnd={handleDragEnd}
       >
         <Card 
-          className={`group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-all duration-300 cursor-pointer rounded-lg p-2 ${
+          className={`group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 cursor-pointer rounded-lg p-2 ${
             draggedExperience?.id === experience.id ? 'opacity-50 cursor-grabbing' : ''
           }`}
         >
@@ -236,7 +236,7 @@ const PublicItinerary = () => {
               <img 
                 src={experience.videoThumbnail} 
                 alt={experience.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-150"
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
