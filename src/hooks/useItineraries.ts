@@ -67,11 +67,18 @@ export const useItineraries = () => {
       setItineraries(e.detail);
     };
 
+    // Listen for active itinerary changes
+    const handleActiveItineraryChanged = (e: CustomEvent<string>) => {
+      setActiveItineraryId(e.detail);
+    };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('itinerariesChanged', handleItinerariesChanged as EventListener);
+    window.addEventListener('activeItineraryChanged', handleActiveItineraryChanged as EventListener);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('itinerariesChanged', handleItinerariesChanged as EventListener);
+      window.removeEventListener('activeItineraryChanged', handleActiveItineraryChanged as EventListener);
     };
   }, []);
 
@@ -86,6 +93,7 @@ export const useItineraries = () => {
   const setActiveItinerary = useCallback((id: string) => {
     setActiveItineraryId(id);
     localStorage.setItem(ACTIVE_ITINERARY_KEY, id);
+    window.dispatchEvent(new CustomEvent('activeItineraryChanged', { detail: id }));
   }, []);
 
   const createItinerary = useCallback((name: string): Itinerary => {
