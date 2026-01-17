@@ -323,13 +323,13 @@ const SearchPage = () => {
             </div>
           </div>
 
-          {/* Most Popular Experiences Section - Only show when no city filter */}
+          {/* Most Popular Itineraries Section - Only show when no city filter */}
           {!selectedCity && (
             <div className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold">Most Popular Experiences</h2>
+                  <h2 className="text-xl font-semibold">Most Popular Itineraries</h2>
                 </div>
               </div>
 
@@ -341,6 +341,24 @@ const SearchPage = () => {
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <PublicItineraryCard itinerary={itinerary} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* All Experiences Section */}
+          {!selectedCity && (
+            <div className="mb-10">
+              <h2 className="text-xl font-semibold mb-4">Experiences</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                {experiences.slice(0, 12).map((experience, index) => (
+                  <div
+                    key={experience.id}
+                    className="animate-slide-up"
+                    style={{ animationDelay: `${index * 0.03}s` }}
+                  >
+                    <ExperienceCard {...experience} compact />
                   </div>
                 ))}
               </div>
@@ -397,47 +415,49 @@ const SearchPage = () => {
             </div>
           )}
 
-          {/* Experiences Section - Spotify Album Style Grid */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">
-              {selectedCategory 
-                ? `${selectedCategory} in ${selectedCity?.name}`
-                : selectedCity 
-                  ? `${selectedCity.name} Experiences`
-                  : "All Experiences"
-              }
-            </h2>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {filteredExperiences.map((experience, index) => (
-                <div
-                  key={experience.id}
-                  className="animate-slide-up"
-                  style={{ animationDelay: `${index * 0.03}s` }}
-                >
-                  <ExperienceCard {...experience} compact />
-                </div>
-              ))}
-            </div>
-
-            {/* Empty State */}
-            {filteredExperiences.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">
-                  No experiences found. Try adjusting your filters or search query.
-                </p>
-                {(selectedCity || selectedCategory) && (
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={clearFilters}
+          {/* Filtered Experiences Section - Only show when city/category is selected */}
+          {(selectedCity || selectedCategory || searchQuery) && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">
+                {selectedCategory 
+                  ? `${selectedCategory} in ${selectedCity?.name}`
+                  : selectedCity 
+                    ? `${selectedCity.name} Experiences`
+                    : "Search Results"
+                }
+              </h2>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                {filteredExperiences.map((experience, index) => (
+                  <div
+                    key={experience.id}
+                    className="animate-slide-up"
+                    style={{ animationDelay: `${index * 0.03}s` }}
                   >
-                    Clear filters
-                  </Button>
-                )}
+                    <ExperienceCard {...experience} compact />
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+
+              {/* Empty State */}
+              {filteredExperiences.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground text-lg">
+                    No experiences found. Try adjusting your filters or search query.
+                  </p>
+                  {(selectedCity || selectedCategory) && (
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={clearFilters}
+                    >
+                      Clear filters
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </MainLayout>

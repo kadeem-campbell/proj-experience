@@ -189,6 +189,140 @@ const PublicItinerary = () => {
     );
   });
 
+  // Group experiences by category for sections
+  const getExperiencesByCategory = (category: string) => 
+    filteredExperiences.filter(exp => exp.category?.toLowerCase() === category.toLowerCase());
+  
+  const categories = [...new Set(filteredExperiences.map(exp => exp.category))].filter(Boolean);
+  
+  // Get popular experiences (first 4)
+  const popularExperiences = filteredExperiences.slice(0, 4);
+
+  // Render experience card component for reuse
+  const renderExperienceCard = (experience: LikedExperience) => {
+    const inItinerary = isInItinerary(experience.id);
+    
+    return (
+      <Link 
+        key={experience.id}
+        to={`/experience/${experience.id}`}
+        draggable
+        onDragStart={(e) => handleDragStart(e, experience)}
+        onDragEnd={handleDragEnd}
+      >
+        <Card 
+          className={`group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-all duration-300 cursor-pointer rounded-lg p-2 ${
+            draggedExperience?.id === experience.id ? 'opacity-50 cursor-grabbing' : ''
+          }`}
+        >
+          {/* Cover Image */}
+          <div className="relative aspect-square overflow-hidden rounded-md mb-2">
+            {experience.videoThumbnail ? (
+              <img 
+                src={experience.videoThumbnail} 
+                alt={experience.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                <span className="text-2xl">📍</span>
+              </div>
+            )}
+            
+            {/* Quick Add Button (+ to default itinerary) */}
+            <button
+              onClick={(e) => handleQuickAdd(experience, e)}
+              className={`absolute bottom-2 right-12 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                inItinerary 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
+              }`}
+            >
+              {inItinerary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            </button>
+
+            {/* 3-dot menu for itinerary selection */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-background/90 hover:bg-background text-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
+                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                  Add to Itinerary
+                </div>
+                {itineraries.map((itin) => {
+                  const isInThis = itin.experiences.some(e => e.id === experience.id);
+                  return (
+                    <DropdownMenuItem
+                      key={itin.id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleAddToSpecificItinerary(experience, itin.id, itin.name);
+                      }}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="truncate">{itin.name}</span>
+                      {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator />
+                {showNewItineraryInput === experience.id ? (
+                  <div className="p-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Input
+                      placeholder="Itinerary name..."
+                      value={newItineraryName}
+                      onChange={(e) => setNewItineraryName(e.target.value)}
+                      className="h-8 text-sm"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleCreateAndAdd(experience);
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      className="h-8"
+                      onClick={() => handleCreateAndAdd(experience)}
+                      disabled={!newItineraryName.trim()}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowNewItineraryInput(experience.id);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <ListPlus className="w-4 h-4" />
+                    Create New Itinerary
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Content - Just title, Spotify style */}
+          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+            {experience.title}
+          </h3>
+        </Card>
+      </Link>
+    );
+  };
+
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
@@ -261,133 +395,53 @@ const PublicItinerary = () => {
           </div>
         </div>
 
-        {/* Experiences Grid - Spotify Album Style */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {filteredExperiences.map((experience) => {
-              const inItinerary = isInItinerary(experience.id);
-              
-              return (
-                <Link 
-                  key={experience.id}
-                  to={`/experience/${experience.id}`}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, experience)}
-                  onDragEnd={handleDragEnd}
-                >
-                  <Card 
-                    className={`group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-all duration-300 cursor-pointer rounded-lg p-2 ${
-                      draggedExperience?.id === experience.id ? 'opacity-50 cursor-grabbing' : ''
-                    }`}
-                  >
-                    {/* Cover Image */}
-                    <div className="relative aspect-square overflow-hidden rounded-md mb-2">
-                      {experience.videoThumbnail ? (
-                        <img 
-                          src={experience.videoThumbnail} 
-                          alt={experience.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                          <span className="text-2xl">📍</span>
-                        </div>
-                      )}
-                      
-                      {/* Quick Add Button (+ to default itinerary) */}
-                      <button
-                        onClick={(e) => handleQuickAdd(experience, e)}
-                        className={`absolute bottom-2 right-12 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
-                          inItinerary 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
-                        }`}
-                      >
-                        {inItinerary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                      </button>
+        {/* Categorized Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+          
+          {/* Most Popular Section */}
+          {!searchQuery && popularExperiences.length > 0 && (
+            <div>
+              <h2 className="text-lg font-bold mb-4">Most Popular</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {popularExperiences.map(renderExperienceCard)}
+              </div>
+            </div>
+          )}
 
-                      {/* 3-dot menu for itinerary selection */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                            className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-background/90 hover:bg-background text-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
-                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                            Add to Itinerary
-                          </div>
-                          {itineraries.map((itinerary) => {
-                            const isInThis = itinerary.experiences.some(e => e.id === experience.id);
-                            return (
-                              <DropdownMenuItem
-                                key={itinerary.id}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleAddToSpecificItinerary(experience, itinerary.id, itinerary.name);
-                                }}
-                                className="flex items-center justify-between"
-                              >
-                                <span className="truncate">{itinerary.name}</span>
-                                {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
-                              </DropdownMenuItem>
-                            );
-                          })}
-                          <DropdownMenuSeparator />
-                          {showNewItineraryInput === experience.id ? (
-                            <div className="p-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
-                              <Input
-                                placeholder="Itinerary name..."
-                                value={newItineraryName}
-                                onChange={(e) => setNewItineraryName(e.target.value)}
-                                className="h-8 text-sm"
-                                autoFocus
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleCreateAndAdd(experience);
-                                  }
-                                }}
-                              />
-                              <Button
-                                size="sm"
-                                className="h-8"
-                                onClick={() => handleCreateAndAdd(experience)}
-                                disabled={!newItineraryName.trim()}
-                              >
-                                Add
-                              </Button>
-                            </div>
-                          ) : (
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setShowNewItineraryInput(experience.id);
-                              }}
-                              className="flex items-center gap-2"
-                            >
-                              <ListPlus className="w-4 h-4" />
-                              Create New Itinerary
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+          {/* Category Sections */}
+          {!searchQuery && categories.map(category => {
+            const categoryExperiences = getExperiencesByCategory(category!);
+            if (categoryExperiences.length === 0) return null;
+            
+            return (
+              <div key={category}>
+                <h2 className="text-lg font-bold mb-4">{category}</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {categoryExperiences.map(renderExperienceCard)}
+                </div>
+              </div>
+            );
+          })}
 
-                    {/* Content - Just title, Spotify style */}
-                    <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                      {experience.title}
-                    </h3>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
+          {/* All Experiences (when searching or as fallback) */}
+          {searchQuery && (
+            <div>
+              <h2 className="text-lg font-bold mb-4">Search Results</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {filteredExperiences.map(renderExperienceCard)}
+              </div>
+            </div>
+          )}
+
+          {/* Show All Section */}
+          {!searchQuery && (
+            <div>
+              <h2 className="text-lg font-bold mb-4">All Experiences</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {filteredExperiences.map(renderExperienceCard)}
+              </div>
+            </div>
+          )}
 
           {/* Empty State */}
           {filteredExperiences.length === 0 && searchQuery && (
