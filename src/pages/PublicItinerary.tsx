@@ -8,13 +8,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { publicItinerariesData, useItineraries } from "@/hooks/useItineraries";
 import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   ArrowLeft, 
   Copy, 
   Share2, 
   Search,
   Check,
-  Plus
+  Plus,
+  MoreHorizontal,
+  ListPlus
 } from "lucide-react";
 
 const PublicItinerary = () => {
@@ -24,7 +33,9 @@ const PublicItinerary = () => {
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [draggedExperience, setDraggedExperience] = useState<LikedExperience | null>(null);
-  const { addExperience, isInItinerary } = useItineraries();
+  const [newItineraryName, setNewItineraryName] = useState("");
+  const [showNewItineraryInput, setShowNewItineraryInput] = useState<string | null>(null);
+  const { addExperience, addExperienceToItinerary, createItinerary, itineraries, isInItinerary } = useItineraries();
 
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
@@ -87,7 +98,11 @@ const PublicItinerary = () => {
     setDraggedExperience(null);
   };
 
-  const handleAddToItinerary = (experience: LikedExperience) => {
+  // Quick add to default (first) itinerary
+  const handleQuickAdd = (experience: LikedExperience, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (isInItinerary(experience.id)) {
       toast({
         title: "Already in itinerary",
@@ -110,6 +125,57 @@ const PublicItinerary = () => {
       title: "Added to itinerary",
       description: `${experience.title} has been added to your trip.`,
     });
+  };
+
+  // Add to specific itinerary
+  const handleAddToSpecificItinerary = (experience: LikedExperience, itineraryId: string, itineraryName: string) => {
+    const targetItinerary = itineraries.find(i => i.id === itineraryId);
+    if (targetItinerary?.experiences.some(e => e.id === experience.id)) {
+      toast({
+        title: "Already in itinerary",
+        description: `${experience.title} is already in ${itineraryName}.`,
+      });
+      return;
+    }
+
+    addExperienceToItinerary(itineraryId, {
+      id: experience.id,
+      title: experience.title,
+      creator: experience.creator,
+      videoThumbnail: experience.videoThumbnail,
+      category: experience.category,
+      location: experience.location,
+      price: experience.price,
+    });
+    
+    toast({
+      title: "Added to itinerary",
+      description: `${experience.title} added to ${itineraryName}.`,
+    });
+  };
+
+  // Create new itinerary and add experience
+  const handleCreateAndAdd = (experience: LikedExperience) => {
+    if (!newItineraryName.trim()) return;
+    
+    const newItinerary = createItinerary(newItineraryName.trim());
+    addExperienceToItinerary(newItinerary.id, {
+      id: experience.id,
+      title: experience.title,
+      creator: experience.creator,
+      videoThumbnail: experience.videoThumbnail,
+      category: experience.category,
+      location: experience.location,
+      price: experience.price,
+    });
+    
+    toast({
+      title: "Created & added",
+      description: `${experience.title} added to new itinerary "${newItineraryName}".`,
+    });
+    
+    setNewItineraryName("");
+    setShowNewItineraryInput(null);
   };
 
   // Filter experiences by search query
@@ -228,14 +294,10 @@ const PublicItinerary = () => {
                         </div>
                       )}
                       
-                      {/* Add Button */}
+                      {/* Quick Add Button (+ to default itinerary) */}
                       <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleAddToItinerary(experience);
-                        }}
-                        className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                        onClick={(e) => handleQuickAdd(experience, e)}
+                        className={`absolute bottom-2 right-12 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
                           inItinerary 
                             ? 'bg-primary text-primary-foreground' 
                             : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
@@ -243,6 +305,78 @@ const PublicItinerary = () => {
                       >
                         {inItinerary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                       </button>
+
+                      {/* 3-dot menu for itinerary selection */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-background/90 hover:bg-background text-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
+                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                            Add to Itinerary
+                          </div>
+                          {itineraries.map((itinerary) => {
+                            const isInThis = itinerary.experiences.some(e => e.id === experience.id);
+                            return (
+                              <DropdownMenuItem
+                                key={itinerary.id}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleAddToSpecificItinerary(experience, itinerary.id, itinerary.name);
+                                }}
+                                className="flex items-center justify-between"
+                              >
+                                <span className="truncate">{itinerary.name}</span>
+                                {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                              </DropdownMenuItem>
+                            );
+                          })}
+                          <DropdownMenuSeparator />
+                          {showNewItineraryInput === experience.id ? (
+                            <div className="p-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Input
+                                placeholder="Itinerary name..."
+                                value={newItineraryName}
+                                onChange={(e) => setNewItineraryName(e.target.value)}
+                                className="h-8 text-sm"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleCreateAndAdd(experience);
+                                  }
+                                }}
+                              />
+                              <Button
+                                size="sm"
+                                className="h-8"
+                                onClick={() => handleCreateAndAdd(experience)}
+                                disabled={!newItineraryName.trim()}
+                              >
+                                Add
+                              </Button>
+                            </div>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setShowNewItineraryInput(experience.id);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <ListPlus className="w-4 h-4" />
+                              Create New Itinerary
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
 
                     {/* Content - Just title, Spotify style */}
