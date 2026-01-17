@@ -17,7 +17,6 @@ import {
   Clock, 
   Star, 
   Globe,
-  Mail,
   Play,
   Pause,
   Image as ImageIcon
@@ -668,35 +667,153 @@ export default function ExperienceDetail() {
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground mt-4">
-                  Prices may vary. Contact host for exact pricing.
+                  Prices may vary. Contact vendors directly for exact pricing.
                 </p>
-              </Card>
-
-              {/* Host Card */}
-              <Card className="p-5 bg-card/50 backdrop-blur-sm border-border/50">
-                <h3 className="font-semibold text-lg mb-4">Your Host</h3>
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-14 h-14">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                      {experience.creator.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{experience.creator}</h4>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      4.9 · Local Expert
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" className="w-full mt-4">
-                  <Mail className="w-4 h-4 mr-2" />
-                  Contact Host
-                </Button>
               </Card>
             </div>
           </div>
 
+          {/* Where to Experience Section */}
+          <Separator className="my-10" />
+          
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Where to Experience</h2>
+              <p className="text-muted-foreground">Find locations and vendors offering this experience</p>
+            </div>
+
+            {/* Locations - Meeting Points */}
+            <div>
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-primary" />
+                Locations
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { 
+                    name: experience.meetingPoint || experience.location, 
+                    area: experience.location,
+                    type: "Main Location",
+                    coordinates: "Popular spot"
+                  },
+                  ...(experience.category === "Water Sports" || experience.category === "Beach" ? [
+                    { name: "Coco Beach", area: experience.location, type: "Beach Access", coordinates: "Easy parking" },
+                    { name: "Ocean Road Pier", area: experience.location, type: "Marina", coordinates: "Equipment rental" }
+                  ] : experience.category === "Adventure" ? [
+                    { name: "Main Gate Entrance", area: experience.location, type: "Starting Point", coordinates: "Registration here" },
+                    { name: "Visitor Center", area: experience.location, type: "Info Point", coordinates: "Guides available" }
+                  ] : [
+                    { name: "City Center", area: experience.location, type: "Meeting Point", coordinates: "Central location" }
+                  ])
+                ].map((location, index) => (
+                  <Card key={index} className="p-4 hover:shadow-md transition-all hover:border-primary/30">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm">{location.name}</h4>
+                        <p className="text-xs text-muted-foreground">{location.type}</p>
+                        <p className="text-xs text-primary mt-1">{location.coordinates}</p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Vendors */}
+            <div>
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                Experience Providers
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  {
+                    name: `${experience.location} Adventures`,
+                    rating: 4.8,
+                    reviews: 156,
+                    specialty: experience.category,
+                    verified: true
+                  },
+                  {
+                    name: `East Africa ${experience.category} Tours`,
+                    rating: 4.6,
+                    reviews: 89,
+                    specialty: "Local experts",
+                    verified: true
+                  },
+                  {
+                    name: `${experience.creator}'s Experiences`,
+                    rating: 4.9,
+                    reviews: 234,
+                    specialty: "Original creator",
+                    verified: true
+                  }
+                ].map((vendor, index) => (
+                  <Card key={index} className="p-4 hover:shadow-md transition-all hover:border-primary/30 group">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="w-12 h-12 rounded-xl">
+                        <AvatarFallback className="rounded-xl bg-primary/10 text-primary">
+                          {vendor.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-sm truncate">{vendor.name}</h4>
+                          {vendor.verified && (
+                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                              <Check className="w-3 h-3" />
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          <span>{vendor.rating}</span>
+                          <span>({vendor.reviews})</span>
+                        </div>
+                        <p className="text-xs text-primary mt-1">{vendor.specialty}</p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Booking Tip */}
+            {(experience.category === "Water Sports" || experience.category === "Beach" || experience.category === "Party") && (
+              <Card className="p-5 bg-amber-500/10 border-amber-500/20">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">💡</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-amber-700 dark:text-amber-400">Better to book on the day</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      This type of experience is often available on-demand. Head to the location and negotiate directly with vendors for the best prices and flexibility.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {(experience.category === "Adventure" || experience.category === "Wildlife") && (
+              <Card className="p-5 bg-blue-500/10 border-blue-500/20">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">📅</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-400">Advance booking recommended</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      This experience typically requires advance booking. Contact vendors ahead of time to secure your spot and arrange transportation.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </MainLayout>
