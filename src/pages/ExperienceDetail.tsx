@@ -16,11 +16,8 @@ import {
   Users, 
   Clock, 
   Star, 
-  ExternalLink,
   Globe,
-  Phone,
   Mail,
-  ChevronRight,
   Play,
   Pause,
   Image as ImageIcon
@@ -36,39 +33,6 @@ import foodImage from "@/assets/food-experience.jpg";
 import wildlifeImage from "@/assets/wildlife-experience.jpg";
 import jetskiImage from "@/assets/jetski-experience.jpg";
 import adventureImage from "@/assets/adventure-experience.jpg";
-
-// Mock vendors/providers
-const mockVendors = [
-  {
-    id: "v1",
-    name: "Safari Adventures Co.",
-    logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100",
-    rating: 4.9,
-    reviews: 234,
-    website: "https://example.com",
-    phone: "+255 123 456 789",
-    verified: true
-  },
-  {
-    id: "v2", 
-    name: "Local Experiences Ltd",
-    logo: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=100",
-    rating: 4.7,
-    reviews: 156,
-    website: "https://example.com",
-    phone: "+255 987 654 321",
-    verified: true
-  },
-  {
-    id: "v3",
-    name: "Island Tours & Travel",
-    logo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
-    rating: 4.5,
-    reviews: 89,
-    website: "https://example.com",
-    verified: false
-  }
-];
 
 const mockExperiences = [
   {
@@ -617,46 +581,95 @@ export default function ExperienceDetail() {
               </Card>
             </div>
 
-            {/* Right Column - Experience Details & Booking */}
+            {/* Right Column - Indicative Pricing & Info */}
             <div className="lg:col-span-4 space-y-6">
-              {/* Price Card */}
+              {/* Indicative Price Card */}
               <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 backdrop-blur-sm sticky top-6">
-                <div className="text-center mb-6">
+                <div className="mb-6">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Indicative Price</p>
                   <div className="text-4xl font-bold text-primary">
                     ${experience.price}
                   </div>
-                  <div className="text-muted-foreground">per person</div>
+                  <div className="text-muted-foreground text-sm">per person (approx)</div>
                 </div>
 
-                <div className="space-y-3 mb-6">
-                  <Button size="lg" className="w-full rounded-full text-base">
-                    Book Now
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full rounded-full"
-                    onClick={handleToggleItinerary}
-                  >
-                    {inItinerary ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" />
-                        In Your Itinerary
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add to Itinerary
-                      </>
-                    )}
-                  </Button>
+                <Separator className="my-4" />
+
+                {/* Experience Type */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Experience Type</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="rounded-full">
+                        <Users className="w-3 h-3 mr-1" />
+                        {experience.groupSize?.includes("1-") ? "Solo or Group" : "Group"}
+                      </Badge>
+                      <Badge variant="outline" className="rounded-full">
+                        {experience.category}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Preferred Payment</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="rounded-full">
+                        💵 Cash on arrival
+                      </Badge>
+                      <Badge variant="outline" className="rounded-full">
+                        💳 Card accepted
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Best For</p>
+                    <div className="flex flex-wrap gap-2">
+                      {experience.category === "Wildlife" || experience.category === "Adventure" ? (
+                        <>
+                          <Badge variant="outline" className="rounded-full">👨‍👩‍👧‍👦 Families</Badge>
+                          <Badge variant="outline" className="rounded-full">🎒 Solo travelers</Badge>
+                        </>
+                      ) : experience.category === "Party" || experience.category === "Nightlife" ? (
+                        <>
+                          <Badge variant="outline" className="rounded-full">👯 Friends</Badge>
+                          <Badge variant="outline" className="rounded-full">🎉 Groups</Badge>
+                        </>
+                      ) : (
+                        <>
+                          <Badge variant="outline" className="rounded-full">💑 Couples</Badge>
+                          <Badge variant="outline" className="rounded-full">👯 Friends</Badge>
+                          <Badge variant="outline" className="rounded-full">🎒 Solo</Badge>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="text-center text-sm text-muted-foreground">
-                  <p>{experience.cancellationPolicy}</p>
-                </div>
+                <Separator className="my-4" />
+
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full rounded-full"
+                  onClick={handleToggleItinerary}
+                >
+                  {inItinerary ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      In Your Itinerary
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add to Itinerary
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-center text-muted-foreground mt-4">
+                  Prices may vary. Contact host for exact pricing.
+                </p>
               </Card>
 
               {/* Host Card */}
@@ -672,7 +685,7 @@ export default function ExperienceDetail() {
                     <h4 className="font-semibold">{experience.creator}</h4>
                     <p className="text-sm text-muted-foreground flex items-center gap-1">
                       <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      4.9 · Verified Host
+                      4.9 · Local Expert
                     </p>
                   </div>
                 </div>
@@ -684,74 +697,6 @@ export default function ExperienceDetail() {
             </div>
           </div>
 
-          {/* Vendors Section */}
-          <Separator className="my-12" />
-          
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Where to Book This Experience</h2>
-              <p className="text-muted-foreground">Compare providers and find the best deal</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mockVendors.map((vendor) => (
-                <Card key={vendor.id} className="p-5 hover:shadow-lg transition-all duration-300 hover:border-primary/50 group">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="w-14 h-14 rounded-xl">
-                      <AvatarImage src={vendor.logo} alt={vendor.name} className="object-cover" />
-                      <AvatarFallback className="rounded-xl">
-                        {vendor.name.slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold truncate">{vendor.name}</h4>
-                        {vendor.verified && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Check className="w-3 h-3 mr-1" />
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span>{vendor.rating}</span>
-                        <span>({vendor.reviews} reviews)</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => window.open(vendor.website, '_blank')}
-                    >
-                      <Globe className="w-4 h-4 mr-1" />
-                      Website
-                    </Button>
-                    {vendor.phone && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(`tel:${vendor.phone}`, '_blank')}
-                      >
-                        <Phone className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      className="flex-1 group-hover:bg-primary"
-                    >
-                      Book
-                      <ExternalLink className="w-3 h-3 ml-1" />
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </MainLayout>

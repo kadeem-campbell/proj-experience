@@ -14,7 +14,6 @@ import {
   Share2, 
   Search,
   Check,
-  GripVertical,
   Plus
 } from "lucide-react";
 
@@ -203,57 +202,55 @@ const PublicItinerary = () => {
               const inItinerary = isInItinerary(experience.id);
               
               return (
-                <Card 
+                <Link 
                   key={experience.id}
+                  to={`/experience/${experience.id}`}
                   draggable
                   onDragStart={(e) => handleDragStart(e, experience)}
                   onDragEnd={handleDragEnd}
-                  className={`group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-all duration-300 cursor-grab active:cursor-grabbing rounded-lg p-2 ${
-                    draggedExperience?.id === experience.id ? 'opacity-50' : ''
-                  }`}
                 >
-                  {/* Cover Image */}
-                  <div className="relative aspect-square overflow-hidden rounded-md mb-2">
-                    {experience.videoThumbnail ? (
-                      <img 
-                        src={experience.videoThumbnail} 
-                        alt={experience.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                        <span className="text-2xl">📍</span>
-                      </div>
-                    )}
-                    
-                    {/* Drag Handle Overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <GripVertical className="w-6 h-6 text-white drop-shadow-lg" />
+                  <Card 
+                    className={`group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-all duration-300 cursor-pointer rounded-lg p-2 ${
+                      draggedExperience?.id === experience.id ? 'opacity-50 cursor-grabbing' : ''
+                    }`}
+                  >
+                    {/* Cover Image */}
+                    <div className="relative aspect-square overflow-hidden rounded-md mb-2">
+                      {experience.videoThumbnail ? (
+                        <img 
+                          src={experience.videoThumbnail} 
+                          alt={experience.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                          <span className="text-2xl">📍</span>
+                        </div>
+                      )}
+                      
+                      {/* Add Button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleAddToItinerary(experience);
+                        }}
+                        className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                          inItinerary 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
+                        }`}
+                      >
+                        {inItinerary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      </button>
                     </div>
-                    
-                    {/* Add Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddToItinerary(experience);
-                      }}
-                      className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
-                        inItinerary 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
-                      }`}
-                    >
-                      {inItinerary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                    </button>
-                  </div>
 
-                  {/* Content - Just title, Spotify style */}
-                  <Link to={`/experience/${experience.id}`}>
+                    {/* Content - Just title, Spotify style */}
                     <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
                       {experience.title}
                     </h3>
-                  </Link>
-                </Card>
+                  </Card>
+                </Link>
               );
             })}
           </div>
@@ -267,12 +264,6 @@ const PublicItinerary = () => {
             </div>
           )}
 
-          {/* Drag hint */}
-          <div className="mt-8 p-4 bg-muted/50 rounded-lg text-center">
-            <p className="text-sm text-muted-foreground">
-              💡 <span className="font-medium">Tip:</span> Drag any experience to your itinerary panel on the right, or click the + button to add it.
-            </p>
-          </div>
         </div>
 
         {/* Copy Dialog */}
