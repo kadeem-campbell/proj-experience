@@ -239,19 +239,19 @@ const SearchPage = () => {
     <MainLayout>
       <div className="flex flex-col h-full">
         {/* Fixed Search Header - Spotify Style */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
+        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-3 md:px-4 py-2 md:py-3">
           <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-2xl">
-            <div className="flex items-center flex-1 bg-muted rounded-full px-4 py-2">
-              <Search className="w-5 h-5 text-muted-foreground mr-3" />
+            <div className="flex items-center flex-1 bg-muted rounded-full px-3 md:px-4 py-2">
+              <Search className="w-4 md:w-5 h-4 md:h-5 text-muted-foreground mr-2 md:mr-3 shrink-0" />
               <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="What do you want to explore?"
-                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-base placeholder:text-muted-foreground"
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm md:text-base placeholder:text-muted-foreground"
               />
             </div>
-            <div className="h-6 w-px bg-border" />
+            <div className="h-6 w-px bg-border hidden sm:block" />
             <BrowseDropdown 
               onSelectCity={handleCitySelect}
               onClearFilters={clearFilters}
@@ -285,33 +285,38 @@ const SearchPage = () => {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="flex-1 overflow-y-auto p-3 md:p-6">
           {/* Itinerary CTA Header */}
-          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 mb-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl md:rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
               <div>
-                <div className="flex items-center gap-2 text-primary mb-2">
-                  <MapPin className="w-5 h-5" />
-                  <span className="text-sm font-medium">Plan your perfect trip</span>
+                <div className="flex items-center gap-2 text-primary mb-1 md:mb-2">
+                  <MapPin className="w-4 md:w-5 h-4 md:h-5" />
+                  <span className="text-xs md:text-sm font-medium">Plan your perfect trip</span>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-bold">
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
                   Build Your <span className="gradient-primary bg-clip-text text-transparent">Dream Itinerary</span>
                 </h1>
-                <p className="text-muted-foreground mt-1">Add experiences, share with friends, and plan together</p>
+                <p className="text-muted-foreground text-sm mt-1 hidden sm:block">Add experiences, share with friends, and plan together</p>
               </div>
               
               <div className="flex items-center gap-3">
                 {experienceCount > 0 ? (
                   <Link to="/itinerary">
-                    <Button size="lg" className="gap-2">
+                    <Button size="sm" className="gap-2 md:hidden">
+                      View ({experienceCount})
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                    <Button size="lg" className="gap-2 hidden md:flex">
                       View Itinerary ({experienceCount})
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>
                 ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-4 py-2 rounded-lg">
+                  <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 md:px-4 py-2 rounded-lg text-sm">
                     <Plus className="w-4 h-4" />
-                    <span className="text-sm">Click + to add experiences</span>
+                    <span className="hidden sm:inline">Click + to add experiences</span>
+                    <span className="sm:hidden">Tap + to add</span>
                   </div>
                 )}
               </div>
@@ -320,21 +325,21 @@ const SearchPage = () => {
 
           {/* Most Popular Itineraries Section - Only show when no city filter */}
           {!selectedCity && (
-            <div className="mb-10">
-              <div className="flex items-center justify-between mb-4">
+            <div className="mb-6 md:mb-10">
+              <div className="flex items-center justify-between mb-3 md:mb-4">
                 <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold">Most Popular Itineraries</h2>
+                  <Users className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+                  <h2 className="text-base md:text-xl font-semibold">Most Popular Itineraries</h2>
                 </div>
                 <Link to="/itineraries?filter=popular">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-xs md:text-sm">
                     Show all
-                    <ArrowRight className="w-4 h-4 ml-1" />
+                    <ArrowRight className="w-3 md:w-4 h-3 md:h-4 ml-1" />
                   </Button>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
                 {getPopularItineraries().slice(0, 6).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
@@ -344,21 +349,21 @@ const SearchPage = () => {
 
           {/* Our Faves Section - Only show when no city filter */}
           {!selectedCity && (
-            <div className="mb-10">
-              <div className="flex items-center justify-between mb-4">
+            <div className="mb-6 md:mb-10">
+              <div className="flex items-center justify-between mb-3 md:mb-4">
                 <div className="flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold">Our Faves</h2>
+                  <Heart className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+                  <h2 className="text-base md:text-xl font-semibold">Our Faves</h2>
                 </div>
                 <Link to="/itineraries?filter=fave">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-xs md:text-sm">
                     Show all
-                    <ArrowRight className="w-4 h-4 ml-1" />
+                    <ArrowRight className="w-3 md:w-4 h-3 md:h-4 ml-1" />
                   </Button>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
                 {getFaveItineraries().slice(0, 6).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
@@ -368,9 +373,9 @@ const SearchPage = () => {
 
           {/* All Experiences Section with Infinite Scroll */}
           {!selectedCity && (
-            <div className="mb-10">
-              <h2 className="text-xl font-semibold mb-4">Experiences</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className="mb-6 md:mb-10">
+              <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">Experiences</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
                 {experiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
@@ -379,9 +384,9 @@ const SearchPage = () => {
               {visibleCount < experiences.length && (
                 <div 
                   ref={loadMoreRef}
-                  className="flex justify-center py-8"
+                  className="flex justify-center py-6 md:py-8"
                 >
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <div className="animate-spin rounded-full h-5 md:h-6 w-5 md:w-6 border-b-2 border-primary"></div>
                 </div>
               )}
             </div>
@@ -389,14 +394,14 @@ const SearchPage = () => {
 
           {/* City-specific Popular Experiences - When city is selected */}
           {selectedCity && !selectedCategory && (
-            <div className="mb-10">
-              <div className="flex items-center justify-between mb-4">
+            <div className="mb-6 md:mb-10">
+              <div className="flex items-center justify-between mb-3 md:mb-4">
                 <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold">{selectedCity.name} Popular Experiences</h2>
+                  <Users className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+                  <h2 className="text-base md:text-xl font-semibold">{selectedCity.name} Popular Experiences</h2>
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
                 {publicItinerariesData
                   .filter(it => it.name.toLowerCase().includes(selectedCity.name.toLowerCase()) || 
                     it.experiences.some(exp => exp.location?.toLowerCase().includes(selectedCity.name.toLowerCase())))
@@ -409,20 +414,20 @@ const SearchPage = () => {
 
           {/* City Category Rows - When a city is selected but no category */}
           {selectedCity && !selectedCategory && (
-            <div className="mb-10">
-              <h2 className="text-xl font-semibold mb-4">
+            <div className="mb-6 md:mb-10">
+              <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">
                 Explore {selectedCity.name}
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
                 {selectedCity.categories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => handleCategorySelect(cat.name)}
-                    className="relative h-24 rounded-lg overflow-hidden group transition-transform hover:scale-[1.02]"
+                    className="relative h-20 md:h-24 rounded-lg overflow-hidden group transition-transform hover:scale-[1.02]"
                     style={{ backgroundColor: cat.color }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/30" />
-                    <span className="absolute top-3 left-3 font-bold text-white text-base">
+                    <span className="absolute top-2 left-2 md:top-3 md:left-3 font-bold text-white text-sm md:text-base">
                       {cat.name}
                     </span>
                   </button>
@@ -434,7 +439,7 @@ const SearchPage = () => {
           {/* Filtered Experiences Section - Only show when city/category is selected */}
           {(selectedCity || selectedCategory || searchQuery) && (
             <div>
-              <h2 className="text-xl font-semibold mb-4">
+              <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">
                 {selectedCategory 
                   ? `${selectedCategory} in ${selectedCity?.name}`
                   : selectedCity 
@@ -443,7 +448,7 @@ const SearchPage = () => {
                 }
               </h2>
               
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
                 {filteredExperiences.map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
@@ -451,8 +456,8 @@ const SearchPage = () => {
 
               {/* Empty State */}
               {filteredExperiences.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground text-lg">
+                <div className="text-center py-8 md:py-12">
+                  <p className="text-muted-foreground text-sm md:text-lg">
                     No experiences found. Try adjusting your filters or search query.
                   </p>
                   {(selectedCity || selectedCategory) && (

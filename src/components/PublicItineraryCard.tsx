@@ -10,7 +10,7 @@ interface PublicItineraryCardProps {
 export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => {
   return (
     <Link to={`/public-itinerary/${itinerary.id}`}>
-      <Card className="overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 group cursor-pointer rounded-lg p-2">
+      <Card className="overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 group cursor-pointer rounded-lg p-1.5 md:p-2">
         {/* Cover Image - Square Aspect Ratio */}
         <div className="relative aspect-square overflow-hidden rounded-md">
           {itinerary.coverImage ? (
@@ -21,14 +21,14 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-              <Layers className="w-10 h-10 text-primary/60" />
+              <Layers className="w-8 md:w-10 h-8 md:h-10 text-primary/60" />
             </div>
           )}
         </div>
 
         {/* Content - Just title, Spotify style */}
-        <div className="pt-2">
-          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+        <div className="pt-1.5 md:pt-2">
+          <h3 className="font-semibold text-xs md:text-sm line-clamp-2 group-hover:text-primary transition-colors">
             {itinerary.name}
           </h3>
         </div>

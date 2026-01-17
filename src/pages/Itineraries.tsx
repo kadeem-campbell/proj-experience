@@ -44,44 +44,44 @@ const ItinerariesPage = () => {
     <MainLayout>
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-4">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-3 md:px-4 py-3 md:py-4">
+          <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
             <Link to="/">
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <ArrowLeft className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 md:h-10 md:w-10">
+                <ArrowLeft className="w-4 md:w-5 h-4 md:h-5" />
               </Button>
             </Link>
             <div className="flex items-center gap-2">
               {getIcon()}
-              <h1 className="text-2xl font-bold">{getTitle()}</h1>
+              <h1 className="text-lg md:text-2xl font-bold">{getTitle()}</h1>
             </div>
-            <span className="text-muted-foreground">({itineraries.length})</span>
+            <span className="text-muted-foreground text-sm">({itineraries.length})</span>
           </div>
           
           {/* Search */}
-          <div className="flex items-center bg-muted rounded-full px-4 py-2 max-w-md">
-            <Search className="w-5 h-5 text-muted-foreground mr-3" />
+          <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 max-w-md">
+            <Search className="w-4 md:w-5 h-4 md:h-5 text-muted-foreground mr-2 md:mr-3" />
             <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search itineraries..."
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-base placeholder:text-muted-foreground"
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm md:text-base placeholder:text-muted-foreground"
             />
           </div>
         </div>
 
         {/* Grid */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        <div className="flex-1 overflow-y-auto p-3 md:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
             {filteredItineraries.map((itinerary) => (
               <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
             ))}
           </div>
 
           {filteredItineraries.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No itineraries found matching "{searchQuery}"</p>
+            <div className="text-center py-8 md:py-12">
+              <p className="text-muted-foreground text-sm md:text-base">No itineraries found matching "{searchQuery}"</p>
             </div>
           )}
         </div>

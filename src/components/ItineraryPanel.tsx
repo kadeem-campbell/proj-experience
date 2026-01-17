@@ -50,7 +50,11 @@ import { useItineraries } from "@/hooks/useItineraries";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-export const ItineraryPanel = () => {
+interface ItineraryPanelProps {
+  isMobile?: boolean;
+}
+
+export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
   const { toast } = useToast();
   const {
     activeItinerary,
@@ -200,8 +204,8 @@ export const ItineraryPanel = () => {
     toast({ title: "Exported!", description: "CSV file downloaded" });
   };
 
-  // Collapsed state - just show a thin bar with expand button
-  if (isCollapsed) {
+  // Collapsed state - just show a thin bar with expand button (desktop only)
+  if (isCollapsed && !isMobile) {
     return (
       <aside className="hidden lg:flex w-12 flex-col border-l border-border bg-card/50 items-center py-4">
         <Button
@@ -213,6 +217,80 @@ export const ItineraryPanel = () => {
           <PanelRightOpen className="w-4 h-4" />
         </Button>
       </aside>
+    );
+  }
+
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-full bg-card">
+        {/* Header */}
+        <div className="p-4 border-b border-border">
+          <h2 className="font-semibold text-lg truncate">{activeItinerary.name}</h2>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+            <Badge variant="secondary">{activeItinerary.experiences.length} experiences</Badge>
+            <span>• ${totalPrice.toFixed(0)}</span>
+          </div>
+        </div>
+
+        {/* Experiences List */}
+        <ScrollArea className="flex-1">
+          {activeItinerary.experiences.length === 0 ? (
+            <div className="p-6 text-center">
+              <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+              <h3 className="font-medium mb-2">Start planning</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Add experiences to build your perfect trip
+              </p>
+              <Link to="/">
+                <Button variant="outline" size="sm">
+                  Discover Experiences
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="p-3 space-y-2">
+              {activeItinerary.experiences.map((experience, index) => (
+                <Card key={experience.id} className="p-3">
+                  <div className="flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center font-medium shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm truncate">{experience.title}</h4>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <MapPin className="w-3 h-3" />
+                        <span className="truncate">{experience.location}</span>
+                        <span className="font-medium text-primary">{experience.price}</span>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive shrink-0"
+                      onClick={() => removeExperience(experience.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+
+        {/* Footer */}
+        {activeItinerary.experiences.length > 0 && (
+          <div className="p-4 border-t border-border">
+            <Link to="/itinerary">
+              <Button className="w-full">
+                View Full Itinerary
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        )}
+      </div>
     );
   }
 
