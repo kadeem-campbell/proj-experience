@@ -1,12 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { User, Heart, LogOut } from "lucide-react";
 import { ExportDropdown } from "@/components/ExportDropdown";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+
+// Hidden navigation items - set to false to show
+const HIDDEN_NAV_ITEMS = {
+  map: true,
+  socialFinder: true,
+  travellers: true,
+  creators: true,
+};
 
 export const Navigation = () => {
   const { count } = useLikedExperiences();
@@ -58,15 +66,21 @@ export const Navigation = () => {
               <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">
                 Experiences
               </Link>
-              <Link to="/map" className="text-muted-foreground hover:text-foreground transition-colors">
-                Map
-              </Link>
-              <Link to="/travellers" className="text-muted-foreground hover:text-foreground transition-colors">
-                Travellers
-              </Link>
-              <Link to="/creators" className="text-muted-foreground hover:text-foreground transition-colors">
-                Creators
-              </Link>
+              {!HIDDEN_NAV_ITEMS.map && (
+                <Link to="/map" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Map
+                </Link>
+              )}
+              {!HIDDEN_NAV_ITEMS.travellers && (
+                <Link to="/travellers" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Travellers
+                </Link>
+              )}
+              {!HIDDEN_NAV_ITEMS.creators && (
+                <Link to="/creators" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Creators
+                </Link>
+              )}
               <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
                 About
               </Link>
