@@ -282,6 +282,13 @@ export const useItineraries = () => {
     }
   }, [itineraries, saveItineraries, setActiveItinerary]);
 
+  const updateItineraryCover = useCallback((id: string, coverImage: string) => {
+    const updated = itineraries.map(i =>
+      i.id === id ? { ...i, coverImage, updatedAt: new Date().toISOString() } : i
+    );
+    saveItineraries(updated);
+  }, [itineraries, saveItineraries]);
+
   return {
     itineraries,
     activeItinerary,
@@ -300,6 +307,7 @@ export const useItineraries = () => {
     isInItinerary,
     getShareUrl,
     copyItinerary,
+    updateItineraryCover,
     experienceCount: activeItinerary?.experiences.length || 0
   };
 };

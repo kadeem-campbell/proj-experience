@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   Share2, 
@@ -31,7 +39,11 @@ import {
   MapPin,
   LayoutGrid,
   List,
-  ChevronRight
+  ChevronRight,
+  Edit2,
+  Camera,
+  Users,
+  X
 } from "lucide-react";
 
 type ViewMode = 'grid' | 'table';
@@ -41,11 +53,20 @@ const Itinerary = () => {
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [collaboratorEmail, setCollaboratorEmail] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { 
     activeItinerary, 
     removeExperience,
     togglePublic,
-    getShareUrl
+    getShareUrl,
+    renameItinerary,
+    addCollaborator,
+    removeCollaborator,
+    updateItineraryCover
   } = useItineraries();
 
   if (!activeItinerary) {
@@ -99,6 +120,58 @@ const Itinerary = () => {
     const shareUrl = getShareUrl(activeItinerary.id);
     const text = `Check out my itinerary: ${activeItinerary.name}\n${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleStartEditName = () => {
+    setEditedName(activeItinerary.name);
+    setIsEditingName(true);
+  };
+
+  const handleSaveName = () => {
+    if (editedName.trim()) {
+      renameItinerary(activeItinerary.id, editedName.trim());
+      toast({ title: "Renamed!", description: "Itinerary name updated" });
+    }
+    setIsEditingName(false);
+  };
+
+  const handleCoverImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        updateItineraryCover(activeItinerary.id, base64);
+        toast({ title: "Cover updated!", description: "Your itinerary cover has been changed" });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddCollaborator = () => {
+    if (collaboratorEmail.trim()) {
+      addCollaborator(activeItinerary.id, collaboratorEmail.trim());
+      setCollaboratorEmail("");
+      toast({
+        title: "Collaborator added",
+        description: `${collaboratorEmail} can now view this itinerary`,
+      });
+    }
+  };
+
+  const handleCopyLink = () => {
+    const url = getShareUrl(activeItinerary.id);
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({
+      title: "Link copied!",
+      description: "Share this link with your friends",
+    });
   };
 
   const handleRemoveExperience = (experience: LikedExperience, e: React.MouseEvent) => {
@@ -258,25 +331,27 @@ const Itinerary = () => {
       <Link 
         key={experience.id}
         to={`/experience/${experience.id}`}
-        className="group flex items-center gap-4 px-3 md:px-4 py-3 hover:bg-accent/10 transition-colors duration-150 border-b border-border/50 last:border-0"
+        className="group flex items-center px-4 py-3 hover:bg-accent/10 transition-colors duration-150 border-b border-border/50 last:border-0"
       >
         {/* Thumbnail */}
-        <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 rounded-md overflow-hidden">
-          {experience.videoThumbnail ? (
-            <img 
-              src={experience.videoThumbnail} 
-              alt={experience.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-primary/60" />
-            </div>
-          )}
+        <div className="w-14 shrink-0 mr-4">
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-md overflow-hidden">
+            {experience.videoThumbnail ? (
+              <img 
+                src={experience.videoThumbnail} 
+                alt={experience.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-primary/60" />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Title */}
-        <div className="flex-1 min-w-0 md:flex-[2]">
+        <div className="flex-[2] min-w-0 mr-4">
           <div className="flex items-center gap-1">
             <span className="font-medium text-sm md:text-base truncate group-hover:text-primary transition-colors">
               {experience.title}
@@ -285,31 +360,33 @@ const Itinerary = () => {
           </div>
         </div>
 
-        {/* Location - hidden on mobile */}
-        <div className="hidden md:flex flex-1 items-center gap-2 text-muted-foreground text-sm">
+        {/* Location */}
+        <div className="hidden md:flex flex-1 items-center gap-2 text-muted-foreground text-sm mr-4">
           <MapPin className="w-4 h-4 shrink-0" />
           <span className="truncate">{experience.location || '-'}</span>
         </div>
 
-        {/* Category - hidden on mobile */}
-        <div className="hidden lg:block flex-1 text-muted-foreground text-sm truncate">
+        {/* Category */}
+        <div className="hidden lg:block flex-1 text-muted-foreground text-sm truncate mr-4">
           {experience.category || '-'}
         </div>
 
         {/* Price */}
-        <div className="text-sm font-medium text-primary w-16 text-right">
+        <div className="w-16 text-sm font-medium text-primary text-right mr-4">
           {experience.price || '-'}
         </div>
 
         {/* Remove Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={(e) => handleRemoveExperience(experience, e)}
-          className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+        <div className="w-20 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => handleRemoveExperience(experience, e)}
+            className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
       </Link>
     );
   };
@@ -331,11 +408,14 @@ const Itinerary = () => {
           </Link>
 
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 md:gap-6">
-            {/* Cover Image */}
-            <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl">
-              {coverImage ? (
+            {/* Cover Image - Clickable to change */}
+            <div 
+              onClick={handleCoverImageClick}
+              className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl cursor-pointer group relative"
+            >
+              {activeItinerary.coverImage || coverImage ? (
                 <img 
-                  src={coverImage} 
+                  src={activeItinerary.coverImage || coverImage} 
                   alt={activeItinerary.name}
                   className="w-full h-full object-cover"
                 />
@@ -344,6 +424,17 @@ const Itinerary = () => {
                   <MapPin className="w-12 h-12 text-primary-foreground/70" />
                 </div>
               )}
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera className="w-8 h-8 text-white" />
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCoverImageChange}
+                className="hidden"
+              />
             </div>
 
             {/* Info */}
@@ -362,11 +453,45 @@ const Itinerary = () => {
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 line-clamp-2">
-                {activeItinerary.name}
-              </h1>
+              
+              {/* Editable Name */}
+              {isEditingName ? (
+                <div className="flex items-center gap-2 mb-2 md:mb-4">
+                  <Input
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="text-2xl sm:text-3xl md:text-4xl font-bold bg-transparent border-primary h-auto py-1"
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                  />
+                  <Button size="icon" onClick={handleSaveName}>
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => setIsEditingName(false)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mb-2 md:mb-4 group/name">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold line-clamp-2">
+                    {activeItinerary.name}
+                  </h1>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="opacity-0 group-hover/name:opacity-100 transition-opacity h-8 w-8"
+                    onClick={handleStartEditName}
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              
               <p className="text-muted-foreground text-sm md:text-base">
                 {activeItinerary.experiences.length} experiences
+                {activeItinerary.collaborators.length > 0 && (
+                  <span className="ml-2">• {activeItinerary.collaborators.length} collaborator{activeItinerary.collaborators.length > 1 ? 's' : ''}</span>
+                )}
               </p>
             </div>
           </div>
@@ -415,24 +540,108 @@ const Itinerary = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Share Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            {/* Share Dialog */}
+            <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+              <DialogTrigger asChild>
                 <Button variant="outline" size="icon" className="rounded-full w-8 h-8 md:w-10 md:h-10">
-                  {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                  <Share2 className="w-4 h-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleShare}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Link
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleShareWhatsApp}>
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Share via WhatsApp
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Share Itinerary</DialogTitle>
+                  <DialogDescription>
+                    Share your travel plans with friends and family
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4 pt-4">
+                  {/* Share Link */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Public Link</label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={getShareUrl(activeItinerary.id)} 
+                        readOnly 
+                        className="text-sm"
+                      />
+                      <Button onClick={handleCopyLink}>
+                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Social Share */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Share via</label>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        WhatsApp
+                      </Button>
+                      <Button variant="outline" className="flex-1" onClick={handleCopyLink}>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Link
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Visibility Toggle */}
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Visibility</p>
+                      <p className="text-xs text-muted-foreground">
+                        {activeItinerary.isPublic ? "Anyone with the link can view" : "Only you and collaborators"}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => togglePublic(activeItinerary.id)}
+                    >
+                      {activeItinerary.isPublic ? "Make Private" : "Make Public"}
+                    </Button>
+                  </div>
+
+                  {/* Collaborators */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Add Collaborators
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Email address"
+                        value={collaboratorEmail}
+                        onChange={(e) => setCollaboratorEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddCollaborator()}
+                      />
+                      <Button onClick={handleAddCollaborator}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    {activeItinerary.collaborators.length > 0 && (
+                      <div className="space-y-1 mt-2">
+                        {activeItinerary.collaborators.map((email) => (
+                          <div key={email} className="flex items-center justify-between text-sm bg-muted rounded-md px-3 py-2">
+                            <span>{email}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => removeCollaborator(activeItinerary.id, email)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -506,12 +715,12 @@ const Itinerary = () => {
           ) : (
             <div className="bg-card/50">
               {/* Table Header */}
-              <div className="hidden md:flex items-center gap-4 px-4 py-3 border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <div className="w-14 shrink-0">Image</div>
-                <div className="flex-[2]">Experience</div>
-                <div className="flex-1 hidden md:block">Location</div>
-                <div className="flex-1 hidden lg:block">Category</div>
-                <div className="w-16 text-right">Price</div>
+              <div className="hidden md:flex items-center px-4 py-3 border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <div className="w-14 shrink-0 mr-4">Image</div>
+                <div className="flex-[2] mr-4">Experience</div>
+                <div className="flex-1 hidden md:block mr-4">Location</div>
+                <div className="flex-1 hidden lg:block mr-4">Category</div>
+                <div className="w-16 text-right mr-4">Price</div>
                 <div className="w-20"></div>
               </div>
               
