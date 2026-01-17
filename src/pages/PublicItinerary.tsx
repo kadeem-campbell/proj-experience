@@ -1,28 +1,31 @@
 import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { publicItinerariesData } from "@/hooks/useItineraries";
+import { publicItinerariesData, useItineraries } from "@/hooks/useItineraries";
 import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
+import { LikedExperience } from "@/hooks/useLikedExperiences";
 import { 
   ArrowLeft, 
   Copy, 
   Share2, 
-  MapPin, 
-  User, 
-  Calendar,
-  ExternalLink,
-  Check
+  Search,
+  Check,
+  GripVertical,
+  Plus
 } from "lucide-react";
-import { useState } from "react";
 
 const PublicItinerary = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [draggedExperience, setDraggedExperience] = useState<LikedExperience | null>(null);
+  const { addExperience, isInItinerary } = useItineraries();
 
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
@@ -75,135 +78,201 @@ const PublicItinerary = () => {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+  const handleDragStart = (e: React.DragEvent, experience: LikedExperience) => {
+    setDraggedExperience(experience);
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('text/plain', JSON.stringify(experience));
+  };
+
+  const handleDragEnd = () => {
+    setDraggedExperience(null);
+  };
+
+  const handleAddToItinerary = (experience: LikedExperience) => {
+    if (isInItinerary(experience.id)) {
+      toast({
+        title: "Already in itinerary",
+        description: `${experience.title} is already in your itinerary.`,
+      });
+      return;
+    }
+    
+    addExperience({
+      id: experience.id,
+      title: experience.title,
+      creator: experience.creator,
+      videoThumbnail: experience.videoThumbnail,
+      category: experience.category,
+      location: experience.location,
+      price: experience.price,
+    });
+    
+    toast({
+      title: "Added to itinerary",
+      description: `${experience.title} has been added to your trip.`,
     });
   };
 
+  // Filter experiences by search query
+  const filteredExperiences = itinerary.experiences.filter((experience) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      experience.title?.toLowerCase().includes(q) ||
+      experience.location?.toLowerCase().includes(q) ||
+      experience.category?.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <MainLayout>
-      <div className="p-6 max-w-4xl mx-auto">
-        {/* Back Button */}
-        <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Discover
-        </Link>
+      <div className="flex flex-col h-full">
+        {/* Spotify-style Header */}
+        <div 
+          className="relative bg-gradient-to-b from-primary/30 to-background p-6 pb-8"
+          style={{
+            background: `linear-gradient(180deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--background)) 100%)`
+          }}
+        >
+          {/* Back Button */}
+          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Discover
+          </Link>
 
-        {/* Header */}
-        <div className="mb-8">
-          {/* Cover Image */}
-          {itinerary.coverImage && (
-            <div className="relative h-48 md:h-64 rounded-xl overflow-hidden mb-6">
-              <img 
-                src={itinerary.coverImage} 
-                alt={itinerary.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4">
-                <Badge variant="secondary" className="mb-2">
-                  Public Itinerary
-                </Badge>
-                <h1 className="text-3xl font-bold text-white drop-shadow-lg">{itinerary.name}</h1>
-              </div>
+          <div className="flex items-end gap-6">
+            {/* Cover Image */}
+            <div className="w-48 h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl">
+              {itinerary.coverImage ? (
+                <img 
+                  src={itinerary.coverImage} 
+                  alt={itinerary.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
+                  <span className="text-4xl">🗺️</span>
+                </div>
+              )}
             </div>
-          )}
 
-          {!itinerary.coverImage && (
-            <>
-              <Badge variant="secondary" className="mb-2">
-                Public Itinerary
-              </Badge>
-              <h1 className="text-3xl font-bold mb-4">{itinerary.name}</h1>
-            </>
-          )}
-
-          {/* Meta Info */}
-          <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              <span>by {itinerary.creatorName}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>Updated {formatDate(itinerary.updatedAt)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              <span>{itinerary.experiences.length} experiences</span>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                Collection
+              </p>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 line-clamp-2">
+                {itinerary.name}
+              </h1>
+              <p className="text-muted-foreground">
+                {itinerary.experiences.length} experiences
+              </p>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={() => setCopyDialogOpen(true)} className="gap-2">
+          <div className="flex items-center gap-3 mt-6">
+            <Button onClick={() => setCopyDialogOpen(true)} size="lg" className="gap-2 rounded-full">
               <Copy className="w-4 h-4" />
-              Copy to My Itineraries
+              Copy All
             </Button>
-            <Button variant="outline" onClick={handleShare} className="gap-2">
+            <Button variant="outline" onClick={handleShare} size="icon" className="rounded-full w-10 h-10">
               {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-              {copied ? "Copied!" : "Share"}
             </Button>
           </div>
         </div>
 
-        {/* Experiences List */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Experiences in this itinerary</h2>
-          
-          {itinerary.experiences.map((experience, index) => (
-            <Card key={experience.id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  {/* Order Number */}
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm">
-                    {index + 1}
-                  </div>
-
-                  {/* Experience Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg mb-1">{experience.title}</h3>
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {experience.location}
-                      </span>
-                      <Badge variant="outline" className="text-xs">
-                        {experience.category}
-                      </Badge>
-                      <span className="font-medium text-foreground">{experience.price}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      by {experience.creator}
-                    </p>
-                  </div>
-
-                  {/* View Button */}
-                  <Link to={`/experience/${experience.id}`}>
-                    <Button variant="ghost" size="sm" className="gap-1">
-                      View
-                      <ExternalLink className="w-3 h-3" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Search Bar */}
+        <div className="px-6 py-4 border-b border-border">
+          <div className="flex items-center bg-muted rounded-full px-4 py-2 max-w-md">
+            <Search className="w-4 h-4 text-muted-foreground mr-3" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search in this collection..."
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground"
+            />
+          </div>
         </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-12 p-6 bg-muted/50 rounded-xl text-center">
-          <h3 className="text-lg font-semibold mb-2">Like this itinerary?</h3>
-          <p className="text-muted-foreground mb-4">
-            Copy it to your collection and customize it for your own trip.
-          </p>
-          <Button onClick={() => setCopyDialogOpen(true)} size="lg" className="gap-2">
-            <Copy className="w-4 h-4" />
-            Copy to My Itineraries
-          </Button>
+        {/* Experiences Grid - Spotify Album Style */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {filteredExperiences.map((experience) => {
+              const inItinerary = isInItinerary(experience.id);
+              
+              return (
+                <Card 
+                  key={experience.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, experience)}
+                  onDragEnd={handleDragEnd}
+                  className={`group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-all duration-300 cursor-grab active:cursor-grabbing rounded-lg p-2 ${
+                    draggedExperience?.id === experience.id ? 'opacity-50' : ''
+                  }`}
+                >
+                  {/* Cover Image */}
+                  <div className="relative aspect-square overflow-hidden rounded-md mb-2">
+                    {experience.videoThumbnail ? (
+                      <img 
+                        src={experience.videoThumbnail} 
+                        alt={experience.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                        <span className="text-2xl">📍</span>
+                      </div>
+                    )}
+                    
+                    {/* Drag Handle Overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <GripVertical className="w-6 h-6 text-white drop-shadow-lg" />
+                    </div>
+                    
+                    {/* Add Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToItinerary(experience);
+                      }}
+                      className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                        inItinerary 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
+                      }`}
+                    >
+                      {inItinerary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Content - Just title, Spotify style */}
+                  <Link to={`/experience/${experience.id}`}>
+                    <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+                      {experience.title}
+                    </h3>
+                  </Link>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Empty State */}
+          {filteredExperiences.length === 0 && searchQuery && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                No experiences found matching "{searchQuery}"
+              </p>
+            </div>
+          )}
+
+          {/* Drag hint */}
+          <div className="mt-8 p-4 bg-muted/50 rounded-lg text-center">
+            <p className="text-sm text-muted-foreground">
+              💡 <span className="font-medium">Tip:</span> Drag any experience to your itinerary panel on the right, or click the + button to add it.
+            </p>
+          </div>
         </div>
 
         {/* Copy Dialog */}
