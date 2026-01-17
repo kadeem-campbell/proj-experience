@@ -1,124 +1,111 @@
 import { useState } from "react";
-import { MainLayout } from "@/components/layouts/MainLayout";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { 
-  MapPin, 
-  Calendar, 
-  DollarSign, 
-  Trash2, 
-  GripVertical, 
-  Share2, 
-  Globe, 
-  Lock,
-  Users,
-  Copy,
-  Check,
-  Plus,
-  ExternalLink,
-  Download,
-  FileText,
-  FileSpreadsheet,
-  StickyNote,
-  MessageCircle
-} from "lucide-react";
-import { useItineraries } from "@/hooks/useItineraries";
 import { Link } from "react-router-dom";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { MainLayout } from "@/components/layouts/MainLayout";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { useItineraries } from "@/hooks/useItineraries";
+import { LikedExperience } from "@/hooks/useLikedExperiences";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { 
+  ArrowLeft, 
+  Share2, 
+  Search,
+  Check,
+  Plus,
+  Trash2,
+  Globe,
+  Lock,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  StickyNote,
+  MessageCircle,
+  Copy,
+  MapPin
+} from "lucide-react";
 
 const Itinerary = () => {
   const { toast } = useToast();
-  const {
-    activeItinerary,
+  const [copied, setCopied] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { 
+    activeItinerary, 
     removeExperience,
-    reorderExperiences,
     togglePublic,
-    addCollaborator,
-    removeCollaborator,
     getShareUrl
   } = useItineraries();
 
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [collaboratorEmail, setCollaboratorEmail] = useState("");
-  const [copied, setCopied] = useState(false);
+  if (!activeItinerary) {
+    return (
+      <MainLayout>
+        <div className="p-6 max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold mb-4">No Itinerary Selected</h1>
+          <p className="text-muted-foreground mb-6">Select an itinerary from the sidebar to view it.</p>
+          <Link to="/">
+            <Button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Discover
+            </Button>
+          </Link>
+        </div>
+      </MainLayout>
+    );
+  }
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    setDragOverIndex(index);
-  };
-
-  const handleDrop = (index: number) => {
-    if (draggedIndex !== null && draggedIndex !== index) {
-      reorderExperiences(draggedIndex, index);
+  const handleShare = async () => {
+    const shareUrl = getShareUrl(activeItinerary.id);
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: activeItinerary.name,
+          text: `Check out my itinerary: ${activeItinerary.name}`,
+          url: shareUrl,
+        });
+      } catch (err) {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        toast({
+          title: "Link copied!",
+          description: "Share this link with your friends.",
+        });
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Share this link with your friends.",
+      });
+      setTimeout(() => setCopied(false), 2000);
     }
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleCopyLink = () => {
-    if (!activeItinerary) return;
-    const url = getShareUrl(activeItinerary.id);
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    toast({
-      title: "Link copied!",
-      description: "Share this link with your friends",
-    });
   };
 
   const handleShareWhatsApp = () => {
-    if (!activeItinerary) return;
-    const url = getShareUrl(activeItinerary.id);
-    const text = `Check out my itinerary: ${activeItinerary.name}\n${url}`;
+    const shareUrl = getShareUrl(activeItinerary.id);
+    const text = `Check out my itinerary: ${activeItinerary.name}\n${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const handleShareTwitter = () => {
-    if (!activeItinerary) return;
-    const url = getShareUrl(activeItinerary.id);
-    const text = `Check out my travel itinerary: ${activeItinerary.name}`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
-  };
-
-  const handleShareEmail = () => {
-    if (!activeItinerary) return;
-    const url = getShareUrl(activeItinerary.id);
-    const subject = `My Travel Itinerary: ${activeItinerary.name}`;
-    const body = `Hey!\n\nCheck out my travel itinerary with ${activeItinerary.experiences.length} experiences:\n\n${url}`;
-    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+  const handleRemoveExperience = (experience: LikedExperience, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeExperience(experience.id);
+    toast({
+      title: "Removed from itinerary",
+      description: `${experience.title} has been removed.`,
+    });
   };
 
   const handleExportCSV = () => {
-    if (!activeItinerary) return;
     const headers = ['#', 'Title', 'Category', 'Location', 'Price', 'Creator'];
     const rows = activeItinerary.experiences.map((exp, i) => [
       i + 1,
@@ -142,8 +129,11 @@ const Itinerary = () => {
   };
 
   const handleExportPDF = () => {
-    if (!activeItinerary) return;
-    // Create printable HTML and open print dialog
+    const totalPrice = activeItinerary.experiences.reduce((sum, exp) => {
+      const price = parseFloat(exp.price?.replace('$', '') || '0') || 0;
+      return sum + price;
+    }, 0);
+
     const printContent = `
       <html>
         <head>
@@ -182,7 +172,11 @@ const Itinerary = () => {
   };
 
   const handleExportNote = () => {
-    if (!activeItinerary) return;
+    const totalPrice = activeItinerary.experiences.reduce((sum, exp) => {
+      const price = parseFloat(exp.price?.replace('$', '') || '0') || 0;
+      return sum + price;
+    }, 0);
+
     const noteContent = `${activeItinerary.name}\n${'='.repeat(activeItinerary.name.length)}\n\n${activeItinerary.experiences.length} experiences • Est. $${totalPrice.toFixed(0)} total\n\n${activeItinerary.experiences.map((exp, i) => `${i + 1}. ${exp.title}\n   📍 ${exp.location} • 💰 ${exp.price}`).join('\n\n')}`;
     
     const blob = new Blob([noteContent], { type: 'text/plain' });
@@ -196,324 +190,230 @@ const Itinerary = () => {
     toast({ title: "Exported!", description: "Note file downloaded" });
   };
 
-  const handleAddCollaborator = () => {
-    if (collaboratorEmail.trim() && activeItinerary) {
-      addCollaborator(activeItinerary.id, collaboratorEmail.trim());
-      setCollaboratorEmail("");
-      toast({
-        title: "Collaborator added",
-        description: `${collaboratorEmail} can now view this itinerary`,
-      });
-    }
+  // Filter experiences by search query
+  const filteredExperiences = activeItinerary.experiences.filter((experience) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      experience.title?.toLowerCase().includes(q) ||
+      experience.location?.toLowerCase().includes(q) ||
+      experience.category?.toLowerCase().includes(q)
+    );
+  });
+
+  // Get cover image from first experience or use gradient
+  const coverImage = activeItinerary.experiences[0]?.videoThumbnail;
+
+  // Render experience card component
+  const renderExperienceCard = (experience: LikedExperience) => {
+    return (
+      <Link 
+        key={experience.id}
+        to={`/experience/${experience.id}`}
+      >
+        <Card 
+          className="group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 cursor-pointer rounded-lg p-2"
+        >
+          {/* Cover Image */}
+          <div className="relative aspect-square overflow-hidden rounded-md mb-2">
+            {experience.videoThumbnail ? (
+              <img 
+                src={experience.videoThumbnail} 
+                alt={experience.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-150"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                <span className="text-2xl">📍</span>
+              </div>
+            )}
+            
+            {/* Remove Button */}
+            <button
+              onClick={(e) => handleRemoveExperience(experience, e)}
+              className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Content - Just title, Spotify style */}
+          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+            {experience.title}
+          </h3>
+        </Card>
+      </Link>
+    );
   };
 
-  if (!activeItinerary || activeItinerary.experiences.length === 0) {
-    return (
-      <MainLayout showItineraryPanel={false}>
-        <div className="flex items-center justify-center h-full">
-          <div className="max-w-md text-center py-20 px-6">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-              <MapPin className="w-10 h-10 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold mb-4">Your Itinerary is Empty</h1>
-            <p className="text-muted-foreground mb-8">
-              Start exploring experiences and add them to your itinerary to plan your perfect trip!
-            </p>
-            <Link to="/">
-              <Button size="lg" className="gap-2">
-                <Plus className="w-4 h-4" />
-                Discover Experiences
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  const totalPrice = activeItinerary.experiences.reduce((sum, exp) => {
-    const price = parseFloat(exp.price.replace('$', '')) || 0;
-    return sum + price;
-  }, 0);
-
   return (
-    <MainLayout showItineraryPanel={false}>
-      <div className="p-6 max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">{activeItinerary.name}</h1>
-              {activeItinerary.isPublic ? (
-                <Badge variant="outline" className="text-primary border-primary">
-                  <Globe className="w-3 h-3 mr-1" />
-                  Public
-                </Badge>
+    <MainLayout>
+      <div className="flex flex-col h-full">
+        {/* Spotify-style Header */}
+        <div 
+          className="relative bg-gradient-to-b from-primary/30 to-background p-4 md:p-6 pb-6 md:pb-8"
+          style={{
+            background: `linear-gradient(180deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--background)) 100%)`
+          }}
+        >
+          {/* Back Button */}
+          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors text-sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Discover
+          </Link>
+
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4 md:gap-6">
+            {/* Cover Image */}
+            <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl">
+              {coverImage ? (
+                <img 
+                  src={coverImage} 
+                  alt={activeItinerary.name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <Badge variant="secondary">
-                  <Lock className="w-3 h-3 mr-1" />
-                  Private
-                </Badge>
+                <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
+                  <MapPin className="w-12 h-12 text-primary-foreground/70" />
+                </div>
               )}
             </div>
-            <p className="text-muted-foreground">
-              {activeItinerary.experiences.length} experiences • Est. ${totalPrice.toFixed(0)} total
-            </p>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  My Itinerary
+                </p>
+                {activeItinerary.isPublic ? (
+                  <span className="text-xs text-primary flex items-center gap-1">
+                    <Globe className="w-3 h-3" /> Public
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Lock className="w-3 h-3" /> Private
+                  </span>
+                )}
+              </div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 line-clamp-2">
+                {activeItinerary.name}
+              </h1>
+              <p className="text-muted-foreground text-sm md:text-base">
+                {activeItinerary.experiences.length} experiences
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 md:gap-3 mt-4 md:mt-6">
+            <Button 
+              onClick={() => togglePublic(activeItinerary.id)} 
               variant="outline"
-              onClick={() => togglePublic(activeItinerary.id)}
+              size="sm" 
+              className="gap-2 rounded-full md:hidden"
             >
-              {activeItinerary.isPublic ? (
-                <>
-                  <Lock className="w-4 h-4 mr-2" />
-                  Make Private
-                </>
-              ) : (
-                <>
-                  <Globe className="w-4 h-4 mr-2" />
-                  Make Public
-                </>
-              )}
+              {activeItinerary.isPublic ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+              {activeItinerary.isPublic ? 'Private' : 'Public'}
+            </Button>
+            <Button 
+              onClick={() => togglePublic(activeItinerary.id)} 
+              variant="outline"
+              size="default" 
+              className="gap-2 rounded-full hidden md:flex"
+            >
+              {activeItinerary.isPublic ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+              {activeItinerary.isPublic ? 'Make Private' : 'Make Public'}
             </Button>
 
             {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
+                <Button variant="outline" size="icon" className="rounded-full w-8 h-8 md:w-10 md:h-10">
+                  <Download className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleExportCSV}>
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  Export as CSV
+                  Export CSV
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleExportPDF}>
                   <FileText className="w-4 h-4 mr-2" />
-                  Export as PDF
+                  Export PDF
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleExportNote}>
                   <StickyNote className="w-4 h-4 mr-2" />
-                  Export as Note
+                  Export Note
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Share Dialog */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share
+            {/* Share Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full w-8 h-8 md:w-10 md:h-10">
+                  {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Share Itinerary</DialogTitle>
-                  <DialogDescription>
-                    Share your travel plans with friends and family
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="space-y-4 pt-4">
-                  {/* Share Link */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Public Link</label>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={getShareUrl(activeItinerary.id)} 
-                        readOnly 
-                        className="text-sm"
-                      />
-                      <Button onClick={handleCopyLink}>
-                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Social Share Buttons */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Share via</label>
-                    <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}>
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        WhatsApp
-                      </Button>
-                      <Button variant="outline" className="flex-1" onClick={handleShareTwitter}>
-                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                        </svg>
-                        Twitter/X
-                      </Button>
-                      <Button variant="outline" className="flex-1" onClick={handleShareEmail}>
-                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="2" y="4" width="20" height="16" rx="2" />
-                          <path d="M22 6L12 13 2 6" />
-                        </svg>
-                        Email
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Visibility Toggle */}
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div>
-                      <p className="font-medium text-sm">Visibility</p>
-                      <p className="text-xs text-muted-foreground">
-                        {activeItinerary.isPublic ? "Anyone with the link can view" : "Only you and collaborators"}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => togglePublic(activeItinerary.id)}
-                    >
-                      {activeItinerary.isPublic ? "Make Private" : "Make Public"}
-                    </Button>
-                  </div>
-
-                  {/* Collaborators */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Add Collaborators
-                    </label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Email address"
-                        value={collaboratorEmail}
-                        onChange={(e) => setCollaboratorEmail(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleAddCollaborator()}
-                      />
-                      <Button onClick={handleAddCollaborator}>
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    {activeItinerary.collaborators.length > 0 && (
-                      <div className="space-y-1 mt-2">
-                        {activeItinerary.collaborators.map((email) => (
-                          <div key={email} className="flex items-center justify-between text-sm bg-muted rounded-md px-3 py-2">
-                            <span>{email}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => removeCollaborator(activeItinerary.id, email)}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleShare}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Link
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleShareWhatsApp}>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Share via WhatsApp
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        {/* Experiences List */}
-        <div className="space-y-4">
-          {activeItinerary.experiences.map((experience, index) => (
-            <Card
-              key={experience.id}
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDrop={() => handleDrop(index)}
-              onDragEnd={handleDragEnd}
-              className={cn(
-                "overflow-hidden transition-all group cursor-move",
-                draggedIndex === index && "opacity-50 scale-95",
-                dragOverIndex === index && "ring-2 ring-primary"
-              )}
-            >
-              <div className="flex flex-col md:flex-row">
-                {/* Image */}
-                <div 
-                  className="md:w-48 h-48 md:h-auto bg-cover bg-center relative"
-                  style={{ backgroundImage: `url(${experience.videoThumbnail})` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/10" />
-                  <div className="absolute top-3 left-3 flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                      {index + 1}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 p-4 md:p-6 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div>
-                        <Badge className="mb-2">{experience.category}</Badge>
-                        <h3 className="text-xl font-semibold">{experience.title}</h3>
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <GripVertical className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    </div>
-
-                    <p className="text-muted-foreground text-sm mb-4">
-                      By {experience.creator}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        <span>{experience.location}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="w-4 h-4" />
-                        <span className="font-semibold text-primary">{experience.price}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>Added {new Date(experience.likedAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Link to={`/experience/${experience.id}`}>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          View Details
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => removeExperience(experience.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
+        {/* Search Bar */}
+        <div className="px-3 md:px-6 py-3 md:py-4 border-b border-border">
+          <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 max-w-md">
+            <Search className="w-4 h-4 text-muted-foreground mr-2 md:mr-3" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search in your itinerary..."
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground"
+            />
+          </div>
         </div>
 
-        {/* Add More CTA */}
-        <div className="mt-8 text-center">
-          <p className="text-muted-foreground mb-4">Want to add more experiences?</p>
-          <Link to="/">
-            <Button variant="outline" size="lg">
-              <Plus className="w-4 h-4 mr-2" />
-              Discover More Experiences
-            </Button>
-          </Link>
+        {/* Experiences Content */}
+        <div className="flex-1 overflow-y-auto p-3 md:p-6">
+          {activeItinerary.experiences.length === 0 ? (
+            <div className="text-center py-12">
+              <MapPin className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
+              <h2 className="text-xl font-semibold mb-2">Your itinerary is empty</h2>
+              <p className="text-muted-foreground mb-6">
+                Start exploring and add experiences to build your perfect trip!
+              </p>
+              <Link to="/">
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Discover Experiences
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+                {filteredExperiences.map(renderExperienceCard)}
+              </div>
+
+              {/* Empty search state */}
+              {filteredExperiences.length === 0 && searchQuery && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">
+                    No experiences found matching "{searchQuery}"
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </MainLayout>

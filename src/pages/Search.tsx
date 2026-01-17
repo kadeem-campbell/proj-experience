@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
@@ -112,6 +112,8 @@ const getAllExperiences = () => {
   return uniqueExperiences;
 };
 
+const SCROLL_STORAGE_KEY = 'discover_scroll_position';
+
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
@@ -121,6 +123,28 @@ const SearchPage = () => {
   const [visibleCount, setVisibleCount] = useState(12);
   const { activeItinerary, experienceCount } = useItineraries();
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Restore scroll position on mount
+  useEffect(() => {
+    const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
+    if (savedPosition && scrollContainerRef.current) {
+      const position = parseInt(savedPosition, 10);
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = position;
+        }
+      }, 0);
+    }
+  }, []);
+
+  // Save scroll position on scroll
+  const handleScroll = useCallback(() => {
+    if (scrollContainerRef.current) {
+      sessionStorage.setItem(SCROLL_STORAGE_KEY, scrollContainerRef.current.scrollTop.toString());
+    }
+  }, []);
 
   // Infinite scroll with IntersectionObserver
   useEffect(() => {
@@ -285,7 +309,11 @@ const SearchPage = () => {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-6">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto p-3 md:p-6"
+        >
           {/* Itinerary CTA Header */}
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl md:rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
