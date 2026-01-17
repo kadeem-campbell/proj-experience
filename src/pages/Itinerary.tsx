@@ -28,13 +28,19 @@ import {
   StickyNote,
   MessageCircle,
   Copy,
-  MapPin
+  MapPin,
+  LayoutGrid,
+  List,
+  ChevronRight
 } from "lucide-react";
+
+type ViewMode = 'grid' | 'table';
 
 const Itinerary = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const { 
     activeItinerary, 
     removeExperience,
@@ -204,7 +210,7 @@ const Itinerary = () => {
   // Get cover image from first experience or use gradient
   const coverImage = activeItinerary.experiences[0]?.videoThumbnail;
 
-  // Render experience card component
+  // Render experience card component (grid view)
   const renderExperienceCard = (experience: LikedExperience) => {
     return (
       <Link 
@@ -242,6 +248,68 @@ const Itinerary = () => {
             {experience.title}
           </h3>
         </Card>
+      </Link>
+    );
+  };
+
+  // Render experience row component (table view)
+  const renderExperienceRow = (experience: LikedExperience) => {
+    return (
+      <Link 
+        key={experience.id}
+        to={`/experience/${experience.id}`}
+        className="group flex items-center gap-4 px-3 md:px-4 py-3 hover:bg-accent/10 transition-colors duration-150 border-b border-border/50 last:border-0"
+      >
+        {/* Thumbnail */}
+        <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 rounded-md overflow-hidden">
+          {experience.videoThumbnail ? (
+            <img 
+              src={experience.videoThumbnail} 
+              alt={experience.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+              <MapPin className="w-5 h-5 text-primary/60" />
+            </div>
+          )}
+        </div>
+
+        {/* Title */}
+        <div className="flex-1 min-w-0 md:flex-[2]">
+          <div className="flex items-center gap-1">
+            <span className="font-medium text-sm md:text-base truncate group-hover:text-primary transition-colors">
+              {experience.title}
+            </span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </div>
+        </div>
+
+        {/* Location - hidden on mobile */}
+        <div className="hidden md:flex flex-1 items-center gap-2 text-muted-foreground text-sm">
+          <MapPin className="w-4 h-4 shrink-0" />
+          <span className="truncate">{experience.location || '-'}</span>
+        </div>
+
+        {/* Category - hidden on mobile */}
+        <div className="hidden lg:block flex-1 text-muted-foreground text-sm truncate">
+          {experience.category || '-'}
+        </div>
+
+        {/* Price */}
+        <div className="text-sm font-medium text-primary w-16 text-right">
+          {experience.price || '-'}
+        </div>
+
+        {/* Remove Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => handleRemoveExperience(experience, e)}
+          className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
       </Link>
     );
   };
@@ -368,24 +436,46 @@ const Itinerary = () => {
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar with View Toggle */}
         <div className="px-3 md:px-6 py-3 md:py-4 border-b border-border">
-          <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 max-w-md">
-            <Search className="w-4 h-4 text-muted-foreground mr-2 md:mr-3" />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search in your itinerary..."
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground"
-            />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 max-w-md flex-1">
+              <Search className="w-4 h-4 text-muted-foreground mr-2 md:mr-3" />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search in your itinerary..."
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground"
+              />
+            </div>
+            
+            {/* View Toggle */}
+            <div className="flex items-center gap-1 bg-muted rounded-full p-1">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setViewMode('table')}
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Experiences Content */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-6">
+        <div className="flex-1 overflow-y-auto">
           {activeItinerary.experiences.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 px-4">
               <MapPin className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
               <h2 className="text-xl font-semibold mb-2">Your itinerary is empty</h2>
               <p className="text-muted-foreground mb-6">
@@ -398,8 +488,8 @@ const Itinerary = () => {
                 </Button>
               </Link>
             </div>
-          ) : (
-            <>
+          ) : viewMode === 'grid' ? (
+            <div className="p-3 md:p-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                 {filteredExperiences.map(renderExperienceCard)}
               </div>
@@ -412,7 +502,33 @@ const Itinerary = () => {
                   </p>
                 </div>
               )}
-            </>
+            </div>
+          ) : (
+            <div className="bg-card/50">
+              {/* Table Header */}
+              <div className="hidden md:flex items-center gap-4 px-4 py-3 border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <div className="w-14 shrink-0">Image</div>
+                <div className="flex-[2]">Experience</div>
+                <div className="flex-1 hidden md:block">Location</div>
+                <div className="flex-1 hidden lg:block">Category</div>
+                <div className="w-16 text-right">Price</div>
+                <div className="w-20"></div>
+              </div>
+              
+              {/* Table Rows */}
+              <div>
+                {filteredExperiences.map(renderExperienceRow)}
+              </div>
+
+              {/* Empty search state */}
+              {filteredExperiences.length === 0 && searchQuery && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">
+                    No experiences found matching "{searchQuery}"
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
