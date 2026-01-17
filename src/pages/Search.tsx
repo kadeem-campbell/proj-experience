@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
@@ -119,6 +119,25 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
   const { activeItinerary, experienceCount } = useItineraries();
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Infinite scroll with IntersectionObserver
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && visibleCount < experiences.length) {
+          setVisibleCount(prev => Math.min(prev + 12, experiences.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [visibleCount, experiences.length]);
   const navigate = useNavigate();
 
   const getDefaultImage = (category: string) => {
@@ -331,22 +350,19 @@ const SearchPage = () => {
                   <div
                     key={experience.id}
                     className="animate-slide-up"
-                    style={{ animationDelay: `${index * 0.03}s` }}
+                    style={{ animationDelay: `${Math.min(index, 11) * 0.03}s` }}
                   >
                     <ExperienceCard {...experience} compact />
                   </div>
                 ))}
               </div>
+              {/* Infinite scroll trigger */}
               {visibleCount < experiences.length && (
-                <div className="flex justify-center mt-8">
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    onClick={() => setVisibleCount(prev => prev + 12)}
-                    className="rounded-full"
-                  >
-                    Load More Experiences
-                  </Button>
+                <div 
+                  ref={loadMoreRef}
+                  className="flex justify-center py-8"
+                >
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
               )}
             </div>

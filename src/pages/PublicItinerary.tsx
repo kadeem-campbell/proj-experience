@@ -424,53 +424,11 @@ const PublicItinerary = () => {
           </div>
         </div>
 
-        {/* Categorized Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          
-          {/* Most Popular Section */}
-          {!searchQuery && popularExperiences.length > 0 && (
-            <div>
-              <h2 className="text-lg font-bold mb-4">Most Popular</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {popularExperiences.map(renderExperienceCard)}
-              </div>
-            </div>
-          )}
-
-          {/* Category Sections */}
-          {!searchQuery && categories.map(category => {
-            const categoryExperiences = getExperiencesByCategory(category!);
-            if (categoryExperiences.length === 0) return null;
-            
-            return (
-              <div key={category}>
-                <h2 className="text-lg font-bold mb-4">{category}</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {categoryExperiences.map(renderExperienceCard)}
-                </div>
-              </div>
-            );
-          })}
-
-          {/* All Experiences (when searching or as fallback) */}
-          {searchQuery && (
-            <div>
-              <h2 className="text-lg font-bold mb-4">Search Results</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {filteredExperiences.map(renderExperienceCard)}
-              </div>
-            </div>
-          )}
-
-          {/* Show All Section */}
-          {!searchQuery && (
-            <div>
-              <h2 className="text-lg font-bold mb-4">All Experiences</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {filteredExperiences.map(renderExperienceCard)}
-              </div>
-            </div>
-          )}
+        {/* Experiences Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {filteredExperiences.map(renderExperienceCard)}
+          </div>
 
           {/* Empty State */}
           {filteredExperiences.length === 0 && searchQuery && (
@@ -480,7 +438,6 @@ const PublicItinerary = () => {
               </p>
             </div>
           )}
-
         </div>
 
         {/* Copy Dialog */}
