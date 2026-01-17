@@ -33,43 +33,39 @@ export const CopyItineraryDialog = ({
   sourceItinerary,
   onCopyComplete
 }: CopyItineraryDialogProps) => {
-  const { itineraries, createItinerary, addExperience, setActiveItinerary, addExperienceToItinerary } = useItineraries();
+  const { itineraries, copyItinerary } = useItineraries();
   
   const [copyMode, setCopyMode] = useState<"new" | "existing">("new");
   const [newName, setNewName] = useState(sourceItinerary.name);
   const [selectedItineraryId, setSelectedItineraryId] = useState<string>("");
 
   const handleCopy = () => {
+    // Convert public itinerary format to internal Itinerary format for copyItinerary
+    const sourceAsItinerary = {
+      id: sourceItinerary.id,
+      name: sourceItinerary.name,
+      experiences: sourceItinerary.experiences.map(exp => ({
+        id: exp.id,
+        title: exp.title,
+        creator: exp.creator,
+        videoThumbnail: exp.videoThumbnail,
+        category: exp.category,
+        location: exp.location,
+        price: exp.price,
+        likedAt: new Date().toISOString()
+      })),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isPublic: false,
+      collaborators: []
+    };
+
     if (copyMode === "new") {
-      // Create new itinerary with the custom name
-      const newItinerary = createItinerary(newName || sourceItinerary.name);
-      setActiveItinerary(newItinerary.id);
-      
-      // Add all experiences
-      sourceItinerary.experiences.forEach(exp => {
-        addExperience({
-          id: exp.id,
-          title: exp.title,
-          creator: exp.creator,
-          videoThumbnail: exp.videoThumbnail,
-          category: exp.category,
-          location: exp.location,
-          price: exp.price
-        });
-      });
+      // Create new itinerary with the custom name and all experiences
+      copyItinerary(sourceAsItinerary, newName || sourceItinerary.name);
     } else if (copyMode === "existing" && selectedItineraryId) {
-      // Add to existing itinerary
-      sourceItinerary.experiences.forEach(exp => {
-        addExperienceToItinerary(selectedItineraryId, {
-          id: exp.id,
-          title: exp.title,
-          creator: exp.creator,
-          videoThumbnail: exp.videoThumbnail,
-          category: exp.category,
-          location: exp.location,
-          price: exp.price
-        });
-      });
+      // Merge into existing itinerary
+      copyItinerary(sourceAsItinerary, undefined, selectedItineraryId);
     }
 
     onOpenChange(false);

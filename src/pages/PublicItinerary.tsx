@@ -389,7 +389,7 @@ const PublicItinerary = () => {
           <div className="flex items-center gap-3 mt-6">
             <Button onClick={() => setCopyDialogOpen(true)} size="lg" className="gap-2 rounded-full">
               <Copy className="w-4 h-4" />
-              Copy All
+              Copy Itinerary
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
