@@ -192,6 +192,22 @@ export const useItineraries = () => {
     saveItineraries(updated);
   }, [activeItineraryId, itineraries, saveItineraries]);
 
+  const updateExperienceDetails = useCallback((experienceId: string, updates: Partial<LikedExperience>) => {
+    if (!activeItineraryId) return;
+    
+    const updated = itineraries.map(i => {
+      if (i.id !== activeItineraryId) return i;
+      return {
+        ...i,
+        experiences: i.experiences.map(e => 
+          e.id === experienceId ? { ...e, ...updates } : e
+        ),
+        updatedAt: new Date().toISOString()
+      };
+    });
+    saveItineraries(updated);
+  }, [activeItineraryId, itineraries, saveItineraries]);
+
   const reorderExperiences = useCallback((startIndex: number, endIndex: number) => {
     if (!activeItineraryId) return;
     
@@ -308,6 +324,7 @@ export const useItineraries = () => {
     getShareUrl,
     copyItinerary,
     updateItineraryCover,
+    updateExperienceDetails,
     experienceCount: activeItinerary?.experiences.length || 0
   };
 };

@@ -1,12 +1,15 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useItineraries } from "@/hooks/useItineraries";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
+import { SwipeableExperienceItem } from "@/components/SwipeableExperienceItem";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,13 +46,19 @@ import {
   Edit2,
   Camera,
   Users,
-  X
+  X,
+  GripVertical,
+  Clock,
+  DollarSign,
+  Timer,
+  Pencil
 } from "lucide-react";
 
 type ViewMode = 'grid' | 'table';
 
 const Itinerary = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -57,6 +66,9 @@ const Itinerary = () => {
   const [editedName, setEditedName] = useState("");
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
+  const [editingExperienceId, setEditingExperienceId] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { 
     activeItinerary, 
@@ -66,7 +78,9 @@ const Itinerary = () => {
     renameItinerary,
     addCollaborator,
     removeCollaborator,
-    updateItineraryCover
+    updateItineraryCover,
+    updateExperienceDetails,
+    reorderExperiences
   } = useItineraries();
 
   if (!activeItinerary) {
@@ -85,6 +99,24 @@ const Itinerary = () => {
       </MainLayout>
     );
   }
+
+  // Calculate totals
+  const totalPrice = activeItinerary.experiences.reduce((sum, exp) => {
+    const price = parseFloat(exp.price?.replace(/[^0-9.]/g, '') || '0') || 0;
+    return sum + price;
+  }, 0);
+
+  const totalDuration = activeItinerary.experiences.reduce((sum, exp) => {
+    return sum + (exp.estimatedDuration || 60); // Default 60 min per experience
+  }, 0);
+
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins}m`;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}m`;
+  };
 
   const handleShare = async () => {
     const shareUrl = getShareUrl(activeItinerary.id);
@@ -174,9 +206,11 @@ const Itinerary = () => {
     });
   };
 
-  const handleRemoveExperience = (experience: LikedExperience, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRemoveExperience = (experience: LikedExperience, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     removeExperience(experience.id);
     toast({
       title: "Removed from itinerary",
@@ -184,14 +218,45 @@ const Itinerary = () => {
     });
   };
 
+  const handleUpdateExperienceNotes = (experienceId: string, notes: string) => {
+    updateExperienceDetails(experienceId, { notes });
+  };
+
+  const handleUpdateExperienceTime = (experienceId: string, scheduledTime: string) => {
+    updateExperienceDetails(experienceId, { scheduledTime });
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+      reorderExperiences(draggedIndex, dragOverIndex);
+      toast({ title: "Reordered!", description: "Experience order updated" });
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   const handleExportCSV = () => {
-    const headers = ['#', 'Title', 'Category', 'Location', 'Price', 'Creator'];
+    const headers = ['#', 'Title', 'Category', 'Location', 'Price', 'Scheduled Time', 'Notes', 'Creator'];
     const rows = activeItinerary.experiences.map((exp, i) => [
       i + 1,
       exp.title,
       exp.category || '',
       exp.location || '',
       exp.price || '',
+      exp.scheduledTime || '',
+      exp.notes || '',
       exp.creator || ''
     ]);
     
@@ -208,11 +273,6 @@ const Itinerary = () => {
   };
 
   const handleExportPDF = () => {
-    const totalPrice = activeItinerary.experiences.reduce((sum, exp) => {
-      const price = parseFloat(exp.price?.replace('$', '') || '0') || 0;
-      return sum + price;
-    }, 0);
-
     const printContent = `
       <html>
         <head>
@@ -225,16 +285,20 @@ const Itinerary = () => {
             .number { background: #E32255; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px; }
             .title { font-weight: bold; font-size: 16px; }
             .details { color: #666; font-size: 14px; margin-top: 5px; }
+            .notes { color: #888; font-style: italic; margin-top: 5px; font-size: 13px; }
+            .time { color: #E32255; font-weight: 500; }
           </style>
         </head>
         <body>
           <h1>${activeItinerary.name}</h1>
-          <p class="subtitle">${activeItinerary.experiences.length} experiences • Est. $${totalPrice.toFixed(0)} total</p>
+          <p class="subtitle">${activeItinerary.experiences.length} experiences • Est. $${totalPrice.toFixed(0)} total • ${formatDuration(totalDuration)}</p>
           ${activeItinerary.experiences.map((exp, i) => `
             <div class="experience">
               <span class="number">${i + 1}</span>
               <span class="title">${exp.title}</span>
+              ${exp.scheduledTime ? `<span class="time"> @ ${exp.scheduledTime}</span>` : ''}
               <div class="details">${exp.location} • ${exp.price} • ${exp.category || ''}</div>
+              ${exp.notes ? `<div class="notes">"${exp.notes}"</div>` : ''}
             </div>
           `).join('')}
         </body>
@@ -251,12 +315,7 @@ const Itinerary = () => {
   };
 
   const handleExportNote = () => {
-    const totalPrice = activeItinerary.experiences.reduce((sum, exp) => {
-      const price = parseFloat(exp.price?.replace('$', '') || '0') || 0;
-      return sum + price;
-    }, 0);
-
-    const noteContent = `${activeItinerary.name}\n${'='.repeat(activeItinerary.name.length)}\n\n${activeItinerary.experiences.length} experiences • Est. $${totalPrice.toFixed(0)} total\n\n${activeItinerary.experiences.map((exp, i) => `${i + 1}. ${exp.title}\n   📍 ${exp.location} • 💰 ${exp.price}`).join('\n\n')}`;
+    const noteContent = `${activeItinerary.name}\n${'='.repeat(activeItinerary.name.length)}\n\n${activeItinerary.experiences.length} experiences • Est. $${totalPrice.toFixed(0)} total • ${formatDuration(totalDuration)}\n\n${activeItinerary.experiences.map((exp, i) => `${i + 1}. ${exp.title}${exp.scheduledTime ? ` @ ${exp.scheduledTime}` : ''}\n   📍 ${exp.location} • 💰 ${exp.price}${exp.notes ? `\n   📝 ${exp.notes}` : ''}`).join('\n\n')}`;
     
     const blob = new Blob([noteContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -276,7 +335,8 @@ const Itinerary = () => {
     return (
       experience.title?.toLowerCase().includes(q) ||
       experience.location?.toLowerCase().includes(q) ||
-      experience.category?.toLowerCase().includes(q)
+      experience.category?.toLowerCase().includes(q) ||
+      experience.notes?.toLowerCase().includes(q)
     );
   });
 
@@ -284,58 +344,106 @@ const Itinerary = () => {
   const coverImage = activeItinerary.experiences[0]?.videoThumbnail;
 
   // Render experience card component (grid view)
-  const renderExperienceCard = (experience: LikedExperience) => {
+  const renderExperienceCard = (experience: LikedExperience, index: number) => {
+    const cardContent = (
+      <Card 
+        className={`group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 cursor-pointer rounded-lg p-2 ${
+          draggedIndex === index ? 'opacity-50' : ''
+        } ${dragOverIndex === index ? 'ring-2 ring-primary' : ''}`}
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        onDragOver={(e) => handleDragOver(e, index)}
+        onDragEnd={handleDragEnd}
+      >
+        {/* Cover Image */}
+        <div className="relative aspect-square overflow-hidden rounded-md mb-2">
+          {experience.videoThumbnail ? (
+            <img 
+              src={experience.videoThumbnail} 
+              alt={experience.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-150"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+              <span className="text-2xl">📍</span>
+            </div>
+          )}
+          
+          {/* Drag Handle */}
+          <div className="absolute top-2 left-2 w-6 h-6 rounded bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
+            <GripVertical className="w-4 h-4 text-white" />
+          </div>
+
+          {/* Scheduled Time Badge */}
+          {experience.scheduledTime && (
+            <div className="absolute top-2 right-2 px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full font-medium">
+              {experience.scheduledTime}
+            </div>
+          )}
+          
+          {/* Remove Button */}
+          <button
+            onClick={(e) => handleRemoveExperience(experience, e)}
+            className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+
+          {/* Edit Notes Button */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setEditingExperienceId(experience.id);
+            }}
+            className="absolute bottom-2 left-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+          {experience.title}
+        </h3>
+        {experience.notes && (
+          <p className="text-xs text-muted-foreground line-clamp-1 mt-1 italic">
+            {experience.notes}
+          </p>
+        )}
+      </Card>
+    );
+
     return (
       <Link 
         key={experience.id}
         to={`/experience/${experience.id}`}
       >
-        <Card 
-          className="group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 cursor-pointer rounded-lg p-2"
-        >
-          {/* Cover Image */}
-          <div className="relative aspect-square overflow-hidden rounded-md mb-2">
-            {experience.videoThumbnail ? (
-              <img 
-                src={experience.videoThumbnail} 
-                alt={experience.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-150"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                <span className="text-2xl">📍</span>
-              </div>
-            )}
-            
-            {/* Remove Button */}
-            <button
-              onClick={(e) => handleRemoveExperience(experience, e)}
-              className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Content - Just title, Spotify style */}
-          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
-            {experience.title}
-          </h3>
-        </Card>
+        {cardContent}
       </Link>
     );
   };
 
   // Render experience row component (table view)
-  const renderExperienceRow = (experience: LikedExperience) => {
-    return (
-      <Link 
-        key={experience.id}
-        to={`/experience/${experience.id}`}
-        className="group flex items-center px-4 py-3 hover:bg-accent/10 transition-colors duration-150 border-b border-border/50 last:border-0"
+  const renderExperienceRow = (experience: LikedExperience, index: number) => {
+    const rowContent = (
+      <div
+        className={`group flex items-center px-4 py-3 hover:bg-accent/10 transition-colors duration-150 border-b border-border/50 last:border-0 ${
+          draggedIndex === index ? 'opacity-50' : ''
+        } ${dragOverIndex === index ? 'bg-primary/10' : ''}`}
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        onDragOver={(e) => handleDragOver(e, index)}
+        onDragEnd={handleDragEnd}
       >
+        {/* Drag Handle */}
+        <div className="w-8 shrink-0 mr-2 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </div>
+
         {/* Thumbnail */}
-        <div className="w-14 shrink-0 mr-4">
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-md overflow-hidden">
+        <div className="w-12 shrink-0 mr-4">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-md overflow-hidden">
             {experience.videoThumbnail ? (
               <img 
                 src={experience.videoThumbnail} 
@@ -344,13 +452,13 @@ const Itinerary = () => {
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-primary/60" />
+                <MapPin className="w-4 h-4 text-primary/60" />
               </div>
             )}
           </div>
         </div>
 
-        {/* Title */}
+        {/* Title + Notes */}
         <div className="flex-[2] min-w-0 mr-4">
           <div className="flex items-center gap-1">
             <span className="font-medium text-sm md:text-base truncate group-hover:text-primary transition-colors">
@@ -358,6 +466,19 @@ const Itinerary = () => {
             </span>
             <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
           </div>
+          {experience.notes && (
+            <p className="text-xs text-muted-foreground truncate italic">{experience.notes}</p>
+          )}
+        </div>
+
+        {/* Scheduled Time */}
+        <div className="hidden sm:flex w-20 items-center gap-1 text-sm text-primary mr-4">
+          {experience.scheduledTime && (
+            <>
+              <Clock className="w-3 h-3" />
+              <span>{experience.scheduledTime}</span>
+            </>
+          )}
         </div>
 
         {/* Location */}
@@ -376,20 +497,57 @@ const Itinerary = () => {
           {experience.price || '-'}
         </div>
 
-        {/* Remove Button */}
-        <div className="w-20 flex justify-end">
+        {/* Actions */}
+        <div className="w-20 flex justify-end gap-1">
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setEditingExperienceId(experience.id);
+            }}
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
             onClick={(e) => handleRemoveExperience(experience, e)}
-            className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
+      </div>
+    );
+
+    // Wrap in swipeable on mobile
+    if (isMobile) {
+      return (
+        <SwipeableExperienceItem
+          key={experience.id}
+          onSwipeRemove={() => handleRemoveExperience(experience)}
+        >
+          <Link to={`/experience/${experience.id}`}>
+            {rowContent}
+          </Link>
+        </SwipeableExperienceItem>
+      );
+    }
+
+    return (
+      <Link key={experience.id} to={`/experience/${experience.id}`}>
+        {rowContent}
       </Link>
     );
   };
+
+  // Find the experience being edited
+  const editingExperience = editingExperienceId 
+    ? activeItinerary.experiences.find(e => e.id === editingExperienceId)
+    : null;
 
   return (
     <MainLayout>
@@ -487,12 +645,21 @@ const Itinerary = () => {
                 </div>
               )}
               
-              <p className="text-muted-foreground text-sm md:text-base">
-                {activeItinerary.experiences.length} experiences
+              {/* Stats Row */}
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <span>{activeItinerary.experiences.length} experiences</span>
+                <span className="flex items-center gap-1">
+                  <DollarSign className="w-4 h-4 text-primary" />
+                  ~${totalPrice.toFixed(0)} total
+                </span>
+                <span className="flex items-center gap-1">
+                  <Timer className="w-4 h-4 text-primary" />
+                  ~{formatDuration(totalDuration)}
+                </span>
                 {activeItinerary.collaborators.length > 0 && (
-                  <span className="ml-2">• {activeItinerary.collaborators.length} collaborator{activeItinerary.collaborators.length > 1 ? 's' : ''}</span>
+                  <span>• {activeItinerary.collaborators.length} collaborator{activeItinerary.collaborators.length > 1 ? 's' : ''}</span>
                 )}
-              </p>
+              </div>
             </div>
           </div>
 
@@ -681,6 +848,13 @@ const Itinerary = () => {
           </div>
         </div>
 
+        {/* Mobile tip */}
+        {isMobile && viewMode === 'table' && activeItinerary.experiences.length > 0 && (
+          <div className="px-4 py-2 bg-muted/50 text-xs text-muted-foreground text-center">
+            💡 Swipe left on an experience to remove it
+          </div>
+        )}
+
         {/* Experiences Content */}
         <div className="flex-1 overflow-y-auto">
           {activeItinerary.experiences.length === 0 ? (
@@ -700,7 +874,7 @@ const Itinerary = () => {
           ) : viewMode === 'grid' ? (
             <div className="p-3 md:p-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
-                {filteredExperiences.map(renderExperienceCard)}
+                {filteredExperiences.map((exp, index) => renderExperienceCard(exp, index))}
               </div>
 
               {/* Empty search state */}
@@ -716,8 +890,10 @@ const Itinerary = () => {
             <div className="bg-card/50">
               {/* Table Header */}
               <div className="hidden md:flex items-center px-4 py-3 border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <div className="w-14 shrink-0 mr-4">Image</div>
+                <div className="w-8 shrink-0 mr-2"></div>
+                <div className="w-12 shrink-0 mr-4">Image</div>
                 <div className="flex-[2] mr-4">Experience</div>
+                <div className="w-20 hidden sm:block mr-4">Time</div>
                 <div className="flex-1 hidden md:block mr-4">Location</div>
                 <div className="flex-1 hidden lg:block mr-4">Category</div>
                 <div className="w-16 text-right mr-4">Price</div>
@@ -726,7 +902,7 @@ const Itinerary = () => {
               
               {/* Table Rows */}
               <div>
-                {filteredExperiences.map(renderExperienceRow)}
+                {filteredExperiences.map((exp, index) => renderExperienceRow(exp, index))}
               </div>
 
               {/* Empty search state */}
@@ -741,6 +917,79 @@ const Itinerary = () => {
           )}
         </div>
       </div>
+
+      {/* Edit Experience Notes/Time Dialog */}
+      <Dialog open={!!editingExperienceId} onOpenChange={(open) => !open && setEditingExperienceId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Plan Experience</DialogTitle>
+            <DialogDescription>
+              Add notes and schedule a time for this experience
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingExperience && (
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 rounded-md overflow-hidden shrink-0">
+                  {editingExperience.videoThumbnail ? (
+                    <img 
+                      src={editingExperience.videoThumbnail} 
+                      alt={editingExperience.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                      <MapPin className="w-6 h-6 text-primary/60" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold truncate">{editingExperience.title}</h3>
+                  <p className="text-sm text-muted-foreground">{editingExperience.location}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Scheduled Time
+                </label>
+                <Input
+                  type="time"
+                  value={editingExperience.scheduledTime || ''}
+                  onChange={(e) => handleUpdateExperienceTime(editingExperience.id, e.target.value)}
+                  placeholder="e.g., 09:00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <StickyNote className="w-4 h-4" />
+                  Notes
+                </label>
+                <Textarea
+                  value={editingExperience.notes || ''}
+                  onChange={(e) => handleUpdateExperienceNotes(editingExperience.id, e.target.value)}
+                  placeholder="Add notes for this experience..."
+                  rows={3}
+                />
+              </div>
+
+              <Button 
+                className="w-full" 
+                onClick={() => {
+                  setEditingExperienceId(null);
+                  toast({ title: "Saved!", description: "Experience details updated" });
+                }}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Done
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };

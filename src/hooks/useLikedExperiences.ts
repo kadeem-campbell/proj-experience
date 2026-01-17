@@ -9,6 +9,10 @@ export interface LikedExperience {
   location: string;
   price: string;
   likedAt: string;
+  // Planning fields
+  notes?: string;
+  scheduledTime?: string;
+  estimatedDuration?: number; // in minutes
 }
 
 const STORAGE_KEY = 'likedExperiences';
