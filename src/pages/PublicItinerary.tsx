@@ -159,7 +159,7 @@ const PublicItinerary = () => {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
-                Collection
+                Itinerary
               </p>
               <h1 className="text-4xl md:text-5xl font-bold mb-4 line-clamp-2">
                 {itinerary.name}
@@ -190,7 +190,7 @@ const PublicItinerary = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search in this collection..."
+              placeholder="Search in this itinerary..."
               className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground"
             />
           </div>
