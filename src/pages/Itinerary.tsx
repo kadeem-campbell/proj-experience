@@ -17,7 +17,12 @@ import {
   Copy,
   Check,
   Plus,
-  ExternalLink
+  ExternalLink,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  StickyNote,
+  MessageCircle
 } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { Link } from "react-router-dom";
@@ -29,7 +34,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const Itinerary = () => {
@@ -81,6 +93,107 @@ const Itinerary = () => {
       title: "Link copied!",
       description: "Share this link with your friends",
     });
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!activeItinerary) return;
+    const url = getShareUrl(activeItinerary.id);
+    const text = `Check out my itinerary: ${activeItinerary.name}\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleShareTwitter = () => {
+    if (!activeItinerary) return;
+    const url = getShareUrl(activeItinerary.id);
+    const text = `Check out my travel itinerary: ${activeItinerary.name}`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  };
+
+  const handleShareEmail = () => {
+    if (!activeItinerary) return;
+    const url = getShareUrl(activeItinerary.id);
+    const subject = `My Travel Itinerary: ${activeItinerary.name}`;
+    const body = `Hey!\n\nCheck out my travel itinerary with ${activeItinerary.experiences.length} experiences:\n\n${url}`;
+    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+  };
+
+  const handleExportCSV = () => {
+    if (!activeItinerary) return;
+    const headers = ['#', 'Title', 'Category', 'Location', 'Price', 'Creator'];
+    const rows = activeItinerary.experiences.map((exp, i) => [
+      i + 1,
+      exp.title,
+      exp.category || '',
+      exp.location || '',
+      exp.price || '',
+      exp.creator || ''
+    ]);
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeItinerary.name.replace(/\s+/g, '_')}_itinerary.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({ title: "Exported!", description: "CSV file downloaded" });
+  };
+
+  const handleExportPDF = () => {
+    if (!activeItinerary) return;
+    // Create printable HTML and open print dialog
+    const printContent = `
+      <html>
+        <head>
+          <title>${activeItinerary.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; }
+            h1 { color: #E32255; margin-bottom: 10px; }
+            .subtitle { color: #666; margin-bottom: 30px; }
+            .experience { border-bottom: 1px solid #eee; padding: 15px 0; }
+            .number { background: #E32255; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px; }
+            .title { font-weight: bold; font-size: 16px; }
+            .details { color: #666; font-size: 14px; margin-top: 5px; }
+          </style>
+        </head>
+        <body>
+          <h1>${activeItinerary.name}</h1>
+          <p class="subtitle">${activeItinerary.experiences.length} experiences • Est. $${totalPrice.toFixed(0)} total</p>
+          ${activeItinerary.experiences.map((exp, i) => `
+            <div class="experience">
+              <span class="number">${i + 1}</span>
+              <span class="title">${exp.title}</span>
+              <div class="details">${exp.location} • ${exp.price} • ${exp.category || ''}</div>
+            </div>
+          `).join('')}
+        </body>
+      </html>
+    `;
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    
+    toast({ title: "Ready to print!", description: "Print dialog opened" });
+  };
+
+  const handleExportNote = () => {
+    if (!activeItinerary) return;
+    const noteContent = `${activeItinerary.name}\n${'='.repeat(activeItinerary.name.length)}\n\n${activeItinerary.experiences.length} experiences • Est. $${totalPrice.toFixed(0)} total\n\n${activeItinerary.experiences.map((exp, i) => `${i + 1}. ${exp.title}\n   📍 ${exp.location} • 💰 ${exp.price}`).join('\n\n')}`;
+    
+    const blob = new Blob([noteContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeItinerary.name.replace(/\s+/g, '_')}_itinerary.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({ title: "Exported!", description: "Note file downloaded" });
   };
 
   const handleAddCollaborator = () => {
@@ -166,6 +279,30 @@ const Itinerary = () => {
               )}
             </Button>
 
+            {/* Export Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportCSV}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPDF}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportNote}>
+                  <StickyNote className="w-4 h-4 mr-2" />
+                  Export as Note
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Share Dialog */}
             <Dialog>
               <DialogTrigger asChild>
@@ -185,7 +322,7 @@ const Itinerary = () => {
                 <div className="space-y-4 pt-4">
                   {/* Share Link */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Share Link</label>
+                    <label className="text-sm font-medium">Public Link</label>
                     <div className="flex gap-2">
                       <Input 
                         value={getShareUrl(activeItinerary.id)} 
@@ -196,6 +333,47 @@ const Itinerary = () => {
                         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                       </Button>
                     </div>
+                  </div>
+
+                  {/* Social Share Buttons */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Share via</label>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        WhatsApp
+                      </Button>
+                      <Button variant="outline" className="flex-1" onClick={handleShareTwitter}>
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                        Twitter/X
+                      </Button>
+                      <Button variant="outline" className="flex-1" onClick={handleShareEmail}>
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="2" y="4" width="20" height="16" rx="2" />
+                          <path d="M22 6L12 13 2 6" />
+                        </svg>
+                        Email
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Visibility Toggle */}
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Visibility</p>
+                      <p className="text-xs text-muted-foreground">
+                        {activeItinerary.isPublic ? "Anyone with the link can view" : "Only you and collaborators"}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => togglePublic(activeItinerary.id)}
+                    >
+                      {activeItinerary.isPublic ? "Make Private" : "Make Public"}
+                    </Button>
                   </div>
 
                   {/* Collaborators */}

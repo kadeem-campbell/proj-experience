@@ -15,7 +15,12 @@ import {
   ChevronDown,
   ChevronUp,
   PanelRightClose,
-  PanelRightOpen
+  PanelRightOpen,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  StickyNote,
+  MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -31,24 +36,32 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useItineraries } from "@/hooks/useItineraries";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 export const ItineraryPanel = () => {
   const { toast } = useToast();
   const {
     activeItinerary,
+    addExperience,
     removeExperience,
     reorderExperiences,
     togglePublic,
     addCollaborator,
     removeCollaborator,
-    getShareUrl
+    getShareUrl,
+    isInItinerary
   } = useItineraries();
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -57,6 +70,7 @@ export const ItineraryPanel = () => {
   const [copied, setCopied] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   if (!activeItinerary) return null;
 
@@ -93,6 +107,12 @@ export const ItineraryPanel = () => {
     });
   };
 
+  const handleShareWhatsApp = () => {
+    const url = getShareUrl(activeItinerary.id);
+    const text = `Check out my itinerary: ${activeItinerary.name}\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   const handleAddCollaborator = () => {
     if (collaboratorEmail.trim()) {
       addCollaborator(activeItinerary.id, collaboratorEmail.trim());
@@ -102,6 +122,82 @@ export const ItineraryPanel = () => {
         description: `${collaboratorEmail} can now view this itinerary`,
       });
     }
+  };
+
+  // Handle external drops (from public itinerary or experience cards)
+  const handleExternalDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    try {
+      const data = e.dataTransfer.getData('text/plain');
+      if (data) {
+        const experience = JSON.parse(data);
+        if (experience && experience.id && experience.title) {
+          if (isInItinerary(experience.id)) {
+            toast({
+              title: "Already in itinerary",
+              description: `${experience.title} is already in your itinerary`,
+            });
+            return;
+          }
+          
+          addExperience({
+            id: experience.id,
+            title: experience.title,
+            creator: experience.creator || '',
+            videoThumbnail: experience.videoThumbnail || '',
+            category: experience.category || '',
+            location: experience.location || '',
+            price: experience.price || '$0',
+          });
+          
+          toast({
+            title: "Added to itinerary!",
+            description: `${experience.title} has been added`,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing dropped data:', error);
+    }
+  };
+
+  const handleExternalDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleExternalDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const totalPrice = activeItinerary.experiences.reduce((sum, exp) => {
+    const price = parseFloat(exp.price?.replace('$', '') || '0') || 0;
+    return sum + price;
+  }, 0);
+
+  const handleExportCSV = () => {
+    const headers = ['#', 'Title', 'Category', 'Location', 'Price', 'Creator'];
+    const rows = activeItinerary.experiences.map((exp, i) => [
+      i + 1,
+      exp.title,
+      exp.category || '',
+      exp.location || '',
+      exp.price || '',
+      exp.creator || ''
+    ]);
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeItinerary.name.replace(/\s+/g, '_')}_itinerary.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({ title: "Exported!", description: "CSV file downloaded" });
   };
 
   // Collapsed state - just show a thin bar with expand button
@@ -122,8 +218,13 @@ export const ItineraryPanel = () => {
 
   return (
     <aside 
-      className="hidden lg:flex w-80 flex-col border-l border-border bg-card/50"
-      onDragOver={(e) => e.preventDefault()}
+      className={cn(
+        "hidden lg:flex w-80 flex-col border-l border-border bg-card/50 transition-all",
+        isDragOver && "ring-2 ring-primary ring-inset bg-primary/5"
+      )}
+      onDragOver={handleExternalDragOver}
+      onDragLeave={handleExternalDragLeave}
+      onDrop={handleExternalDrop}
     >
       {/* Header */}
       <div className="p-4 border-b border-border">
@@ -171,7 +272,7 @@ export const ItineraryPanel = () => {
                 <div className="space-y-4 pt-4">
                   {/* Share Link */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Share Link</label>
+                    <label className="text-sm font-medium">Public Link</label>
                     <div className="flex gap-2">
                       <Input 
                         value={getShareUrl(activeItinerary.id)} 
@@ -184,16 +285,32 @@ export const ItineraryPanel = () => {
                     </div>
                   </div>
 
+                  {/* Social Share */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Share via</label>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        WhatsApp
+                      </Button>
+                      <Button variant="outline" className="flex-1" onClick={handleCopyLink}>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy Link
+                      </Button>
+                    </div>
+                  </div>
+
                   {/* Visibility Toggle */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div>
-                      <p className="font-medium">Visibility</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-medium text-sm">Visibility</p>
+                      <p className="text-xs text-muted-foreground">
                         {activeItinerary.isPublic ? "Anyone with the link can view" : "Only you and collaborators"}
                       </p>
                     </div>
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={() => togglePublic(activeItinerary.id)}
                     >
                       {activeItinerary.isPublic ? "Make Private" : "Make Public"}
@@ -239,11 +356,27 @@ export const ItineraryPanel = () => {
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Export Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Download className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportCSV}>
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  Export CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Badge variant="secondary">{activeItinerary.experiences.length} experiences</Badge>
+          <span>• ${totalPrice.toFixed(0)}</span>
           {activeItinerary.isPublic && (
             <Badge variant="outline" className="text-primary border-primary">
               <Globe className="w-3 h-3 mr-1" />
@@ -251,8 +384,14 @@ export const ItineraryPanel = () => {
             </Badge>
           )}
         </div>
-      </div>
 
+        {/* Drop hint when dragging */}
+        {isDragOver && (
+          <div className="mt-2 p-2 border-2 border-dashed border-primary rounded-lg bg-primary/10 text-center">
+            <p className="text-xs text-primary font-medium">Drop to add experience</p>
+          </div>
+        )}
+      </div>
       {/* Experiences List - Collapsible */}
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded} className="flex-1 flex flex-col min-h-0">
         <CollapsibleTrigger asChild>
