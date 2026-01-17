@@ -30,7 +30,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useItineraries, publicItinerariesData } from "@/hooks/useItineraries";
+import { useItineraries } from "@/hooks/useItineraries";
+import { publicItinerariesData } from "@/data/itinerariesData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 

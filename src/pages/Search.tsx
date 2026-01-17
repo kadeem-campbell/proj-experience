@@ -3,8 +3,9 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { BrowseDropdown } from "@/components/BrowseDropdown";
-import { publicItinerariesData, useItineraries } from "@/hooks/useItineraries";
-import { Users, ArrowRight, Plus, MapPin, Search } from "lucide-react";
+import { useItineraries } from "@/hooks/useItineraries";
+import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
+import { Users, ArrowRight, Plus, MapPin, Search, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -325,10 +326,40 @@ const SearchPage = () => {
                   <Users className="w-5 h-5 text-primary" />
                   <h2 className="text-xl font-semibold">Most Popular Itineraries</h2>
                 </div>
+                <Link to="/itineraries?filter=popular">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    Show all
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {publicItinerariesData.map((itinerary) => (
+                {getPopularItineraries().slice(0, 6).map((itinerary) => (
+                  <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Our Faves Section - Only show when no city filter */}
+          {!selectedCity && (
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-semibold">Our Faves</h2>
+                </div>
+                <Link to="/itineraries?filter=fave">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    Show all
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                {getFaveItineraries().slice(0, 6).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
               </div>

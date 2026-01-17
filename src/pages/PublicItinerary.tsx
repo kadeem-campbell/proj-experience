@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { publicItinerariesData, useItineraries } from "@/hooks/useItineraries";
+import { useItineraries } from "@/hooks/useItineraries";
+import { publicItinerariesData } from "@/data/itinerariesData";
 import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
 import {
