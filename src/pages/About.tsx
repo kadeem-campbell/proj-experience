@@ -1,17 +1,15 @@
-import { Navigation } from "@/components/Navigation";
+import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Briefcase, Plane, Heart, Users, Globe, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      <Navigation />
-      
-      <div className="pt-24 pb-16">
-        <div className="max-w-4xl mx-auto px-6">
+    <MainLayout showItineraryPanel={false}>
+      <div className="p-6 max-w-4xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-bold mb-4 gradient-primary bg-clip-text text-transparent">
@@ -215,16 +213,12 @@ export default function About() {
               we'd love to have you as part of our growing community.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
-                <a href="/">Explore Experiences</a>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <a href="/creators">Become a Creator</a>
-              </Button>
+              <Link to="/">
+                <Button size="lg">Explore Experiences</Button>
+              </Link>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </MainLayout>
   );
 }
