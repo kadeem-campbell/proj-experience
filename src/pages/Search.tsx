@@ -3,8 +3,6 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { BrowseDropdown } from "@/components/BrowseDropdown";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 import { publicItinerariesData, useItineraries } from "@/hooks/useItineraries";
 import { Users, ArrowRight, Plus, MapPin, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -92,56 +90,11 @@ const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [experiences, setExperiences] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [experiences, setExperiences] = useState<any[]>(mockExperiences);
+  const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
-  const { toast } = useToast();
   const { activeItinerary, experienceCount } = useItineraries();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchExperiences();
-  }, []);
-
-  const fetchExperiences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('experiences')
-        .select('id,title,creator,category,location,price,video_thumbnail,created_at,status')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false, nullsFirst: false });
-
-      if (error) throw error;
-
-      const formattedExperiences = (data ?? []).map((exp: any) => ({
-        id: exp.id,
-        title: exp.title,
-        creator: exp.creator,
-        views: "0",
-        videoThumbnail: exp.video_thumbnail || getDefaultImage(exp.category),
-        videoUrl: "",
-        category: exp.category,
-        location: exp.location,
-        price: typeof exp.price === 'number' ? `$${exp.price}` : `$${Number(exp.price || 0)}`,
-      }));
-
-      if (!formattedExperiences.length) {
-        setExperiences(mockExperiences);
-      } else {
-        setExperiences([...formattedExperiences, ...mockExperiences]);
-      }
-    } catch (error) {
-      console.error('Error fetching experiences:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load experiences. Showing sample data.',
-        variant: 'destructive',
-      });
-      setExperiences(mockExperiences);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getDefaultImage = (category: string) => {
     const imageMap: { [key: string]: string } = {
@@ -169,10 +122,6 @@ const SearchPage = () => {
 
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategory(categoryName);
-    toast({
-      title: `Browsing ${categoryName}`,
-      description: `Showing ${categoryName} experiences${selectedCity ? ` in ${selectedCity.name}` : ''}`,
-    });
   };
 
   const clearFilters = () => {
