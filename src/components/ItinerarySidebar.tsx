@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Plus, 
   MapPin, 
@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 
 export const ItinerarySidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   
@@ -215,7 +216,10 @@ export const ItinerarySidebar = () => {
                         ) : (
                           <SidebarMenuButton
                             isActive={activeItineraryId === itinerary.id}
-                            onClick={() => setActiveItinerary(itinerary.id)}
+                            onClick={() => {
+                              setActiveItinerary(itinerary.id);
+                              navigate('/itinerary');
+                            }}
                             className="group/item"
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">

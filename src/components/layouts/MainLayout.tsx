@@ -15,7 +15,7 @@ interface MainLayoutProps {
   showItineraryPanel?: boolean;
 }
 
-export const MainLayout = ({ children, showItineraryPanel = true }: MainLayoutProps) => {
+export const MainLayout = ({ children, showItineraryPanel = false }: MainLayoutProps) => {
   const { user, signOut, isAuthenticated, userProfile, isCreator } = useAuth();
   const { experienceCount } = useItineraries();
   const [mobileItineraryOpen, setMobileItineraryOpen] = useState(false);
