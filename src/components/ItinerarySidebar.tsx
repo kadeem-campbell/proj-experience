@@ -81,8 +81,6 @@ export const ItinerarySidebar = () => {
 
   const navItems = [
     { path: "/", label: "Discover", icon: Compass },
-    { path: "/social-finder", label: "Social Finder", icon: Users },
-    { path: "/map", label: "Map", icon: Globe },
   ];
 
   return (
@@ -296,14 +294,6 @@ export const ItinerarySidebar = () => {
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Creators">
-              <Link to="/creators" className="flex items-center gap-3">
-                <UserCircle className="w-4 h-4" />
-                {!collapsed && <span>Creators</span>}
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="About">
               <Link to="/about" className="flex items-center gap-3">
