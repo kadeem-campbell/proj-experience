@@ -94,6 +94,7 @@ const SearchPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [experiences, setExperiences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(12);
   const { toast } = useToast();
   const { activeItinerary, experienceCount } = useItineraries();
   const navigate = useNavigate();
@@ -347,12 +348,12 @@ const SearchPage = () => {
             </div>
           )}
 
-          {/* All Experiences Section */}
+          {/* All Experiences Section with Infinite Scroll */}
           {!selectedCity && (
             <div className="mb-10">
               <h2 className="text-xl font-semibold mb-4">Experiences</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {experiences.slice(0, 12).map((experience, index) => (
+                {experiences.slice(0, visibleCount).map((experience, index) => (
                   <div
                     key={experience.id}
                     className="animate-slide-up"
@@ -362,6 +363,18 @@ const SearchPage = () => {
                   </div>
                 ))}
               </div>
+              {visibleCount < experiences.length && (
+                <div className="flex justify-center mt-8">
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    onClick={() => setVisibleCount(prev => prev + 12)}
+                    className="rounded-full"
+                  >
+                    Load More Experiences
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 

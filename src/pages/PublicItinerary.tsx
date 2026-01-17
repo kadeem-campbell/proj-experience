@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { publicItinerariesData, useItineraries } from "@/hooks/useItineraries";
 import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
@@ -23,7 +23,9 @@ import {
   Check,
   Plus,
   MoreHorizontal,
-  ListPlus
+  ListPlus,
+  MessageCircle,
+  Minus
 } from "lucide-react";
 
 const PublicItinerary = () => {
@@ -35,7 +37,7 @@ const PublicItinerary = () => {
   const [draggedExperience, setDraggedExperience] = useState<LikedExperience | null>(null);
   const [newItineraryName, setNewItineraryName] = useState("");
   const [showNewItineraryInput, setShowNewItineraryInput] = useState<string | null>(null);
-  const { addExperience, addExperienceToItinerary, createItinerary, itineraries, isInItinerary } = useItineraries();
+  const { addExperience, removeExperience, addExperienceToItinerary, createItinerary, itineraries, isInItinerary } = useItineraries();
 
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
@@ -68,7 +70,14 @@ const PublicItinerary = () => {
           url: shareUrl,
         });
       } catch (err) {
-        // User cancelled or error
+        // User cancelled - fall back to copy
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        toast({
+          title: "Link copied!",
+          description: "Share this link with your friends.",
+        });
+        setTimeout(() => setCopied(false), 2000);
       }
     } else {
       await navigator.clipboard.writeText(shareUrl);
@@ -79,6 +88,12 @@ const PublicItinerary = () => {
       });
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleShareWhatsApp = () => {
+    const shareUrl = window.location.href;
+    const text = `Check out this itinerary: ${itinerary.name}\n${shareUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleCopyComplete = () => {
@@ -98,33 +113,33 @@ const PublicItinerary = () => {
     setDraggedExperience(null);
   };
 
-  // Quick add to default (first) itinerary
-  const handleQuickAdd = (experience: LikedExperience, e: React.MouseEvent) => {
+  // Toggle add/remove from default itinerary
+  const handleToggleItinerary = (experience: LikedExperience, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (isInItinerary(experience.id)) {
+      removeExperience(experience.id);
       toast({
-        title: "Already in itinerary",
-        description: `${experience.title} is already in your itinerary.`,
+        title: "Removed from itinerary",
+        description: `${experience.title} has been removed.`,
       });
-      return;
+    } else {
+      addExperience({
+        id: experience.id,
+        title: experience.title,
+        creator: experience.creator,
+        videoThumbnail: experience.videoThumbnail,
+        category: experience.category,
+        location: experience.location,
+        price: experience.price,
+      });
+      
+      toast({
+        title: "Added to itinerary",
+        description: `${experience.title} has been added to your trip.`,
+      });
     }
-    
-    addExperience({
-      id: experience.id,
-      title: experience.title,
-      creator: experience.creator,
-      videoThumbnail: experience.videoThumbnail,
-      category: experience.category,
-      location: experience.location,
-      price: experience.price,
-    });
-    
-    toast({
-      title: "Added to itinerary",
-      description: `${experience.title} has been added to your trip.`,
-    });
   };
 
   // Add to specific itinerary
@@ -229,16 +244,16 @@ const PublicItinerary = () => {
               </div>
             )}
             
-            {/* Quick Add Button (+ to default itinerary) */}
+            {/* Toggle Add/Remove Button */}
             <button
-              onClick={(e) => handleQuickAdd(experience, e)}
+              onClick={(e) => handleToggleItinerary(experience, e)}
               className={`absolute bottom-2 right-12 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
                 inItinerary 
-                  ? 'bg-primary text-primary-foreground' 
+                  ? 'bg-primary text-primary-foreground opacity-100' 
                   : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
               }`}
             >
-              {inItinerary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              {inItinerary ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             </button>
 
             {/* 3-dot menu for itinerary selection */}
@@ -375,9 +390,23 @@ const PublicItinerary = () => {
               <Copy className="w-4 h-4" />
               Copy All
             </Button>
-            <Button variant="outline" onClick={handleShare} size="icon" className="rounded-full w-10 h-10">
-              {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full w-10 h-10">
+                  {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleShare}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Link
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleShareWhatsApp}>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Share via WhatsApp
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

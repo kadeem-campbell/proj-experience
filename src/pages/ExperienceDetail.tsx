@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { 
   Plus, 
-  Check, 
+  Minus,
+  Check,
   ArrowLeft, 
   Share2, 
   Calendar, 
@@ -19,11 +20,19 @@ import {
   Globe,
   Play,
   Pause,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Copy,
+  MessageCircle
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useItineraries, publicItinerariesData } from "@/hooks/useItineraries";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data - in real app this would come from API
 import partyImage from "@/assets/party-experience.jpg";
@@ -422,6 +431,32 @@ export default function ExperienceDetail() {
     }
   };
 
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: experience?.title,
+          text: `Check out this experience: ${experience?.title}`,
+          url: shareUrl,
+        });
+      } catch (err) {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "Link copied!", description: "Share this link with your friends." });
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({ title: "Link copied!", description: "Share this link with your friends." });
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    const shareUrl = window.location.href;
+    const text = `Check out this experience: ${experience?.title}\n${shareUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   const toggleVideo = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -510,15 +545,29 @@ export default function ExperienceDetail() {
                     : 'bg-white text-black hover:bg-white/90'
                 }`}
               >
-                {inItinerary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                {inItinerary ? "Saved" : "Add to Itinerary"}
+                {inItinerary ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                {inItinerary ? "Remove" : "Add to Itinerary"}
               </Button>
-              <Button 
-                size="icon" 
-                className="rounded-full bg-white text-black hover:bg-white/90 shadow-lg"
-              >
-                <Share2 className="w-4 h-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    size="icon" 
+                    className="rounded-full bg-white text-black hover:bg-white/90 shadow-lg"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleShare}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShareWhatsApp}>
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Share via WhatsApp
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
