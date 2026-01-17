@@ -71,8 +71,8 @@ export const ExperienceCard = ({
     <Link to={`/experience/${id}`}>
       <Card 
         className={cn(
-          "relative overflow-hidden rounded-lg bg-card border-0 cursor-pointer group transition-all duration-300",
-          "hover:bg-accent/10 hover:shadow-lg"
+          "relative overflow-hidden rounded-lg bg-card border-0 cursor-pointer group transition-colors duration-150",
+          "hover:bg-accent/10"
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -83,7 +83,7 @@ export const ExperienceCard = ({
             <video
               ref={videoRef}
               poster={videoThumbnail}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-105"
               muted
               loop
               playsInline
@@ -96,7 +96,7 @@ export const ExperienceCard = ({
             <img
               src={videoThumbnail}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-105"
             />
           )}
           
@@ -107,8 +107,8 @@ export const ExperienceCard = ({
               e.preventDefault();
             }}
             className={cn(
-              "absolute bottom-2 right-2 transition-all duration-200",
-              "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+              "absolute bottom-2 right-2 transition-all duration-100",
+              "opacity-0 group-hover:opacity-100"
             )}
           >
             {inItinerary ? (
