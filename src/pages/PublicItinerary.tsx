@@ -244,18 +244,6 @@ const PublicItinerary = () => {
               </div>
             )}
             
-            {/* Toggle Add/Remove Button */}
-            <button
-              onClick={(e) => handleToggleItinerary(experience, e)}
-              className={`absolute bottom-2 right-12 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
-                inItinerary 
-                  ? 'bg-primary text-primary-foreground opacity-100' 
-                  : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
-              }`}
-            >
-              {inItinerary ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            </button>
-
             {/* 3-dot menu for itinerary selection */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -264,7 +252,7 @@ const PublicItinerary = () => {
                     e.preventDefault();
                     e.stopPropagation();
                   }}
-                  className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-background/90 hover:bg-background text-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                  className="absolute bottom-2 left-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-background/90 hover:bg-background text-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
@@ -327,6 +315,18 @@ const PublicItinerary = () => {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Toggle Add/Remove Button - on the right of 3-dot menu */}
+            <button
+              onClick={(e) => handleToggleItinerary(experience, e)}
+              className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
+                inItinerary 
+                  ? 'bg-primary text-primary-foreground opacity-100' 
+                  : 'bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0'
+              }`}
+            >
+              {inItinerary ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            </button>
           </div>
 
           {/* Content - Just title, Spotify style */}
