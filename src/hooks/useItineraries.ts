@@ -55,15 +55,24 @@ export const useItineraries = () => {
       localStorage.setItem(ACTIVE_ITINERARY_KEY, defaultItinerary.id);
     }
 
-    // Listen for storage changes
+    // Listen for storage changes (cross-tab)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
         setItineraries(JSON.parse(e.newValue));
       }
     };
 
+    // Listen for same-tab itinerary changes
+    const handleItinerariesChanged = (e: CustomEvent<Itinerary[]>) => {
+      setItineraries(e.detail);
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('itinerariesChanged', handleItinerariesChanged as EventListener);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('itinerariesChanged', handleItinerariesChanged as EventListener);
+    };
   }, []);
 
   const saveItineraries = useCallback((newItineraries: Itinerary[]) => {
