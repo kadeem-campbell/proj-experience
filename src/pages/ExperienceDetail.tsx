@@ -25,7 +25,7 @@ import {
   Pause,
   Image as ImageIcon
 } from "lucide-react";
-import { useItineraries } from "@/hooks/useItineraries";
+import { useItineraries, publicItinerariesData } from "@/hooks/useItineraries";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -276,12 +276,48 @@ export default function ExperienceDetail() {
           }
         }
         
+        // Check mock experiences first
         const mockExperience = mockExperiences.find(exp => exp.id === id);
         if (mockExperience) {
           setExperienceData(mockExperience);
-        } else {
-          throw new Error('Experience not found');
+          return;
         }
+        
+        // Check experiences from public itineraries
+        for (const itinerary of publicItinerariesData) {
+          const itineraryExp = itinerary.experiences.find(exp => exp.id === id);
+          if (itineraryExp) {
+            // Convert itinerary experience to full experience format
+            setExperienceData({
+              id: itineraryExp.id,
+              title: itineraryExp.title,
+              creator: itineraryExp.creator,
+              views: "0",
+              videoThumbnail: itineraryExp.videoThumbnail || getDefaultImage(itineraryExp.category),
+              videoUrl: "",
+              category: itineraryExp.category,
+              location: itineraryExp.location,
+              price: parseInt(itineraryExp.price?.replace(/[^0-9]/g, '') || '0'),
+              currency: "USD",
+              description: `Experience the best of ${itineraryExp.location} with this amazing ${itineraryExp.category.toLowerCase()} experience. Join ${itineraryExp.creator} for an unforgettable adventure that showcases the local culture and hidden gems.`,
+              duration: "3 hours",
+              groupSize: "2-10 people",
+              rating: 4.7,
+              totalReviews: Math.floor(Math.random() * 100) + 20,
+              date: "Available daily",
+              time: "Flexible timing",
+              includes: ["Professional guide", "Transportation", "Refreshments", "Insurance coverage"],
+              highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
+              gallery: [itineraryExp.videoThumbnail || getDefaultImage(itineraryExp.category)],
+              languages: ["English", "Swahili"],
+              meetingPoint: itineraryExp.location,
+              cancellationPolicy: "Free cancellation up to 24 hours before"
+            });
+            return;
+          }
+        }
+        
+        throw new Error('Experience not found');
       } catch (error) {
         toast({
           title: "Error",
