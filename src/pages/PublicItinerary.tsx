@@ -344,20 +344,20 @@ const PublicItinerary = () => {
       <div className="flex flex-col h-full">
         {/* Spotify-style Header */}
         <div 
-          className="relative bg-gradient-to-b from-primary/30 to-background p-6 pb-8"
+          className="relative bg-gradient-to-b from-primary/30 to-background p-4 md:p-6 pb-6 md:pb-8"
           style={{
             background: `linear-gradient(180deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--background)) 100%)`
           }}
         >
           {/* Back Button */}
-          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors">
+          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors text-sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Discover
           </Link>
 
-          <div className="flex items-end gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4 md:gap-6">
             {/* Cover Image */}
-            <div className="w-48 h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl">
               {itinerary.coverImage ? (
                 <img 
                   src={itinerary.coverImage} 
@@ -366,7 +366,7 @@ const PublicItinerary = () => {
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
-                  <span className="text-4xl">🗺️</span>
+                  <span className="text-3xl md:text-4xl">🗺️</span>
                 </div>
               )}
             </div>
@@ -376,24 +376,28 @@ const PublicItinerary = () => {
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
                 Itinerary
               </p>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 line-clamp-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 line-clamp-2">
                 {itinerary.name}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm md:text-base">
                 {itinerary.experiences.length} experiences
               </p>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3 mt-6">
-            <Button onClick={() => setCopyDialogOpen(true)} size="lg" className="gap-2 rounded-full">
+          <div className="flex items-center gap-2 md:gap-3 mt-4 md:mt-6">
+            <Button onClick={() => setCopyDialogOpen(true)} size="sm" className="gap-2 rounded-full md:hidden">
+              <Copy className="w-4 h-4" />
+              Copy
+            </Button>
+            <Button onClick={() => setCopyDialogOpen(true)} size="lg" className="gap-2 rounded-full hidden md:flex">
               <Copy className="w-4 h-4" />
               Copy Itinerary
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full w-10 h-10">
+                <Button variant="outline" size="icon" className="rounded-full w-8 h-8 md:w-10 md:h-10">
                   {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
                 </Button>
               </DropdownMenuTrigger>
@@ -412,9 +416,9 @@ const PublicItinerary = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="px-6 py-4 border-b border-border">
-          <div className="flex items-center bg-muted rounded-full px-4 py-2 max-w-md">
-            <Search className="w-4 h-4 text-muted-foreground mr-3" />
+        <div className="px-3 md:px-6 py-3 md:py-4 border-b border-border">
+          <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 max-w-md">
+            <Search className="w-4 h-4 text-muted-foreground mr-2 md:mr-3" />
             <Input
               type="text"
               value={searchQuery}
@@ -426,8 +430,8 @@ const PublicItinerary = () => {
         </div>
 
         {/* Experiences Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="flex-1 overflow-y-auto p-3 md:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
             {filteredExperiences.map(renderExperienceCard)}
           </div>
 

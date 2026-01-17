@@ -130,21 +130,21 @@ export const ExperienceCard = ({
         </div>
 
         {/* Content - Compact Info */}
-        <div className="p-3 pt-2">
+        <div className="p-2 md:p-3 pt-2">
           <h3 className={cn(
-            "font-semibold line-clamp-1 mb-1",
-            compact ? "text-sm" : "text-base"
+            "font-semibold line-clamp-1 mb-0.5 md:mb-1",
+            compact ? "text-xs md:text-sm" : "text-sm md:text-base"
           )}>
             {title}
           </h3>
           
-          <p className="text-xs text-muted-foreground line-clamp-1">
+          <p className="text-[10px] md:text-xs text-muted-foreground line-clamp-1">
             {creator} • {location}
           </p>
           
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-muted-foreground">{category}</span>
-            <span className="text-sm font-semibold text-primary">{price}</span>
+          <div className="flex items-center justify-between mt-1 md:mt-2">
+            <span className="text-[10px] md:text-xs text-muted-foreground">{category}</span>
+            <span className="text-xs md:text-sm font-semibold text-primary">{price}</span>
           </div>
         </div>
       </Card>
