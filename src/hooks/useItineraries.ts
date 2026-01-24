@@ -12,6 +12,8 @@ export interface Itinerary {
   creatorName?: string;
   coverImage?: string;
   tag?: 'popular' | 'fave';
+  startDate?: string;
+  theme?: string;
 }
 
 const STORAGE_KEY = 'itineraries';

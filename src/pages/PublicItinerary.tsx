@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useItineraries } from "@/hooks/useItineraries";
+import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { publicItinerariesData } from "@/data/itinerariesData";
 import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
+import { SpinUpModal } from "@/components/SpinUpModal";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
 import {
   DropdownMenu,
@@ -26,7 +27,8 @@ import {
   MoreHorizontal,
   ListPlus,
   MessageCircle,
-  Minus
+  Minus,
+  Rocket
 } from "lucide-react";
 
 const PublicItinerary = () => {
@@ -34,6 +36,7 @@ const PublicItinerary = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [spinUpOpen, setSpinUpOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [draggedExperience, setDraggedExperience] = useState<LikedExperience | null>(null);
   const [newItineraryName, setNewItineraryName] = useState("");
@@ -387,21 +390,34 @@ const PublicItinerary = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 md:gap-3 mt-4 md:mt-6">
-            <Button onClick={() => setCopyDialogOpen(true)} size="sm" className="gap-2 rounded-full md:hidden">
+            {/* Spin Up - Primary action */}
+            <Button onClick={() => setSpinUpOpen(true)} size="sm" className="gap-2 rounded-full md:hidden">
+              <Rocket className="w-4 h-4" />
+              Spin Up
+            </Button>
+            <Button onClick={() => setSpinUpOpen(true)} size="lg" className="gap-2 rounded-full hidden md:flex">
+              <Rocket className="w-4 h-4" />
+              Spin Up Trip
+            </Button>
+            
+            {/* Copy Itinerary */}
+            <Button onClick={() => setCopyDialogOpen(true)} variant="secondary" size="sm" className="gap-2 rounded-full md:hidden">
               <Copy className="w-4 h-4" />
               Copy
             </Button>
-            <Button onClick={() => setCopyDialogOpen(true)} size="lg" className="gap-2 rounded-full hidden md:flex">
+            <Button onClick={() => setCopyDialogOpen(true)} variant="secondary" size="lg" className="gap-2 rounded-full hidden md:flex">
               <Copy className="w-4 h-4" />
               Copy Itinerary
             </Button>
+            
+            {/* Share */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="rounded-full w-8 h-8 md:w-10 md:h-10">
                   {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-popover border-border">
                 <DropdownMenuItem onClick={handleShare}>
                   <Copy className="w-4 h-4 mr-2" />
                   Copy Link
@@ -451,6 +467,13 @@ const PublicItinerary = () => {
           onOpenChange={setCopyDialogOpen}
           sourceItinerary={itinerary}
           onCopyComplete={handleCopyComplete}
+        />
+        
+        {/* Spin Up Modal */}
+        <SpinUpModal
+          open={spinUpOpen}
+          onOpenChange={setSpinUpOpen}
+          sourceItinerary={itinerary as unknown as Itinerary}
         />
       </div>
     </MainLayout>
