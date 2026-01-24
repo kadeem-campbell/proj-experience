@@ -79,75 +79,77 @@ export const ExperienceCard = ({
     <Link to={`/experience/${id}`}>
       <Card 
         className={cn(
-          "relative overflow-hidden rounded-2xl bg-card/60 backdrop-blur-sm border border-border/40 cursor-pointer group transition-all duration-150",
-          "hover:border-border hover:bg-card/80"
+          "relative overflow-hidden rounded-2xl bg-[hsl(220_13%_12%)] border border-[hsl(220_10%_18%)] cursor-pointer group transition-all duration-150 shadow-lg shadow-black/20",
+          "hover:border-[hsl(220_10%_24%)] hover:shadow-xl hover:shadow-black/30"
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Thumbnail */}
-        <div className="relative aspect-[4/3] overflow-hidden">
-          {videoUrl ? (
-            <video
-              ref={videoRef}
-              poster={videoThumbnail}
-              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
-              muted
-              loop
-              playsInline
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-            >
-              <source src={videoUrl} type="video/mp4" />
-            </video>
-          ) : (
-            <img
-              src={videoThumbnail}
-              alt={title}
-              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
-            />
-          )}
-          
-          {/* Trending badge - minimal */}
-          {socialData.isTrending && (
-            <div className="absolute top-3 left-3">
-              <span className="px-2 py-1 rounded-md text-[11px] font-medium bg-primary/90 text-primary-foreground">
-                Trending
-              </span>
-            </div>
-          )}
-          
-          {/* Add to Itinerary Button - Shows on Hover */}
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
-            className={cn(
-              "absolute bottom-3 right-3 transition-all duration-100",
-              "opacity-0 group-hover:opacity-100"
-            )}
-          >
-            {inItinerary ? (
-              <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] shadow-lg">
-                <Check className="w-4 h-4" />
-              </div>
-            ) : (
-              <ItinerarySelector
-                experienceId={id}
-                experienceData={experienceData}
-                onAdd={handleAddSuccess}
+        {/* Thumbnail with inner padding for separation */}
+        <div className="p-2 pb-0">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
+            {videoUrl ? (
+              <video
+                ref={videoRef}
+                poster={videoThumbnail}
+                className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
+                muted
+                loop
+                playsInline
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
               >
-                <button className="w-9 h-9 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:scale-105 transition-transform shadow-lg">
-                  <Plus className="w-4 h-4" />
-                </button>
-              </ItinerarySelector>
+                <source src={videoUrl} type="video/mp4" />
+              </video>
+            ) : (
+              <img
+                src={videoThumbnail}
+                alt={title}
+                className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
+              />
             )}
+            
+            {/* Trending badge - minimal */}
+            {socialData.isTrending && (
+              <div className="absolute top-2 left-2">
+                <span className="px-2 py-1 rounded-md text-[11px] font-medium bg-primary/90 text-primary-foreground">
+                  Trending
+                </span>
+              </div>
+            )}
+            
+            {/* Add to Itinerary Button - Shows on Hover */}
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+              className={cn(
+                "absolute bottom-2 right-2 transition-all duration-100",
+                "opacity-0 group-hover:opacity-100"
+              )}
+            >
+              {inItinerary ? (
+                <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] shadow-lg">
+                  <Check className="w-4 h-4" />
+                </div>
+              ) : (
+                <ItinerarySelector
+                  experienceId={id}
+                  experienceData={experienceData}
+                  onAdd={handleAddSuccess}
+                >
+                  <button className="w-9 h-9 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:scale-105 transition-transform shadow-lg">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </ItinerarySelector>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Content - Clean & minimal like Polymarket */}
-        <div className="p-4 space-y-3">
+        <div className="p-4 pt-3 space-y-2">
           {/* Title row */}
           <h3 className={cn(
             "font-semibold line-clamp-2 leading-snug text-foreground",
@@ -157,12 +159,12 @@ export const ExperienceCard = ({
           </h3>
           
           {/* Meta row */}
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-[13px] text-muted-foreground/80">
             {location}
           </p>
           
           {/* Bottom row - Price & Activity */}
-          <div className="flex items-center justify-between pt-3 border-t border-border/40">
+          <div className="flex items-center justify-between pt-3 mt-1">
             <span className="text-[15px] font-semibold text-foreground">
               {price}
             </span>
