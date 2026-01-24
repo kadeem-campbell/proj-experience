@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Plus, Check, Users, TrendingUp, MessageCircle } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useItineraries } from "@/hooks/useItineraries";
 import { Link } from "react-router-dom";
@@ -44,10 +44,8 @@ export const ExperienceCard = ({
   const socialData = useMemo(() => {
     const hash = id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
     const participants = Math.abs(hash % 500) + 20;
-    const comments = Math.abs((hash * 7) % 50) + 5;
     const isTrending = Math.abs(hash % 10) < 3;
-    const isHot = participants > 300;
-    return { participants, comments, isTrending, isHot };
+    return { participants, isTrending };
   }, [id]);
 
   useEffect(() => {
@@ -81,19 +79,19 @@ export const ExperienceCard = ({
     <Link to={`/experience/${id}`}>
       <Card 
         className={cn(
-          "relative overflow-hidden rounded-xl bg-card border border-border/50 cursor-pointer group transition-all duration-150",
-          "hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
+          "relative overflow-hidden rounded-2xl bg-card/60 backdrop-blur-sm border border-border/40 cursor-pointer group transition-all duration-150",
+          "hover:border-border hover:bg-card/80"
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Thumbnail with social overlays */}
+        {/* Thumbnail */}
         <div className="relative aspect-[4/3] overflow-hidden">
           {videoUrl ? (
             <video
               ref={videoRef}
               poster={videoThumbnail}
-              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
               muted
               loop
               playsInline
@@ -106,32 +104,18 @@ export const ExperienceCard = ({
             <img
               src={videoThumbnail}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
             />
           )}
           
-          {/* Top badges - Trending / Hot */}
-          <div className="absolute top-2 left-2 flex items-center gap-1.5">
-            {socialData.isTrending && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary text-primary-foreground">
-                <TrendingUp className="w-3 h-3" />
+          {/* Trending badge - minimal */}
+          {socialData.isTrending && (
+            <div className="absolute top-3 left-3">
+              <span className="px-2 py-1 rounded-md text-[11px] font-medium bg-primary/90 text-primary-foreground">
                 Trending
               </span>
-            )}
-            {socialData.isHot && !socialData.isTrending && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[hsl(var(--activity))] text-[hsl(var(--activity-foreground))]">
-                🔥 Hot
-              </span>
-            )}
-          </div>
-
-          {/* Live activity indicator */}
-          <div className="absolute top-2 right-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-background/80 backdrop-blur-sm text-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--live))] animate-pulse" />
-              {socialData.participants} planning
-            </span>
-          </div>
+            </div>
+          )}
           
           {/* Add to Itinerary Button - Shows on Hover */}
           <div
@@ -140,12 +124,12 @@ export const ExperienceCard = ({
               e.preventDefault();
             }}
             className={cn(
-              "absolute bottom-2 right-2 transition-all duration-100",
+              "absolute bottom-3 right-3 transition-all duration-100",
               "opacity-0 group-hover:opacity-100"
             )}
           >
             {inItinerary ? (
-              <div className="p-2.5 rounded-full shadow-lg bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] shadow-lg">
                 <Check className="w-4 h-4" />
               </div>
             ) : (
@@ -154,50 +138,37 @@ export const ExperienceCard = ({
                 experienceData={experienceData}
                 onAdd={handleAddSuccess}
               >
-                <button className="p-2.5 rounded-full shadow-lg bg-primary text-primary-foreground hover:scale-110 transition-transform">
+                <button className="w-9 h-9 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:scale-105 transition-transform shadow-lg">
                   <Plus className="w-4 h-4" />
                 </button>
               </ItinerarySelector>
             )}
           </div>
-
-          {/* Price badge */}
-          <div className="absolute bottom-2 left-2">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-background/90 backdrop-blur-sm text-foreground shadow-sm">
-              {price}
-            </span>
-          </div>
         </div>
 
-        {/* Content - More vibrant and social */}
-        <div className="p-3">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className={cn(
-              "font-semibold line-clamp-2 leading-tight",
-              compact ? "text-xs md:text-sm" : "text-sm md:text-base"
-            )}>
-              {title}
-            </h3>
-          </div>
+        {/* Content - Clean & minimal like Polymarket */}
+        <div className="p-4 space-y-3">
+          {/* Title row */}
+          <h3 className={cn(
+            "font-semibold line-clamp-2 leading-snug text-foreground",
+            compact ? "text-sm" : "text-[15px]"
+          )}>
+            {title}
+          </h3>
           
-          <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 mb-2">
-            {location} • {category}
+          {/* Meta row */}
+          <p className="text-[13px] text-muted-foreground">
+            {location}
           </p>
           
-          {/* Social engagement bar */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1 text-[10px] md:text-xs text-muted-foreground">
-                <Users className="w-3 h-3" />
-                {socialData.participants}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] md:text-xs text-muted-foreground">
-                <MessageCircle className="w-3 h-3" />
-                {socialData.comments}
-              </span>
-            </div>
-            <span className="text-[10px] md:text-xs text-muted-foreground">
-              by {creator}
+          {/* Bottom row - Price & Activity */}
+          <div className="flex items-center justify-between pt-3 border-t border-border/40">
+            <span className="text-[15px] font-semibold text-foreground">
+              {price}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--live))]" />
+              {socialData.participants} planning
             </span>
           </div>
         </div>
