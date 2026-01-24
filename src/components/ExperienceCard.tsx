@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Plus, Check } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Plus, Check, Users, TrendingUp, MessageCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useItineraries } from "@/hooks/useItineraries";
 import { Link } from "react-router-dom";
@@ -40,6 +40,16 @@ export const ExperienceCard = ({
 
   const inItinerary = isInItinerary(id);
 
+  // Generate consistent mock social data based on id
+  const socialData = useMemo(() => {
+    const hash = id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
+    const participants = Math.abs(hash % 500) + 20;
+    const comments = Math.abs((hash * 7) % 50) + 5;
+    const isTrending = Math.abs(hash % 10) < 3;
+    const isHot = participants > 300;
+    return { participants, comments, isTrending, isHot };
+  }, [id]);
+
   useEffect(() => {
     if (isHovered && videoRef.current && videoUrl) {
       videoRef.current.play();
@@ -71,14 +81,14 @@ export const ExperienceCard = ({
     <Link to={`/experience/${id}`}>
       <Card 
         className={cn(
-          "relative overflow-hidden rounded-lg bg-card border-0 cursor-pointer group transition-colors duration-150",
-          "hover:bg-accent/10"
+          "relative overflow-hidden rounded-xl bg-card border border-border/50 cursor-pointer group transition-all duration-150",
+          "hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Thumbnail - Square Aspect Ratio for Album Look */}
-        <div className="relative aspect-square overflow-hidden rounded-lg m-2 mb-0">
+        {/* Thumbnail with social overlays */}
+        <div className="relative aspect-[4/3] overflow-hidden">
           {videoUrl ? (
             <video
               ref={videoRef}
@@ -100,6 +110,29 @@ export const ExperienceCard = ({
             />
           )}
           
+          {/* Top badges - Trending / Hot */}
+          <div className="absolute top-2 left-2 flex items-center gap-1.5">
+            {socialData.isTrending && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary text-primary-foreground">
+                <TrendingUp className="w-3 h-3" />
+                Trending
+              </span>
+            )}
+            {socialData.isHot && !socialData.isTrending && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[hsl(var(--activity))] text-[hsl(var(--activity-foreground))]">
+                🔥 Hot
+              </span>
+            )}
+          </div>
+
+          {/* Live activity indicator */}
+          <div className="absolute top-2 right-2">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-background/80 backdrop-blur-sm text-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--live))] animate-pulse" />
+              {socialData.participants} planning
+            </span>
+          </div>
+          
           {/* Add to Itinerary Button - Shows on Hover */}
           <div
             onClick={(e) => {
@@ -112,7 +145,7 @@ export const ExperienceCard = ({
             )}
           >
             {inItinerary ? (
-              <div className="p-2.5 rounded-full shadow-lg bg-primary text-primary-foreground">
+              <div className="p-2.5 rounded-full shadow-lg bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]">
                 <Check className="w-4 h-4" />
               </div>
             ) : (
@@ -127,24 +160,45 @@ export const ExperienceCard = ({
               </ItinerarySelector>
             )}
           </div>
+
+          {/* Price badge */}
+          <div className="absolute bottom-2 left-2">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-background/90 backdrop-blur-sm text-foreground shadow-sm">
+              {price}
+            </span>
+          </div>
         </div>
 
-        {/* Content - Compact Info */}
-        <div className="p-2 md:p-3 pt-2">
-          <h3 className={cn(
-            "font-semibold line-clamp-1 mb-0.5 md:mb-1",
-            compact ? "text-xs md:text-sm" : "text-sm md:text-base"
-          )}>
-            {title}
-          </h3>
+        {/* Content - More vibrant and social */}
+        <div className="p-3">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h3 className={cn(
+              "font-semibold line-clamp-2 leading-tight",
+              compact ? "text-xs md:text-sm" : "text-sm md:text-base"
+            )}>
+              {title}
+            </h3>
+          </div>
           
-          <p className="text-[10px] md:text-xs text-muted-foreground line-clamp-1">
-            {creator} • {location}
+          <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1 mb-2">
+            {location} • {category}
           </p>
           
-          <div className="flex items-center justify-between mt-1 md:mt-2">
-            <span className="text-[10px] md:text-xs text-muted-foreground">{category}</span>
-            <span className="text-xs md:text-sm font-semibold text-primary">{price}</span>
+          {/* Social engagement bar */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/50">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1 text-[10px] md:text-xs text-muted-foreground">
+                <Users className="w-3 h-3" />
+                {socialData.participants}
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] md:text-xs text-muted-foreground">
+                <MessageCircle className="w-3 h-3" />
+                {socialData.comments}
+              </span>
+            </div>
+            <span className="text-[10px] md:text-xs text-muted-foreground">
+              by {creator}
+            </span>
           </div>
         </div>
       </Card>
