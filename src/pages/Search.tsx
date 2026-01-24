@@ -5,7 +5,7 @@ import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { BrowseDropdown } from "@/components/BrowseDropdown";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
-import { Users, ArrowRight, Plus, MapPin, Search, Heart } from "lucide-react";
+import { Users, ArrowRight, Plus, MapPin, Search, Heart, TrendingUp, Zap, Globe } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -314,36 +314,45 @@ const SearchPage = () => {
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto p-3 md:p-6"
         >
-          {/* Itinerary CTA Header */}
-          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl md:rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-primary mb-1 md:mb-2">
-                  <MapPin className="w-4 md:w-5 h-4 md:h-5" />
-                  <span className="text-xs md:text-sm font-medium">Plan your perfect trip</span>
+          {/* Live Activity Banner - Polymarket style */}
+          <div className="bg-card border border-border/50 rounded-xl p-4 mb-6 md:mb-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+                  </span>
+                  <span className="text-sm font-medium text-success">2,847 planning now</span>
                 </div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
-                  Build Your <span className="gradient-primary bg-clip-text text-transparent">Dream Itinerary</span>
-                </h1>
-                <p className="text-muted-foreground text-sm mt-1 hidden sm:block">Add experiences, share with friends, and plan together</p>
+                <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <Globe className="w-4 h-4" />
+                    20 destinations
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Zap className="w-4 h-4 text-activity" />
+                    156 itineraries created today
+                  </span>
+                </div>
               </div>
               
               <div className="flex items-center gap-3">
                 {experienceCount > 0 ? (
                   <Link to="/itinerary">
                     <Button size="sm" className="gap-2 md:hidden">
-                      View ({experienceCount})
+                      My Trip ({experienceCount})
                       <ArrowRight className="w-4 h-4" />
                     </Button>
-                    <Button size="lg" className="gap-2 hidden md:flex">
-                      View Itinerary ({experienceCount})
+                    <Button size="default" className="gap-2 hidden md:flex">
+                      View My Itinerary ({experienceCount})
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>
                 ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 md:px-4 py-2 rounded-lg text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg text-sm">
                     <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Click + to add experiences</span>
+                    <span className="hidden sm:inline">Click + to start planning</span>
                     <span className="sm:hidden">Tap + to add</span>
                   </div>
                 )}
@@ -351,48 +360,58 @@ const SearchPage = () => {
             </div>
           </div>
 
-          {/* Most Popular Itineraries Section - Only show when no city filter */}
+          {/* Trending Itineraries Section - Polymarket style */}
           {!selectedCity && (
             <div className="mb-6 md:mb-10">
-              <div className="flex items-center justify-between mb-3 md:mb-4">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 md:w-5 h-4 md:h-5 text-primary" />
-                  <h2 className="text-base md:text-xl font-semibold">Most Popular Itineraries</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg md:text-xl font-bold">Trending Itineraries</h2>
+                    <p className="text-xs text-muted-foreground hidden md:block">Most popular with travelers right now</p>
+                  </div>
                 </div>
                 <Link to="/itineraries?filter=popular">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-xs md:text-sm">
-                    Show all
+                  <Button variant="outline" size="sm" className="text-xs md:text-sm border-border/50 hover:border-primary/50">
+                    View all
                     <ArrowRight className="w-3 md:w-4 h-3 md:h-4 ml-1" />
                   </Button>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
-                {getPopularItineraries().slice(0, 6).map((itinerary) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                {getPopularItineraries().slice(0, 5).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
               </div>
             </div>
           )}
 
-          {/* Our Faves Section - Only show when no city filter */}
+          {/* Staff Picks Section */}
           {!selectedCity && (
             <div className="mb-6 md:mb-10">
-              <div className="flex items-center justify-between mb-3 md:mb-4">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 md:w-5 h-4 md:h-5 text-primary" />
-                  <h2 className="text-base md:text-xl font-semibold">Our Faves</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-activity/10">
+                    <Heart className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg md:text-xl font-bold">Staff Picks</h2>
+                    <p className="text-xs text-muted-foreground hidden md:block">Hand-picked by our travel experts</p>
+                  </div>
                 </div>
                 <Link to="/itineraries?filter=fave">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-xs md:text-sm">
-                    Show all
+                  <Button variant="outline" size="sm" className="text-xs md:text-sm border-border/50 hover:border-primary/50">
+                    View all
                     <ArrowRight className="w-3 md:w-4 h-3 md:h-4 ml-1" />
                   </Button>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
-                {getFaveItineraries().slice(0, 6).map((itinerary) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                {getFaveItineraries().slice(0, 5).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
               </div>
@@ -402,8 +421,18 @@ const SearchPage = () => {
           {/* All Experiences Section with Infinite Scroll */}
           {!selectedCity && (
             <div className="mb-6 md:mb-10">
-              <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">Experiences</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-secondary">
+                    <Zap className="w-5 h-5 text-activity" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
+                    <p className="text-xs text-muted-foreground hidden md:block">Browse {experiences.length}+ unique activities</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                 {experiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
