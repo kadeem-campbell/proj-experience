@@ -259,13 +259,14 @@ const PublicItinerary = () => {
   };
 
   const handleSaveTrip = () => {
-    // Create a new itinerary with the scheduled experiences
-    const newItinerary = createItinerary(`${itinerary.name} Trip`);
+    // Collect all experiences with scheduled times
+    const scheduledExperiences = Object.values(generatedTrip).flat().map(exp => ({
+      ...exp,
+      likedAt: new Date().toISOString()
+    }));
     
-    // Add all experiences with their scheduled times
-    Object.values(generatedTrip).flat().forEach(exp => {
-      addExperienceToItinerary(newItinerary.id, exp);
-    });
+    // Create a new itinerary with the scheduled experiences included
+    const newItinerary = createItinerary(`${itinerary.name} Trip`, scheduledExperiences);
     
     // Fire confetti
     const duration = 2000;
