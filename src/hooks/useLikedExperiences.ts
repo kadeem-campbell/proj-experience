@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+export type TimeSlot = 'morning' | 'afternoon' | 'evening' | 'night';
+
 export interface LikedExperience {
   id: string;
   title: string;
@@ -13,6 +15,7 @@ export interface LikedExperience {
   notes?: string;
   scheduledTime?: string;
   estimatedDuration?: number; // in minutes
+  timeSlot?: TimeSlot; // Suggested time of day for auto-scheduling
 }
 
 const STORAGE_KEY = 'likedExperiences';
