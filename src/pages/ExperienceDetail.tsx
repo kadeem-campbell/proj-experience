@@ -212,7 +212,7 @@ const mockExperiences = [
 
 export default function ExperienceDetail() {
   const { id } = useParams();
-  const { isInItinerary, addExperience, removeExperience } = useItineraries();
+  const { isInItinerary, addExperience, removeExperience, itineraries } = useItineraries();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [experienceData, setExperienceData] = useState<any>(null);
@@ -305,6 +305,39 @@ export default function ExperienceDetail() {
           }
         }
         
+        // Check experiences from user's personal itineraries
+        for (const userItinerary of itineraries) {
+          const userExp = userItinerary.experiences.find(exp => exp.id === id);
+          if (userExp) {
+            setExperienceData({
+              id: userExp.id,
+              title: userExp.title,
+              creator: userExp.creator,
+              views: "0",
+              videoThumbnail: userExp.videoThumbnail || getDefaultImage(userExp.category),
+              videoUrl: "",
+              category: userExp.category,
+              location: userExp.location,
+              price: parseInt(userExp.price?.replace(/[^0-9]/g, '') || '0'),
+              currency: "USD",
+              description: `Experience the best of ${userExp.location} with this amazing ${userExp.category?.toLowerCase() || 'local'} experience. Join ${userExp.creator} for an unforgettable adventure that showcases the local culture and hidden gems.`,
+              duration: "3 hours",
+              groupSize: "2-10 people",
+              rating: 4.7,
+              totalReviews: Math.floor(Math.random() * 100) + 20,
+              date: "Available daily",
+              time: "Flexible timing",
+              includes: ["Professional guide", "Transportation", "Refreshments", "Insurance coverage"],
+              highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
+              gallery: [userExp.videoThumbnail || getDefaultImage(userExp.category)],
+              languages: ["English", "Swahili"],
+              meetingPoint: userExp.location,
+              cancellationPolicy: "Free cancellation up to 24 hours before"
+            });
+            return;
+          }
+        }
+        
         throw new Error('Experience not found');
       } catch (error) {
         toast({
@@ -318,7 +351,7 @@ export default function ExperienceDetail() {
     };
 
     if (id) fetchExperience();
-  }, [id, toast]);
+  }, [id, toast, itineraries]);
 
   const getDefaultImage = (category: string) => {
     const imageMap: { [key: string]: string } = {
