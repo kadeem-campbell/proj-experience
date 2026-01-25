@@ -20,6 +20,7 @@ import { Itinerary, useItineraries } from "@/hooks/useItineraries";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
 import { SpinUpModal } from "@/components/SpinUpModal";
+import { publicItinerariesData } from "@/data/itinerariesData";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -233,6 +234,16 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     }
     
     return { scheduledByDay: scheduled, unscheduled: floating, tripDays: days };
+  }, [itinerary]);
+
+  // Get related public itineraries for discovery
+  const relatedItineraries = useMemo(() => {
+    if (!itinerary) return [];
+    return publicItinerariesData
+      .filter(i => i.experiences.some(e => 
+        itinerary.experiences.some(ie => ie.location === e.location)
+      ))
+      .slice(0, 4);
   }, [itinerary]);
 
   // Calculate totals
@@ -1051,6 +1062,34 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   <p className="text-xs text-muted-foreground">Get notified when this trip updates</p>
                 </div>
               </div>
+
+              {/* Related Public Itineraries */}
+              {relatedItineraries.length > 0 && (
+                <div className="mt-12 text-left">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <Sparkles className={cn("w-5 h-5", theme.accent)} />
+                    Explore Similar Itineraries
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {relatedItineraries.map((related) => (
+                      <Link key={related.id} to={`/public-itinerary/${related.id}`}>
+                        <Card className="overflow-hidden border-0 bg-card/60 hover:bg-card transition-colors group">
+                          <div className="aspect-video relative overflow-hidden">
+                            {related.coverImage ? (
+                              <img src={related.coverImage} alt={related.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">🗺️</div>
+                            )}
+                          </div>
+                          <div className="p-2">
+                            <p className="font-medium text-xs truncate">{related.name}</p>
+                          </div>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}

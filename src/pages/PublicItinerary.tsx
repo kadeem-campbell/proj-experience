@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
-import { format, addDays, setHours, setMinutes } from "date-fns";
+import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
+import { DateRange } from "react-day-picker";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,9 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
-import { publicItinerariesData } from "@/data/itinerariesData";
+import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
 import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
 import { LikedExperience, TimeSlot } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
@@ -45,7 +53,12 @@ import {
   Sunrise,
   Sun,
   Sunset,
-  Moon
+  Moon,
+  Globe,
+  Lock,
+  Palette,
+  Edit2,
+  Trash2
 } from "lucide-react";
 
 // Time slot configurations
@@ -70,8 +83,11 @@ const PublicItinerary = () => {
   // Trip generation state
   const [showTripView, setShowTripView] = useState(false);
   const [tripStartDate, setTripStartDate] = useState<Date | undefined>(undefined);
+  const [tripEndDate, setTripEndDate] = useState<Date | undefined>(undefined);
   const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showCustomizeSheet, setShowCustomizeSheet] = useState(false);
+  const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
   
   const { 
     addExperience, 
@@ -80,11 +96,23 @@ const PublicItinerary = () => {
     createItinerary, 
     itineraries, 
     isInItinerary,
-    copyItinerary 
+    copyItinerary,
+    togglePublic 
   } = useItineraries();
 
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
+
+  // Get related public itineraries (same tag or similar location)
+  // Must be called before early return to satisfy hooks rules
+  const relatedItineraries = useMemo(() => {
+    if (!itinerary) return [];
+    return publicItinerariesData
+      .filter(i => i.id !== itinerary.id)
+      .filter(i => i.tag === itinerary.tag || 
+        i.experiences.some(e => itinerary.experiences.some(ie => ie.location === e.location)))
+      .slice(0, 6);
+  }, [itinerary]);
 
   if (!itinerary) {
     return (
@@ -104,7 +132,7 @@ const PublicItinerary = () => {
   }
 
   // Auto-generate trip based on experiences and their time slots
-  const generateTrip = (startDate: Date) => {
+  const generateTrip = (startDate: Date, endDate?: Date) => {
     setIsGenerating(true);
     
     // Group experiences by time slot
@@ -117,18 +145,18 @@ const PublicItinerary = () => {
     
     itinerary.experiences.forEach(exp => {
       const slot = exp.timeSlot || 'afternoon';
-      bySlot[slot].push(exp);
+      bySlot[slot].push({ ...exp });
     });
     
-    // Distribute across days (roughly 4 experiences per day)
-    const experiencesPerDay = 4;
+    // Calculate number of days from date range or auto-calculate
     const totalExperiences = itinerary.experiences.length;
-    const numDays = Math.max(1, Math.ceil(totalExperiences / experiencesPerDay));
+    const experiencesPerDay = 4;
+    const autoNumDays = Math.max(1, Math.ceil(totalExperiences / experiencesPerDay));
+    const numDays = endDate 
+      ? Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+      : autoNumDays;
     
     const tripDays: Record<string, LikedExperience[]> = {};
-    
-    // Create balanced daily schedule
-    const allExperiences = [...itinerary.experiences];
     
     for (let day = 0; day < numDays; day++) {
       const dayKey = format(addDays(startDate, day), "yyyy-MM-dd");
@@ -151,21 +179,17 @@ const PublicItinerary = () => {
       }
       
       // Fill remaining slots if we haven't hit target
-      while (tripDays[dayKey].length < experiencesPerDay && allExperiences.length > tripDays[dayKey].length) {
-        // Find any remaining experience
-        for (const slot of slots) {
-          if (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
-            const exp = bySlot[slot].shift()!;
-            const slotHour = timeSlotConfig[slot].hour;
-            const scheduledDate = setMinutes(setHours(addDays(startDate, day), slotHour), 0);
-            
-            tripDays[dayKey].push({
-              ...exp,
-              scheduledTime: scheduledDate.toISOString()
-            });
-          }
+      for (const slot of slots) {
+        if (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
+          const exp = bySlot[slot].shift()!;
+          const slotHour = timeSlotConfig[slot].hour;
+          const scheduledDate = setMinutes(setHours(addDays(startDate, day), slotHour), 0);
+          
+          tripDays[dayKey].push({
+            ...exp,
+            scheduledTime: scheduledDate.toISOString()
+          });
         }
-        break;
       }
       
       // Sort by scheduled time
@@ -184,12 +208,54 @@ const PublicItinerary = () => {
   const handleMakeItATrip = () => {
     if (!tripStartDate) {
       toast({
-        title: "Select a start date",
+        title: "Select a date range",
         description: "Choose when your trip begins to generate a schedule.",
       });
       return;
     }
-    generateTrip(tripStartDate);
+    generateTrip(tripStartDate, tripEndDate);
+  };
+
+  // Update experience time in generated trip
+  const handleUpdateExperienceTime = (expId: string, newTime: string) => {
+    setGeneratedTrip(prev => {
+      const updated = { ...prev };
+      for (const dayKey of Object.keys(updated)) {
+        updated[dayKey] = updated[dayKey].map(exp => 
+          exp.id === expId ? { ...exp, scheduledTime: newTime } : exp
+        );
+        // Re-sort
+        updated[dayKey].sort((a, b) => 
+          new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+        );
+      }
+      return updated;
+    });
+  };
+
+  // Move experience to different day
+  const handleMoveExperienceToDay = (expId: string, fromDay: string, toDay: string) => {
+    setGeneratedTrip(prev => {
+      const updated = { ...prev };
+      const exp = updated[fromDay]?.find(e => e.id === expId);
+      if (!exp) return prev;
+      
+      // Remove from old day
+      updated[fromDay] = updated[fromDay].filter(e => e.id !== expId);
+      
+      // Add to new day with updated time
+      const newDate = new Date(toDay);
+      const oldDate = new Date(exp.scheduledTime!);
+      newDate.setHours(oldDate.getHours(), oldDate.getMinutes(), 0, 0);
+      
+      if (!updated[toDay]) updated[toDay] = [];
+      updated[toDay].push({ ...exp, scheduledTime: newDate.toISOString() });
+      updated[toDay].sort((a, b) => 
+        new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+      );
+      
+      return updated;
+    });
   };
 
   const handleSaveTrip = () => {
@@ -224,14 +290,20 @@ const PublicItinerary = () => {
       if (Date.now() < end) requestAnimationFrame(frame);
     }());
     
-    toast({
-      title: "Trip created! 🎉",
-      description: "Your trip has been saved. Redirecting...",
-    });
-    
-    setTimeout(() => {
-      navigate(`/trip/${newItinerary.id}`);
-    }, 1500);
+    // Save itinerary ID and show customize sheet
+    setSavedItineraryId(newItinerary.id);
+    setShowCustomizeSheet(true);
+  };
+
+  const handleFinishCustomization = () => {
+    setShowCustomizeSheet(false);
+    if (savedItineraryId) {
+      toast({
+        title: "Trip created! 🎉",
+        description: "Taking you to your new trip...",
+      });
+      navigate(`/trip/${savedItineraryId}`);
+    }
   };
 
   const handleShare = async () => {
@@ -355,6 +427,7 @@ const PublicItinerary = () => {
     );
   });
 
+
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
     const inItinerary = isInItinerary(experience.id);
@@ -388,12 +461,11 @@ const PublicItinerary = () => {
               </div>
             )}
             
-            {/* Time slot badge */}
-            {slotInfo && (
+            {/* Category badge - no time slots shown (internal only) */}
+            {experience.category && (
               <div className="absolute top-2 left-2">
-                <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs gap-1">
-                  {slotInfo.icon}
-                  {slotInfo.label}
+                <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs">
+                  {experience.category}
                 </Badge>
               </div>
             )}
@@ -487,7 +559,7 @@ const PublicItinerary = () => {
     );
   };
 
-  // Render generated trip timeline
+  // Render generated trip timeline with editing capabilities
   const renderTripTimeline = () => {
     const days = Object.keys(generatedTrip).sort();
     
@@ -509,7 +581,7 @@ const PublicItinerary = () => {
                 {dayExperiences.map((exp) => (
                   <div 
                     key={exp.id}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-card/60 border border-border/30"
+                    className="flex items-start gap-3 p-3 rounded-lg bg-card/60 border border-border/30 group"
                   >
                     <div className="w-12 h-12 rounded-md overflow-hidden shrink-0">
                       {exp.videoThumbnail ? (
@@ -524,19 +596,53 @@ const PublicItinerary = () => {
                       <p className="font-medium text-sm truncate">{exp.title}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         {exp.scheduledTime && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {format(new Date(exp.scheduledTime), "h:mm a")}
-                          </span>
+                          <Input
+                            type="time"
+                            value={format(new Date(exp.scheduledTime), "HH:mm")}
+                            onChange={(e) => {
+                              const [hours, mins] = e.target.value.split(':').map(Number);
+                              const newDate = new Date(exp.scheduledTime!);
+                              newDate.setHours(hours, mins, 0, 0);
+                              handleUpdateExperienceTime(exp.id, newDate.toISOString());
+                            }}
+                            className="h-6 w-24 text-xs px-2"
+                          />
                         )}
-                        {exp.timeSlot && (
-                          <Badge variant="outline" className="text-[10px] gap-1">
-                            {timeSlotConfig[exp.timeSlot].icon}
-                            {timeSlotConfig[exp.timeSlot].label}
-                          </Badge>
+                        {exp.location && (
+                          <span className="text-muted-foreground truncate">{exp.location}</span>
                         )}
                       </div>
                     </div>
+                    
+                    {/* Move to different day dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-popover border-border z-50">
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Move to day</div>
+                        {days.filter(d => d !== dayKey).map(d => (
+                          <DropdownMenuItem key={d} onClick={() => handleMoveExperienceToDay(exp.id, dayKey, d)}>
+                            {format(new Date(d), "EEE, MMM d")}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => {
+                            setGeneratedTrip(prev => ({
+                              ...prev,
+                              [dayKey]: prev[dayKey].filter(e => e.id !== exp.id)
+                            }));
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3 mr-2" />
+                          Remove
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 ))}
               </div>
@@ -643,24 +749,32 @@ const PublicItinerary = () => {
                   />
                 </div>
                 
-                {/* Make it a Trip action */}
+                {/* Make it a Trip action with date range */}
                 {!showTripView && (
                   <div className="flex items-center gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-2">
                           <CalendarIcon className="w-4 h-4" />
-                          {tripStartDate ? format(tripStartDate, "MMM d") : "Pick date"}
+                          {tripStartDate && tripEndDate 
+                            ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d")}`
+                            : tripStartDate 
+                              ? format(tripStartDate, "MMM d")
+                              : "Pick dates"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="end">
                         <Calendar
-                          mode="single"
-                          selected={tripStartDate}
-                          onSelect={setTripStartDate}
+                          mode="range"
+                          selected={{ from: tripStartDate, to: tripEndDate }}
+                          onSelect={(range) => {
+                            setTripStartDate(range?.from);
+                            setTripEndDate(range?.to);
+                          }}
                           disabled={(date) => date < new Date()}
                           initialFocus
                           className="p-3 pointer-events-auto"
+                          numberOfMonths={2}
                         />
                       </PopoverContent>
                     </Popover>
@@ -696,6 +810,54 @@ const PublicItinerary = () => {
                   <p className="text-muted-foreground">No experiences found matching "{searchQuery}"</p>
                 </div>
               )}
+
+              {/* Related Public Itineraries Section */}
+              {relatedItineraries.length > 0 && !showTripView && (
+                <div className="mt-8 pt-8 border-t border-border">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    Related Itineraries
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {relatedItineraries.map((related) => (
+                      <Link 
+                        key={related.id} 
+                        to={`/public-itinerary/${related.id}`}
+                        className="group"
+                      >
+                        <Card className="overflow-hidden border-0 bg-card/60 hover:bg-card transition-colors">
+                          <div className="aspect-video relative overflow-hidden">
+                            {related.coverImage ? (
+                              <img 
+                                src={related.coverImage} 
+                                alt={related.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                                <span className="text-2xl">🗺️</span>
+                              </div>
+                            )}
+                            <Badge className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm text-xs">
+                              {related.experiences.length} exp
+                            </Badge>
+                          </div>
+                          <div className="p-3">
+                            <h4 className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                              {related.name}
+                            </h4>
+                            {related.creatorName && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                by @{related.creatorName}
+                              </p>
+                            )}
+                          </div>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -709,12 +871,17 @@ const PublicItinerary = () => {
                     Your Generated Trip
                   </h3>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Starting {tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
+                <p className="text-sm text-muted-foreground mb-2">
+                  {tripStartDate && tripEndDate 
+                    ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
+                    : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
+                </p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Edit times and reorder before saving
                 </p>
                 <Button onClick={handleSaveTrip} className="w-full gap-2">
                   <Check className="w-4 h-4" />
-                  Save & Go to Trip
+                  Save & Customize Trip
                 </Button>
               </div>
               
@@ -741,6 +908,87 @@ const PublicItinerary = () => {
           sourceItinerary={itinerary}
           onCopyComplete={handleCopyComplete}
         />
+
+        {/* Post-save Customization Sheet */}
+        <Sheet open={showCustomizeSheet} onOpenChange={setShowCustomizeSheet}>
+          <SheetContent className="w-full sm:max-w-md bg-card border-border overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Customize Your Trip
+              </SheetTitle>
+              <SheetDescription>Make it public and personalize your trip page</SheetDescription>
+            </SheetHeader>
+            
+            <div className="space-y-6 py-6">
+              {/* Visibility Toggle */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
+                  Visibility
+                </label>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="default"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => savedItineraryId && togglePublic(savedItineraryId)}
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Make Public
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex-1"
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Keep Private
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Public trips can be discovered and spun up by other travelers
+                </p>
+              </div>
+
+              {/* Theme Selector */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  Theme
+                </label>
+                <div className="grid grid-cols-5 gap-3">
+                  {[
+                    { name: "Sunset", color: "#f97316", gradient: "from-orange-500/30 to-pink-500/30" },
+                    { name: "Ocean", color: "#06b6d4", gradient: "from-cyan-500/30 to-blue-500/30" },
+                    { name: "Midnight", color: "#a855f7", gradient: "from-purple-500/30 to-slate-900/30" },
+                    { name: "Forest", color: "#10b981", gradient: "from-emerald-500/30 to-green-700/30" },
+                    { name: "Ember", color: "#ef4444", gradient: "from-red-600/30 to-amber-500/30" },
+                  ].map((theme) => (
+                    <button
+                      key={theme.name}
+                      className={cn(
+                        "aspect-square rounded-xl transition-all flex flex-col items-center justify-center gap-1 p-2 hover:scale-105",
+                        `bg-gradient-to-br ${theme.gradient}`
+                      )}
+                    >
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: theme.color }}
+                      />
+                      <span className="text-[10px] text-foreground/80">{theme.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button onClick={handleFinishCustomization} className="w-full">
+                <ChevronRight className="w-4 h-4 mr-2" />
+                Go to My Trip
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </MainLayout>
   );
