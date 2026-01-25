@@ -1,4 +1,4 @@
-import { LikedExperience } from '@/hooks/useLikedExperiences';
+import { LikedExperience, TimeSlot } from '@/hooks/useLikedExperiences';
 
 export interface PublicItinerary {
   id: string;
@@ -61,36 +61,43 @@ const nameTemplates = [
   '{city} Journey',
 ];
 
-// Experience templates by category
-const experienceTemplates = {
-  Culture: [
-    'Walking Tour', 'Museum Visit', 'Historical Site', 'Art Gallery', 'Local Market',
-    'Traditional Dance', 'Heritage Walk', 'Architecture Tour', 'Monument Visit', 'Cultural Festival'
-  ],
-  Food: [
-    'Street Food Tour', 'Cooking Class', 'Fine Dining', 'Local Restaurant', 'Food Market',
-    'Coffee Tasting', 'Wine Tasting', 'Spice Tour', 'BBQ Experience', 'Brunch Spot'
-  ],
-  Adventure: [
-    'Hiking Trail', 'Water Sports', 'Zip Line', 'Scuba Diving', 'Snorkeling',
-    'Kayaking', 'Cycling Tour', 'Rock Climbing', 'Bungee Jump', 'Parasailing'
-  ],
-  Beach: [
-    'Beach Day', 'Sunset Beach', 'Beach Club', 'Island Hopping', 'Beach Yoga',
-    'Sandbank Visit', 'Beach Massage', 'Beach Walk', 'Swimming Spot', 'Beach BBQ'
-  ],
-  Wildlife: [
-    'Safari Drive', 'Bird Watching', 'Animal Sanctuary', 'Nature Reserve', 'Conservation Visit',
-    'Wildlife Photography', 'Elephant Orphanage', 'Giraffe Center', 'Marine Life Tour', 'Forest Walk'
-  ],
-  Nightlife: [
-    'Rooftop Bar', 'Live Music', 'Beach Party', 'Club Night', 'Jazz Evening',
-    'Sunset Drinks', 'Bar Hopping', 'Night Market', 'Casino Night', 'Pub Crawl'
-  ],
-  Wellness: [
-    'Spa Day', 'Yoga Session', 'Meditation Class', 'Hot Springs', 'Beach Massage',
-    'Retreat Center', 'Wellness Resort', 'Sound Healing', 'Thermal Bath', 'Holistic Therapy'
-  ]
+// Experience templates by category with suggested time slots
+const experienceTemplates: Record<string, { items: string[]; timeSlot: TimeSlot }> = {
+  Culture: {
+    items: ['Walking Tour', 'Museum Visit', 'Historical Site', 'Art Gallery', 'Local Market',
+      'Traditional Dance', 'Heritage Walk', 'Architecture Tour', 'Monument Visit', 'Cultural Festival'],
+    timeSlot: 'morning'
+  },
+  Food: {
+    items: ['Street Food Tour', 'Cooking Class', 'Fine Dining', 'Local Restaurant', 'Food Market',
+      'Coffee Tasting', 'Wine Tasting', 'Spice Tour', 'BBQ Experience', 'Brunch Spot'],
+    timeSlot: 'afternoon'
+  },
+  Adventure: {
+    items: ['Hiking Trail', 'Water Sports', 'Zip Line', 'Scuba Diving', 'Snorkeling',
+      'Kayaking', 'Cycling Tour', 'Rock Climbing', 'Bungee Jump', 'Parasailing'],
+    timeSlot: 'morning'
+  },
+  Beach: {
+    items: ['Beach Day', 'Sunset Beach', 'Beach Club', 'Island Hopping', 'Beach Yoga',
+      'Sandbank Visit', 'Beach Massage', 'Beach Walk', 'Swimming Spot', 'Beach BBQ'],
+    timeSlot: 'afternoon'
+  },
+  Wildlife: {
+    items: ['Safari Drive', 'Bird Watching', 'Animal Sanctuary', 'Nature Reserve', 'Conservation Visit',
+      'Wildlife Photography', 'Elephant Orphanage', 'Giraffe Center', 'Marine Life Tour', 'Forest Walk'],
+    timeSlot: 'morning'
+  },
+  Nightlife: {
+    items: ['Rooftop Bar', 'Live Music', 'Beach Party', 'Club Night', 'Jazz Evening',
+      'Sunset Drinks', 'Bar Hopping', 'Night Market', 'Casino Night', 'Pub Crawl'],
+    timeSlot: 'night'
+  },
+  Wellness: {
+    items: ['Spa Day', 'Yoga Session', 'Meditation Class', 'Hot Springs', 'Beach Massage',
+      'Retreat Center', 'Wellness Resort', 'Sound Healing', 'Thermal Bath', 'Holistic Therapy'],
+    timeSlot: 'evening'
+  }
 };
 
 const thumbnails = [
@@ -130,8 +137,8 @@ function generateExperiences(city: string, count: number): LikedExperience[] {
   
   for (let i = 0; i < count; i++) {
     const category = categories[i % categories.length];
-    const templates = experienceTemplates[category];
-    const template = templates[i % templates.length];
+    const templateData = experienceTemplates[category];
+    const template = templateData.items[i % templateData.items.length];
     
     experiences.push({
       id: `${city.toLowerCase().replace(/\s/g, '-')}-gen-${i}`,
@@ -141,7 +148,8 @@ function generateExperiences(city: string, count: number): LikedExperience[] {
       category,
       location: city,
       price: prices[i % prices.length],
-      likedAt: new Date().toISOString()
+      likedAt: new Date().toISOString(),
+      timeSlot: templateData.timeSlot
     });
   }
   
