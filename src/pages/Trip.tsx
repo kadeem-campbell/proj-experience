@@ -289,9 +289,14 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     }
   }, [itinerary]);
 
-  // Check if itinerary has scheduled experiences
+  // Check if itinerary has scheduled experiences (either via trips or legacy scheduledTime)
   const hasScheduledExperiences = useMemo(() => {
     if (!itinerary) return false;
+    // Check if there are any trips with experiences
+    if (itinerary.trips && itinerary.trips.length > 0) {
+      return itinerary.trips.some(t => t.experiences && t.experiences.length > 0);
+    }
+    // Legacy: check itinerary.experiences for scheduledTime
     return itinerary.experiences.some(exp => exp.scheduledTime && exp.scheduledTime.includes('-'));
   }, [itinerary]);
 
@@ -463,12 +468,20 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
 
   // Save generated trip to itinerary
   const handleSaveTrip = () => {
-    if (!itinerary) return;
+    if (!itinerary || !tripStartDate) return;
     
-    // Update each experience with scheduled time - use the current itinerary ID
-    Object.values(generatedTrip).flat().forEach(exp => {
-      updateExperienceDetails(exp.id, { scheduledTime: exp.scheduledTime }, itinerary.id);
-    });
+    // Collect all scheduled experiences from the generated trip
+    const allScheduledExperiences = Object.values(generatedTrip).flat();
+    
+    // Create a new Trip object with all the scheduled experiences
+    const tripName = `Trip ${(itinerary.trips?.length || 0) + 1}`;
+    const newTrip = createTrip(
+      itinerary.id, 
+      tripName, 
+      tripStartDate.toISOString(), 
+      tripEndDate?.toISOString(),
+      allScheduledExperiences
+    );
     
     // Fire confetti
     const duration = 2000;
@@ -495,12 +508,19 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     
     toast({
       title: "Trip scheduled! 🎉",
-      description: "Your experiences have been scheduled.",
+      description: `${allScheduledExperiences.length} experiences have been scheduled.`,
     });
 
-    // Keep the Trip View open; after saving we switch to the persisted schedule
+    // Keep the Trip View open and select the new trip
     setShowTripView(true);
     setGeneratedTrip({});
+    setTripStartDate(undefined);
+    setTripEndDate(undefined);
+    
+    // Select the newly created trip
+    if (newTrip) {
+      setSearchParams({ trip: newTrip.id });
+    }
   };
 
   // Handle drag and drop for timeline (Owner only)
@@ -697,11 +717,29 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     );
   };
 
+  // Build trip data from selected trip's experiences
   const scheduledTripData = useMemo(() => {
-    // Use current itinerary scheduledTime values as a persistent schedule
-    // (so the schedule is still visible after refresh)
+    // If we have a selected trip, use its experiences
+    if (selectedTrip && selectedTrip.experiences.length > 0) {
+      const byDay: Record<string, LikedExperience[]> = {};
+      selectedTrip.experiences.forEach(exp => {
+        if (exp.scheduledTime) {
+          const dayKey = format(parseISO(exp.scheduledTime), "yyyy-MM-dd");
+          if (!byDay[dayKey]) byDay[dayKey] = [];
+          byDay[dayKey].push(exp);
+        }
+      });
+      // Sort each day by time
+      Object.keys(byDay).forEach(day => {
+        byDay[day].sort((a, b) => 
+          new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+        );
+      });
+      return byDay;
+    }
+    // Fallback to legacy scheduledByDay from itinerary.experiences
     return scheduledByDay;
-  }, [scheduledByDay]);
+  }, [selectedTrip, scheduledByDay]);
 
   // Render trip timeline
   const renderTripTimeline = (

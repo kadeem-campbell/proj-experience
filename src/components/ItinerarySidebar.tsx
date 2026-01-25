@@ -240,10 +240,9 @@ export const ItinerarySidebar = () => {
                             
                             {!collapsed && (
                               <div className="opacity-0 group-hover/item:opacity-100 flex items-center gap-1 ml-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
+                                <span
+                                  role="button"
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     togglePublic(itinerary.id);
@@ -254,11 +253,10 @@ export const ItinerarySidebar = () => {
                                   ) : (
                                     <Globe className="w-3 h-3" />
                                   )}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
+                                </span>
+                                <span
+                                  role="button"
+                                  className="h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setEditingId(itinerary.id);
@@ -266,19 +264,18 @@ export const ItinerarySidebar = () => {
                                   }}
                                 >
                                   <Edit2 className="w-3 h-3" />
-                                </Button>
+                                </span>
                                 {itineraries.length > 1 && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-destructive hover:text-destructive"
+                                  <span
+                                    role="button"
+                                    className="h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-accent text-destructive hover:text-destructive cursor-pointer"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       deleteItinerary(itinerary.id);
                                     }}
                                   >
                                     <Trash2 className="w-3 h-3" />
-                                  </Button>
+                                  </span>
                                 )}
                               </div>
                             )}
