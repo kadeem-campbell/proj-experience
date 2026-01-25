@@ -5,15 +5,17 @@ import confetti from "canvas-confetti";
 import { 
   Palette, MapPin, Users, Calendar, GripVertical, 
   Clock, ChevronRight, Sparkles, Bell, Rocket, ArrowLeft, Share2,
-  Globe, Lock, Download, FileSpreadsheet,
+  Globe, Lock, Download, FileSpreadsheet, Settings,
   MessageCircle, Copy, Check, Plus, Trash2, Edit2, Camera, X,
-  DollarSign, Timer, MoreVertical, Eye, Zap
+  DollarSign, Timer, MoreVertical, Eye, Zap, LayoutGrid, CalendarDays,
+  Link2, Mail, UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Itinerary, useItineraries } from "@/hooks/useItineraries";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
@@ -34,6 +36,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 // Theme configurations
 const themes = {
@@ -41,31 +51,36 @@ const themes = {
     name: "Sunset",
     gradient: "from-orange-500/30 via-pink-500/20 to-purple-600/30",
     accent: "text-orange-400",
-    glow: "bg-orange-500/20"
+    glow: "bg-orange-500/20",
+    primary: "#f97316"
   },
   ocean: {
     name: "Ocean",
     gradient: "from-cyan-500/30 via-blue-500/20 to-indigo-600/30",
     accent: "text-cyan-400",
-    glow: "bg-cyan-500/20"
+    glow: "bg-cyan-500/20",
+    primary: "#06b6d4"
   },
   midnight: {
     name: "Midnight",
     gradient: "from-slate-800/50 via-purple-900/30 to-slate-900/50",
     accent: "text-purple-400",
-    glow: "bg-purple-500/20"
+    glow: "bg-purple-500/20",
+    primary: "#a855f7"
   },
   forest: {
     name: "Forest",
     gradient: "from-emerald-600/30 via-teal-500/20 to-green-700/30",
     accent: "text-emerald-400",
-    glow: "bg-emerald-500/20"
+    glow: "bg-emerald-500/20",
+    primary: "#10b981"
   },
   ember: {
     name: "Ember",
     gradient: "from-red-600/30 via-orange-500/20 to-amber-500/30",
     accent: "text-red-400",
-    glow: "bg-red-500/20"
+    glow: "bg-red-500/20",
+    primary: "#ef4444"
   }
 };
 
@@ -106,21 +121,22 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     return loadedItinerary;
   }, [useActiveItinerary, activeItinerary, itineraries, id, loadedItinerary]);
 
-  // Check if user owns this itinerary (Workshop Mode vs Showroom Mode)
+  // Check if user owns this itinerary
   const isOwner = useMemo(() => {
     if (useActiveItinerary) return true;
     if (!itinerary) return false;
     return itineraries.some(i => i.id === itinerary.id);
   }, [useActiveItinerary, itinerary, itineraries]);
 
+  // View state: "experiences" or "planning"
+  const [viewMode, setViewMode] = useState<"experiences" | "planning">("experiences");
   const [currentTheme, setCurrentTheme] = useState<ThemeKey>("ocean");
-  const [showThemePicker, setShowThemePicker] = useState(false);
   const [spinUpOpen, setSpinUpOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [draggedItem, setDraggedItem] = useState<LikedExperience | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [copied, setCopied] = useState(false);
   const [editingExperienceId, setEditingExperienceId] = useState<string | null>(null);
@@ -133,7 +149,6 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   const fireConfetti = useCallback(() => {
     const duration = 3000;
     const end = Date.now() + duration;
-    
     const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'];
     
     (function frame() {
@@ -161,7 +176,6 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   const handleSpinUpComplete = useCallback((newItineraryId: string) => {
     setJustSpunUp(true);
     fireConfetti();
-    // Reset after animation
     setTimeout(() => setJustSpunUp(false), 5000);
   }, [fireConfetti]);
 
@@ -184,7 +198,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     }
   }, [itinerary]);
 
-  // Group experiences by date
+  // Group experiences by date for planning view
   const { scheduledByDay, unscheduled, tripDays } = useMemo(() => {
     if (!itinerary) return { scheduledByDay: {}, unscheduled: [], tripDays: [] };
     
@@ -239,7 +253,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     return `${hours}h ${mins}m`;
   };
 
-  // Handle drag and drop for timeline (Workshop mode only)
+  // Handle drag and drop for timeline (Owner only)
   const handleDragStart = (exp: LikedExperience) => {
     if (!isOwner) return;
     setDraggedItem(exp);
@@ -315,7 +329,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     if (collaboratorEmail.trim() && itinerary) {
       addCollaborator(itinerary.id, collaboratorEmail.trim());
       setCollaboratorEmail("");
-      toast({ title: "Collaborator added" });
+      toast({ title: "Invite sent!", description: `${collaboratorEmail.trim()} has been invited` });
     }
   };
 
@@ -375,6 +389,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     : "Dates TBD";
 
   const locations = [...new Set(itinerary.experiences.map(e => e.location))].slice(0, 3);
+  const shareUrl = getShareUrl(itinerary.id);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -385,148 +400,173 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
       )} />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,transparent_0%,hsl(var(--background))_70%)]" />
       
-      {/* Workshop Mode: Floating theme picker (owners only) */}
-      {isOwner && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <div className="relative">
-            {showThemePicker && (
-              <div className="absolute bottom-14 right-0 p-3 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl animate-fade-in">
-                <p className="text-xs font-medium text-muted-foreground mb-2 px-1">Theme</p>
-                <div className="flex gap-2">
-                  {(Object.keys(themes) as ThemeKey[]).map((key) => (
-                    <button
-                      key={key}
-                      onClick={() => { setCurrentTheme(key); setShowThemePicker(false); }}
-                      className={cn(
-                        "w-8 h-8 rounded-full transition-all",
-                        `bg-gradient-to-br ${themes[key].gradient}`,
-                        currentTheme === key ? "ring-2 ring-white ring-offset-2 ring-offset-background" : "hover:scale-110"
-                      )}
-                      title={themes[key].name}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-            <Button
-              size="icon"
-              variant="secondary"
-              className="rounded-full w-12 h-12 shadow-lg bg-card/80 backdrop-blur-sm hover:bg-card"
-              onClick={() => setShowThemePicker(!showThemePicker)}
-            >
-              <Palette className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Just Spun Up celebration banner */}
       {justSpunUp && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-primary via-primary/90 to-primary p-3 text-center animate-fade-in">
           <p className="text-primary-foreground font-medium flex items-center justify-center gap-2">
             <Sparkles className="w-4 h-4" />
-            Welcome to your trip! You're now in Workshop Mode – drag, edit, and make it yours.
+            Welcome to your trip! You can now edit, organize, and make it yours.
             <Sparkles className="w-4 h-4" />
           </p>
         </div>
       )}
       
       {/* Content */}
-      <div className={cn("relative z-10 max-w-6xl mx-auto px-4 py-8", justSpunUp && "pt-20")}>
-        {/* Nav Header */}
-        <div className="flex items-center justify-between mb-8">
+      <div className={cn("relative z-10 max-w-7xl mx-auto px-4 py-6", justSpunUp && "pt-16")}>
+        
+        {/* Top Nav */}
+        <div className="flex items-center justify-between mb-6">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
           
           <div className="flex items-center gap-2">
-            {/* Workshop Mode (Owner) Actions */}
             {isOwner ? (
               <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export
+                {/* Customize Button - Opens Sheet */}
+                <Sheet open={customizeOpen} onOpenChange={setCustomizeOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Customize
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-popover border-border z-50">
-                    <DropdownMenuItem onClick={handleExportCSV}>
-                      <FileSpreadsheet className="w-4 h-4 mr-2" />
-                      Export CSV
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => togglePublic(itinerary.id)}
-                >
-                  {itinerary.isPublic ? <Globe className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
-                  {itinerary.isPublic ? 'Public' : 'Private'}
-                </Button>
-
-                <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm">
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Share
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md bg-card border-border">
-                    <DialogHeader>
-                      <DialogTitle>Share & Publish</DialogTitle>
-                      <DialogDescription>Share this trip with friends</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 pt-4">
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-md bg-card border-border overflow-y-auto">
+                    <SheetHeader>
+                      <SheetTitle>Customize Your Trip</SheetTitle>
+                      <SheetDescription>Personalize your trip page</SheetDescription>
+                    </SheetHeader>
+                    
+                    <div className="space-y-6 py-6">
+                      {/* Public URL */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Public Link</label>
+                        <label className="text-sm font-medium flex items-center gap-2">
+                          <Link2 className="w-4 h-4" />
+                          Public URL
+                        </label>
                         <div className="flex gap-2">
-                          <Input value={getShareUrl(itinerary.id)} readOnly className="text-sm" />
-                          <Button onClick={handleCopyLink}>
+                          <Input value={shareUrl} readOnly className="text-xs bg-muted" />
+                          <Button size="icon" variant="outline" onClick={handleCopyLink}>
                             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                           </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}>
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          WhatsApp
-                        </Button>
-                        <Button variant="outline" className="flex-1" onClick={handleCopyLink}>
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copy Link
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-2 pt-4 border-t">
+
+                      {/* Visibility Toggle */}
+                      <div className="space-y-2">
                         <label className="text-sm font-medium flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          Add Collaborators
+                          {itinerary.isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                          Visibility
+                        </label>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant={itinerary.isPublic ? "default" : "outline"} 
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => !itinerary.isPublic && togglePublic(itinerary.id)}
+                          >
+                            <Globe className="w-4 h-4 mr-2" />
+                            Public
+                          </Button>
+                          <Button 
+                            variant={!itinerary.isPublic ? "default" : "outline"} 
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => itinerary.isPublic && togglePublic(itinerary.id)}
+                          >
+                            <Lock className="w-4 h-4 mr-2" />
+                            Private
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Theme Selector */}
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium flex items-center gap-2">
+                          <Palette className="w-4 h-4" />
+                          Theme
+                        </label>
+                        <div className="grid grid-cols-5 gap-3">
+                          {(Object.keys(themes) as ThemeKey[]).map((key) => (
+                            <button
+                              key={key}
+                              onClick={() => setCurrentTheme(key)}
+                              className={cn(
+                                "aspect-square rounded-xl transition-all flex flex-col items-center justify-center gap-1 p-2",
+                                `bg-gradient-to-br ${themes[key].gradient}`,
+                                currentTheme === key 
+                                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-105" 
+                                  : "hover:scale-105 opacity-70 hover:opacity-100"
+                              )}
+                            >
+                              <div 
+                                className="w-4 h-4 rounded-full" 
+                                style={{ backgroundColor: themes[key].primary }}
+                              />
+                              <span className="text-[10px] text-white/80">{themes[key].name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Cover Photo */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium flex items-center gap-2">
+                          <Camera className="w-4 h-4" />
+                          Cover Photo
+                        </label>
+                        <div 
+                          className="aspect-video rounded-xl border-2 border-dashed border-border bg-muted/50 flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors overflow-hidden"
+                          onClick={handleCoverImageClick}
+                        >
+                          {itinerary.coverImage ? (
+                            <img src={itinerary.coverImage} alt="Cover" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-center p-4">
+                              <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                              <p className="text-sm text-muted-foreground">Click to upload</p>
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCoverImageChange}
+                          className="hidden"
+                        />
+                      </div>
+
+                      {/* Invite People */}
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium flex items-center gap-2">
+                          <UserPlus className="w-4 h-4" />
+                          Invite People
                         </label>
                         <div className="flex gap-2">
                           <Input
-                            placeholder="Email address"
+                            placeholder="friend@email.com"
+                            type="email"
                             value={collaboratorEmail}
                             onChange={(e) => setCollaboratorEmail(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleAddCollaborator()}
                           />
                           <Button onClick={handleAddCollaborator}>
-                            <Plus className="w-4 h-4" />
+                            <Mail className="w-4 h-4" />
                           </Button>
                         </div>
+                        
                         {itinerary.collaborators.length > 0 && (
-                          <div className="space-y-1 mt-2">
-                            {itinerary.collaborators.map((email) => (
-                              <div key={email} className="flex items-center justify-between text-sm bg-muted rounded-md px-3 py-2">
-                                <span>{email}</span>
+                          <div className="space-y-2">
+                            {itinerary.collaborators.map((collab) => (
+                              <div key={collab} className="flex items-center justify-between text-sm bg-muted rounded-lg px-3 py-2">
+                                <span className="truncate">{collab}</span>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => removeCollaborator(itinerary.id, email)}
+                                  className="h-6 w-6 shrink-0"
+                                  onClick={() => removeCollaborator(itinerary.id, collab)}
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
@@ -535,19 +575,47 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                           </div>
                         )}
                       </div>
+
+                      {/* Share Buttons */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Share</label>
+                        <div className="flex gap-2">
+                          <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}>
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            WhatsApp
+                          </Button>
+                          <Button variant="outline" className="flex-1" onClick={handleCopyLink}>
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy Link
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Export */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Export</label>
+                        <Button variant="outline" className="w-full" onClick={handleExportCSV}>
+                          <FileSpreadsheet className="w-4 h-4 mr-2" />
+                          Download CSV
+                        </Button>
+                      </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
+                  </SheetContent>
+                </Sheet>
+
+                <Button size="sm" onClick={handleCopyLink}>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
               </>
             ) : (
-              /* Showroom Mode (Viewer) Actions */
               <>
                 <Button variant="ghost" size="sm" onClick={handleCopyLink}>
                   <Share2 className="w-4 h-4 mr-2" />
                   Share
                 </Button>
                 
-                {/* Big pulsing Spin Up button */}
+                {/* Big pulsing Spin Up button for viewers */}
                 <Button 
                   size="lg"
                   className="relative overflow-hidden group animate-pulse hover:animate-none"
@@ -564,217 +632,210 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           </div>
         </div>
 
-        {/* Mode Badge */}
+        {/* Header Section */}
         <div className="mb-6">
-          {isOwner ? (
-            <Badge variant="secondary" className="bg-primary/20 text-primary border-0">
-              <Edit2 className="w-3 h-3 mr-1" />
-              Workshop Mode
-            </Badge>
-          ) : (
-            <Badge variant="secondary" className="bg-muted text-muted-foreground border-0">
-              <Eye className="w-3 h-3 mr-1" />
-              Viewing @{creatorName}'s trip
-            </Badge>
-          )}
-        </div>
-
-        {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          
-          {/* Block 1: Hero */}
-          <Card className="md:col-span-2 relative overflow-hidden rounded-3xl border-0 bg-card/40 backdrop-blur-xl">
-            <div 
-              className={cn("aspect-[16/9] relative", isOwner && "cursor-pointer group")}
-              onClick={handleCoverImageClick}
-            >
-              {itinerary.coverImage ? (
-                <img 
-                  src={itinerary.coverImage} 
-                  alt={itinerary.name}
-                  className="w-full h-full object-cover"
+          {/* Title */}
+          <div className="flex items-center gap-3 mb-2">
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  className="text-2xl md:text-3xl font-bold h-auto py-1 bg-muted"
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
                 />
-              ) : itinerary.experiences[0]?.videoThumbnail ? (
-                <img 
-                  src={itinerary.experiences[0].videoThumbnail} 
-                  alt={itinerary.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className={cn("w-full h-full bg-gradient-to-br", theme.gradient)} />
-              )}
-              
-              {isOwner && (
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Camera className="w-8 h-8 text-white" />
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleCoverImageChange}
-                className="hidden"
-              />
-              
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                {isEditingName ? (
-                  <div className="flex items-center gap-2 mb-3">
-                    <Input
-                      value={editedName}
-                      onChange={(e) => setEditedName(e.target.value)}
-                      className="text-2xl md:text-4xl font-bold bg-white/10 border-white/30 text-white h-auto py-1"
-                      autoFocus
-                      onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
-                    />
-                    <Button size="icon" variant="secondary" onClick={handleSaveName}>
-                      <Check className="w-4 h-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => setIsEditingName(false)}>
-                      <X className="w-4 h-4 text-white" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 mb-3 group/name">
-                    <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
-                      {itinerary.name}
-                    </h1>
-                    {isOwner && (
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="opacity-0 group-hover/name:opacity-100 transition-opacity h-8 w-8"
-                        onClick={handleStartEditName}
-                      >
-                        <Edit2 className="w-4 h-4 text-white" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-                <div className="flex flex-wrap items-center gap-4 text-white/80">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4" />
-                    {startDate}
-                  </span>
-                  {locations.length > 0 && (
-                    <span className="inline-flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4" />
-                      {locations.join(" → ")}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-4 mt-3 text-white/60 text-sm">
-                  <span>{itinerary.experiences.length} experiences</span>
-                  <span className="flex items-center gap-1">
-                    <DollarSign className="w-3 h-3" />
-                    ~${totalPrice.toFixed(0)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Timer className="w-3 h-3" />
-                    ~{formatDuration(totalDuration)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Card>
-          
-          {/* Block 2: Map Preview */}
-          <Card className="rounded-3xl border-0 bg-card/40 backdrop-blur-xl overflow-hidden">
-            <div className="aspect-square md:aspect-auto md:h-full relative bg-muted/50 flex items-center justify-center">
-              <div className="text-center p-6">
-                <MapPin className={cn("w-12 h-12 mx-auto mb-3", theme.accent)} />
-                <p className="text-sm text-muted-foreground">
-                  {itinerary.experiences.length} locations
-                </p>
-                <Button variant="ghost" size="sm" className="mt-3" onClick={() => navigate('/map')}>
-                  View Map <ChevronRight className="w-4 h-4 ml-1" />
+                <Button size="icon" variant="secondary" onClick={handleSaveName}>
+                  <Check className="w-4 h-4" />
+                </Button>
+                <Button size="icon" variant="ghost" onClick={() => setIsEditingName(false)}>
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
-            </div>
-          </Card>
-          
-          {/* Block 3: Attendees */}
-          <Card className="rounded-3xl border-0 bg-card/40 backdrop-blur-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Users className={cn("w-5 h-5", theme.accent)} />
-              <h3 className="font-semibold">Who's Going</h3>
-            </div>
-            <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map(i => (
-                <div 
-                  key={i}
-                  className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/60 to-primary/30 border-2 border-card flex items-center justify-center text-sm font-medium"
-                >
-                  {String.fromCharCode(64 + i)}
-                </div>
-              ))}
-              {itinerary.collaborators.length > 0 && (
-                <div className="w-10 h-10 rounded-full bg-muted border-2 border-card flex items-center justify-center text-xs text-muted-foreground">
-                  +{itinerary.collaborators.length}
-                </div>
-              )}
-            </div>
-            {isOwner ? (
-              <Button variant="ghost" size="sm" className="mt-4 w-full" onClick={() => setShareDialogOpen(true)}>
-                Invite Friends
-              </Button>
             ) : (
-              <p className="text-xs text-muted-foreground mt-4">
-                {itinerary.collaborators.length + 4} people on this trip
-              </p>
-            )}
-          </Card>
-          
-          {/* Block 4: Ideas Tray (Workshop Mode shows drag hints) */}
-          {unscheduled.length > 0 && (
-            <Card className="md:col-span-2 rounded-3xl border-0 bg-card/40 backdrop-blur-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className={cn("w-5 h-5", theme.accent)} />
-                <h3 className="font-semibold">Ideas to Place</h3>
+              <div className="flex items-center gap-2 group">
+                <h1 className="text-2xl md:text-4xl font-bold tracking-tight">
+                  {itinerary.name}
+                </h1>
                 {isOwner && (
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                    Drag to timeline
-                  </span>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                    onClick={handleStartEditName}
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                )}
+                {!isOwner && (
+                  <Badge variant="secondary" className="bg-muted">
+                    <Eye className="w-3 h-3 mr-1" />
+                    @{creatorName}
+                  </Badge>
                 )}
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                {unscheduled.map(exp => (
-                  <div
-                    key={exp.id}
-                    draggable={isOwner}
-                    onDragStart={() => isOwner && handleDragStart(exp)}
-                    onClick={() => !isOwner && setViewingExperienceId(exp.id)}
-                    className={cn(
-                      "flex-shrink-0 w-48 p-3 bg-background/60 rounded-xl border border-border/50 transition-all",
-                      isOwner 
-                        ? "cursor-grab active:cursor-grabbing hover:border-primary/50 hover:shadow-lg" 
-                        : "cursor-pointer hover:bg-background/80"
-                    )}
-                  >
-                    <div className="flex items-start gap-2">
-                      {isOwner && <GripVertical className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{exp.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{exp.location}</p>
+            )}
+          </div>
+          
+          {/* Meta info */}
+          <div className="flex flex-wrap items-center gap-4 text-muted-foreground text-sm">
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="w-4 h-4" />
+              {startDate}
+            </span>
+            {locations.length > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="w-4 h-4" />
+                {locations.join(" → ")}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1.5">
+              <DollarSign className="w-4 h-4" />
+              ~${totalPrice.toFixed(0)}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Timer className="w-4 h-4" />
+              ~{formatDuration(totalDuration)}
+            </span>
+            {itinerary.isPublic ? (
+              <Badge variant="outline" className="text-xs">
+                <Globe className="w-3 h-3 mr-1" />
+                Public
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs">
+                <Lock className="w-3 h-3 mr-1" />
+                Private
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* View Toggle - Experiences vs Planning */}
+        {isOwner && (
+          <div className="mb-6">
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "experiences" | "planning")}>
+              <TabsList className="bg-card/60 backdrop-blur-sm">
+                <TabsTrigger value="experiences" className="gap-2">
+                  <LayoutGrid className="w-4 h-4" />
+                  Experiences
+                </TabsTrigger>
+                <TabsTrigger value="planning" className="gap-2">
+                  <CalendarDays className="w-4 h-4" />
+                  Planning
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Left: Experiences List */}
+          <div className="lg:col-span-5">
+            <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Sparkles className={cn("w-5 h-5", theme.accent)} />
+                  {itinerary.experiences.length} Experiences
+                </h3>
+                {isOwner && (
+                  <Link to="/">
+                    <Button variant="ghost" size="sm">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add
+                    </Button>
+                  </Link>
+                )}
+              </div>
+              
+              {itinerary.experiences.length === 0 ? (
+                <div className="text-center py-8">
+                  <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {isOwner ? "No experiences yet" : "This trip is empty"}
+                  </p>
+                  {isOwner && (
+                    <Link to="/">
+                      <Button size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Discover
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                  {itinerary.experiences.map((exp, idx) => (
+                    <div 
+                      key={exp.id}
+                      draggable={isOwner && viewMode === "planning"}
+                      onDragStart={() => handleDragStart(exp)}
+                      onClick={() => !isOwner && setViewingExperienceId(exp.id)}
+                      className={cn(
+                        "flex items-start gap-3 p-3 rounded-xl border border-border/30 bg-background/40 transition-all group",
+                        isOwner && viewMode === "planning" && "cursor-grab active:cursor-grabbing",
+                        !isOwner && "cursor-pointer hover:bg-background/60"
+                      )}
+                    >
+                      {isOwner && viewMode === "planning" && (
+                        <GripVertical className="w-4 h-4 text-muted-foreground mt-1 shrink-0" />
+                      )}
+                      
+                      <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted">
+                        {exp.videoThumbnail ? (
+                          <img src={exp.videoThumbnail} alt={exp.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <MapPin className="w-6 h-6 text-muted-foreground" />
+                          </div>
+                        )}
                       </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{exp.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{exp.location}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                          {exp.price && <span>{exp.price}</span>}
+                          {exp.scheduledTime && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {exp.scheduledTime.includes('T') 
+                                ? format(parseISO(exp.scheduledTime), "MMM d, h:mm a")
+                                : exp.scheduledTime}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
                       {isOwner && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
-                              <MoreVertical className="w-3 h-3" />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-popover border-border z-50">
-                            <DropdownMenuItem onClick={() => setEditingExperienceId(exp.id)}>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingExperienceId(exp.id);
+                            }}>
                               <Edit2 className="w-3 h-3 mr-2" />
-                              Edit Note
+                              Edit Details
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-destructive"
-                              onClick={() => handleRemoveExperience(exp)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveExperience(exp);
+                              }}
                             >
                               <Trash2 className="w-3 h-3 mr-2" />
                               Remove
@@ -783,169 +844,158 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                         </DropdownMenu>
                       )}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* Center: Map */}
+          <div className="lg:col-span-4">
+            <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl overflow-hidden h-full min-h-[300px]">
+              <div className="h-full flex flex-col items-center justify-center p-6 bg-muted/30">
+                <MapPin className={cn("w-12 h-12 mb-3", theme.accent)} />
+                <p className="font-medium mb-1">Trip Map</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {itinerary.experiences.length} locations
+                </p>
+                <Button variant="outline" size="sm" onClick={() => navigate('/map')}>
+                  View Full Map <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
               </div>
             </Card>
-          )}
-          
-          {/* Block 5: Timeline */}
-          <Card className="md:col-span-3 rounded-3xl border-0 bg-card/40 backdrop-blur-xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Clock className={cn("w-5 h-5", theme.accent)} />
-              <h3 className="font-semibold text-lg">Timeline</h3>
-              {isOwner && (
-                <Badge variant="outline" className="text-xs">
-                  Drag to reorder
-                </Badge>
-              )}
-            </div>
-            
-            {itinerary.experiences.length === 0 ? (
-              <div className="text-center py-12">
-                <MapPin className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                <h2 className="text-xl font-semibold mb-2">
-                  {isOwner ? "Your trip is empty" : "No experiences yet"}
-                </h2>
-                <p className="text-muted-foreground mb-6">
-                  {isOwner 
-                    ? "Start exploring and add experiences to build your perfect trip!"
-                    : "This trip doesn't have any experiences yet."}
-                </p>
+          </div>
+
+          {/* Right: Who's Going */}
+          <div className="lg:col-span-3">
+            <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className={cn("w-5 h-5", theme.accent)} />
+                <h3 className="font-semibold">Who's Going</h3>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                {/* Mock attendees */}
+                {[1, 2, 3].map(i => (
+                  <div 
+                    key={i}
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/60 to-primary/30 flex items-center justify-center text-sm font-medium"
+                  >
+                    {String.fromCharCode(64 + i)}
+                  </div>
+                ))}
+                {itinerary.collaborators.map((collab) => (
+                  <div 
+                    key={collab}
+                    className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium"
+                    title={collab}
+                  >
+                    {collab[0].toUpperCase()}
+                  </div>
+                ))}
                 {isOwner && (
-                  <Link to="/">
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Discover Experiences
-                    </Button>
-                  </Link>
+                  <button
+                    onClick={() => setCustomizeOpen(true)}
+                    className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
                 )}
               </div>
-            ) : (
-              <div className="space-y-6">
-                {tripDays.map((dayStr, idx) => {
-                  const dayExperiences = scheduledByDay[dayStr] || [];
-                  const dayDate = parseISO(dayStr);
-                  const isToday = isSameDay(dayDate, new Date());
-                  const isEmpty = dayExperiences.length === 0;
-                  
-                  return (
-                    <div 
-                      key={dayStr}
-                      onDragOver={isOwner ? (e) => { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-primary', 'bg-primary/5'); } : undefined}
-                      onDragLeave={isOwner ? (e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary', 'bg-primary/5'); } : undefined}
-                      onDrop={isOwner ? (e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary', 'bg-primary/5'); handleDrop(dayStr); } : undefined}
-                      className={cn(
-                        "p-4 rounded-xl border transition-all",
-                        isEmpty && isOwner 
-                          ? "border-dashed border-border/50 bg-transparent" 
-                          : "border-border/30 bg-background/40"
-                      )}
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm",
-                          isToday ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                        )}>
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <p className="font-medium">{format(dayDate, "EEEE")}</p>
-                          <p className="text-xs text-muted-foreground">{format(dayDate, "MMMM d, yyyy")}</p>
-                        </div>
-                        {isToday && (
-                          <Badge className="ml-auto">Today</Badge>
-                        )}
-                      </div>
-                      
-                      {dayExperiences.length > 0 ? (
-                        <div className="space-y-2 ml-12">
-                          {dayExperiences.map(exp => (
-                            <div 
-                              key={exp.id} 
-                              className="flex items-center gap-3 p-3 rounded-lg bg-card/60 border border-border/30 hover:bg-card/80 transition-colors group"
-                              onClick={() => !isOwner && setViewingExperienceId(exp.id)}
-                            >
-                              <img 
-                                src={exp.videoThumbnail} 
-                                alt={exp.title}
-                                className="w-12 h-12 rounded-lg object-cover"
-                              />
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium text-sm truncate">{exp.title}</p>
-                                <p className="text-xs text-muted-foreground">{exp.location}</p>
-                              </div>
-                              <span className="text-xs text-muted-foreground">
-                                {exp.scheduledTime && format(parseISO(exp.scheduledTime), "h:mm a")}
-                              </span>
-                              
-                              {/* Workshop Mode: Three-dot menu */}
-                              {isOwner && (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <MoreVertical className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="bg-popover border-border z-50">
-                                    <DropdownMenuItem onClick={(e) => {
-                                      e.stopPropagation();
-                                      setEditingExperienceId(exp.id);
-                                    }}>
-                                      <Edit2 className="w-3 h-3 mr-2" />
-                                      Edit Note
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={(e) => {
-                                      e.stopPropagation();
-                                      setEditingExperienceId(exp.id);
-                                    }}>
-                                      <Clock className="w-3 h-3 mr-2" />
-                                      Change Time
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
-                                      className="text-destructive"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveExperience(exp);
-                                      }}
-                                    >
-                                      <Trash2 className="w-3 h-3 mr-2" />
-                                      Remove
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className={cn(
-                          "text-sm ml-12",
-                          isOwner ? "text-muted-foreground italic" : "text-muted-foreground"
-                        )}>
-                          {isOwner ? "Drag ideas here" : "No activities planned"}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </Card>
+              
+              <p className="text-xs text-muted-foreground">
+                {3 + itinerary.collaborators.length} people on this trip
+              </p>
+
+              {isOwner && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-4"
+                  onClick={() => setCustomizeOpen(true)}
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Invite Friends
+                </Button>
+              )}
+            </Card>
+          </div>
         </div>
-        
+
+        {/* Planning View: Timeline */}
+        {isOwner && viewMode === "planning" && (
+          <Card className="mt-6 rounded-2xl border-0 bg-card/40 backdrop-blur-xl p-5">
+            <div className="flex items-center gap-3 mb-6">
+              <Clock className={cn("w-5 h-5", theme.accent)} />
+              <h3 className="font-semibold text-lg">Schedule</h3>
+              <Badge variant="outline" className="text-xs">
+                Drag experiences to schedule
+              </Badge>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {tripDays.slice(0, 4).map((dayStr, idx) => {
+                const dayExperiences = scheduledByDay[dayStr] || [];
+                const dayDate = parseISO(dayStr);
+                const isToday = isSameDay(dayDate, new Date());
+                
+                return (
+                  <div 
+                    key={dayStr}
+                    onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-primary', 'bg-primary/5'); }}
+                    onDragLeave={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary', 'bg-primary/5'); }}
+                    onDrop={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary', 'bg-primary/5'); handleDrop(dayStr); }}
+                    className={cn(
+                      "p-4 rounded-xl border transition-all min-h-[200px]",
+                      dayExperiences.length === 0
+                        ? "border-dashed border-border/50" 
+                        : "border-border/30 bg-background/40"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm",
+                        isToday ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      )}>
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{format(dayDate, "EEE")}</p>
+                        <p className="text-xs text-muted-foreground">{format(dayDate, "MMM d")}</p>
+                      </div>
+                    </div>
+                    
+                    {dayExperiences.length > 0 ? (
+                      <div className="space-y-2">
+                        {dayExperiences.map(exp => (
+                          <div key={exp.id} className="text-xs p-2 bg-card/60 rounded-lg border border-border/30">
+                            <p className="font-medium truncate">{exp.title}</p>
+                            {exp.scheduledTime && (
+                              <p className="text-muted-foreground">
+                                {format(parseISO(exp.scheduledTime), "h:mm a")}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic text-center py-8">
+                        Drag ideas here
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        )}
+
         {/* Showroom Mode: Viewer Banner & CTA */}
         {!isOwner && (
           <>
             {/* Sticky bottom banner */}
             <div className="fixed bottom-0 left-0 right-0 z-40">
-              <div className="max-w-6xl mx-auto px-4 pb-4">
+              <div className="max-w-7xl mx-auto px-4 pb-4">
                 <div className="p-4 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/50 shadow-2xl flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/60 to-primary/30 flex items-center justify-center">
@@ -1014,7 +1064,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
         onSpinUpComplete={handleSpinUpComplete}
       />
 
-      {/* Workshop Mode: Edit Experience Dialog */}
+      {/* Edit Experience Dialog */}
       <Dialog open={!!editingExperienceId} onOpenChange={(open) => !open && setEditingExperienceId(null)}>
         <DialogContent className="sm:max-w-md bg-card border-border">
           <DialogHeader>
@@ -1050,12 +1100,11 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   Scheduled Time
                 </label>
                 <Input
-                  type="time"
+                  type="datetime-local"
                   value={editingExperience.scheduledTime?.includes('T') 
-                    ? format(parseISO(editingExperience.scheduledTime), 'HH:mm')
-                    : editingExperience.scheduledTime || ''}
+                    ? editingExperience.scheduledTime.slice(0, 16)
+                    : ''}
                   onChange={(e) => updateExperienceDetails(editingExperience.id, { scheduledTime: e.target.value })}
-                  placeholder="e.g., 09:00"
                 />
               </div>
 
