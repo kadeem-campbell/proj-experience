@@ -1273,86 +1273,80 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           {showTripView && (
             <div className="lg:w-[40%] bg-card/30 border-l border-border overflow-y-auto">
               <div className="p-4 md:p-6 sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border z-10">
-                {/* Trip Selector - Always visible, expanded styling */}
-                <div className="mb-4">
-                  <TripSelector
-                    trips={itinerary?.trips || []}
-                    activeTripId={selectedTrip?.id}
-                    onSelectTrip={handleSelectTrip}
-                    onDeleteTrip={handleDeleteTrip}
-                    onRenameTrip={handleRenameTrip}
-                    onCreateTrip={handleCreateNewTrip}
-                  />
-                </div>
+                {/* Trip Selector - Always visible */}
+                <TripSelector
+                  trips={itinerary?.trips || []}
+                  activeTripId={selectedTrip?.id}
+                  onSelectTrip={handleSelectTrip}
+                  onDeleteTrip={handleDeleteTrip}
+                  onRenameTrip={handleRenameTrip}
+                  onCreateTrip={handleCreateNewTrip}
+                  isCreatingTrip={isCreatingNewTrip}
+                />
 
-                {/* Show generation prompt or save button - remove duplicate trip info since TripSelector already shows it */}
-                {Object.keys(generatedTrip).length > 0 ? (
-                  <>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-bold text-lg flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary" />
-                        New Trip
-                      </h3>
+                {/* Show date picker when creating new trip */}
+                {isCreatingNewTrip && Object.keys(generatedTrip).length === 0 && (
+                  <div className="mt-4 p-4 bg-card/50 border border-border rounded-lg space-y-3">
+                    <p className="text-sm text-muted-foreground text-center">
+                      Select your trip dates
+                    </p>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full gap-2 justify-start">
+                          <Calendar className="w-4 h-4" />
+                          {tripStartDate && tripEndDate 
+                            ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d")}`
+                            : tripStartDate 
+                              ? format(tripStartDate, "MMM d")
+                              : "Select dates"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="center">
+                        <CalendarComponent
+                          mode="range"
+                          selected={{ from: tripStartDate, to: tripEndDate }}
+                          onSelect={(range) => {
+                            setTripStartDate(range?.from);
+                            setTripEndDate(range?.to);
+                          }}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                          numberOfMonths={2}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    
+                    <Button 
+                      onClick={handleMakeItATrip} 
+                      disabled={!tripStartDate || isGenerating}
+                      className="w-full gap-2"
+                    >
+                      <Rocket className="w-4 h-4" />
+                      {isGenerating ? "Generating..." : "Generate Schedule"}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Show save button when trip is generated */}
+                {Object.keys(generatedTrip).length > 0 && (
+                  <div className="mt-4 p-4 bg-card/50 border border-border rounded-lg space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      <h3 className="font-bold">New Trip</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <p className="text-sm text-muted-foreground">
                       {tripStartDate && tripEndDate 
                         ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
                         : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
                     </p>
-                    <p className="text-xs text-muted-foreground mb-4">
+                    <p className="text-xs text-muted-foreground">
                       Edit times and reorder before saving
                     </p>
                     <Button onClick={handleSaveTrip} className="w-full gap-2">
                       <Check className="w-4 h-4" />
                       Save Trip
                     </Button>
-                  </>
-                ) : (
-                  <div className="py-4 space-y-4">
-                    <p className="text-sm text-muted-foreground text-center">
-                      {(itinerary?.trips?.length || 0) === 0 
-                        ? "Create your first trip schedule"
-                        : "Select dates for your new trip"}
-                    </p>
-                    
-                    {/* Date picker for new trip creation */}
-                    <div className="space-y-3">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full gap-2 justify-start">
-                            <Calendar className="w-4 h-4" />
-                            {tripStartDate && tripEndDate 
-                              ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d")}`
-                              : tripStartDate 
-                                ? format(tripStartDate, "MMM d")
-                                : "Pick dates"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="center">
-                          <CalendarComponent
-                            mode="range"
-                            selected={{ from: tripStartDate, to: tripEndDate }}
-                            onSelect={(range) => {
-                              setTripStartDate(range?.from);
-                              setTripEndDate(range?.to);
-                            }}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                            numberOfMonths={2}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      
-                      <Button 
-                        onClick={handleMakeItATrip} 
-                        disabled={!tripStartDate || isGenerating}
-                        className="w-full gap-2"
-                      >
-                        <Rocket className="w-4 h-4" />
-                        {isGenerating ? "Generating..." : "Make it a Trip"}
-                      </Button>
-                    </div>
                   </div>
                 )}
               </div>
