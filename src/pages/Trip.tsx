@@ -1251,7 +1251,12 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
+                <div className={cn(
+                  "grid gap-2 md:gap-4",
+                  showTripView 
+                    ? "grid-cols-2 sm:grid-cols-2 md:grid-cols-3" 
+                    : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
+                )}>
                   {filteredExperiences.map(renderExperienceCard)}
                 </div>
               )}
@@ -1280,24 +1285,8 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   />
                 </div>
 
-                {/* Show selected trip info or generation prompt */}
-                {selectedTrip ? (
-                  <>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-bold text-lg flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary" />
-                        {selectedTrip.name}
-                      </h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {format(parseISO(selectedTrip.startDate), "MMM d")}
-                      {selectedTrip.endDate && ` - ${format(parseISO(selectedTrip.endDate), "MMM d, yyyy")}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      {selectedTrip.experiences?.length || 0} experiences scheduled
-                    </p>
-                  </>
-                ) : Object.keys(generatedTrip).length > 0 ? (
+                {/* Show generation prompt or save button - remove duplicate trip info since TripSelector already shows it */}
+                {Object.keys(generatedTrip).length > 0 ? (
                   <>
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-bold text-lg flex items-center gap-2">
