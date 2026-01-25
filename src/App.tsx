@@ -7,7 +7,7 @@ import Search from "./pages/Search";
 import ExperienceDetail from "./pages/ExperienceDetail";
 import CreateExperience from "./pages/CreateExperience";
 import Creators from "./pages/Creators";
-import Itinerary from "./pages/Itinerary";
+
 import Monetise from "./pages/Monetise";
 import Map from "./pages/Map";
 import Travellers from "./pages/Travellers";
@@ -34,8 +34,8 @@ const App = () => (
           <Route path="/experience/:id" element={<ExperienceDetail />} />
           <Route path="/creators" element={<Creators />} />
           <Route path="/create-experience" element={<CreateExperience />} />
-          <Route path="/itinerary" element={<Itinerary />} />
-          <Route path="/itinerary/:id" element={<Itinerary />} />
+          <Route path="/itinerary" element={<Trip useActiveItinerary={true} />} />
+          <Route path="/itinerary/:id" element={<Trip />} />
           <Route path="/monetise" element={<Monetise />} />
           <Route path="/map" element={<Map />} />
           <Route path="/travellers" element={<Travellers />} />

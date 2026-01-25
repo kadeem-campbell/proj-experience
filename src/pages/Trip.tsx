@@ -722,29 +722,26 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           </div>
         </div>
 
-        {/* View Toggle - Experiences vs Planning */}
-        {isOwner && (
-          <div className="mb-6">
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "experiences" | "planning")}>
-              <TabsList className="bg-card/60 backdrop-blur-sm">
-                <TabsTrigger value="experiences" className="gap-2">
-                  <LayoutGrid className="w-4 h-4" />
-                  Experiences
-                </TabsTrigger>
-                <TabsTrigger value="planning" className="gap-2">
-                  <CalendarDays className="w-4 h-4" />
-                  Planning
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        )}
+        {/* View Toggle - Experiences vs Planning - Always show for personal itineraries */}
+        <div className="mb-6">
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "experiences" | "planning")}>
+            <TabsList className="bg-card/60 backdrop-blur-sm">
+              <TabsTrigger value="experiences" className="gap-2">
+                <LayoutGrid className="w-4 h-4" />
+                Experiences
+              </TabsTrigger>
+              <TabsTrigger value="planning" className="gap-2">
+                <CalendarDays className="w-4 h-4" />
+                Planning
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Left: Experiences List */}
-          <div className="lg:col-span-5">
+        {/* Main Content - Conditional based on viewMode */}
+        {viewMode === "experiences" ? (
+          /* Experiences View - Clean List */
+          <div className="max-w-4xl">
             <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold flex items-center gap-2">
@@ -777,228 +774,250 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   )}
                 </div>
               ) : (
-                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-                  {itinerary.experiences.map((exp, idx) => (
-                    <div 
+                <div className="space-y-3">
+                  {itinerary.experiences.map((exp) => (
+                    <Link 
                       key={exp.id}
-                      draggable={isOwner && viewMode === "planning"}
-                      onDragStart={() => handleDragStart(exp)}
-                      onClick={() => !isOwner && setViewingExperienceId(exp.id)}
-                      className={cn(
-                        "flex items-start gap-3 p-3 rounded-xl border border-border/30 bg-background/40 transition-all group",
-                        isOwner && viewMode === "planning" && "cursor-grab active:cursor-grabbing",
-                        !isOwner && "cursor-pointer hover:bg-background/60"
-                      )}
+                      to={`/experience/${exp.id}`}
+                      className="block"
                     >
-                      {isOwner && viewMode === "planning" && (
-                        <GripVertical className="w-4 h-4 text-muted-foreground mt-1 shrink-0" />
-                      )}
-                      
-                      <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted">
-                        {exp.videoThumbnail ? (
-                          <img src={exp.videoThumbnail} alt={exp.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <MapPin className="w-6 h-6 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{exp.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{exp.location}</p>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                          {exp.price && <span>{exp.price}</span>}
-                          {exp.scheduledTime && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {exp.scheduledTime.includes('T') 
-                                ? format(parseISO(exp.scheduledTime), "MMM d, h:mm a")
-                                : exp.scheduledTime}
-                            </span>
+                      <div 
+                        className="flex items-start gap-3 p-3 rounded-xl border border-border/30 bg-background/40 transition-all group hover:bg-background/60"
+                      >
+                        <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-muted">
+                          {exp.videoThumbnail ? (
+                            <img src={exp.videoThumbnail} alt={exp.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <MapPin className="w-6 h-6 text-muted-foreground" />
+                            </div>
                           )}
                         </div>
-                      </div>
-                      
-                      {isOwner && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-popover border-border z-50">
-                            <DropdownMenuItem onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingExperienceId(exp.id);
-                            }}>
-                              <Edit2 className="w-3 h-3 mr-2" />
-                              Edit Details
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={(e) => {
+                        
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{exp.title}</p>
+                          <p className="text-sm text-muted-foreground truncate">{exp.location}</p>
+                          {exp.price && (
+                            <p className="text-sm text-muted-foreground mt-1">{exp.price}</p>
+                          )}
+                        </div>
+                        
+                        {isOwner && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-popover border-border z-50">
+                              <DropdownMenuItem onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
-                                handleRemoveExperience(exp);
-                              }}
-                            >
-                              <Trash2 className="w-3 h-3 mr-2" />
-                              Remove
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
+                                setEditingExperienceId(exp.id);
+                              }}>
+                                <Edit2 className="w-3 h-3 mr-2" />
+                                Edit Details
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleRemoveExperience(exp);
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3 mr-2" />
+                                Remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </Link>
                   ))}
                 </div>
               )}
             </Card>
           </div>
-
-          {/* Center: Map */}
-          <div className="lg:col-span-4">
-            <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl overflow-hidden h-full min-h-[300px]">
-              <div className="h-full flex flex-col items-center justify-center p-6 bg-muted/30">
-                <MapPin className={cn("w-12 h-12 mb-3", theme.accent)} />
-                <p className="font-medium mb-1">Trip Map</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {itinerary.experiences.length} locations
-                </p>
-                <Button variant="outline" size="sm" onClick={() => navigate('/map')}>
-                  View Full Map <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
-            </Card>
-          </div>
-
-          {/* Right: Who's Going */}
-          <div className="lg:col-span-3">
-            <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Users className={cn("w-5 h-5", theme.accent)} />
-                <h3 className="font-semibold">Who's Going</h3>
-              </div>
-              
-              <div className="flex flex-wrap gap-2 mb-4">
-                {/* Mock attendees */}
-                {[1, 2, 3].map(i => (
-                  <div 
-                    key={i}
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/60 to-primary/30 flex items-center justify-center text-sm font-medium"
-                  >
-                    {String.fromCharCode(64 + i)}
-                  </div>
-                ))}
-                {itinerary.collaborators.map((collab) => (
-                  <div 
-                    key={collab}
-                    className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium"
-                    title={collab}
-                  >
-                    {collab[0].toUpperCase()}
-                  </div>
-                ))}
-                {isOwner && (
-                  <button
-                    onClick={() => setCustomizeOpen(true)}
-                    className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              
-              <p className="text-xs text-muted-foreground">
-                {3 + itinerary.collaborators.length} people on this trip
-              </p>
-
-              {isOwner && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-4"
-                  onClick={() => setCustomizeOpen(true)}
-                >
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Invite Friends
-                </Button>
-              )}
-            </Card>
-          </div>
-        </div>
-
-        {/* Planning View: Timeline */}
-        {isOwner && viewMode === "planning" && (
-          <Card className="mt-6 rounded-2xl border-0 bg-card/40 backdrop-blur-xl p-5">
-            <div className="flex items-center gap-3 mb-6">
-              <Clock className={cn("w-5 h-5", theme.accent)} />
-              <h3 className="font-semibold text-lg">Schedule</h3>
-              <Badge variant="outline" className="text-xs">
-                Drag experiences to schedule
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {tripDays.slice(0, 4).map((dayStr, idx) => {
-                const dayExperiences = scheduledByDay[dayStr] || [];
-                const dayDate = parseISO(dayStr);
-                const isToday = isSameDay(dayDate, new Date());
+        ) : (
+          /* Planning View - Timeline with Map and Who's Going */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left: Timeline */}
+            <div className="lg:col-span-8">
+              <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl p-5">
+                <div className="flex items-center gap-3 mb-6">
+                  <Clock className={cn("w-5 h-5", theme.accent)} />
+                  <h3 className="font-semibold text-lg">Schedule</h3>
+                  {isOwner && (
+                    <Badge variant="outline" className="text-xs">
+                      Drag experiences to schedule
+                    </Badge>
+                  )}
+                </div>
                 
-                return (
-                  <div 
-                    key={dayStr}
-                    onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-primary', 'bg-primary/5'); }}
-                    onDragLeave={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary', 'bg-primary/5'); }}
-                    onDrop={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary', 'bg-primary/5'); handleDrop(dayStr); }}
-                    className={cn(
-                      "p-4 rounded-xl border transition-all min-h-[200px]",
-                      dayExperiences.length === 0
-                        ? "border-dashed border-border/50" 
-                        : "border-border/30 bg-background/40"
-                    )}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm",
-                        isToday ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                      )}>
-                        {idx + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{format(dayDate, "EEE")}</p>
-                        <p className="text-xs text-muted-foreground">{format(dayDate, "MMM d")}</p>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {tripDays.slice(0, 4).map((dayStr, idx) => {
+                    const dayExperiences = scheduledByDay[dayStr] || [];
+                    const dayDate = parseISO(dayStr);
+                    const isToday = isSameDay(dayDate, new Date());
                     
-                    {dayExperiences.length > 0 ? (
-                      <div className="space-y-2">
-                        {dayExperiences.map(exp => (
-                          <div key={exp.id} className="text-xs p-2 bg-card/60 rounded-lg border border-border/30">
-                            <p className="font-medium truncate">{exp.title}</p>
-                            {exp.scheduledTime && (
-                              <p className="text-muted-foreground">
-                                {format(parseISO(exp.scheduledTime), "h:mm a")}
-                              </p>
+                    return (
+                      <div 
+                        key={dayStr}
+                        onDragOver={(e) => { if (isOwner) { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-primary', 'bg-primary/5'); } }}
+                        onDragLeave={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary', 'bg-primary/5'); }}
+                        onDrop={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary', 'bg-primary/5'); handleDrop(dayStr); }}
+                        className={cn(
+                          "p-4 rounded-xl border transition-all min-h-[200px]",
+                          dayExperiences.length === 0
+                            ? "border-dashed border-border/50" 
+                            : "border-border/30 bg-background/40"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm",
+                            isToday ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                          )}>
+                            {idx + 1}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{format(dayDate, "EEE")}</p>
+                            <p className="text-xs text-muted-foreground">{format(dayDate, "MMM d")}</p>
+                          </div>
+                        </div>
+                        
+                        {dayExperiences.length > 0 ? (
+                          <div className="space-y-2">
+                            {dayExperiences.map(exp => (
+                              <div key={exp.id} className="text-xs p-2 bg-card/60 rounded-lg border border-border/30">
+                                <p className="font-medium truncate">{exp.title}</p>
+                                {exp.scheduledTime && (
+                                  <p className="text-muted-foreground">
+                                    {format(parseISO(exp.scheduledTime), "h:mm a")}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground italic text-center py-8">
+                            {isOwner ? "Drag ideas here" : "No plans yet"}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Unscheduled experiences for dragging */}
+                {isOwner && unscheduled.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-border/30">
+                    <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+                      <GripVertical className="w-4 h-4" />
+                      Ideas to Place ({unscheduled.length})
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {unscheduled.map(exp => (
+                        <div 
+                          key={exp.id}
+                          draggable
+                          onDragStart={() => handleDragStart(exp)}
+                          className="flex items-center gap-2 p-2 rounded-lg border border-border/30 bg-background/40 cursor-grab active:cursor-grabbing"
+                        >
+                          <div className="w-8 h-8 rounded overflow-hidden shrink-0">
+                            {exp.videoThumbnail ? (
+                              <img src={exp.videoThumbnail} alt={exp.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <MapPin className="w-3 h-3" />
+                              </div>
                             )}
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic text-center py-8">
-                        Drag ideas here
-                      </p>
-                    )}
+                          <span className="text-xs font-medium truncate max-w-[100px]">{exp.title}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                );
-              })}
+                )}
+              </Card>
             </div>
-          </Card>
+
+            {/* Right: Map + Who's Going */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Map */}
+              <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl overflow-hidden min-h-[200px]">
+                <div className="h-full flex flex-col items-center justify-center p-6 bg-muted/30">
+                  <MapPin className={cn("w-8 h-8 mb-2", theme.accent)} />
+                  <p className="font-medium text-sm mb-1">Trip Map</p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {itinerary.experiences.length} locations
+                  </p>
+                  <Button variant="outline" size="sm" onClick={() => navigate('/map')}>
+                    View Map <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Who's Going */}
+              <Card className="rounded-2xl border-0 bg-card/40 backdrop-blur-xl p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className={cn("w-5 h-5", theme.accent)} />
+                  <h3 className="font-semibold">Who's Going</h3>
+                </div>
+                
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {[1, 2, 3].map(i => (
+                    <div 
+                      key={i}
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/60 to-primary/30 flex items-center justify-center text-sm font-medium"
+                    >
+                      {String.fromCharCode(64 + i)}
+                    </div>
+                  ))}
+                  {itinerary.collaborators.map((collab) => (
+                    <div 
+                      key={collab}
+                      className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium"
+                      title={collab}
+                    >
+                      {collab[0].toUpperCase()}
+                    </div>
+                  ))}
+                  {isOwner && (
+                    <button
+                      onClick={() => setCustomizeOpen(true)}
+                      className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  {3 + itinerary.collaborators.length} people on this trip
+                </p>
+
+                {isOwner && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-4"
+                    onClick={() => setCustomizeOpen(true)}
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Invite Friends
+                  </Button>
+                )}
+              </Card>
+            </div>
+          </div>
         )}
 
         {/* Showroom Mode: Viewer Banner & CTA */}
