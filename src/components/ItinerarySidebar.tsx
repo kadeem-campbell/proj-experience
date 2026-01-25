@@ -218,7 +218,7 @@ export const ItinerarySidebar = () => {
                             isActive={activeItineraryId === itinerary.id}
                             onClick={() => {
                               setActiveItinerary(itinerary.id);
-                              navigate('/itinerary');
+                              navigate(`/trip/${itinerary.id}`);
                             }}
                             className="group/item"
                           >

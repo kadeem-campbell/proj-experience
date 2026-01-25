@@ -117,8 +117,10 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     if (useActiveItinerary) {
       return activeItinerary;
     }
+    // First check user's own itineraries
     const fromHook = itineraries.find(i => i.id === id);
     if (fromHook) return fromHook;
+    // Then check localStorage for shared/public itineraries
     return loadedItinerary;
   }, [useActiveItinerary, activeItinerary, itineraries, id, loadedItinerary]);
 
