@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format, differenceInDays, addDays } from "date-fns";
-import { CalendarIcon, Rocket } from "lucide-react";
+import { CalendarIcon, Rocket, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useItineraries, Itinerary } from "@/hooks/useItineraries";
+import { Itinerary } from "@/hooks/useItineraries";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
@@ -25,12 +25,12 @@ interface SpinUpModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sourceItinerary: Itinerary;
+  onSpinUpComplete?: (newItineraryId: string) => void;
 }
 
-export const SpinUpModal = ({ open, onOpenChange, sourceItinerary }: SpinUpModalProps) => {
+export const SpinUpModal = ({ open, onOpenChange, sourceItinerary, onSpinUpComplete }: SpinUpModalProps) => {
   const [date, setDate] = useState<Date>();
   const [isSpinning, setIsSpinning] = useState(false);
-  const { itineraries, createItinerary } = useItineraries();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -100,10 +100,17 @@ export const SpinUpModal = ({ open, onOpenChange, sourceItinerary }: SpinUpModal
     setTimeout(() => {
       setIsSpinning(false);
       onOpenChange(false);
+      
+      // Call the completion callback with the new ID
+      if (onSpinUpComplete) {
+        onSpinUpComplete(newItinerary.id);
+      }
+      
       toast({
-        title: "Trip Created! 🚀",
-        description: `Your trip starting ${format(date, "MMMM d, yyyy")} is ready.`,
+        title: "🎉 Trip Created!",
+        description: `Your trip starting ${format(date, "MMMM d, yyyy")} is ready to customize.`,
       });
+      
       navigate(`/trip/${newItinerary.id}`);
     }, 800);
   };
@@ -122,8 +129,31 @@ export const SpinUpModal = ({ open, onOpenChange, sourceItinerary }: SpinUpModal
         </DialogHeader>
         
         <div className="space-y-6 pt-4">
+          {/* Preview of what you're copying */}
+          <div className="p-3 rounded-xl bg-muted/50 border border-border/50">
+            <div className="flex items-center gap-3">
+              {sourceItinerary.coverImage || sourceItinerary.experiences[0]?.videoThumbnail ? (
+                <img 
+                  src={sourceItinerary.coverImage || sourceItinerary.experiences[0]?.videoThumbnail}
+                  alt={sourceItinerary.name}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+              )}
+              <div>
+                <p className="font-medium text-sm">{sourceItinerary.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {sourceItinerary.experiences.length} experiences
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Trip Start Date</label>
+            <label className="text-sm font-medium text-foreground">Your Trip Start Date</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -151,14 +181,14 @@ export const SpinUpModal = ({ open, onOpenChange, sourceItinerary }: SpinUpModal
           </div>
           
           {sourceHasDates && (
-            <p className="text-sm text-muted-foreground">
-              This itinerary has scheduled experiences. We'll shift all dates to match your new start date.
+            <p className="text-sm text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/10">
+              ✨ This itinerary has scheduled experiences. We'll shift all dates to match your new start date.
             </p>
           )}
           
           {!sourceHasDates && (
-            <p className="text-sm text-muted-foreground">
-              This is an unscheduled itinerary. You'll be able to drag experiences onto your timeline.
+            <p className="text-sm text-muted-foreground bg-primary/5 p-3 rounded-lg border border-primary/10">
+              📋 This is an unscheduled itinerary. You'll be able to drag experiences onto your timeline.
             </p>
           )}
           
