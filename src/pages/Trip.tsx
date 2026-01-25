@@ -1209,8 +1209,8 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   </div>
                 )}
 
-                {/* View existing trip schedule */}
-                {isOwner && hasScheduledExperiences && !showTripView && (
+                {/* View Trip button - always visible when there are trips */}
+                {isOwner && (itinerary?.trips?.length ?? 0) > 0 && !showTripView && (
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowTripView(true)}>
                     <CalendarDays className="w-4 h-4" />
                     View Trip
@@ -1222,15 +1222,6 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     <X className="w-4 h-4 mr-2" />
                     Close Trip View
                   </Button>
-                )}
-
-                {isOwner && (
-                  <Link to="/">
-                    <Button variant="ghost" size="sm">
-                      <Plus className="w-4 h-4 mr-1" />
-                      Add
-                    </Button>
-                  </Link>
                 )}
               </div>
             </div>
@@ -1270,49 +1261,65 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           {showTripView && (
             <div className="lg:w-[40%] bg-card/30 border-l border-border overflow-y-auto">
               <div className="p-4 md:p-6 sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border z-10">
-                {/* Trip Selector - Collapsible */}
-                {itinerary?.trips && itinerary.trips.length > 0 && (
-                  <div className="mb-4">
-                    <TripSelector
-                      trips={itinerary.trips}
-                      activeTripId={selectedTrip?.id}
-                      onSelectTrip={handleSelectTrip}
-                      onDeleteTrip={handleDeleteTrip}
-                      onRenameTrip={handleRenameTrip}
-                      onCreateTrip={handleCreateNewTrip}
-                    />
+                {/* Trip Selector - Always visible, expanded styling */}
+                <div className="mb-4">
+                  <TripSelector
+                    trips={itinerary?.trips || []}
+                    activeTripId={selectedTrip?.id}
+                    onSelectTrip={handleSelectTrip}
+                    onDeleteTrip={handleDeleteTrip}
+                    onRenameTrip={handleRenameTrip}
+                    onCreateTrip={handleCreateNewTrip}
+                  />
+                </div>
+
+                {/* Show selected trip info or generation prompt */}
+                {selectedTrip ? (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-lg flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                        {selectedTrip.name}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {format(parseISO(selectedTrip.startDate), "MMM d")}
+                      {selectedTrip.endDate && ` - ${format(parseISO(selectedTrip.endDate), "MMM d, yyyy")}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {selectedTrip.experiences?.length || 0} experiences scheduled
+                    </p>
+                  </>
+                ) : Object.keys(generatedTrip).length > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-lg flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                        New Trip
+                      </h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {tripStartDate && tripEndDate 
+                        ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
+                        : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Edit times and reorder before saving
+                    </p>
+                    <Button onClick={handleSaveTrip} className="w-full gap-2">
+                      <Check className="w-4 h-4" />
+                      Save Trip
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {(itinerary?.trips?.length || 0) === 0 
+                        ? "Create your first trip schedule"
+                        : "Select a trip or create a new one"}
+                    </p>
                   </div>
                 )}
-
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    {selectedTrip ? selectedTrip.name : "Your Generated Trip"}
-                  </h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {selectedTrip 
-                    ? `${format(parseISO(selectedTrip.startDate), "MMM d")}${selectedTrip.endDate ? ` - ${format(parseISO(selectedTrip.endDate), "MMM d, yyyy")}` : ''}`
-                    : tripStartDate && tripEndDate 
-                      ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
-                      : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
-                </p>
-                 <p className="text-xs text-muted-foreground mb-4">
-                   {Object.keys(generatedTrip).length > 0
-                     ? "Edit times and reorder before saving"
-                     : "Your trip schedule"}
-                 </p>
-                 {Object.keys(generatedTrip).length > 0 ? (
-                   <Button onClick={handleSaveTrip} className="w-full gap-2">
-                     <Check className="w-4 h-4" />
-                     Save & Customize Trip
-                   </Button>
-                 ) : (
-                   <Button variant="outline" onClick={() => setShowTripView(false)} className="w-full gap-2">
-                     <X className="w-4 h-4" />
-                     Close
-                   </Button>
-                 )}
               </div>
               
               <div className="p-4 md:p-6">
