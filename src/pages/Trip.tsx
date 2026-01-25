@@ -200,16 +200,35 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     setTimeout(() => setJustSpunUp(false), 5000);
   }, [fireConfetti]);
 
-  // Load itinerary from localStorage if not in hook
+  // Load itinerary from localStorage if not in hook - with retry for race conditions
   useEffect(() => {
-    if (!useActiveItinerary && id && !itineraries.find(i => i.id === id)) {
-      const stored = localStorage.getItem('itineraries');
-      if (stored) {
-        const all: Itinerary[] = JSON.parse(stored);
-        const found = all.find(i => i.id === id);
-        if (found) setLoadedItinerary(found);
+    const loadFromStorage = () => {
+      if (!useActiveItinerary && id) {
+        // First check if it's now in the itineraries hook
+        const inHook = itineraries.find(i => i.id === id);
+        if (inHook) {
+          setLoadedItinerary(null); // Clear loaded as hook has it
+          return;
+        }
+        
+        const stored = localStorage.getItem('itineraries');
+        if (stored) {
+          const all: Itinerary[] = JSON.parse(stored);
+          const found = all.find(i => i.id === id);
+          if (found) setLoadedItinerary(found);
+        }
       }
-    }
+    };
+    
+    loadFromStorage();
+    
+    // Also listen for itinerary changes (for newly created itineraries)
+    const handleItinerariesChanged = () => {
+      loadFromStorage();
+    };
+    
+    window.addEventListener('itinerariesChanged', handleItinerariesChanged);
+    return () => window.removeEventListener('itinerariesChanged', handleItinerariesChanged);
   }, [id, itineraries, useActiveItinerary]);
 
   // Load theme from itinerary
@@ -395,9 +414,9 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   const handleSaveTrip = () => {
     if (!itinerary) return;
     
-    // Update each experience with scheduled time
+    // Update each experience with scheduled time - use the current itinerary ID
     Object.values(generatedTrip).flat().forEach(exp => {
-      updateExperienceDetails(exp.id, { scheduledTime: exp.scheduledTime });
+      updateExperienceDetails(exp.id, { scheduledTime: exp.scheduledTime }, itinerary.id);
     });
     
     // Fire confetti
@@ -444,7 +463,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     const newDate = new Date(dayStr);
     newDate.setHours(9, 0, 0, 0);
     
-    updateExperienceDetails(draggedItem.id, { scheduledTime: newDate.toISOString() });
+    updateExperienceDetails(draggedItem.id, { scheduledTime: newDate.toISOString() }, itinerary.id);
     setDraggedItem(null);
     toast({ title: "Scheduled!", description: `Added to ${format(newDate, "EEEE, MMM d")}` });
   };

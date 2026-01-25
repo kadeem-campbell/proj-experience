@@ -302,7 +302,10 @@ const PublicItinerary = () => {
         title: "Trip created! 🎉",
         description: "Taking you to your new trip...",
       });
-      navigate(`/trip/${savedItineraryId}`);
+      // Small delay to allow state to sync before navigation
+      setTimeout(() => {
+        navigate(`/trip/${savedItineraryId}`);
+      }, 100);
     }
   };
 

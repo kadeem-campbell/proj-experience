@@ -194,11 +194,12 @@ export const useItineraries = () => {
     saveItineraries(updated);
   }, [activeItineraryId, itineraries, saveItineraries]);
 
-  const updateExperienceDetails = useCallback((experienceId: string, updates: Partial<LikedExperience>) => {
-    if (!activeItineraryId) return;
+  const updateExperienceDetails = useCallback((experienceId: string, updates: Partial<LikedExperience>, targetItineraryId?: string) => {
+    const itineraryIdToUpdate = targetItineraryId || activeItineraryId;
+    if (!itineraryIdToUpdate) return;
     
     const updated = itineraries.map(i => {
-      if (i.id !== activeItineraryId) return i;
+      if (i.id !== itineraryIdToUpdate) return i;
       return {
         ...i,
         experiences: i.experiences.map(e => 
