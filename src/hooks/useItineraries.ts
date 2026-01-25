@@ -98,11 +98,11 @@ export const useItineraries = () => {
     window.dispatchEvent(new CustomEvent('activeItineraryChanged', { detail: id }));
   }, []);
 
-  const createItinerary = useCallback((name: string): Itinerary => {
+  const createItinerary = useCallback((name: string, initialExperiences?: LikedExperience[]): Itinerary => {
     const newItinerary: Itinerary = {
       id: generateId(),
       name,
-      experiences: [],
+      experiences: initialExperiences || [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isPublic: false,
