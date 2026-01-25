@@ -151,14 +151,30 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     return loadedItinerary;
   }, [useActiveItinerary, activeItinerary, itineraries, id, loadedItinerary]);
 
+  // State
+  const [currentTheme, setCurrentTheme] = useState<ThemeKey>("ocean");
+  const [spinUpOpen, setSpinUpOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [draggedItem, setDraggedItem] = useState<LikedExperience | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [collaboratorEmail, setCollaboratorEmail] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [editingExperienceId, setEditingExperienceId] = useState<string | null>(null);
+  const [justSpunUp, setJustSpunUp] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCreatingNewTrip, setIsCreatingNewTrip] = useState(false);
+  
   // Get selected trip from itinerary
   const selectedTrip = useMemo(() => {
+    if (isCreatingNewTrip) return null;
     if (!itinerary?.trips || itinerary.trips.length === 0) return null;
     if (selectedTripId) {
       return itinerary.trips.find(t => t.id === selectedTripId) || itinerary.trips[0];
     }
     return itinerary.trips.find(t => t.id === itinerary.activeTripId) || itinerary.trips[0];
-  }, [itinerary, selectedTripId]);
+  }, [itinerary, selectedTripId, isCreatingNewTrip]);
 
   // Check if user owns this itinerary
   const isOwner = useMemo(() => {
@@ -169,6 +185,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
 
   // Trip selector handlers
   const handleSelectTrip = (tripId: string) => {
+    setIsCreatingNewTrip(false);
     setSearchParams({ trip: tripId });
     setShowTripView(true);
   };
@@ -187,26 +204,16 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   };
 
   const handleCreateNewTrip = () => {
-    setShowTripView(false);
+    setIsCreatingNewTrip(true);
+    // Clear selected trip in the URL so we enter the new-trip flow
+    setSearchParams({});
+    // Ensure the right panel stays open so the date picker is visible
+    setShowTripView(true);
     setGeneratedTrip({});
     setTripStartDate(undefined);
     setTripEndDate(undefined);
     toast({ title: "Select dates", description: "Pick a date range to create a new trip" });
   };
-
-  // State
-  const [currentTheme, setCurrentTheme] = useState<ThemeKey>("ocean");
-  const [spinUpOpen, setSpinUpOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [draggedItem, setDraggedItem] = useState<LikedExperience | null>(null);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [editedName, setEditedName] = useState("");
-  const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [collaboratorEmail, setCollaboratorEmail] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [editingExperienceId, setEditingExperienceId] = useState<string | null>(null);
-  const [justSpunUp, setJustSpunUp] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   
   // Trip generation state (for personal itineraries without dates)
   const [showTripView, setShowTripView] = useState(false);
@@ -513,6 +520,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
 
     // Keep the Trip View open and select the new trip
     setShowTripView(true);
+    setIsCreatingNewTrip(false);
     setGeneratedTrip({});
     setTripStartDate(undefined);
     setTripEndDate(undefined);
