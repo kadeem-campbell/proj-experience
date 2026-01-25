@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { 
-  Calendar, ChevronDown, ChevronRight, Plus, Trash2, Edit2, Check, X, Rocket 
+  Calendar, ChevronDown, ChevronRight, Trash2, Edit2, Check, X, Rocket 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Trip } from "@/hooks/useItineraries";
 import {
@@ -19,8 +21,7 @@ interface TripSelectorProps {
   onSelectTrip: (tripId: string) => void;
   onDeleteTrip: (tripId: string) => void;
   onRenameTrip: (tripId: string, newName: string) => void;
-  onCreateTrip: () => void;
-  isCreatingTrip?: boolean;
+  onDateRangeSelected: (startDate: Date, endDate?: Date) => void;
   className?: string;
 }
 
@@ -30,13 +31,15 @@ export function TripSelector({
   onSelectTrip,
   onDeleteTrip,
   onRenameTrip,
-  onCreateTrip,
-  isCreatingTrip = false,
+  onDateRangeSelected,
   className
 }: TripSelectorProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState<Date | undefined>();
+  const [tempEndDate, setTempEndDate] = useState<Date | undefined>();
 
   const handleStartEdit = (trip: Trip) => {
     setEditingId(trip.id);
@@ -56,20 +59,44 @@ export function TripSelector({
     setEditName("");
   };
 
+  const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    setTempStartDate(range?.from);
+    setTempEndDate(range?.to);
+    
+    // Auto-generate when both dates are selected
+    if (range?.from && range?.to) {
+      setDatePickerOpen(false);
+      onDateRangeSelected(range.from, range.to);
+      setTempStartDate(undefined);
+      setTempEndDate(undefined);
+    }
+  };
+
   const hasTrips = trips.length > 0;
   const buttonLabel = hasTrips ? "Add another trip" : "Make a Trip";
 
   return (
     <div className={cn("space-y-3", className)}>
-      {/* Make a Trip / Add another trip button - always visible at top */}
-      <Button 
-        variant={isCreatingTrip ? "default" : "outline"} 
-        className="w-full gap-2" 
-        onClick={onCreateTrip}
-      >
-        <Rocket className="w-4 h-4" />
-        {buttonLabel}
-      </Button>
+      {/* Make a Trip / Add another trip button with date picker */}
+      <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full gap-2">
+            <Rocket className="w-4 h-4" />
+            {buttonLabel}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="center">
+          <CalendarComponent
+            mode="range"
+            selected={{ from: tempStartDate, to: tempEndDate }}
+            onSelect={handleDateSelect}
+            disabled={(date) => date < new Date()}
+            initialFocus
+            className="p-3 pointer-events-auto"
+            numberOfMonths={2}
+          />
+        </PopoverContent>
+      </Popover>
 
       {/* My Trips section - only show if there are trips */}
       {hasTrips && (
@@ -94,7 +121,7 @@ export function TripSelector({
                   key={trip.id}
                   className={cn(
                     "group px-3 py-2 cursor-pointer hover:bg-accent/50 transition-colors",
-                    activeTripId === trip.id && !isCreatingTrip && "bg-accent/30"
+                    activeTripId === trip.id && "bg-accent/30"
                   )}
                   onClick={() => {
                     if (editingId !== trip.id) {

@@ -1280,53 +1280,14 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   onSelectTrip={handleSelectTrip}
                   onDeleteTrip={handleDeleteTrip}
                   onRenameTrip={handleRenameTrip}
-                  onCreateTrip={handleCreateNewTrip}
-                  isCreatingTrip={isCreatingNewTrip}
+                  onDateRangeSelected={(startDate, endDate) => {
+                    setTripStartDate(startDate);
+                    setTripEndDate(endDate);
+                    setIsCreatingNewTrip(true);
+                    // Auto-generate the trip
+                    generateTrip(startDate, endDate);
+                  }}
                 />
-
-                {/* Show date picker when creating new trip */}
-                {isCreatingNewTrip && Object.keys(generatedTrip).length === 0 && (
-                  <div className="mt-4 p-4 bg-card/50 border border-border rounded-lg space-y-3">
-                    <p className="text-sm text-muted-foreground text-center">
-                      Select your trip dates
-                    </p>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full gap-2 justify-start">
-                          <Calendar className="w-4 h-4" />
-                          {tripStartDate && tripEndDate 
-                            ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d")}`
-                            : tripStartDate 
-                              ? format(tripStartDate, "MMM d")
-                              : "Select dates"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="center">
-                        <CalendarComponent
-                          mode="range"
-                          selected={{ from: tripStartDate, to: tripEndDate }}
-                          onSelect={(range) => {
-                            setTripStartDate(range?.from);
-                            setTripEndDate(range?.to);
-                          }}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                          numberOfMonths={2}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    
-                    <Button 
-                      onClick={handleMakeItATrip} 
-                      disabled={!tripStartDate || isGenerating}
-                      className="w-full gap-2"
-                    >
-                      <Rocket className="w-4 h-4" />
-                      {isGenerating ? "Generating..." : "Generate Schedule"}
-                    </Button>
-                  </div>
-                )}
 
                 {/* Show save button when trip is generated */}
                 {Object.keys(generatedTrip).length > 0 && (
