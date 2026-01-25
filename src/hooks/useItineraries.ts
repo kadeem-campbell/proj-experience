@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { LikedExperience } from './useLikedExperiences';
 
+export interface Trip {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate?: string;
+  experiences: LikedExperience[]; // experiences with scheduledTime
+  createdAt: string;
+}
+
 export interface Itinerary {
   id: string;
   name: string;
@@ -14,6 +23,8 @@ export interface Itinerary {
   tag?: 'popular' | 'fave';
   startDate?: string;
   theme?: string;
+  trips?: Trip[]; // Multiple trips per itinerary
+  activeTripId?: string; // Currently active trip
 }
 
 const STORAGE_KEY = 'itineraries';
@@ -99,6 +110,10 @@ export const useItineraries = () => {
   }, []);
 
   const createItinerary = useCallback((name: string, initialExperiences?: LikedExperience[]): Itinerary => {
+    // Read fresh data from localStorage to avoid stale closure issues
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const currentItineraries: Itinerary[] = stored ? JSON.parse(stored) : itineraries;
+    
     const newItinerary: Itinerary = {
       id: generateId(),
       name,
@@ -108,7 +123,7 @@ export const useItineraries = () => {
       isPublic: false,
       collaborators: []
     };
-    const updated = [...itineraries, newItinerary];
+    const updated = [...currentItineraries, newItinerary];
     saveItineraries(updated);
     setActiveItinerary(newItinerary.id);
     return newItinerary;
@@ -308,6 +323,85 @@ export const useItineraries = () => {
     saveItineraries(updated);
   }, [itineraries, saveItineraries]);
 
+  // Create a new trip for an itinerary
+  const createTrip = useCallback((itineraryId: string, tripName: string, startDate: string, endDate?: string, scheduledExperiences?: LikedExperience[]): Trip | null => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const currentItineraries: Itinerary[] = stored ? JSON.parse(stored) : itineraries;
+    
+    const newTrip: Trip = {
+      id: generateId(),
+      name: tripName,
+      startDate,
+      endDate,
+      experiences: scheduledExperiences || [],
+      createdAt: new Date().toISOString()
+    };
+    
+    const updated = currentItineraries.map(i => {
+      if (i.id !== itineraryId) return i;
+      const existingTrips = i.trips || [];
+      return {
+        ...i,
+        trips: [...existingTrips, newTrip],
+        activeTripId: newTrip.id,
+        updatedAt: new Date().toISOString()
+      };
+    });
+    
+    saveItineraries(updated);
+    return newTrip;
+  }, [itineraries, saveItineraries]);
+
+  // Delete a trip from an itinerary
+  const deleteTrip = useCallback((itineraryId: string, tripId: string) => {
+    const updated = itineraries.map(i => {
+      if (i.id !== itineraryId) return i;
+      const remainingTrips = (i.trips || []).filter(t => t.id !== tripId);
+      return {
+        ...i,
+        trips: remainingTrips,
+        activeTripId: i.activeTripId === tripId ? remainingTrips[0]?.id : i.activeTripId,
+        updatedAt: new Date().toISOString()
+      };
+    });
+    saveItineraries(updated);
+  }, [itineraries, saveItineraries]);
+
+  // Rename a trip
+  const renameTrip = useCallback((itineraryId: string, tripId: string, newName: string) => {
+    const updated = itineraries.map(i => {
+      if (i.id !== itineraryId) return i;
+      return {
+        ...i,
+        trips: (i.trips || []).map(t => t.id === tripId ? { ...t, name: newName } : t),
+        updatedAt: new Date().toISOString()
+      };
+    });
+    saveItineraries(updated);
+  }, [itineraries, saveItineraries]);
+
+  // Set active trip for an itinerary
+  const setActiveTrip = useCallback((itineraryId: string, tripId: string) => {
+    const updated = itineraries.map(i => {
+      if (i.id !== itineraryId) return i;
+      return { ...i, activeTripId: tripId, updatedAt: new Date().toISOString() };
+    });
+    saveItineraries(updated);
+  }, [itineraries, saveItineraries]);
+
+  // Update trip experiences (when scheduling changes)
+  const updateTripExperiences = useCallback((itineraryId: string, tripId: string, experiences: LikedExperience[]) => {
+    const updated = itineraries.map(i => {
+      if (i.id !== itineraryId) return i;
+      return {
+        ...i,
+        trips: (i.trips || []).map(t => t.id === tripId ? { ...t, experiences } : t),
+        updatedAt: new Date().toISOString()
+      };
+    });
+    saveItineraries(updated);
+  }, [itineraries, saveItineraries]);
+
   return {
     itineraries,
     activeItinerary,
@@ -328,6 +422,12 @@ export const useItineraries = () => {
     copyItinerary,
     updateItineraryCover,
     updateExperienceDetails,
-    experienceCount: activeItinerary?.experiences.length || 0
+    experienceCount: activeItinerary?.experiences.length || 0,
+    // Trip management
+    createTrip,
+    deleteTrip,
+    renameTrip,
+    setActiveTrip,
+    updateTripExperiences
   };
 };

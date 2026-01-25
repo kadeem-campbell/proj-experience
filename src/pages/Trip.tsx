@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { format, parseISO, isSameDay, addDays, setHours, setMinutes } from "date-fns";
 import confetti from "canvas-confetti";
 import { MainLayout } from "@/components/layouts/MainLayout";
@@ -9,7 +9,8 @@ import {
   Globe, Lock, Download, FileSpreadsheet, Settings,
   MessageCircle, Copy, Check, Plus, Trash2, Edit2, Camera, X,
   DollarSign, Timer, MoreVertical, Eye, Zap, LayoutGrid, CalendarDays,
-  Link2, Mail, UserPlus, Search, MoreHorizontal, Sunrise, Sun, Sunset, Moon
+  Link2, Mail, UserPlus, Search, MoreHorizontal, Sunrise, Sun, Sunset, Moon,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,12 +20,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Itinerary, useItineraries } from "@/hooks/useItineraries";
+import { Itinerary, Trip as TripType, useItineraries } from "@/hooks/useItineraries";
 import { LikedExperience, TimeSlot } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
 import { SpinUpModal } from "@/components/SpinUpModal";
 import { publicItinerariesData } from "@/data/itinerariesData";
 import { useToast } from "@/hooks/use-toast";
+import { TripSelector } from "@/components/TripSelector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +50,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 // Theme configurations
 const themes = {
@@ -104,6 +111,8 @@ interface TripPageProps {
 
 export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedTripId = searchParams.get('trip');
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,10 +129,16 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     updateItineraryCover,
     updateExperienceDetails,
     addExperienceToItinerary,
+    createTrip,
+    deleteTrip,
+    renameTrip,
+    setActiveTrip,
+    updateTripExperiences
   } = useItineraries();
 
   // Determine which itinerary to show
   const [loadedItinerary, setLoadedItinerary] = useState<Itinerary | null>(null);
+  const [tripsOpen, setTripsOpen] = useState(true);
   
   const itinerary = useMemo(() => {
     if (useActiveItinerary) {
@@ -136,12 +151,48 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     return loadedItinerary;
   }, [useActiveItinerary, activeItinerary, itineraries, id, loadedItinerary]);
 
+  // Get selected trip from itinerary
+  const selectedTrip = useMemo(() => {
+    if (!itinerary?.trips || itinerary.trips.length === 0) return null;
+    if (selectedTripId) {
+      return itinerary.trips.find(t => t.id === selectedTripId) || itinerary.trips[0];
+    }
+    return itinerary.trips.find(t => t.id === itinerary.activeTripId) || itinerary.trips[0];
+  }, [itinerary, selectedTripId]);
+
   // Check if user owns this itinerary
   const isOwner = useMemo(() => {
     if (useActiveItinerary) return true;
     if (!itinerary) return false;
     return itineraries.some(i => i.id === itinerary.id);
   }, [useActiveItinerary, itinerary, itineraries]);
+
+  // Trip selector handlers
+  const handleSelectTrip = (tripId: string) => {
+    setSearchParams({ trip: tripId });
+    setShowTripView(true);
+  };
+
+  const handleDeleteTrip = (tripId: string) => {
+    if (itinerary) {
+      deleteTrip(itinerary.id, tripId);
+      toast({ title: "Trip deleted" });
+    }
+  };
+
+  const handleRenameTrip = (tripId: string, newName: string) => {
+    if (itinerary) {
+      renameTrip(itinerary.id, tripId, newName);
+    }
+  };
+
+  const handleCreateNewTrip = () => {
+    setShowTripView(false);
+    setGeneratedTrip({});
+    setTripStartDate(undefined);
+    setTripEndDate(undefined);
+    toast({ title: "Select dates", description: "Pick a date range to create a new trip" });
+  };
 
   // State
   const [currentTheme, setCurrentTheme] = useState<ThemeKey>("ocean");
@@ -1181,16 +1232,32 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           {showTripView && (
             <div className="lg:w-[40%] bg-card/30 border-l border-border overflow-y-auto">
               <div className="p-4 md:p-6 sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border z-10">
+                {/* Trip Selector - Collapsible */}
+                {itinerary?.trips && itinerary.trips.length > 0 && (
+                  <div className="mb-4">
+                    <TripSelector
+                      trips={itinerary.trips}
+                      activeTripId={selectedTrip?.id}
+                      onSelectTrip={handleSelectTrip}
+                      onDeleteTrip={handleDeleteTrip}
+                      onRenameTrip={handleRenameTrip}
+                      onCreateTrip={handleCreateNewTrip}
+                    />
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-bold text-lg flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    Your Generated Trip
+                    {selectedTrip ? selectedTrip.name : "Your Generated Trip"}
                   </h3>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
-                  {tripStartDate && tripEndDate 
-                    ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
-                    : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
+                  {selectedTrip 
+                    ? `${format(parseISO(selectedTrip.startDate), "MMM d")}${selectedTrip.endDate ? ` - ${format(parseISO(selectedTrip.endDate), "MMM d, yyyy")}` : ''}`
+                    : tripStartDate && tripEndDate 
+                      ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
+                      : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
                 </p>
                  <p className="text-xs text-muted-foreground mb-4">
                    {Object.keys(generatedTrip).length > 0

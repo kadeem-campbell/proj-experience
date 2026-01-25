@@ -88,6 +88,8 @@ const PublicItinerary = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showCustomizeSheet, setShowCustomizeSheet] = useState(false);
   const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
+  const [savedTripId, setSavedTripId] = useState<string | null>(null);
+  const [tripName, setTripName] = useState("");
   
   const { 
     addExperience, 
@@ -97,7 +99,8 @@ const PublicItinerary = () => {
     itineraries, 
     isInItinerary,
     copyItinerary,
-    togglePublic 
+    togglePublic,
+    createTrip
   } = useItineraries();
 
   // Find the public itinerary
@@ -265,8 +268,24 @@ const PublicItinerary = () => {
       likedAt: new Date().toISOString()
     }));
     
-    // Create a new itinerary with the scheduled experiences included
-    const newItinerary = createItinerary(`${itinerary.name} Trip`, scheduledExperiences);
+    // First, create or find the parent itinerary for this public itinerary
+    const parentItineraryName = `${itinerary.name}`;
+    let parentItinerary = itineraries.find(i => i.name === parentItineraryName);
+    
+    if (!parentItinerary) {
+      // Create a new itinerary with the base experiences (unscheduled)
+      parentItinerary = createItinerary(parentItineraryName, itinerary.experiences.map(e => ({
+        ...e,
+        likedAt: new Date().toISOString()
+      })));
+    }
+    
+    // Now create a trip within this itinerary
+    const startDateStr = tripStartDate ? format(tripStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+    const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
+    const newTripName = tripName.trim() || `Trip ${(parentItinerary.trips?.length || 0) + 1}`;
+    
+    const newTrip = createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
     
     // Fire confetti
     const duration = 2000;
@@ -291,8 +310,9 @@ const PublicItinerary = () => {
       if (Date.now() < end) requestAnimationFrame(frame);
     }());
     
-    // Save itinerary ID and show customize sheet
-    setSavedItineraryId(newItinerary.id);
+    // Save itinerary ID and trip ID, show customize sheet
+    setSavedItineraryId(parentItinerary.id);
+    setSavedTripId(newTrip?.id || null);
     setShowCustomizeSheet(true);
   };
 
@@ -303,11 +323,31 @@ const PublicItinerary = () => {
         title: "Trip created! 🎉",
         description: "Taking you to your new trip...",
       });
-      // Small delay to allow state to sync before navigation
+      // Stay on same page, just reset the generation view
+      setShowTripView(false);
+      setGeneratedTrip({});
+      setTripStartDate(undefined);
+      setTripEndDate(undefined);
+      setTripName("");
+      
+      // Navigate to the trip page
       setTimeout(() => {
-        navigate(`/trip/${savedItineraryId}`);
+        navigate(`/trip/${savedItineraryId}${savedTripId ? `?trip=${savedTripId}` : ''}`);
       }, 100);
     }
+  };
+
+  const handleCreateAnotherTrip = () => {
+    // Reset trip generation state to allow creating another trip
+    setGeneratedTrip({});
+    setTripStartDate(undefined);
+    setTripEndDate(undefined);
+    setTripName("");
+    setShowTripView(false);
+    toast({
+      title: "Ready for another trip!",
+      description: "Select new dates to create another trip from this itinerary.",
+    });
   };
 
   const handleShare = async () => {
