@@ -446,8 +446,9 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
       title: "Trip scheduled! 🎉",
       description: "Your experiences have been scheduled.",
     });
-    
-    setShowTripView(false);
+
+    // Keep the Trip View open; after saving we switch to the persisted schedule
+    setShowTripView(true);
     setGeneratedTrip({});
   };
 
@@ -645,14 +646,24 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     );
   };
 
-  // Render generated trip timeline
-  const renderTripTimeline = () => {
-    const days = Object.keys(generatedTrip).sort();
+  const scheduledTripData = useMemo(() => {
+    // Use current itinerary scheduledTime values as a persistent schedule
+    // (so the schedule is still visible after refresh)
+    return scheduledByDay;
+  }, [scheduledByDay]);
+
+  // Render trip timeline
+  const renderTripTimeline = (
+    tripData: Record<string, LikedExperience[]>,
+    opts?: { editable?: boolean }
+  ) => {
+    const editable = !!opts?.editable;
+    const days = Object.keys(tripData).sort();
     
     return (
       <div className="space-y-6">
         {days.map((dayKey) => {
-          const dayExperiences = generatedTrip[dayKey];
+          const dayExperiences = tripData[dayKey];
           const dayDate = new Date(dayKey);
           
           return (
@@ -682,17 +693,24 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                       <p className="font-medium text-sm truncate">{exp.title}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         {exp.scheduledTime && (
-                          <Input
-                            type="time"
-                            value={format(new Date(exp.scheduledTime), "HH:mm")}
-                            onChange={(e) => {
-                              const [hours, mins] = e.target.value.split(':').map(Number);
-                              const newDate = new Date(exp.scheduledTime!);
-                              newDate.setHours(hours, mins, 0, 0);
-                              handleUpdateExperienceTime(exp.id, newDate.toISOString());
-                            }}
-                            className="h-6 w-24 text-xs px-2"
-                          />
+                          editable ? (
+                            <Input
+                              type="time"
+                              value={format(new Date(exp.scheduledTime), "HH:mm")}
+                              onChange={(e) => {
+                                const [hours, mins] = e.target.value.split(':').map(Number);
+                                const newDate = new Date(exp.scheduledTime!);
+                                newDate.setHours(hours, mins, 0, 0);
+                                handleUpdateExperienceTime(exp.id, newDate.toISOString());
+                              }}
+                              className="h-6 w-24 text-xs px-2"
+                            />
+                          ) : (
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {format(new Date(exp.scheduledTime), "h:mm a")}
+                            </span>
+                          )
                         )}
                         {exp.location && (
                           <span className="text-muted-foreground truncate">{exp.location}</span>
@@ -1101,6 +1119,14 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     </Button>
                   </div>
                 )}
+
+                {/* View existing trip schedule */}
+                {isOwner && hasScheduledExperiences && !showTripView && (
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowTripView(true)}>
+                    <CalendarDays className="w-4 h-4" />
+                    View Trip
+                  </Button>
+                )}
                 
                 {showTripView && (
                   <Button variant="ghost" size="sm" onClick={() => setShowTripView(false)}>
@@ -1166,26 +1192,37 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
                     : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
                 </p>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Edit times and reorder before saving
-                </p>
-                <Button onClick={handleSaveTrip} className="w-full gap-2">
-                  <Check className="w-4 h-4" />
-                  Save & Customize Trip
-                </Button>
+                 <p className="text-xs text-muted-foreground mb-4">
+                   {Object.keys(generatedTrip).length > 0
+                     ? "Edit times and reorder before saving"
+                     : "Your trip schedule"}
+                 </p>
+                 {Object.keys(generatedTrip).length > 0 ? (
+                   <Button onClick={handleSaveTrip} className="w-full gap-2">
+                     <Check className="w-4 h-4" />
+                     Save & Customize Trip
+                   </Button>
+                 ) : (
+                   <Button variant="outline" onClick={() => setShowTripView(false)} className="w-full gap-2">
+                     <X className="w-4 h-4" />
+                     Close
+                   </Button>
+                 )}
               </div>
               
               <div className="p-4 md:p-6">
-                {Object.keys(generatedTrip).length > 0 ? (
-                  renderTripTimeline()
-                ) : (
-                  <div className="text-center py-12">
-                    <Rocket className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
-                    <p className="text-muted-foreground text-sm">
-                      Generating your trip schedule...
-                    </p>
-                  </div>
-                )}
+                 {Object.keys(generatedTrip).length > 0
+                   ? renderTripTimeline(generatedTrip, { editable: true })
+                   : hasScheduledExperiences
+                     ? renderTripTimeline(scheduledTripData, { editable: false })
+                     : (
+                       <div className="text-center py-12">
+                         <Rocket className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+                         <p className="text-muted-foreground text-sm">
+                           Generate your trip schedule to preview it here.
+                         </p>
+                       </div>
+                     )}
               </div>
             </div>
           )}
