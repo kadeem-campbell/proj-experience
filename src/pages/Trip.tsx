@@ -1218,9 +1218,8 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                 )}
                 
                 {showTripView && (
-                  <Button variant="ghost" size="sm" onClick={() => setShowTripView(false)}>
-                    <X className="w-4 h-4 mr-2" />
-                    Close Trip View
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowTripView(false)}>
+                    <X className="w-4 h-4" />
                   </Button>
                 )}
               </div>
@@ -1312,12 +1311,51 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     </Button>
                   </>
                 ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground mb-3">
+                  <div className="py-4 space-y-4">
+                    <p className="text-sm text-muted-foreground text-center">
                       {(itinerary?.trips?.length || 0) === 0 
                         ? "Create your first trip schedule"
-                        : "Select a trip or create a new one"}
+                        : "Select dates for your new trip"}
                     </p>
+                    
+                    {/* Date picker for new trip creation */}
+                    <div className="space-y-3">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full gap-2 justify-start">
+                            <Calendar className="w-4 h-4" />
+                            {tripStartDate && tripEndDate 
+                              ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d")}`
+                              : tripStartDate 
+                                ? format(tripStartDate, "MMM d")
+                                : "Pick dates"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="center">
+                          <CalendarComponent
+                            mode="range"
+                            selected={{ from: tripStartDate, to: tripEndDate }}
+                            onSelect={(range) => {
+                              setTripStartDate(range?.from);
+                              setTripEndDate(range?.to);
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                            numberOfMonths={2}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      
+                      <Button 
+                        onClick={handleMakeItATrip} 
+                        disabled={!tripStartDate || isGenerating}
+                        className="w-full gap-2"
+                      >
+                        <Rocket className="w-4 h-4" />
+                        {isGenerating ? "Generating..." : "Make it a Trip"}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
