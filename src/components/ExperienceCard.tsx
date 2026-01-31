@@ -81,21 +81,47 @@ export const ExperienceCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container - TikTok style */}
+        {/* Image container */}
         <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
           {videoUrl ? (
-            <video
-              ref={videoRef}
-              poster={videoThumbnail}
-              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
-              muted
-              loop
-              playsInline
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-            >
-              <source src={videoUrl} type="video/mp4" />
-            </video>
+            <>
+              <video
+                ref={videoRef}
+                poster={videoThumbnail}
+                className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
+                muted
+                loop
+                playsInline
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              >
+                <source src={videoUrl} type="video/mp4" />
+              </video>
+              
+              {/* Unique Video Play Indicator - Corner triangle with pulse */}
+              <div 
+                className={cn(
+                  "absolute top-0 left-0 transition-opacity duration-200",
+                  isPlaying ? "opacity-0" : "opacity-100"
+                )}
+              >
+                {/* Corner triangle background */}
+                <div className="w-0 h-0 border-l-[48px] border-l-black/60 border-b-[48px] border-b-transparent" />
+                {/* Play icon positioned in corner */}
+                <div className="absolute top-2 left-2">
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="w-4 h-4 text-white fill-current"
+                  >
+                    <polygon points="5,3 19,12 5,21" />
+                  </svg>
+                </div>
+                {/* Subtle pulse ring */}
+                <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full border border-white/40 animate-ping" 
+                  style={{ animationDuration: '2s' }} 
+                />
+              </div>
+            </>
           ) : (
             <img
               src={videoThumbnail}
@@ -104,7 +130,7 @@ export const ExperienceCard = ({
             />
           )}
           
-          {/* Likes overlay at bottom left - TikTok style */}
+          {/* Likes overlay at bottom left */}
           <div className="absolute bottom-3 left-3">
             <span className="inline-flex items-center gap-1.5 text-white text-sm font-medium drop-shadow-lg">
               <Heart className="w-4 h-4" />
