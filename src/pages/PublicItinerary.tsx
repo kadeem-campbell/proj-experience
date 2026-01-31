@@ -700,20 +700,20 @@ const PublicItinerary = () => {
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
-        {/* Header */}
+        {/* Header - TikTok style */}
         <div 
-          className="relative bg-gradient-to-b from-primary/30 to-background p-4 md:p-6 pb-6 md:pb-8"
-          style={{ background: `linear-gradient(180deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--background)) 100%)` }}
+          className="relative p-4 md:p-6 lg:p-8 pb-6 md:pb-8"
+          style={{ background: `linear-gradient(180deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--background)) 100%)` }}
         >
           {/* Back Button */}
-          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors text-sm">
+          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 md:mb-8 transition-colors text-sm font-medium">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Discover
           </Link>
 
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 md:gap-6">
-            {/* Cover Image */}
-            <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-5 md:gap-8">
+            {/* Cover Image - Slightly rounded, TikTok profile style */}
+            <div className="w-40 h-52 sm:w-44 sm:h-56 md:w-52 md:h-64 flex-shrink-0 rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
               {itinerary.coverImage ? (
                 <img src={itinerary.coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
               ) : (
@@ -723,52 +723,52 @@ const PublicItinerary = () => {
               )}
             </div>
 
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+            {/* Info - TikTok style hierarchy */}
+            <div className="flex-1 min-w-0 pt-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-2">
                 Public Itinerary
               </p>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 line-clamp-2">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-3 md:mb-4 line-clamp-2">
                 {itinerary.name}
               </h1>
-              <div className="flex items-center gap-3 text-muted-foreground text-sm">
-                <span>{itinerary.experiences.length} experiences</span>
+              <div className="flex items-center gap-4 text-muted-foreground text-[15px]">
+                <span className="font-medium">{itinerary.experiences.length} experiences</span>
                 {itinerary.creatorName && (
-                  <span className="flex items-center gap-1">
-                    <Eye className="w-3 h-3" />
-                    by @{itinerary.creatorName}
+                  <span className="flex items-center gap-1.5">
+                    <Eye className="w-4 h-4" />
+                    by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span>
                   </span>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* Action Buttons - Clear separation */}
-          <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-4 md:mt-6">
-            {/* Copy Itinerary - Just saves the experiences */}
-            <Button onClick={() => setCopyDialogOpen(true)} variant="secondary" className="gap-2 rounded-full">
-              <Copy className="w-4 h-4" />
-              Copy Itinerary
-            </Button>
-            
-            {/* Share */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full w-10 h-10">
-                  {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+              {/* Action Buttons - Inline with info */}
+              <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-8">
+                {/* Copy Itinerary */}
+                <Button onClick={() => setCopyDialogOpen(true)} variant="secondary" className="gap-2 rounded-full px-5 h-11 font-semibold">
+                  <Copy className="w-4 h-4" />
+                  Copy Itinerary
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover border-border">
-                <DropdownMenuItem onClick={handleShare}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Link
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleShareWhatsApp}>
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Share via WhatsApp
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                
+                {/* Share */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="rounded-full w-11 h-11 border-border/50">
+                      {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-popover border-border">
+                    <DropdownMenuItem onClick={handleShare}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleShareWhatsApp}>
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Share via WhatsApp
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
           </div>
         </div>
 
