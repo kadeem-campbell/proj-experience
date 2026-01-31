@@ -2,17 +2,14 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { 
   Plus, 
   Minus,
   Check,
   ArrowLeft, 
   Share2, 
-  Calendar, 
   MapPin, 
   Users, 
   Clock, 
@@ -20,9 +17,13 @@ import {
   Globe,
   Play,
   Pause,
-  Image as ImageIcon,
   Copy,
-  MessageCircle
+  MessageCircle,
+  ChevronDown,
+  Heart,
+  Bookmark,
+  Info,
+  Calendar
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,10 +31,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData } from "@/data/itinerariesData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 // Mock data - in real app this would come from API
 import partyImage from "@/assets/party-experience.jpg";
@@ -218,6 +227,7 @@ export default function ExperienceDetail() {
   const [experienceData, setExperienceData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -275,7 +285,6 @@ export default function ExperienceDetail() {
         for (const itinerary of publicItinerariesData) {
           const itineraryExp = itinerary.experiences.find(exp => exp.id === id);
           if (itineraryExp) {
-            // Convert itinerary experience to full experience format
             setExperienceData({
               id: itineraryExp.id,
               title: itineraryExp.title,
@@ -372,10 +381,8 @@ export default function ExperienceDetail() {
   // SEO: Update document meta tags
   useEffect(() => {
     if (experience) {
-      // Update title
       document.title = `${experience.title} in ${experience.location} | Experience East Africa`;
       
-      // Update/create meta description
       let metaDescription = document.querySelector('meta[name="description"]');
       if (!metaDescription) {
         metaDescription = document.createElement('meta');
@@ -386,7 +393,6 @@ export default function ExperienceDetail() {
         `${experience.title} - ${experience.description?.slice(0, 150)}... Starting from $${experience.price}. Book ${experience.category} experiences in ${experience.location}.`
       );
 
-      // Open Graph tags for social sharing
       const ogTags = [
         { property: 'og:title', content: experience.title },
         { property: 'og:description', content: experience.description?.slice(0, 200) },
@@ -405,7 +411,6 @@ export default function ExperienceDetail() {
         metaTag.setAttribute('content', tag.content || '');
       });
 
-      // JSON-LD structured data for rich snippets
       let scriptTag = document.querySelector('script[type="application/ld+json"]');
       if (!scriptTag) {
         scriptTag = document.createElement('script');
@@ -439,7 +444,6 @@ export default function ExperienceDetail() {
       scriptTag.textContent = JSON.stringify(structuredData);
     }
 
-    // Cleanup on unmount
     return () => {
       document.title = 'Experience East Africa';
     };
@@ -505,10 +509,10 @@ export default function ExperienceDetail() {
   if (loading) {
     return (
       <MainLayout showItineraryPanel={false}>
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-screen bg-background">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading experience...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground text-sm">Loading experience...</p>
           </div>
         </div>
       </MainLayout>
@@ -518,11 +522,11 @@ export default function ExperienceDetail() {
   if (!experience) {
     return (
       <MainLayout showItineraryPanel={false}>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Experience not found</h1>
+        <div className="flex items-center justify-center h-screen bg-background">
+          <div className="text-center px-6">
+            <h1 className="text-xl font-bold mb-3">Experience not found</h1>
             <Link to="/">
-              <Button>Back to Discover</Button>
+              <Button size="sm">Back to Discover</Button>
             </Link>
           </div>
         </div>
@@ -534,9 +538,11 @@ export default function ExperienceDetail() {
 
   return (
     <MainLayout showItineraryPanel={false}>
-      <div className="min-h-full bg-background">
-        {/* Hero Section - Full Width Image/Video */}
-        <div className="relative h-[60vh] overflow-hidden">
+      {/* Full-screen immersive container */}
+      <div className="relative min-h-screen bg-black">
+        
+        {/* Hero Media - Full viewport on mobile */}
+        <div className="relative h-[85vh] md:h-[70vh] w-full overflow-hidden">
           {experience.videoUrl ? (
             <>
               <video
@@ -549,395 +555,316 @@ export default function ExperienceDetail() {
               >
                 <source src={experience.videoUrl} type="video/mp4" />
               </video>
+              {/* Video play/pause - tap anywhere */}
               <button 
                 onClick={toggleVideo}
-                className="absolute bottom-6 right-6 w-12 h-12 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
-              >
-                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-              </button>
+                className="absolute inset-0 w-full h-full z-10"
+                aria-label={isPlaying ? "Pause video" : "Play video"}
+              />
+              {/* Play indicator on pause */}
+              {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                  <div className="w-20 h-20 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                    <Play className="w-8 h-8 text-white ml-1" />
+                  </div>
+                </div>
+              )}
             </>
           ) : (
-            <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover" />
+            <img 
+              src={gallery[selectedImage]} 
+              alt={experience.title} 
+              className="w-full h-full object-cover"
+            />
           )}
           
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+          {/* Gradient overlays for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none" />
           
-          {/* Navigation - High Contrast */}
-          <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
-            <Link to="/" className="inline-flex items-center gap-2 text-white hover:text-white transition-colors bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-medium">Back</span>
-            </Link>
-            
-            <div className="flex gap-3">
-              <Button 
-                onClick={handleToggleItinerary} 
-                className={`rounded-full gap-2 shadow-lg font-semibold ${
-                  inItinerary 
-                    ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                    : 'bg-white text-black hover:bg-white/90'
-                }`}
+          {/* Top Navigation - Floating */}
+          <div className="absolute top-0 left-0 right-0 p-4 md:p-6 z-30">
+            <div className="flex justify-between items-center">
+              <Link 
+                to="/" 
+                className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-colors"
               >
-                {inItinerary ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                {inItinerary ? "Remove" : "Add to Itinerary"}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    size="icon" 
-                    className="rounded-full bg-white text-black hover:bg-white/90 shadow-lg"
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleShare}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Link
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleShareWhatsApp}>
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Share via WhatsApp
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+              
+              <div className="flex gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-colors">
+                      <Share2 className="w-5 h-5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-popover/95 backdrop-blur-md border-border">
+                    <DropdownMenuItem onClick={handleShare}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleShareWhatsApp}>
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      WhatsApp
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
 
-          {/* Title Section at bottom of hero */}
-          <div className="absolute bottom-0 left-0 right-0 p-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex items-center gap-3 mb-3">
-                <Badge className="bg-primary text-primary-foreground font-semibold px-3 py-1">{experience.category}</Badge>
-                <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full">
+          {/* Right Side Actions - TikTok style vertical */}
+          <div className="absolute right-4 bottom-32 md:bottom-40 z-30 flex flex-col gap-5 items-center">
+            {/* Add to itinerary */}
+            <button 
+              onClick={handleToggleItinerary}
+              className="flex flex-col items-center gap-1"
+            >
+              <div className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+                inItinerary 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-black/40 backdrop-blur-md text-white hover:bg-black/60"
+              )}>
+                {inItinerary ? <Check className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+              </div>
+              <span className="text-white text-[11px] font-medium drop-shadow-lg">
+                {inItinerary ? "Added" : "Add"}
+              </span>
+            </button>
+
+            {/* Like */}
+            <button className="flex flex-col items-center gap-1">
+              <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-colors">
+                <Heart className="w-6 h-6" />
+              </div>
+              <span className="text-white text-[11px] font-medium drop-shadow-lg">
+                {experience.totalReviews}
+              </span>
+            </button>
+
+            {/* Creator avatar */}
+            <div className="flex flex-col items-center gap-1">
+              <Avatar className="w-12 h-12 ring-2 ring-white">
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-bold">
+                  {experience.creator?.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-white text-[11px] font-medium drop-shadow-lg truncate max-w-[48px]">
+                @{experience.creator?.slice(0, 6)}
+              </span>
+            </div>
+          </div>
+          
+          {/* Bottom Content Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 z-20">
+            <div className="max-w-2xl">
+              {/* Category & Rating */}
+              <div className="flex items-center gap-2 mb-3">
+                <Badge className="bg-primary/90 text-primary-foreground text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                  {experience.category}
+                </Badge>
+                <div className="flex items-center gap-1 text-white text-sm">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold text-white">{experience.rating}</span>
-                  <span className="text-white/80">({experience.totalReviews} reviews)</span>
+                  <span className="font-semibold">{experience.rating}</span>
                 </div>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 drop-shadow-lg">
+              
+              {/* Title */}
+              <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight">
                 {experience.title}
               </h1>
-              <div className="flex items-center gap-4 text-white">
-                <span className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full">
+              
+              {/* Location & Quick Info */}
+              <div className="flex flex-wrap items-center gap-3 text-white/90 text-sm mb-4">
+                <span className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4" />
                   {experience.location}
                 </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4" />
+                  {experience.duration}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Users className="w-4 h-4" />
+                  {experience.groupSize}
+                </span>
+              </div>
+
+              {/* Price badge */}
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2">
+                <span className="text-white/70 text-sm">From</span>
+                <span className="text-white text-xl font-bold">${experience.price}</span>
+                <span className="text-white/70 text-sm">/ person</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Gallery dots - if multiple images and no video */}
+          {!experience.videoUrl && gallery.length > 1 && (
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 flex gap-1.5">
+              {gallery.map((_: string, index: number) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-all",
+                    selectedImage === index 
+                      ? "bg-white w-6" 
+                      : "bg-white/50 hover:bg-white/70"
+                  )}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Swipe up indicator */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 animate-bounce">
+          <ChevronDown className="w-6 h-6 text-white/60" />
+        </div>
+
+        {/* Details Section - Scrollable below hero */}
+        <div className="relative bg-background rounded-t-3xl -mt-6 z-40">
+          <div className="w-12 h-1 bg-muted-foreground/30 rounded-full mx-auto mt-3 mb-6" />
+          
+          <div className="px-4 md:px-6 pb-32 max-w-4xl mx-auto">
+            {/* Description */}
+            <div className="mb-8">
+              <p className="text-foreground/80 leading-relaxed">
+                {experience.description}
+              </p>
+            </div>
+
+            {/* Highlights */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">Highlights</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {(experience.highlights || []).map((item: string, index: number) => (
+                  <div key={index} className="flex items-center gap-2.5 text-sm">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-4 h-4 text-primary" />
+                    </div>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Details Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+              <div className="bg-card rounded-2xl p-4 text-center">
+                <Clock className="w-5 h-5 text-primary mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground mb-1">Duration</p>
+                <p className="font-semibold text-sm">{experience.duration}</p>
+              </div>
+              <div className="bg-card rounded-2xl p-4 text-center">
+                <Users className="w-5 h-5 text-primary mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground mb-1">Group Size</p>
+                <p className="font-semibold text-sm">{experience.groupSize}</p>
+              </div>
+              <div className="bg-card rounded-2xl p-4 text-center">
+                <Globe className="w-5 h-5 text-primary mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground mb-1">Languages</p>
+                <p className="font-semibold text-sm">{experience.languages?.[0] || "English"}</p>
+              </div>
+              <div className="bg-card rounded-2xl p-4 text-center">
+                <Calendar className="w-5 h-5 text-primary mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground mb-1">Availability</p>
+                <p className="font-semibold text-sm">{experience.date?.split(' ')[0]}</p>
+              </div>
+            </div>
+
+            {/* Meeting Points */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">Where to go</h3>
+              <div className="space-y-3">
+                {(experience.meetingPoints || [{ name: experience.meetingPoint || experience.location, type: "Main Location" }]).map((point: { name: string; type: string }, index: number) => (
+                  <div key={index} className="flex items-center gap-3 bg-card rounded-xl p-4">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{point.name}</p>
+                      <p className="text-xs text-muted-foreground">{point.type}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Booking Tip */}
+            <div className="bg-primary/5 border border-primary/10 rounded-2xl p-5 mb-8">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Info className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">
+                    {(experience.category === "Water Sports" || experience.category === "Beach" || experience.category === "Party") 
+                      ? "Great for walk-ins" 
+                      : "Book ahead"}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {(experience.category === "Water Sports" || experience.category === "Beach" || experience.category === "Party")
+                      ? "This experience is often available on-demand. Head to the location and connect with vendors directly."
+                      : "This experience typically requires advance booking. Contact vendors ahead of time to secure your spot."}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Creator Card */}
+            <div className="bg-card rounded-2xl p-5">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-14 h-14">
+                  <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
+                    {experience.creator?.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-semibold">@{experience.creator}</p>
+                  <p className="text-sm text-muted-foreground">Experience Creator</p>
+                </div>
+                <div className="flex items-center gap-1 text-sm">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-medium">{experience.rating}</span>
+                  <span className="text-muted-foreground">({experience.totalReviews})</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content - 3 Column Layout */}
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Left Column - General Info */}
-            <div className="lg:col-span-3 space-y-6">
-              <Card className="p-5 bg-card/50 backdrop-blur-sm border-border/50">
-                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-primary" />
-                  Quick Info
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{experience.duration}</p>
-                      <p className="text-sm text-muted-foreground">Duration</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Users className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{experience.groupSize}</p>
-                      <p className="text-sm text-muted-foreground">Group size</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Calendar className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{experience.date}</p>
-                      <p className="text-sm text-muted-foreground">Availability</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Globe className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{experience.languages?.join(", ") || "English"}</p>
-                      <p className="text-sm text-muted-foreground">Languages</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-5 bg-card/50 backdrop-blur-sm border-border/50">
-                <h3 className="font-semibold text-lg mb-4">Highlights</h3>
-                <ul className="space-y-2">
-                  {(experience.highlights || experience.includes.slice(0, 4)).map((item: string, index: number) => (
-                    <li key={index} className="flex items-center gap-2 text-sm">
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-
-              <Card className="p-5 bg-card/50 backdrop-blur-sm border-border/50">
-                <h3 className="font-semibold text-lg mb-4">Meeting Points</h3>
-                <div className="space-y-3">
-                  {(experience.meetingPoints || [{ name: experience.meetingPoint || experience.location, type: "Main Location" }]).map((point: { name: string; type: string }, index: number) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <MapPin className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium">{point.name}</p>
-                        <p className="text-xs text-muted-foreground">{point.type}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-
-            {/* Middle Column - Photos Gallery */}
-            <div className="lg:col-span-5 space-y-6">
-              <Card className="p-5 bg-card/50 backdrop-blur-sm border-border/50">
-                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                  <ImageIcon className="w-5 h-5 text-primary" />
-                  Photos
-                </h3>
-                
-                {/* Main Image */}
-                <div className="relative aspect-video rounded-xl overflow-hidden mb-3">
-                  <img 
-                    src={gallery[selectedImage]} 
-                    alt={`${experience.title} - Photo ${selectedImage + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                
-                {/* Thumbnail Strip */}
-                {gallery.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-2">
-                    {gallery.map((img: string, index: number) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden transition-all ${
-                          selectedImage === index 
-                            ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' 
-                            : 'opacity-70 hover:opacity-100'
-                        }`}
-                      >
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </Card>
-
-              <Card className="p-5 bg-card/50 backdrop-blur-sm border-border/50">
-                <h3 className="font-semibold text-lg mb-4">About This Experience</h3>
-                <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
-              </Card>
-
-            </div>
-
-            {/* Right Column - Indicative Pricing & Info */}
-            <div className="lg:col-span-4 space-y-6">
-              {/* Indicative Price Card */}
-              <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 backdrop-blur-sm sticky top-6">
-                <div className="mb-6">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Indicative Price</p>
-                  <div className="text-4xl font-bold text-primary">
-                    ${experience.price}
-                  </div>
-                  <div className="text-muted-foreground text-sm">per person (approx)</div>
-                </div>
-
-                <Separator className="my-4" />
-
-                {/* Experience Type */}
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Experience Type</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="rounded-full">
-                        <Users className="w-3 h-3 mr-1" />
-                        {experience.groupSize?.includes("1-") ? "Solo or Group" : "Group"}
-                      </Badge>
-                      <Badge variant="outline" className="rounded-full">
-                        {experience.category}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Preferred Payment</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="rounded-full">
-                        💵 Cash on arrival
-                      </Badge>
-                      <Badge variant="outline" className="rounded-full">
-                        💳 Card accepted
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Best For</p>
-                    <div className="flex flex-wrap gap-2">
-                      {experience.category === "Wildlife" || experience.category === "Adventure" ? (
-                        <>
-                          <Badge variant="outline" className="rounded-full">👨‍👩‍👧‍👦 Families</Badge>
-                          <Badge variant="outline" className="rounded-full">🎒 Solo travelers</Badge>
-                        </>
-                      ) : experience.category === "Party" || experience.category === "Nightlife" ? (
-                        <>
-                          <Badge variant="outline" className="rounded-full">👯 Friends</Badge>
-                          <Badge variant="outline" className="rounded-full">🎉 Groups</Badge>
-                        </>
-                      ) : (
-                        <>
-                          <Badge variant="outline" className="rounded-full">💑 Couples</Badge>
-                          <Badge variant="outline" className="rounded-full">👯 Friends</Badge>
-                          <Badge variant="outline" className="rounded-full">🎒 Solo</Badge>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <Separator className="my-4" />
-
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="w-full rounded-full"
-                  onClick={handleToggleItinerary}
-                >
-                  {inItinerary ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      In Your Itinerary
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add to Itinerary
-                    </>
-                  )}
-                </Button>
-
-                <p className="text-xs text-center text-muted-foreground mt-4">
-                  Prices may vary. Contact vendors directly for exact pricing.
-                </p>
-              </Card>
-            </div>
-          </div>
-
-          {/* Experience Providers Section */}
-          <Separator className="my-10" />
-          
-          <div className="space-y-6">
+        {/* Fixed Bottom CTA - Mobile optimized */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border p-4 md:p-5">
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Experience Providers</h2>
-              <p className="text-muted-foreground">Find vendors offering this experience</p>
+              <p className="text-xs text-muted-foreground">From</p>
+              <p className="text-2xl font-bold text-primary">${experience.price}</p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[
-                  {
-                    name: `${experience.location} Adventures`,
-                    rating: 4.8,
-                    reviews: 156,
-                    specialty: experience.category,
-                    verified: true
-                  },
-                  {
-                    name: `East Africa ${experience.category} Tours`,
-                    rating: 4.6,
-                    reviews: 89,
-                    specialty: "Local experts",
-                    verified: true
-                  },
-                  {
-                    name: `${experience.creator}'s Experiences`,
-                    rating: 4.9,
-                    reviews: 234,
-                    specialty: "Original creator",
-                    verified: true
-                  }
-                ].map((vendor, index) => (
-                  <Card key={index} className="p-4 hover:shadow-md transition-all hover:border-primary/30 group">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="w-12 h-12 rounded-xl">
-                        <AvatarFallback className="rounded-xl bg-primary/10 text-primary">
-                          {vendor.name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium text-sm truncate">{vendor.name}</h4>
-                          {vendor.verified && (
-                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                              <Check className="w-3 h-3" />
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          <span>{vendor.rating}</span>
-                          <span>({vendor.reviews})</span>
-                        </div>
-                        <p className="text-xs text-primary mt-1">{vendor.specialty}</p>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-
-            {/* Booking Tip */}
-            {(experience.category === "Water Sports" || experience.category === "Beach" || experience.category === "Party") && (
-              <Card className="p-5 bg-amber-500/10 border-amber-500/20">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">💡</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-amber-700 dark:text-amber-400">Better to book on the day</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      This type of experience is often available on-demand. Head to the location and negotiate directly with vendors for the best prices and flexibility.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {(experience.category === "Adventure" || experience.category === "Wildlife") && (
-              <Card className="p-5 bg-blue-500/10 border-blue-500/20">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">📅</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-blue-700 dark:text-blue-400">Advance booking recommended</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      This experience typically requires advance booking. Contact vendors ahead of time to secure your spot and arrange transportation.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            )}
+            <Button 
+              onClick={handleToggleItinerary}
+              size="lg"
+              className={cn(
+                "flex-1 max-w-xs rounded-full font-semibold h-12 text-base",
+                inItinerary && "bg-primary/10 text-primary hover:bg-primary/20"
+              )}
+              variant={inItinerary ? "outline" : "default"}
+            >
+              {inItinerary ? (
+                <>
+                  <Check className="w-5 h-5 mr-2" />
+                  In Your Itinerary
+                </>
+              ) : (
+                <>
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add to Itinerary
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
