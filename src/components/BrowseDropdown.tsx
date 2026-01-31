@@ -1,4 +1,4 @@
-import { LayoutGrid, ChevronRight } from "lucide-react";
+import { MapPin, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -6,6 +6,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cities, City } from "@/data/browseData";
+import { useState } from "react";
 
 interface BrowseDropdownProps {
   onSelectCity?: (city: City) => void;
@@ -13,56 +14,63 @@ interface BrowseDropdownProps {
 }
 
 export const BrowseDropdown = ({ onSelectCity, onClearFilters }: BrowseDropdownProps) => {
+  const [open, setOpen] = useState(false);
+
   const handleCityClick = (city: City) => {
     onSelectCity?.(city);
+    setOpen(false);
+  };
+
+  const handleShowAll = () => {
+    onClearFilters?.();
+    setOpen(false);
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button 
-          variant="ghost" 
-          className="h-10 px-3 rounded-lg hover:bg-muted gap-2"
+          variant="outline" 
+          className="h-10 px-4 rounded-full border-border/60 hover:border-primary/50 hover:bg-accent gap-2"
         >
-          <LayoutGrid className="h-5 w-5" />
-          <span className="text-sm font-medium">Browse City</span>
+          <MapPin className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">Cities</span>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[400px] p-0 bg-card border-border shadow-xl z-50" 
+        className="w-[320px] p-0 bg-popover border-border shadow-lg rounded-xl z-50" 
         align="start"
         sideOffset={8}
       >
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">Browse City</h3>
+        <div className="p-3">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h3 className="text-sm font-semibold text-foreground">Select a city</h3>
             {onClearFilters && (
               <button 
-                onClick={onClearFilters}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                onClick={handleShowAll}
+                className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
               >
                 Show all
               </button>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
             {cities.map((city) => (
               <button
                 key={city.id}
                 onClick={() => handleCityClick(city)}
-                className="relative h-24 rounded-lg overflow-hidden group transition-transform hover:scale-[1.02]"
-                style={{ backgroundColor: city.color }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent transition-colors text-left group"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/30" />
-                <img 
-                  src={city.image} 
-                  alt={city.name}
-                  className="absolute right-0 bottom-0 w-16 h-16 object-cover rounded-tl-lg opacity-80 group-hover:opacity-100 transition-opacity rotate-12 translate-x-2 translate-y-2"
-                />
-                <span className="absolute top-3 left-3 font-bold text-white text-base">
+                <div 
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: city.color }}
+                >
+                  <MapPin className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                   {city.name}
                 </span>
-                <ChevronRight className="absolute bottom-2 right-2 w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
               </button>
             ))}
           </div>

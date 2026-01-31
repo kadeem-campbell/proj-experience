@@ -3,9 +3,10 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { BrowseDropdown } from "@/components/BrowseDropdown";
+import { LiveActivityBanner } from "@/components/LiveActivityBanner";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
-import { Users, ArrowRight, Plus, MapPin, Search, Heart, TrendingUp, Zap, Globe } from "lucide-react";
+import { ArrowRight, MapPin, Search, Heart, TrendingUp, Zap } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -315,50 +316,7 @@ const SearchPage = () => {
           className="flex-1 overflow-y-auto p-3 md:p-6"
         >
           {/* Live Activity Banner - Polymarket style */}
-          <div className="bg-card border border-border/50 rounded-xl p-4 mb-6 md:mb-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
-                  </span>
-                  <span className="text-sm font-medium text-success">2,847 planning now</span>
-                </div>
-                <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Globe className="w-4 h-4" />
-                    20 destinations
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Zap className="w-4 h-4 text-activity" />
-                    156 itineraries created today
-                  </span>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                {experienceCount > 0 ? (
-                  <Link to="/itinerary">
-                    <Button size="sm" className="gap-2 md:hidden">
-                      My Trip ({experienceCount})
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                    <Button size="default" className="gap-2 hidden md:flex">
-                      View My Itinerary ({experienceCount})
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg text-sm">
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Click + to start planning</span>
-                    <span className="sm:hidden">Tap + to add</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <LiveActivityBanner experienceCount={experienceCount} />
 
           {/* Trending Itineraries Section - Polymarket style */}
           {!selectedCity && (
@@ -381,7 +339,7 @@ const SearchPage = () => {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                 {getPopularItineraries().slice(0, 5).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
@@ -410,7 +368,7 @@ const SearchPage = () => {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                 {getFaveItineraries().slice(0, 5).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
@@ -432,7 +390,7 @@ const SearchPage = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                 {experiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
@@ -454,7 +412,7 @@ const SearchPage = () => {
             <div className="mb-6 md:mb-10">
               <div className="flex items-center justify-between mb-3 md:mb-4">
                 <div className="flex items-center gap-2">
-                  <Users className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+                  <MapPin className="w-4 md:w-5 h-4 md:h-5 text-primary" />
                   <h2 className="text-base md:text-xl font-semibold">{selectedCity.name} Popular Experiences</h2>
                 </div>
               </div>
