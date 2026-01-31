@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useItineraries } from "@/hooks/useItineraries";
+import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { publicItinerariesData } from "@/data/itinerariesData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -576,31 +577,54 @@ export default function ExperienceDetail() {
 
               {/* Desktop CTA - Inline */}
               <div className="hidden lg:block mb-8">
-                <Button 
-                  onClick={handleToggleItinerary}
-                  size="lg"
-                  className={cn(
-                    "w-full h-14 rounded-2xl font-semibold text-base transition-all",
-                    inItinerary 
-                      ? "bg-card border-2 border-primary text-primary hover:bg-primary/10" 
-                      : "bg-primary text-primary-foreground hover:bg-primary/90",
-                    justAdded && "animate-pulse"
-                  )}
-                  variant={inItinerary ? "outline" : "default"}
-                >
-                  {inItinerary ? (
+                {inItinerary ? (
+                  <Button 
+                    onClick={handleToggleItinerary}
+                    size="lg"
+                    className="w-full h-14 rounded-2xl font-semibold text-base bg-card border-2 border-primary text-primary hover:bg-primary/10"
+                    variant="outline"
+                  >
                     <span className="flex items-center gap-2">
                       <Check className="w-5 h-5" />
                       Added to Itinerary
                       <span className="text-xs opacity-70 ml-1">• click to remove</span>
                     </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Plus className="w-5 h-5" />
-                      Add to My Itinerary
-                    </span>
-                  )}
-                </Button>
+                  </Button>
+                ) : (
+                  <ItinerarySelector
+                    experienceId={experience.id}
+                    experienceData={{
+                      id: experience.id,
+                      title: experience.title,
+                      creator: experience.creator,
+                      videoThumbnail: experience.videoThumbnail,
+                      category: experience.category,
+                      location: experience.location,
+                      price: "",
+                    }}
+                    onAdd={() => {
+                      setJustAdded(true);
+                      toast({ 
+                        title: "Added to itinerary! 🎉", 
+                        description: "Keep exploring and build your perfect trip" 
+                      });
+                      setTimeout(() => setJustAdded(false), 2000);
+                    }}
+                  >
+                    <Button 
+                      size="lg"
+                      className={cn(
+                        "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
+                        justAdded && "animate-pulse"
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Plus className="w-5 h-5" />
+                        Add to My Itinerary
+                      </span>
+                    </Button>
+                  </ItinerarySelector>
+                )}
                 {!inItinerary && (
                   <p className="text-center text-xs text-muted-foreground mt-2">
                     <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this to their trip
@@ -682,30 +706,53 @@ export default function ExperienceDetail() {
         {/* Fixed Bottom CTA - Mobile only */}
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border lg:hidden">
           <div className="px-4 py-4">
-            <Button 
-              onClick={handleToggleItinerary}
-              size="lg"
-              className={cn(
-                "w-full h-14 rounded-2xl font-semibold text-base transition-all",
-                inItinerary 
-                  ? "bg-card border-2 border-primary text-primary hover:bg-primary/10" 
-                  : "bg-primary text-primary-foreground hover:bg-primary/90",
-                justAdded && "animate-pulse"
-              )}
-              variant={inItinerary ? "outline" : "default"}
-            >
-              {inItinerary ? (
+            {inItinerary ? (
+              <Button 
+                onClick={handleToggleItinerary}
+                size="lg"
+                className="w-full h-14 rounded-2xl font-semibold text-base bg-card border-2 border-primary text-primary hover:bg-primary/10"
+                variant="outline"
+              >
                 <span className="flex items-center gap-2">
                   <Check className="w-5 h-5" />
                   Added to Itinerary
                 </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
-                  Add to My Itinerary
-                </span>
-              )}
-            </Button>
+              </Button>
+            ) : (
+              <ItinerarySelector
+                experienceId={experience.id}
+                experienceData={{
+                  id: experience.id,
+                  title: experience.title,
+                  creator: experience.creator,
+                  videoThumbnail: experience.videoThumbnail,
+                  category: experience.category,
+                  location: experience.location,
+                  price: "",
+                }}
+                onAdd={() => {
+                  setJustAdded(true);
+                  toast({ 
+                    title: "Added to itinerary! 🎉", 
+                    description: "Keep exploring and build your perfect trip" 
+                  });
+                  setTimeout(() => setJustAdded(false), 2000);
+                }}
+              >
+                <Button 
+                  size="lg"
+                  className={cn(
+                    "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
+                    justAdded && "animate-pulse"
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Add to My Itinerary
+                  </span>
+                </Button>
+              </ItinerarySelector>
+            )}
             
             {!inItinerary && (
               <p className="text-center text-xs text-muted-foreground mt-2">
