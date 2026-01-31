@@ -84,44 +84,18 @@ export const ExperienceCard = ({
         {/* Image container */}
         <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
           {videoUrl ? (
-            <>
-              <video
-                ref={videoRef}
-                poster={videoThumbnail}
-                className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
-                muted
-                loop
-                playsInline
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-              >
-                <source src={videoUrl} type="video/mp4" />
-              </video>
-              
-              {/* Unique Video Play Indicator - Corner triangle with pulse */}
-              <div 
-                className={cn(
-                  "absolute top-0 left-0 transition-opacity duration-200",
-                  isPlaying ? "opacity-0" : "opacity-100"
-                )}
-              >
-                {/* Corner triangle background */}
-                <div className="w-0 h-0 border-l-[48px] border-l-black/60 border-b-[48px] border-b-transparent" />
-                {/* Play icon positioned in corner */}
-                <div className="absolute top-2 left-2">
-                  <svg 
-                    viewBox="0 0 24 24" 
-                    className="w-4 h-4 text-white fill-current"
-                  >
-                    <polygon points="5,3 19,12 5,21" />
-                  </svg>
-                </div>
-                {/* Subtle pulse ring */}
-                <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full border border-white/40 animate-ping" 
-                  style={{ animationDuration: '2s' }} 
-                />
-              </div>
-            </>
+            <video
+              ref={videoRef}
+              poster={videoThumbnail}
+              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
+              muted
+              loop
+              playsInline
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            >
+              <source src={videoUrl} type="video/mp4" />
+            </video>
           ) : (
             <img
               src={videoThumbnail}
@@ -130,12 +104,16 @@ export const ExperienceCard = ({
             />
           )}
           
-          {/* Likes overlay at bottom left */}
+          {/* Unique likes indicator - pill with gradient border */}
           <div className="absolute bottom-3 left-3">
-            <span className="inline-flex items-center gap-1.5 text-white text-sm font-medium drop-shadow-lg">
-              <Heart className="w-4 h-4" />
-              {socialData.formattedLikes}
-            </span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm border border-white/20">
+              <div className="relative">
+                <Heart className="w-3.5 h-3.5 text-white fill-white/80" />
+              </div>
+              <span className="text-xs font-semibold text-white tracking-wide">
+                {socialData.formattedLikes}
+              </span>
+            </div>
           </div>
           
           {/* Add to Itinerary Button - Shows on Hover */}
