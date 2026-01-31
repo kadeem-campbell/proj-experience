@@ -375,9 +375,9 @@ export default function ExperienceDetail() {
   return (
     <MainLayout showItineraryPanel={false}>
       <div className="min-h-screen bg-background">
-        {/* Header Nav - Clean & Simple */}
+        {/* Header Nav */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
-          <div className="flex items-center justify-between px-4 py-3 max-w-5xl mx-auto">
+          <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
             <Link 
               to="/" 
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
@@ -417,177 +417,271 @@ export default function ExperienceDetail() {
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="max-w-5xl mx-auto">
-          {/* Hero Media */}
-          <div className="relative aspect-[4/3] md:aspect-[21/9] overflow-hidden bg-muted">
-            {experience.videoUrl ? (
-              <video
-                ref={videoRef}
-                poster={experience.videoThumbnail}
-                className="w-full h-full object-cover"
-                muted loop playsInline autoPlay
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-              >
-                <source src={experience.videoUrl} type="video/mp4" />
-              </video>
-            ) : (
-              <img 
-                src={gallery[selectedImage]} 
-                alt={experience.title} 
-                className="w-full h-full object-cover"
-              />
-            )}
+        {/* Main Content - Desktop: Two Column, Mobile: Single Column */}
+        <main className="max-w-7xl mx-auto">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-8">
             
-            {/* Gallery dots */}
-            {!experience.videoUrl && gallery.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {gallery.map((_: string, index: number) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-all",
-                      selectedImage === index ? "bg-white w-5" : "bg-white/50"
-                    )}
+            {/* Left Column - Media */}
+            <div className="lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] lg:overflow-hidden">
+              {/* Hero Media */}
+              <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden bg-muted">
+                {experience.videoUrl ? (
+                  <video
+                    ref={videoRef}
+                    poster={experience.videoThumbnail}
+                    className="w-full h-full object-cover"
+                    muted loop playsInline autoPlay
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                  >
+                    <source src={experience.videoUrl} type="video/mp4" />
+                  </video>
+                ) : (
+                  <img 
+                    src={gallery[selectedImage]} 
+                    alt={experience.title} 
+                    className="w-full h-full object-cover"
                   />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="px-4 py-6 md:py-8">
-            {/* Category & Social Proof Row */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Badge className="bg-primary/10 text-primary border-0 font-medium">
-                {experience.category}
-              </Badge>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                <span className="font-medium text-foreground">{experience.rating}</span>
-              </div>
-              <span className="text-muted-foreground text-sm">•</span>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>{socialProof.added} added this</span>
-              </div>
-            </div>
-
-            {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
-              {experience.title}
-            </h1>
-
-            {/* Location */}
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-6">
-              <MapPin className="w-4 h-4" />
-              <span>{experience.location}</span>
-            </div>
-
-            {/* Live Planning Indicator - Network Effects */}
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10 mb-6">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-primary" />
+                )}
+                
+                {/* Gradient overlay for desktop */}
+                <div className="hidden lg:block absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                
+                {/* Desktop overlay content */}
+                <div className="hidden lg:flex absolute bottom-0 left-0 right-0 p-8 flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-white/20 backdrop-blur-sm text-white border-0">
+                      {experience.category}
+                    </Badge>
+                    <div className="flex items-center gap-1 text-white/90 text-sm">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="font-medium">{experience.rating}</span>
+                    </div>
+                  </div>
+                  <h1 className="text-4xl xl:text-5xl font-bold text-white tracking-tight">
+                    {experience.title}
+                  </h1>
+                  <div className="flex items-center gap-2 text-white/80">
+                    <MapPin className="w-4 h-4" />
+                    <span>{experience.location}</span>
+                  </div>
                 </div>
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+
+                {/* Gallery dots - Mobile only */}
+                {!experience.videoUrl && gallery.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 lg:hidden">
+                    {gallery.map((_: string, index: number) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        className={cn(
+                          "w-2 h-2 rounded-full transition-all",
+                          selectedImage === index ? "bg-white w-5" : "bg-white/50"
+                        )}
+                      />
+                    ))}
+                  </div>
+                )}
+                
+                {/* Desktop gallery thumbnails */}
+                {gallery.length > 1 && (
+                  <div className="hidden lg:flex absolute bottom-8 right-8 gap-2">
+                    {gallery.slice(0, 4).map((img: string, index: number) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        className={cn(
+                          "w-16 h-16 rounded-lg overflow-hidden border-2 transition-all",
+                          selectedImage === index 
+                            ? "border-white ring-2 ring-white/50" 
+                            : "border-white/30 opacity-70 hover:opacity-100"
+                        )}
+                      >
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="flex-1">
-                <p className="font-medium text-sm">
-                  <span className="text-primary">{socialProof.planning} people</span> are planning this right now
+            </div>
+
+            {/* Right Column - Content */}
+            <div className="px-4 py-6 lg:py-8 lg:px-0 lg:pr-8">
+              {/* Mobile-only title section */}
+              <div className="lg:hidden">
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  <Badge className="bg-primary/10 text-primary border-0 font-medium">
+                    {experience.category}
+                  </Badge>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                    <span className="font-medium text-foreground">{experience.rating}</span>
+                  </div>
+                  <span className="text-muted-foreground text-sm">•</span>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span>{socialProof.added} added this</span>
+                  </div>
+                </div>
+
+                <h1 className="text-2xl font-bold tracking-tight mb-2">
+                  {experience.title}
+                </h1>
+
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-6">
+                  <MapPin className="w-4 h-4" />
+                  <span>{experience.location}</span>
+                </div>
+              </div>
+
+              {/* Desktop social proof header */}
+              <div className="hidden lg:flex items-center gap-3 mb-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4" />
+                  <span><strong className="text-foreground">{socialProof.added}</strong> travelers added this</span>
+                </div>
+              </div>
+
+              {/* Live Planning Indicator */}
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10 mb-6">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">
+                    <span className="text-primary">{socialProof.planning} people</span> are planning this right now
+                  </p>
+                  <p className="text-xs text-muted-foreground">Join them and start building your itinerary</p>
+                </div>
+              </div>
+
+              {/* Quick Info Pills */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{experience.duration}</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{experience.groupSize}</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <span className="font-medium">Best: {experience.bestTime}</span>
+                </div>
+              </div>
+
+              {/* Desktop CTA - Inline */}
+              <div className="hidden lg:block mb-8">
+                <Button 
+                  onClick={handleToggleItinerary}
+                  size="lg"
+                  className={cn(
+                    "w-full h-14 rounded-2xl font-semibold text-base transition-all",
+                    inItinerary 
+                      ? "bg-card border-2 border-primary text-primary hover:bg-primary/10" 
+                      : "bg-primary text-primary-foreground hover:bg-primary/90",
+                    justAdded && "animate-pulse"
+                  )}
+                  variant={inItinerary ? "outline" : "default"}
+                >
+                  {inItinerary ? (
+                    <span className="flex items-center gap-2">
+                      <Check className="w-5 h-5" />
+                      Added to Itinerary
+                      <span className="text-xs opacity-70 ml-1">• click to remove</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Plus className="w-5 h-5" />
+                      Add to My Itinerary
+                    </span>
+                  )}
+                </Button>
+                {!inItinerary && (
+                  <p className="text-center text-xs text-muted-foreground mt-2">
+                    <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this to their trip
+                  </p>
+                )}
+              </div>
+
+              {/* Description */}
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-3 lg:text-xl">About this experience</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  {experience.description}
                 </p>
-                <p className="text-xs text-muted-foreground">Join them and start building your itinerary</p>
               </div>
-            </div>
 
-            {/* Quick Info Pills */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-sm">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span>{experience.duration}</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-sm">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <span>{experience.groupSize}</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-sm">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span>Best: {experience.bestTime}</span>
-              </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-muted-foreground leading-relaxed mb-8">
-              {experience.description}
-            </p>
-
-            {/* Highlights */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-4">What makes it special</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {experience.highlights?.map((item: string, index: number) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-4 h-4 text-primary" />
+              {/* Highlights */}
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-4 lg:text-xl">What makes it special</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {experience.highlights?.map((item: string, index: number) => (
+                    <div 
+                      key={index} 
+                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-sm">{item}</span>
                     </div>
-                    <span className="text-sm">{item}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Meeting Points */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-4">Where to find it</h2>
-              <div className="space-y-2">
-                {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-4 h-4 text-primary" />
+              {/* Meeting Points */}
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-4 lg:text-xl">Where to find it</h2>
+                <div className="space-y-2">
+                  {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
+                    <div 
+                      key={index} 
+                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{point.name}</p>
+                        <p className="text-xs text-muted-foreground">{point.type}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{point.name}</p>
-                      <p className="text-xs text-muted-foreground">{point.type}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Creator */}
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-8">
-              <Avatar className="w-12 h-12">
-                <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                  {experience.creator?.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-medium">@{experience.creator}</p>
-                <p className="text-sm text-muted-foreground">Experience Creator</p>
+              {/* Creator */}
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-8">
+                <Avatar className="w-12 h-12">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                    {experience.creator?.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-medium">@{experience.creator}</p>
+                  <p className="text-sm text-muted-foreground">Experience Creator</p>
+                </div>
+                <div className="flex items-center gap-1 text-sm">
+                  <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                  <span className="font-medium">{experience.rating}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-sm">
-                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                <span className="font-medium">{experience.rating}</span>
-              </div>
-            </div>
 
-            {/* Spacer for fixed bottom bar */}
-            <div className="h-24" />
+              {/* Spacer for mobile fixed bottom bar */}
+              <div className="h-24 lg:h-0" />
+            </div>
           </div>
         </main>
 
-        {/* Fixed Bottom CTA - Gamified */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border">
-          <div className="max-w-5xl mx-auto px-4 py-4">
+        {/* Fixed Bottom CTA - Mobile only */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border lg:hidden">
+          <div className="px-4 py-4">
             <Button 
               onClick={handleToggleItinerary}
               size="lg"
@@ -604,7 +698,6 @@ export default function ExperienceDetail() {
                 <span className="flex items-center gap-2">
                   <Check className="w-5 h-5" />
                   Added to Itinerary
-                  <span className="text-xs opacity-70 ml-1">• tap to remove</span>
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -614,10 +707,9 @@ export default function ExperienceDetail() {
               )}
             </Button>
             
-            {/* Social proof under button */}
             {!inItinerary && (
               <p className="text-center text-xs text-muted-foreground mt-2">
-                <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this to their trip
+                <span className="text-primary font-medium">{socialProof.added}</span> travelers added this
               </p>
             )}
           </div>
