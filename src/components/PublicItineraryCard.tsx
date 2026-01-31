@@ -56,7 +56,7 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
           </h3>
           
           <p className="text-[13px] text-muted-foreground truncate">
-            Curated itinerary
+            {itinerary.experiences?.[0]?.location || "Curated itinerary"}
           </p>
         </div>
       </div>

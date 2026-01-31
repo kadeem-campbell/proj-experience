@@ -142,7 +142,7 @@ export const ExperienceCard = ({
         </div>
 
         {/* Text content below image - TikTok style */}
-        <div className="mt-3 space-y-1.5">
+        <div className="mt-3 space-y-1">
           <h3 className={cn(
             "font-medium line-clamp-1 text-foreground",
             compact ? "text-sm" : "text-[15px]"
@@ -150,10 +150,9 @@ export const ExperienceCard = ({
             {title}
           </h3>
           
-          <div className="flex items-center justify-between text-[13px] text-muted-foreground">
-            <span className="truncate">{location}</span>
-            <span className="font-medium text-foreground ml-2">{price}</span>
-          </div>
+          <p className="text-[13px] text-muted-foreground truncate">
+            {location}
+          </p>
         </div>
       </div>
     </Link>
