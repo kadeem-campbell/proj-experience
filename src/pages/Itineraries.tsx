@@ -31,7 +31,7 @@ const ItinerariesPage = () => {
 
   const getTitle = () => {
     if (filter === 'popular') return 'Most Popular Itineraries';
-    if (filter === 'fave') return 'Our Faves';
+    if (filter === 'fave') return 'Staff Picks';
     return 'All Itineraries';
   };
 

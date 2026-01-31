@@ -318,7 +318,7 @@ const SearchPage = () => {
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
 
-          {/* Trending Itineraries Section - Polymarket style */}
+          {/* Most Popular Itineraries Section */}
           {!selectedCity && (
             <div className="mb-6 md:mb-10">
               <div className="flex items-center justify-between mb-4">
@@ -327,8 +327,8 @@ const SearchPage = () => {
                     <TrendingUp className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-lg md:text-xl font-bold">Trending Itineraries</h2>
-                    <p className="text-xs text-muted-foreground hidden md:block">Most popular with travelers right now</p>
+                    <h2 className="text-lg md:text-xl font-bold">Most Popular Itineraries</h2>
+                    <p className="text-xs text-muted-foreground hidden md:block">Loved by travelers worldwide</p>
                   </div>
                 </div>
                 <Link to="/itineraries?filter=popular">
