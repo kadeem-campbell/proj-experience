@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Check, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -60,9 +60,10 @@ export const ItinerarySelector = ({
     setOpen(false);
   };
 
-  const isInItinerary = (itineraryId: string) => {
+  // Check how many times this experience is in an itinerary
+  const countInItinerary = (itineraryId: string) => {
     const itinerary = itineraries.find(i => i.id === itineraryId);
-    return itinerary?.experiences.some(e => e.id === experienceId) || false;
+    return itinerary?.experiences.filter(e => e.id === experienceId).length || 0;
   };
 
   return (
@@ -92,18 +93,12 @@ export const ItinerarySelector = ({
         
         <div className="max-h-60 overflow-y-auto">
           {itineraries.map((itinerary) => {
-            const alreadyAdded = isInItinerary(itinerary.id);
+            const count = countInItinerary(itinerary.id);
             return (
               <button
                 key={itinerary.id}
-                onClick={() => !alreadyAdded && handleAddToItinerary(itinerary)}
-                disabled={alreadyAdded}
-                className={cn(
-                  "w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors",
-                  alreadyAdded 
-                    ? "bg-primary/10 text-muted-foreground cursor-default" 
-                    : "hover:bg-muted"
-                )}
+                onClick={() => handleAddToItinerary(itinerary)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors hover:bg-muted"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <div className={cn(
@@ -115,8 +110,10 @@ export const ItinerarySelector = ({
                     ({itinerary.experiences.length})
                   </span>
                 </div>
-                {alreadyAdded && (
-                  <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                {count > 0 && (
+                  <span className="text-xs text-primary font-medium flex-shrink-0">
+                    +{count} added
+                  </span>
                 )}
               </button>
             );
