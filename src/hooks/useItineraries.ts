@@ -182,9 +182,7 @@ export const useItineraries = () => {
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       
-      // Check if already exists
-      if (i.experiences.some(e => e.id === experience.id)) return i;
-      
+      // Allow same experience to be added to different itineraries (no duplicate check)
       return {
         ...i,
         experiences: [...i.experiences, { ...experience, likedAt: new Date().toISOString() }],
