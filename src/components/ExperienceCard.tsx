@@ -107,6 +107,13 @@ export const ExperienceCard = ({
           {/* Gradient overlay for depth */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
           
+          {/* Category tag with glassmorphism */}
+          <div className="absolute top-3 left-3">
+            <span className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-black/30 backdrop-blur-md border border-white/10 text-white shadow-lg capitalize">
+              {category}
+            </span>
+          </div>
+          
           {/* Likes indicator with glassmorphism */}
           <div className="absolute bottom-3 left-3">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 shadow-lg">
