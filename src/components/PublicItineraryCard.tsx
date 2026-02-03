@@ -20,7 +20,7 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
     <Link to={`/public-itinerary/${itinerary.id}`}>
       <div className="group cursor-pointer">
         {/* Image container with enhanced styling */}
-        <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted shadow-md group-hover:shadow-xl transition-shadow duration-200 ring-1 ring-border/50">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted shadow-md group-hover:shadow-xl transition-shadow duration-200 ring-1 ring-border/50">
           {itinerary.coverImage ? (
             <img 
               src={itinerary.coverImage} 
@@ -34,23 +34,23 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
           )}
           
           {/* Gradient overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
           
-          {/* Likes overlay with glassmorphism */}
-          <div className="absolute bottom-3 left-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 shadow-lg">
-              <Heart className="w-3.5 h-3.5 text-white fill-white/90" />
-              <span className="text-xs font-semibold text-white tracking-wide">
+          {/* Experience count badge - Apple style */}
+          <div className="absolute top-2.5 left-2.5">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-white/20 backdrop-blur-xl text-white shadow-sm tracking-wide">
+              {itinerary.experiences?.length || 0} experiences
+            </span>
+          </div>
+          
+          {/* Likes overlay - Apple style */}
+          <div className="absolute bottom-2.5 left-2.5">
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-xl shadow-sm">
+              <Heart className="w-3 h-3 text-white fill-white" />
+              <span className="text-[10px] font-medium text-white tracking-wide">
                 {socialData.formattedLikes}
               </span>
             </div>
-          </div>
-          
-          {/* Experience count badge with glassmorphism */}
-          <div className="absolute top-3 left-3">
-            <span className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-black/30 backdrop-blur-md border border-white/10 text-white shadow-lg">
-              {itinerary.experiences?.length || 0} experiences
-            </span>
           </div>
         </div>
 
