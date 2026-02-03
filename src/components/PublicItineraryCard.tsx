@@ -1,20 +1,21 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Layers, Heart } from "lucide-react";
 import { Itinerary } from "@/hooks/useItineraries";
-import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 
 interface PublicItineraryCardProps {
   itinerary: Itinerary;
 }
 
 export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => {
-  // Generate consistent mock social data based on id
-  const socialData = useMemo(() => {
-    const hash = itinerary.id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
-    const likes = Math.abs(hash % 30000) + 200;
-    const formattedLikes = likes >= 1000 ? `${(likes / 1000).toFixed(1)}K` : likes.toString();
-    return { likes, formattedLikes };
-  }, [itinerary.id]);
+  const [liked, setLiked] = useState(false);
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLiked(!liked);
+  };
 
   return (
     <Link to={`/public-itinerary/${itinerary.id}`}>
@@ -42,23 +43,26 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
               {itinerary.experiences?.length || 0} experiences
             </span>
           </div>
-          
-          {/* Likes overlay - Apple style */}
-          <div className="absolute bottom-2.5 left-2.5">
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-xl shadow-sm">
-              <Heart className="w-3 h-3 text-white fill-white" />
-              <span className="text-[10px] font-medium text-white tracking-wide">
-                {socialData.formattedLikes}
-              </span>
-            </div>
-          </div>
         </div>
 
-        {/* Text content below image - TikTok style */}
-        <div className="mt-3 space-y-1.5">
-          <h3 className="font-medium text-[15px] line-clamp-1 text-foreground">
-            {itinerary.name}
-          </h3>
+        {/* Text content below image */}
+        <div className="mt-3 space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-medium text-[15px] line-clamp-1 text-foreground flex-1">
+              {itinerary.name}
+            </h3>
+            <button
+              onClick={handleLikeClick}
+              className="shrink-0 p-1 -m-1 hover:scale-110 transition-transform"
+            >
+              <Heart 
+                className={cn(
+                  "w-5 h-5 transition-colors",
+                  liked ? "fill-destructive text-destructive" : "text-muted-foreground hover:text-foreground"
+                )} 
+              />
+            </button>
+          </div>
           
           <p className="text-[13px] text-muted-foreground truncate">
             {itinerary.experiences?.[0]?.location || "Curated itinerary"}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, Check, Heart } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
+import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -35,17 +36,11 @@ export const ExperienceCard = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isInItinerary } = useItineraries();
+  const { isLiked, toggleLike } = useLikedExperiences();
   const { toast } = useToast();
 
   const inItinerary = isInItinerary(id);
-
-  // Generate consistent mock social data based on id
-  const socialData = useMemo(() => {
-    const hash = id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
-    const likes = Math.abs(hash % 50000) + 500;
-    const formattedLikes = likes >= 1000 ? `${(likes / 1000).toFixed(1)}K` : likes.toString();
-    return { likes, formattedLikes };
-  }, [id]);
+  const liked = isLiked(id);
 
   useEffect(() => {
     if (isHovered && videoRef.current && videoUrl) {
@@ -72,6 +67,12 @@ export const ExperienceCard = ({
       title: "Added to itinerary",
       description: `${title} has been added to your trip`,
     });
+  };
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleLike(experienceData);
   };
 
   return (
@@ -114,16 +115,6 @@ export const ExperienceCard = ({
             </span>
           </div>
           
-          {/* Likes indicator - Apple style */}
-          <div className="absolute bottom-2.5 left-2.5">
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-xl shadow-sm">
-              <Heart className="w-3 h-3 text-white fill-white" />
-              <span className="text-[10px] font-medium text-white tracking-wide">
-                {socialData.formattedLikes}
-              </span>
-            </div>
-          </div>
-          
           {/* Add to Itinerary Button - Shows on Hover */}
           <div
             onClick={(e) => {
@@ -153,14 +144,27 @@ export const ExperienceCard = ({
           </div>
         </div>
 
-        {/* Text content below image - TikTok style */}
+        {/* Text content below image */}
         <div className="mt-3 space-y-1">
-          <h3 className={cn(
-            "font-medium line-clamp-1 text-foreground",
-            compact ? "text-sm" : "text-[15px]"
-          )}>
-            {title}
-          </h3>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className={cn(
+              "font-medium line-clamp-1 text-foreground flex-1",
+              compact ? "text-sm" : "text-[15px]"
+            )}>
+              {title}
+            </h3>
+            <button
+              onClick={handleLikeClick}
+              className="shrink-0 p-1 -m-1 hover:scale-110 transition-transform"
+            >
+              <Heart 
+                className={cn(
+                  "w-5 h-5 transition-colors",
+                  liked ? "fill-destructive text-destructive" : "text-muted-foreground hover:text-foreground"
+                )} 
+              />
+            </button>
+          </div>
           
           <p className="text-[13px] text-muted-foreground truncate">
             {location}
