@@ -33,9 +33,9 @@ export const ExportDropdown = () => {
           Monetise (Coming Soon)
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => exportLikedExperiences('xlsx')}>
+        <DropdownMenuItem onClick={() => exportLikedExperiences('csv')}>
           <Download className="w-4 h-4 mr-2" />
-          Export as XLSX
+          Export as CSV
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => exportLikedExperiences('txt')}>
           <Download className="w-4 h-4 mr-2" />
