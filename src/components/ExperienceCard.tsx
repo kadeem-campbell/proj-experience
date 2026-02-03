@@ -81,13 +81,13 @@ export const ExperienceCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container */}
-        <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+        {/* Image container with enhanced styling */}
+        <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted shadow-md group-hover:shadow-xl transition-shadow duration-200 ring-1 ring-border/50">
           {videoUrl ? (
             <video
               ref={videoRef}
               poster={videoThumbnail}
-              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
+              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
               muted
               loop
               playsInline
@@ -100,16 +100,17 @@ export const ExperienceCard = ({
             <img
               src={videoThumbnail}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
+              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
             />
           )}
           
-          {/* Unique likes indicator - pill with gradient border */}
+          {/* Gradient overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+          
+          {/* Likes indicator with glassmorphism */}
           <div className="absolute bottom-3 left-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm border border-white/20">
-              <div className="relative">
-                <Heart className="w-3.5 h-3.5 text-white fill-white/80" />
-              </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 shadow-lg">
+              <Heart className="w-3.5 h-3.5 text-white fill-white/90" />
               <span className="text-xs font-semibold text-white tracking-wide">
                 {socialData.formattedLikes}
               </span>
