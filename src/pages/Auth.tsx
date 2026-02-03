@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { RoleSelector } from '@/components/RoleSelector';
-import { User, Mail, Lock, Eye, EyeOff, Compass, UserPlus } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Compass, UserPlus, Loader2 } from 'lucide-react';
 import { validateEmail, validatePassword, sanitizeInput } from '@/utils/inputValidation';
 
 const Auth = () => {
@@ -18,22 +17,25 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         navigate('/');
       }
+      setCheckingAuth(false);
     });
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate('/');
       }
+      setCheckingAuth(false);
     });
 
     return () => subscription.unsubscribe();
@@ -42,7 +44,7 @@ const Auth = () => {
   const handleRoleSelect = (role: 'traveler' | 'creator') => {
     setSelectedRole(role);
     setStep('auth');
-    setIsLogin(false); // Default to signup for new role selection
+    setIsLogin(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,73 +73,105 @@ const Auth = () => {
       return;
     }
 
-    // Sanitize full name input
+    if (!isLogin && password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     const sanitizedFullName = sanitizeInput(fullName);
 
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim().toLowerCase(),
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            toast({
+              title: "Login failed",
+              description: "Invalid email or password. Please check your credentials and try again.",
+              variant: "destructive",
+            });
+          } else if (error.message.includes('Email not confirmed')) {
+            toast({
+              title: "Email not verified",
+              description: "Please check your email and click the verification link before signing in.",
+              variant: "destructive",
+            });
+          } else {
+            throw error;
+          }
+          setLoading(false);
+          return;
+        }
 
         toast({
           title: "Welcome back!",
           description: "You've been successfully logged in.",
         });
       } else {
-        // Sign up with role information
+        // Sign up
+        if (!sanitizedFullName.trim()) {
+          toast({
+            title: "Name required",
+            description: "Please enter your full name",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         const { error, data } = await supabase.auth.signUp({
-          email,
+          email: email.trim().toLowerCase(),
           password,
-            options: {
-              data: {
-                full_name: sanitizedFullName,
-                role: selectedRole || 'traveler',
-              },
-              emailRedirectTo: `${window.location.origin}/`,
+          options: {
+            data: {
+              full_name: sanitizedFullName,
+              role: selectedRole || 'traveler',
             },
+            emailRedirectTo: `${window.location.origin}/`,
+          },
         });
 
         if (error) {
-          if (error.message.includes('User already registered')) {
+          if (error.message.includes('User already registered') || error.message.includes('already been registered')) {
             toast({
               title: "Account exists",
               description: "This email is already registered. Please sign in instead.",
               variant: "destructive",
             });
             setIsLogin(true);
+            setLoading(false);
             return;
           }
           throw error;
         }
 
-        // If signup is successful, update the profile with role
-        if (data.user && !error) {
-          // The profile will be created by the trigger, then we update the role
-          setTimeout(async () => {
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .update({ role: selectedRole || 'traveler' })
-              .eq('id', data.user.id);
-
-            if (profileError) {
-              console.error('Error updating profile role:', profileError);
-            }
-          }, 1000);
+        // Check if email confirmation is required
+        if (data.user && !data.session) {
+          toast({
+            title: "Check your email!",
+            description: "We've sent you a verification link. Please check your email to complete registration.",
+          });
+        } else if (data.session) {
+          toast({
+            title: "Account created!",
+            description: `Welcome to SWAM AI as a ${selectedRole}!`,
+          });
         }
-
-        toast({
-          title: "Account created!",
-          description: `Welcome to SWAM AI as a ${selectedRole}! Please check your email to verify your account.`,
-        });
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -153,6 +187,14 @@ const Auth = () => {
     setPassword('');
     setFullName('');
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
@@ -178,7 +220,6 @@ const Auth = () => {
         </div>
 
         {step === 'role' ? (
-          // Role Selection Step
           <div className="space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-xl font-semibold mb-2">How do you want to use SWAM AI?</h2>
@@ -215,7 +256,10 @@ const Auth = () => {
               <p className="text-sm text-muted-foreground mb-2">Already have an account?</p>
               <Button
                 variant="link"
-                onClick={() => setStep('auth')}
+                onClick={() => {
+                  setStep('auth');
+                  setIsLogin(true);
+                }}
                 className="p-0 h-auto font-semibold"
               >
                 Sign in here
@@ -223,9 +267,8 @@ const Auth = () => {
             </div>
           </div>
         ) : (
-          // Auth Form Step
           <div>
-            {selectedRole && (
+            {selectedRole && !isLogin && (
               <div className="flex items-center justify-between mb-6 p-3 bg-primary/5 rounded-lg border">
                 <div className="flex items-center gap-2">
                   {selectedRole === 'creator' ? (
@@ -259,6 +302,7 @@ const Auth = () => {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Enter your full name"
                     required={!isLogin}
+                    disabled={loading}
                   />
                 </div>
               )}
@@ -274,6 +318,8 @@ const Auth = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
+                  disabled={loading}
+                  autoComplete="email"
                 />
               </div>
 
@@ -287,10 +333,12 @@ const Auth = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder={isLogin ? "Enter your password" : "Create a password (min 6 chars)"}
                     required
+                    disabled={loading}
                     className="pr-10"
                     minLength={6}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
                   />
                   <Button
                     type="button"
@@ -298,6 +346,7 @@ const Auth = () => {
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -306,6 +355,11 @@ const Auth = () => {
                     )}
                   </Button>
                 </div>
+                {!isLogin && (
+                  <p className="text-xs text-muted-foreground">
+                    Password must be at least 6 characters
+                  </p>
+                )}
               </div>
 
               <Button
@@ -313,7 +367,14 @@ const Auth = () => {
                 className="w-full"
                 disabled={loading}
               >
-                {loading ? 'Loading...' : isLogin ? 'Sign In' : `Sign Up as ${selectedRole || 'User'}`}
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {isLogin ? 'Signing in...' : 'Creating account...'}
+                  </>
+                ) : (
+                  isLogin ? 'Sign In' : `Sign Up${selectedRole ? ` as ${selectedRole}` : ''}`
+                )}
               </Button>
             </form>
 
@@ -323,10 +384,17 @@ const Auth = () => {
               </p>
               <Button
                 variant="link"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  if (isLogin) {
+                    resetToRoleSelection();
+                  } else {
+                    setIsLogin(true);
+                  }
+                }}
                 className="p-0 h-auto font-semibold"
+                disabled={loading}
               >
-                {isLogin ? 'Sign up' : 'Sign in'}
+                {isLogin ? 'Create an account' : 'Sign in'}
               </Button>
             </div>
           </div>

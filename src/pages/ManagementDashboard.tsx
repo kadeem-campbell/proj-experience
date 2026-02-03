@@ -178,103 +178,53 @@ export default function ManagementDashboard() {
     checkAuth();
   }, [user, isAuthenticated, authLoading, navigate, toast]);
 
-  // Fetch all dashboard data
+  // Fetch all dashboard data - using mock data since tables don't exist yet
   const fetchAllData = async () => {
-    try {
-      const [
-        experiencesRes,
-        knowledgeRes,
-        auditLogsRes,
-        approvalsRes,
-        settingsRes,
-        teamsRes
-      ] = await Promise.all([
-        supabase.from('experiences').select('*').order('created_at', { ascending: false }),
-        supabase.from('chatbot_knowledge').select('*').order('created_at', { ascending: false }),
-        supabase.from('audit_logs').select('*, profiles(full_name, email)').order('created_at', { ascending: false }).limit(100),
-        supabase.from('content_approvals').select('*, profiles!submitted_by(full_name, email)').order('submitted_at', { ascending: false }),
-        supabase.from('system_settings').select('*').order('setting_key'),
-        supabase.from('team_assignments').select('*, profiles!user_id(full_name, email)').eq('is_active', true)
-      ]);
-
-      if (experiencesRes.data) setExperiences(experiencesRes.data);
-      if (knowledgeRes.data) setChatbotKnowledge(knowledgeRes.data);
-      if (auditLogsRes.data) setAuditLogs(auditLogsRes.data);
-      if (approvalsRes.data) setContentApprovals(approvalsRes.data);
-      if (settingsRes.data) setSystemSettings(settingsRes.data);
-      if (teamsRes.data) setTeamAssignments(teamsRes.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load dashboard data",
-        variant: "destructive"
-      });
-    }
+    // Mock data for demonstration
+    setExperiences([
+      { id: '1', title: 'Jet Ski Adventure', description: 'Thrilling experience', location: 'Dar es Salaam', price: 75, category: 'Water Sports', creator: 'Beach Co', status: 'active', created_at: new Date().toISOString(), created_by: '1' },
+      { id: '2', title: 'Spice Farm Tour', description: 'Cultural experience', location: 'Zanzibar', price: 45, category: 'Culture', creator: 'Island Tours', status: 'active', created_at: new Date().toISOString(), created_by: '1' }
+    ]);
+    setChatbotKnowledge([]);
+    setAuditLogs([]);
+    setContentApprovals([]);
+    setSystemSettings([]);
+    setTeamAssignments([]);
   };
 
-  // Handle experience operations
+  // Handle experience operations - mock for now
   const handleExperienceAction = async (action: 'approve' | 'reject' | 'delete', experienceId: string) => {
-    try {
-      if (action === 'delete') {
-        await supabase.from('experiences').delete().eq('id', experienceId);
-        toast({ title: "Success", description: "Experience deleted successfully" });
-      } else {
-        const status = action === 'approve' ? 'active' : 'inactive';
-        await supabase.from('experiences').update({ status }).eq('id', experienceId);
-        toast({ title: "Success", description: `Experience ${action}d successfully` });
-      }
-      fetchAllData();
-    } catch (error) {
-      console.error('Error updating experience:', error);
-      toast({ title: "Error", description: "Failed to update experience", variant: "destructive" });
+    if (action === 'delete') {
+      setExperiences(prev => prev.filter(e => e.id !== experienceId));
+      toast({ title: "Success", description: "Experience deleted successfully (Demo mode)" });
+    } else {
+      const status = action === 'approve' ? 'active' : 'inactive';
+      setExperiences(prev => prev.map(e => e.id === experienceId ? { ...e, status } : e));
+      toast({ title: "Success", description: `Experience ${action}d successfully (Demo mode)` });
     }
   };
 
-  // Handle chatbot knowledge operations
+  // Handle chatbot knowledge operations - mock for now
   const handleKnowledgeToggle = async (knowledgeId: string, isActive: boolean) => {
-    try {
-      await supabase.from('chatbot_knowledge').update({ is_active: isActive }).eq('id', knowledgeId);
-      toast({ title: "Success", description: "Knowledge base updated successfully" });
-      fetchAllData();
-    } catch (error) {
-      console.error('Error updating knowledge:', error);
-      toast({ title: "Error", description: "Failed to update knowledge", variant: "destructive" });
-    }
+    setChatbotKnowledge(prev => prev.map(k => k.id === knowledgeId ? { ...k, is_active: isActive } : k));
+    toast({ title: "Success", description: "Knowledge base updated (Demo mode)" });
   };
 
-  // Handle approval workflow
+  // Handle approval workflow - mock for now
   const handleApprovalAction = async (approvalId: string, action: 'approve' | 'reject', notes: string = '') => {
-    try {
-      await supabase.from('content_approvals').update({
-        status: action === 'approve' ? 'approved' : 'rejected',
-        review_notes: notes,
-        reviewed_at: new Date().toISOString(),
-        reviewed_by: user?.id
-      }).eq('id', approvalId);
-
-      toast({ title: "Success", description: `Content ${action}d successfully` });
-      fetchAllData();
-    } catch (error) {
-      console.error('Error updating approval:', error);
-      toast({ title: "Error", description: "Failed to update approval", variant: "destructive" });
-    }
+    setContentApprovals(prev => prev.map(a => a.id === approvalId ? {
+      ...a,
+      status: action === 'approve' ? 'approved' : 'rejected',
+      review_notes: notes,
+      reviewed_at: new Date().toISOString()
+    } : a));
+    toast({ title: "Success", description: `Content ${action}d successfully (Demo mode)` });
   };
 
-  // Handle system settings
+  // Handle system settings - mock for now
   const handleSettingUpdate = async (settingKey: string, newValue: any) => {
-    try {
-      await supabase.from('system_settings').update({
-        setting_value: newValue,
-        updated_by: user?.id
-      }).eq('setting_key', settingKey);
-
-      toast({ title: "Success", description: "Setting updated successfully" });
-      fetchAllData();
-    } catch (error) {
-      console.error('Error updating setting:', error);
-      toast({ title: "Error", description: "Failed to update setting", variant: "destructive" });
-    }
+    setSystemSettings(prev => prev.map(s => s.setting_key === settingKey ? { ...s, setting_value: newValue } : s));
+    toast({ title: "Success", description: "Setting updated (Demo mode)" });
   };
 
   if (loading) {

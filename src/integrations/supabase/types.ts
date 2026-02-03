@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      itineraries: {
+        Row: {
+          active_trip_id: string | null
+          collaborators: string[] | null
+          cover_image: string | null
+          created_at: string | null
+          experiences: Json | null
+          id: string
+          is_public: boolean | null
+          name: string
+          start_date: string | null
+          tag: string | null
+          theme: string | null
+          trips: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active_trip_id?: string | null
+          collaborators?: string[] | null
+          cover_image?: string | null
+          created_at?: string | null
+          experiences?: Json | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          start_date?: string | null
+          tag?: string | null
+          theme?: string | null
+          trips?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active_trip_id?: string | null
+          collaborators?: string[] | null
+          cover_image?: string | null
+          created_at?: string | null
+          experiences?: Json | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          start_date?: string | null
+          tag?: string | null
+          theme?: string | null
+          trips?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

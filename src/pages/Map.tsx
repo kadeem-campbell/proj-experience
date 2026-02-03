@@ -95,19 +95,13 @@ export default function Map() {
   }, []);
 
   const fetchExperiences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('experiences')
-        .select('*')
-        .eq('status', 'active');
-
-      if (error) throw error;
-      setExperiences(data || []);
-    } catch (error) {
-      console.error('Error fetching experiences:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Use mock data since experiences table doesn't exist yet
+    setExperiences([
+      { id: '1', title: 'Jet Ski Adventure', category: 'Water Sports', location: 'Dar es Salaam', price: 75, latitude: -6.8, longitude: 39.2 },
+      { id: '2', title: 'Spice Farm Tour', category: 'Culture', location: 'Zanzibar', price: 45, latitude: -6.1, longitude: 39.2 },
+      { id: '3', title: 'Safari Experience', category: 'Wildlife', location: 'Serengeti', price: 200, latitude: -2.3, longitude: 34.8 }
+    ] as any);
+    setLoading(false);
   };
 
   const initializeMap = (accessToken?: string) => {

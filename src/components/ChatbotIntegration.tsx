@@ -1,12 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Send, Bot, User, MapPin, Clock, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -60,7 +58,7 @@ export const ChatbotIntegration = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Mock ground team data - in real app, this would come from your team's API
+  // Mock ground team data
   const [groundTeamData] = useState<GroundTeamData>({
     location: "Dar Es Salaam",
     currentEvents: ["Beach volleyball tournament at Coco Beach", "Live music at Slipway", "Night market in Kariakoo"],
@@ -82,122 +80,45 @@ export const ChatbotIntegration = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Load chatbot knowledge base
+  // Mock knowledge base (chatbot_knowledge table doesn't exist yet)
   useEffect(() => {
-    const loadKnowledgeBase = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('chatbot_knowledge')
-          .select('*')
-          .eq('is_active', true)
-          .order('priority', { ascending: false });
-
-        if (error) throw error;
-        setKnowledgeBase((data || []).map(item => ({
-          id: item.id,
-          category: item.category,
-          keywords: item.keywords,
-          response_template: item.response_template,
-          parameters: item.parameters,
-          priority: item.priority
-        })));
-      } catch (error) {
-        console.error('Error loading knowledge base:', error);
-      }
-    };
-
-    loadKnowledgeBase();
+    setKnowledgeBase([
+      { id: '1', category: 'adventure', keywords: ['adventure', 'exciting', 'thrill'], response_template: 'Looking for adventure? I have great options!', parameters: {}, priority: 1 },
+      { id: '2', category: 'beach', keywords: ['beach', 'ocean', 'sea', 'swim'], response_template: 'Beach vibes coming up!', parameters: {}, priority: 1 },
+      { id: '3', category: 'food', keywords: ['food', 'eat', 'restaurant', 'dining'], response_template: 'Let me find the best food spots!', parameters: {}, priority: 1 },
+      { id: '4', category: 'nightlife', keywords: ['party', 'night', 'club', 'bar'], response_template: 'Ready for the nightlife?', parameters: {}, priority: 1 }
+    ]);
   }, []);
-
-  const saveInteraction = async (messageType: 'user' | 'bot', content: string, parameters?: any, experiences?: any[]) => {
-    try {
-      const groundTeamDataJson = {
-        location: groundTeamData.location,
-        currentEvents: groundTeamData.currentEvents,
-        popularExperiences: groundTeamData.popularExperiences,
-        weatherConditions: groundTeamData.weatherConditions,
-        crowdLevels: groundTeamData.crowdLevels,
-        lastUpdated: groundTeamData.lastUpdated.toISOString()
-      };
-
-      await supabase.from('chatbot_interactions').insert({
-        user_id: user?.id,
-        session_id: sessionId,
-        message_type: messageType,
-        content,
-        parameters: parameters || {},
-        experiences_found: experiences || [],
-        ground_team_data: groundTeamDataJson,
-        confidence_score: experiences?.length ? experiences[0]?.confidence / 100 : null
-      });
-    } catch (error) {
-      console.error('Error saving interaction:', error);
-    }
-  };
 
   const analyzeQueryWithKnowledge = async (query: string) => {
     const keywords = query.toLowerCase().split(' ');
     
-    // Find matching knowledge from database
     const matchingKnowledge = knowledgeBase.find(kb => 
       kb.keywords.some(keyword => keywords.some(k => k.includes(keyword.toLowerCase())))
     );
 
-    // Fetch real experiences from database
-    try {
-      let experienceQuery = supabase
-        .from('experiences')
-        .select('*')
-        .eq('status', 'active')
-        .limit(3);
+    // Mock experiences since experiences table doesn't exist yet
+    const mockExperiences = [
+      { id: '1', title: 'Jet Ski Adventure', location: 'Coco Beach', category: 'Adventure', confidence: 95 },
+      { id: '2', title: 'Spice Farm Tour', location: 'Zanzibar', category: 'Culture', confidence: 88 },
+      { id: '3', title: 'Beach Sunset Party', location: 'Slipway', category: 'Nightlife', confidence: 82 }
+    ];
 
-      if (matchingKnowledge) {
-        const categoryMap: Record<string, string> = {
-          'adventure': 'Adventure',
-          'beach': 'Beach', 
-          'food': 'Food & Dining',
-          'nightlife': 'Nightlife'
-        };
-        
-        const category = categoryMap[matchingKnowledge.category];
-        if (category) {
-          experienceQuery = experienceQuery.eq('category', category);
-        }
-      }
+    const response = matchingKnowledge 
+      ? matchingKnowledge.response_template 
+      : `I found some great experiences for you!`;
 
-      const { data: experiences } = await experienceQuery;
+    const groundInsights = matchingKnowledge?.category === 'beach' 
+      ? `Live update: ${groundTeamData.weatherConditions}. Coco Beach has ${groundTeamData.crowdLevels["Coco Beach"]} crowds right now.`
+      : matchingKnowledge?.category === 'nightlife'
+      ? `Tonight: ${groundTeamData.currentEvents[1]} at Slipway - perfect timing!`
+      : `Our ground team reports: ${groundTeamData.currentEvents[0]} is happening today! ${groundTeamData.weatherConditions}`;
 
-      const formattedExperiences = (experiences || []).map((exp, index) => ({
-        id: exp.id,
-        title: exp.title,
-        location: exp.location,
-        category: exp.category,
-        confidence: 95 - (index * 5) // Simulate confidence scoring
-      }));
-
-      const response = matchingKnowledge 
-        ? matchingKnowledge.response_template 
-        : `I found some great experiences for you! Let me show you what's available.`;
-
-      const groundInsights = matchingKnowledge?.category === 'beach' 
-        ? `Live update: ${groundTeamData.weatherConditions}. Coco Beach has ${groundTeamData.crowdLevels["Coco Beach"]} crowds right now.`
-        : matchingKnowledge?.category === 'nightlife'
-        ? `Tonight: ${groundTeamData.currentEvents[1]} at Slipway - perfect timing!`
-        : `Our ground team reports: ${groundTeamData.currentEvents[0]} is happening today! ${groundTeamData.weatherConditions}`;
-
-      return {
-        experiences: formattedExperiences,
-        groundInsights: `${response} ${groundInsights}`,
-        knowledgeUsed: matchingKnowledge
-      };
-    } catch (error) {
-      console.error('Error fetching experiences:', error);
-      return {
-        experiences: [],
-        groundInsights: `Our team is active in ${groundTeamData.location}. Try asking about adventures, beaches, food, or parties!`,
-        knowledgeUsed: null
-      };
-    }
+    return {
+      experiences: mockExperiences,
+      groundInsights: `${response} ${groundInsights}`,
+      knowledgeUsed: matchingKnowledge
+    };
   };
 
   const handleSend = async () => {
@@ -215,10 +136,6 @@ export const ChatbotIntegration = () => {
     setInputValue("");
     setIsTyping(true);
 
-    // Save user message
-    await saveInteraction('user', currentInput);
-
-    // Simulate processing delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const analysis = await analyzeQueryWithKnowledge(currentInput);
@@ -236,12 +153,6 @@ export const ChatbotIntegration = () => {
 
     setMessages(prev => [...prev, botMessage]);
     setIsTyping(false);
-
-    // Save bot response
-    await saveInteraction('bot', analysis.groundInsights, {
-      knowledge_used: analysis.knowledgeUsed?.id,
-      category: analysis.knowledgeUsed?.category
-    }, analysis.experiences);
 
     if (analysis.experiences.length > 0) {
       toast({

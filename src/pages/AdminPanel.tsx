@@ -8,9 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { BulkUploader } from '@/components/BulkUploader';
-import { Plus, Edit, Trash2, Upload, Users, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Users, DollarSign, AlertCircle } from 'lucide-react';
 
 interface Experience {
   id: string;
@@ -27,10 +25,10 @@ interface Experience {
 }
 
 const AdminPanel = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, userProfile } = useAuth();
   const { toast } = useToast();
   const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -50,94 +48,77 @@ const AdminPanel = () => {
     'Culture', 'Sports', 'Shopping', 'Nature', 'Music', 'Art'
   ];
 
+  // Mock data for now since experiences table doesn't exist
   useEffect(() => {
     if (isAuthenticated) {
-      fetchExperiences();
-      checkUserRole();
+      setLoading(true);
+      // Simulate loading
+      setTimeout(() => {
+        setExperiences([
+          {
+            id: '1',
+            title: 'Jet Ski Adventure',
+            description: 'Thrilling jet ski experience',
+            location: 'Coco Beach',
+            price: 75,
+            category: 'Water Sports',
+            creator: 'Beach Adventures',
+            video_thumbnail: '',
+            duration_hours: 2,
+            max_participants: 4,
+            status: 'active'
+          },
+          {
+            id: '2',
+            title: 'Spice Farm Tour',
+            description: 'Explore local spice farms',
+            location: 'Zanzibar',
+            price: 45,
+            category: 'Culture',
+            creator: 'Island Tours',
+            video_thumbnail: '',
+            duration_hours: 4,
+            max_participants: 12,
+            status: 'active'
+          }
+        ]);
+        setLoading(false);
+      }, 500);
     }
   }, [isAuthenticated]);
-
-  const checkUserRole = async () => {
-    if (!user) return;
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || !['admin', 'team_member'].includes(profile.role)) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access this page.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchExperiences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('experiences')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setExperiences(data || []);
-    } catch (error) {
-      console.error('Error fetching experiences:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch experiences",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
-    try {
-      const experienceData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        duration_hours: parseInt(formData.duration_hours),
-        max_participants: parseInt(formData.max_participants),
-        created_by: user.id,
-      };
+    const newExperience: Experience = {
+      id: Date.now().toString(),
+      title: formData.title,
+      description: formData.description,
+      location: formData.location,
+      price: parseFloat(formData.price),
+      category: formData.category,
+      creator: formData.creator,
+      video_thumbnail: formData.video_thumbnail,
+      duration_hours: parseInt(formData.duration_hours) || 0,
+      max_participants: parseInt(formData.max_participants) || 0,
+      status: 'active'
+    };
 
-      let result;
-      if (editingId) {
-        result = await supabase
-          .from('experiences')
-          .update(experienceData)
-          .eq('id', editingId);
-      } else {
-        result = await supabase
-          .from('experiences')
-          .insert([experienceData]);
-      }
-
-      if (result.error) throw result.error;
-
-      toast({
-        title: "Success",
-        description: `Experience ${editingId ? 'updated' : 'created'} successfully!`,
-      });
-
-      resetForm();
-      fetchExperiences();
-    } catch (error) {
-      console.error('Error saving experience:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save experience",
-        variant: "destructive",
-      });
+    if (editingId) {
+      setExperiences(prev => prev.map(exp => 
+        exp.id === editingId ? { ...newExperience, id: editingId } : exp
+      ));
+    } else {
+      setExperiences(prev => [newExperience, ...prev]);
     }
+
+    toast({
+      title: "Success",
+      description: `Experience ${editingId ? 'updated' : 'created'} successfully! (Demo mode)`,
+    });
+
+    resetForm();
   };
 
   const handleEdit = (experience: Experience) => {
@@ -158,29 +139,11 @@ const AdminPanel = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this experience?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('experiences')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Experience deleted successfully!",
-      });
-
-      fetchExperiences();
-    } catch (error) {
-      console.error('Error deleting experience:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete experience",
-        variant: "destructive",
-      });
-    }
+    setExperiences(prev => prev.filter(exp => exp.id !== id));
+    toast({
+      title: "Success",
+      description: "Experience deleted successfully! (Demo mode)",
+    });
   };
 
   const resetForm = () => {
@@ -231,6 +194,19 @@ const AdminPanel = () => {
               Add Experience
             </Button>
           </div>
+
+          {/* Demo Mode Notice */}
+          <Card className="p-4 mb-6 bg-yellow-500/10 border-yellow-500/30">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600" />
+              <div>
+                <p className="font-medium text-yellow-600">Demo Mode</p>
+                <p className="text-sm text-muted-foreground">
+                  Experiences table is not yet set up. Data is stored locally for demonstration.
+                </p>
+              </div>
+            </div>
+          </Card>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -360,6 +336,8 @@ const AdminPanel = () => {
             <h2 className="text-xl font-semibold mb-4">All Experiences</h2>
             {loading ? (
               <p>Loading experiences...</p>
+            ) : experiences.length === 0 ? (
+              <p className="text-muted-foreground">No experiences yet. Add your first experience!</p>
             ) : (
               <div className="space-y-4">
                 {experiences.map((experience) => (

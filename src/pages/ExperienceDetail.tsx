@@ -185,38 +185,7 @@ export default function ExperienceDetail() {
   useEffect(() => {
     const fetchExperience = async () => {
       try {
-        const isUUID = id && id.length === 36 && id.includes('-');
-        
-        if (isUUID) {
-          const { data, error } = await supabase
-            .from('experiences')
-            .select('*')
-            .eq('id', id)
-            .maybeSingle();
-
-          if (error) throw new Error('Experience not found');
-
-          if (data) {
-            setExperienceData({
-              id: data.id,
-              title: data.title,
-              creator: data.creator,
-              videoThumbnail: data.video_thumbnail || getDefaultImage(data.category),
-              category: data.category,
-              location: data.location,
-              description: data.description,
-              duration: `${data.duration_hours} hours`,
-              groupSize: `1-${data.max_participants} people`,
-              rating: 4.8,
-              highlights: ["Unique experience", "Expert guides", "Photo opportunities"],
-              gallery: [data.video_thumbnail || getDefaultImage(data.category)],
-              bestTime: "Flexible",
-              meetingPoints: [{ name: data.location, type: "Main Location" }]
-            });
-            return;
-          }
-        }
-        
+        // First check mock experiences (experiences table doesn't exist yet)
         const mockExperience = mockExperiences.find(exp => exp.id === id);
         if (mockExperience) {
           setExperienceData(mockExperience);

@@ -474,7 +474,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   };
 
   // Save generated trip to itinerary
-  const handleSaveTrip = () => {
+  const handleSaveTrip = async () => {
     if (!itinerary || !tripStartDate) return;
     
     // Collect all scheduled experiences from the generated trip
@@ -482,7 +482,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     
     // Create a new Trip object with all the scheduled experiences
     const tripName = `Trip ${(itinerary.trips?.length || 0) + 1}`;
-    const newTrip = createTrip(
+    const newTrip = await createTrip(
       itinerary.id, 
       tripName, 
       tripStartDate.toISOString(), 
