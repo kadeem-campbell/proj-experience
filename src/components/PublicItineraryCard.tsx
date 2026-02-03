@@ -20,7 +20,7 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
     <Link to={`/public-itinerary/${itinerary.id}`}>
       <div className="group cursor-pointer">
         {/* Image container - TikTok style */}
-        <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-muted">
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
           {itinerary.coverImage ? (
             <img 
               src={itinerary.coverImage} 
