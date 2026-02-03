@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Plus, 
@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Compass,
   Search,
-  UserCircle
+  UserCircle,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,19 @@ export const ItinerarySidebar = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [itinerariesOpen, setItinerariesOpen] = useState(true);
+  const [showOnboardingHint, setShowOnboardingHint] = useState(false);
+
+  useEffect(() => {
+    const hasSeenSidebarGuide = localStorage.getItem('hasSeenSidebarGuide');
+    if (!hasSeenSidebarGuide) {
+      setShowOnboardingHint(true);
+    }
+  }, []);
+
+  const dismissOnboardingHint = () => {
+    localStorage.setItem('hasSeenSidebarGuide', 'true');
+    setShowOnboardingHint(false);
+  };
 
   const handleCreate = () => {
     if (newItineraryName.trim()) {
@@ -132,6 +146,27 @@ export const ItinerarySidebar = () => {
 
           {/* Itineraries */}
           <SidebarGroup>
+            {/* Onboarding hint for first-time users */}
+            {showOnboardingHint && !collapsed && (
+              <div className="mx-2 mb-3 p-3 rounded-lg bg-primary/10 border border-primary/20 relative">
+                <button 
+                  onClick={dismissOnboardingHint}
+                  className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Your Trip Planner</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Save experiences here to build your perfect Zanzibar itinerary
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <Collapsible open={itinerariesOpen} onOpenChange={setItinerariesOpen}>
               <div className="flex items-center justify-between pr-2">
                 <CollapsibleTrigger asChild>
