@@ -82,13 +82,13 @@ export const ExperienceCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container with enhanced styling */}
-        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted shadow-md group-hover:shadow-xl transition-shadow duration-200 ring-1 ring-border/50">
+        {/* Image container - Square ratio like Uber Eats deals */}
+        <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
           {videoUrl ? (
             <video
               ref={videoRef}
               poster={videoThumbnail}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
               muted
               loop
               playsInline
@@ -101,19 +101,9 @@ export const ExperienceCard = ({
             <img
               src={videoThumbnail}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
             />
           )}
-          
-          {/* Gradient overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-          
-          {/* Category tag - Apple style */}
-          <div className="absolute top-2.5 left-2.5">
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-white/20 backdrop-blur-xl text-white shadow-sm capitalize tracking-wide">
-              {category}
-            </span>
-          </div>
           
           {/* Add to Itinerary Button - Shows on Hover */}
           <div
@@ -122,12 +112,12 @@ export const ExperienceCard = ({
               e.preventDefault();
             }}
             className={cn(
-              "absolute bottom-3 right-3 transition-all duration-100",
+              "absolute bottom-2 right-2 transition-all duration-100",
               "opacity-0 group-hover:opacity-100"
             )}
           >
             {inItinerary ? (
-              <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] shadow-lg">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] shadow-lg">
                 <Check className="w-4 h-4" />
               </div>
             ) : (
@@ -136,7 +126,7 @@ export const ExperienceCard = ({
                 experienceData={experienceData}
                 onAdd={handleAddSuccess}
               >
-                <button className="w-9 h-9 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:scale-105 transition-transform shadow-lg">
+                <button className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:scale-105 transition-transform shadow-lg">
                   <Plus className="w-4 h-4" />
                 </button>
               </ItinerarySelector>
