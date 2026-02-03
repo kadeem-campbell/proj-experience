@@ -82,7 +82,7 @@ export const ExperienceCard = ({
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Image container */}
-        <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-muted">
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
           {videoUrl ? (
             <video
               ref={videoRef}
