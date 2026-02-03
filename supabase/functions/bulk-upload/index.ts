@@ -1,9 +1,20 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+// Restrict CORS to known origins
+const getAllowedOrigin = (requestOrigin: string | null): string => {
+  const allowedOrigins = [
+    'https://guiduuid.lovable.app',
+    'https://id-preview--a388843f-3ad6-4de0-9fe7-5876ece9db30.lovable.app',
+    'http://localhost:5173',
+    'http://localhost:8080',
+  ];
+  
+  if (requestOrigin && allowedOrigins.some(origin => requestOrigin.startsWith(origin.replace(/:\d+$/, '')))) {
+    return requestOrigin;
+  }
+  
+  return allowedOrigins[0]; // Default to production domain
 };
 
 interface ExperienceData {
@@ -19,9 +30,16 @@ interface ExperienceData {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': getAllowedOrigin(origin),
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
@@ -39,7 +57,11 @@ serve(async (req) => {
     );
 
     // Authenticate the user
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("Missing authorization header");
+    }
+    
     const token = authHeader.replace("Bearer ", "");
     const { data: { user } } = await supabaseClient.auth.getUser(token);
 
@@ -102,11 +124,12 @@ serve(async (req) => {
 
         results.successful.push(data.id);
         console.log(`Successfully created experience: ${experience.title}`);
-      } catch (error) {
-        console.error(`Failed to create experience ${experience.title}:`, error);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        console.error(`Failed to create experience ${experience.title}:`, errorMessage);
         results.failed.push({
           experience,
-          error: error.message,
+          error: errorMessage,
         });
       }
     }
@@ -142,10 +165,11 @@ serve(async (req) => {
       }
     );
 
-  } catch (error) {
-    console.error("Error in bulk upload:", error);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error("Error in bulk upload:", errorMessage);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

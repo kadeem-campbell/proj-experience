@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 interface SocialMediaPost {
   id: string;
   platform: 'instagram' | 'tiktok' | 'twitter';
@@ -73,7 +75,7 @@ export class SocialMediaFeedService {
         }
       }
     } catch (error) {
-      console.error('Error fetching Instagram RSS:', error);
+      logger.error('Error fetching Instagram RSS');
       // Generate realistic posts based on the event
       this.generateRealisticInstagramPosts(query, posts);
     }
@@ -138,11 +140,11 @@ export class SocialMediaFeedService {
       const response = await fetch(proxyUrl);
       
       if (response.ok) {
-        const data = await response.json();
         // Process TikTok API response if successful
+        logger.debug('TikTok API response received');
       }
     } catch (error) {
-      console.error('Error fetching TikTok:', error);
+      logger.error('Error fetching TikTok');
     }
     
     // Generate realistic TikTok posts
@@ -211,12 +213,11 @@ export class SocialMediaFeedService {
       const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(rssUrl)}`);
       
       if (response.ok) {
-        const text = await response.text();
         // Parse RSS XML for Twitter posts
-        // This is a simplified approach
+        logger.debug('Twitter RSS response received');
       }
     } catch (error) {
-      console.error('Error fetching Twitter RSS:', error);
+      logger.error('Error fetching Twitter RSS');
     }
     
     // Generate realistic Twitter posts
@@ -280,7 +281,7 @@ export class SocialMediaFeedService {
   public static async fetchLiveFeed(): Promise<SocialMediaPost[]> {
     const allPosts: SocialMediaPost[] = [];
     
-    console.log('Fetching real social media posts about Kendrick Lamar Tottenham Stadium...');
+    logger.debug('Fetching social media posts');
     
     try {
       // Fetch from all platforms using different search terms
@@ -308,7 +309,7 @@ export class SocialMediaFeedService {
           
           flatResults.push(...igPosts, ...ttPosts, ...twPosts);
         } catch (error) {
-          console.error(`Error fetching posts for hashtag ${hashtag}:`, error);
+          logger.error(`Error fetching posts for hashtag ${hashtag}`);
         }
       }
       
@@ -317,7 +318,7 @@ export class SocialMediaFeedService {
       allPosts.push(...uniquePosts);
       
     } catch (error) {
-      console.error('Error fetching live feed:', error);
+      logger.error('Error fetching live feed');
     }
     
     // Sort by timestamp (most recent first)

@@ -1,3 +1,4 @@
+import { logger } from './logger';
 
 interface ScrapedMetadata {
   videoId: string;
@@ -36,11 +37,11 @@ export class SocialMediaScraper {
     try {
       // Clean and normalize the TikTok URL first
       const cleanUrl = this.cleanTikTokUrl(url);
-      console.log('Starting TikTok scrape for cleaned URL:', cleanUrl);
+      logger.debug('Starting TikTok scrape for URL');
       
       // Extract video ID from TikTok URL
       const videoId = this.extractTikTokVideoId(cleanUrl);
-      console.log('Extracted TikTok video ID:', videoId);
+      logger.debug('Extracted TikTok video ID');
 
       // Try multiple CORS proxy services with the clean URL
       const proxies = [
@@ -56,14 +57,14 @@ export class SocialMediaScraper {
 
       for (const proxyUrl of proxies) {
         try {
-          console.log('Trying proxy:', proxyUrl);
+          logger.debug('Trying proxy');
           const response = await fetch(proxyUrl, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
           });
           
-          console.log('Proxy response status:', response.status);
+          logger.debug('Proxy response status:', response.status);
           
           if (!response.ok) {
             lastError = `Proxy request failed: ${response.status}`;
@@ -78,18 +79,17 @@ export class SocialMediaScraper {
             html = proxyData.contents || proxyData.data || proxyData;
           }
           
-          console.log('Received HTML length:', html.length);
-          console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+          logger.debug('Received HTML length:', html.length);
           
           if (html && html.length > 1000 && !html.includes('blocked') && !html.includes('captcha')) {
             break;
           } else {
             lastError = 'TikTok page blocked, requires captcha, or insufficient content';
-            console.log('HTML contains blocking indicators or too short');
+            logger.debug('HTML contains blocking indicators or too short');
           }
         } catch (err) {
           lastError = `Proxy error: ${err instanceof Error ? err.message : 'Unknown error'}`;
-          console.log('Proxy failed with error:', lastError);
+          logger.debug('Proxy failed');
           continue;
         }
       }
@@ -100,7 +100,7 @@ export class SocialMediaScraper {
 
       return this.parseTikTokFromHtml(html, videoId, cleanUrl);
     } catch (error) {
-      console.error('Error scraping TikTok:', error);
+      logger.error('Error scraping TikTok:', error);
       throw new Error(`Failed to scrape TikTok video: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -118,11 +118,11 @@ export class SocialMediaScraper {
 
   private static parseTikTokFromHtml(html: string, videoId: string, url: string): ScrapedMetadata {
     try {
-      console.log('Parsing TikTok HTML for hidden JSON data...');
+      logger.debug('Parsing TikTok HTML for hidden JSON data');
       
       // Look for the hidden JSON data script that Scrapfly method uses
       const scriptMatch = html.match(/<script[^>]*id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>(.*?)<\/script>/s);
-      let metadata: any = {};
+      let metadata: Record<string, unknown> = {};
       
       if (scriptMatch) {
         try {
@@ -130,7 +130,7 @@ export class SocialMediaScraper {
           const videoDetail = jsonData?.__DEFAULT_SCOPE__?.['webapp.video-detail']?.itemInfo?.itemStruct;
           
           if (videoDetail) {
-            console.log('Found video detail data in hidden JSON');
+            logger.debug('Found video detail data in hidden JSON');
             metadata = {
               caption: videoDetail.desc || '',
               hashtags: this.extractHashtagsFromText(videoDetail.desc || ''),
@@ -146,8 +146,8 @@ export class SocialMediaScraper {
               uploadDate: videoDetail.createTime ? new Date(videoDetail.createTime * 1000) : new Date()
             };
           }
-        } catch (e) {
-          console.log('Failed to parse hidden JSON, falling back to HTML parsing');
+        } catch {
+          logger.debug('Failed to parse hidden JSON, falling back to HTML parsing');
         }
       }
       
@@ -156,45 +156,45 @@ export class SocialMediaScraper {
         metadata = this.extractMetadataFromHtml(html, 'tiktok');
       }
       
-      const topicEntities = this.extractTopicEntities(metadata.caption || '');
-      console.log('Extracted topic entities:', topicEntities);
+      const topicEntities = this.extractTopicEntities((metadata.caption as string) || '');
+      logger.debug('Extracted topic entities');
       
       return {
         videoId,
         directMediaUrl: url,
-        caption: metadata.caption || '',
-        hashtags: metadata.hashtags || [],
-        soundTrackId: metadata.soundId,
-        musicTitle: metadata.musicTitle,
+        caption: (metadata.caption as string) || '',
+        hashtags: (metadata.hashtags as string[]) || [],
+        soundTrackId: metadata.soundId as string | undefined,
+        musicTitle: metadata.musicTitle as string | undefined,
         engagement: {
-          views: metadata.views || 0,
-          likes: metadata.likes || 0,
-          comments: metadata.comments || 0,
-          shares: metadata.shares || 0
+          views: (metadata.views as number) || 0,
+          likes: (metadata.likes as number) || 0,
+          comments: (metadata.comments as number) || 0,
+          shares: (metadata.shares as number) || 0
         },
         author: {
-          handle: metadata.authorHandle || '@unknown',
-          followerCount: metadata.followerCount || 0,
-          verified: metadata.verified || false
+          handle: (metadata.authorHandle as string) || '@unknown',
+          followerCount: (metadata.followerCount as number) || 0,
+          verified: (metadata.verified as boolean) || false
         },
-        uploadTimestamp: metadata.uploadDate || new Date(),
-        duration: metadata.duration || 30,
+        uploadTimestamp: (metadata.uploadDate as Date) || new Date(),
+        duration: (metadata.duration as number) || 30,
         resolution: { width: 1080, height: 1920 },
         enrichedData: {
           topicEntities,
-          hashtagTrendScores: this.calculateTrendScores(metadata.hashtags || []),
-          creatorNiche: this.classifyCreatorNiche(metadata.caption || '', metadata.hashtags || []),
+          hashtagTrendScores: this.calculateTrendScores((metadata.hashtags as string[]) || []),
+          creatorNiche: this.classifyCreatorNiche((metadata.caption as string) || '', (metadata.hashtags as string[]) || []),
           audioTrend: 'stable' as const
         }
       };
     } catch (error) {
-      console.error('Failed to parse TikTok HTML:', error);
+      logger.error('Failed to parse TikTok HTML');
       throw new Error('Unable to extract metadata from TikTok video');
     }
   }
 
   private static extractMetadataFromHtml(html: string, platform: 'tiktok') {
-    const metadata: any = {};
+    const metadata: Record<string, unknown> = {};
 
     try {
       // Extract title/caption
@@ -228,24 +228,24 @@ export class SocialMediaScraper {
         try {
           const jsonData = JSON.parse(jsonLdMatch[1]);
           if (jsonData.interactionStatistic) {
-            jsonData.interactionStatistic.forEach((stat: any) => {
+            jsonData.interactionStatistic.forEach((stat: { interactionType?: string; userInteractionCount?: number }) => {
               if (stat.interactionType?.includes('LikeAction')) {
-                metadata.likes = parseInt(stat.userInteractionCount) || 0;
+                metadata.likes = parseInt(String(stat.userInteractionCount)) || 0;
               } else if (stat.interactionType?.includes('CommentAction')) {
-                metadata.comments = parseInt(stat.userInteractionCount) || 0;
+                metadata.comments = parseInt(String(stat.userInteractionCount)) || 0;
               } else if (stat.interactionType?.includes('ShareAction')) {
-                metadata.shares = parseInt(stat.userInteractionCount) || 0;
+                metadata.shares = parseInt(String(stat.userInteractionCount)) || 0;
               }
             });
           }
-        } catch (e) {
-          console.log('Failed to parse JSON-LD data');
+        } catch {
+          logger.debug('Failed to parse JSON-LD data');
         }
       }
 
       return metadata;
     } catch (error) {
-      console.error('Error extracting metadata from HTML:', error);
+      logger.error('Error extracting metadata from HTML');
       return {};
     }
   }
@@ -257,11 +257,10 @@ export class SocialMediaScraper {
     const cleanCaption = caption.toLowerCase().replace(/[^\w\s#@]/g, ' ');
     const words = cleanCaption.split(/\s+/).filter(word => word.length > 2);
     
-    console.log('Analyzing caption for topics:', caption);
-    console.log('Words found:', words);
+    logger.debug('Analyzing caption for topics');
     
     // Enhanced keyword matching with more specific patterns
-    const keywordCategories = {
+    const keywordCategories: Record<string, string[]> = {
       'business networking': [
         'business', 'corporate', 'networking', 'professional', 'conference', 
         'meeting', 'office', 'work', 'entrepreneur', 'startup', 'company',
@@ -304,7 +303,7 @@ export class SocialMediaScraper {
       
       if (score > 0) {
         categoryScores[category] = score;
-        console.log(`Category "${category}" scored ${score} points`);
+        logger.debug(`Category "${category}" scored ${score} points`);
       }
     }
     
@@ -325,7 +324,7 @@ export class SocialMediaScraper {
     }
     
     const result = Array.from(entities);
-    console.log('Final extracted entities:', result);
+    logger.debug('Final extracted entities:', result);
     return result;
   }
 
@@ -353,70 +352,78 @@ export class SocialMediaScraper {
     return 'General Content';
   }
 
-  private static processTikTokData(data: any, videoId: string): ScrapedMetadata {
+  private static processTikTokData(data: Record<string, unknown>, videoId: string): ScrapedMetadata {
     // Process actual TikTok API response
+    const video = data.video as Record<string, unknown> | undefined;
+    const statistics = data.statistics as Record<string, unknown> | undefined;
+    const author = data.author as Record<string, unknown> | undefined;
+    const music = data.music as Record<string, unknown> | undefined;
+    
     return {
       videoId,
-      directMediaUrl: data.video?.play_addr?.url_list?.[0] || '',
-      caption: data.desc || '',
-      hashtags: this.extractHashtagsFromText(data.desc || ''),
-      soundTrackId: data.music?.id?.toString(),
-      musicTitle: data.music?.title,
+      directMediaUrl: ((video?.play_addr as Record<string, unknown>)?.url_list as string[])?.[0] || '',
+      caption: (data.desc as string) || '',
+      hashtags: this.extractHashtagsFromText((data.desc as string) || ''),
+      soundTrackId: music?.id?.toString(),
+      musicTitle: music?.title as string | undefined,
       engagement: {
-        views: data.statistics?.play_count || 0,
-        likes: data.statistics?.digg_count || 0,
-        comments: data.statistics?.comment_count || 0,
-        shares: data.statistics?.share_count || 0
+        views: (statistics?.play_count as number) || 0,
+        likes: (statistics?.digg_count as number) || 0,
+        comments: (statistics?.comment_count as number) || 0,
+        shares: (statistics?.share_count as number) || 0
       },
       author: {
-        handle: `@${data.author?.unique_id || 'unknown'}`,
-        followerCount: data.author?.follower_count || 0,
-        verified: data.author?.verification_type === 1
+        handle: `@${(author?.unique_id as string) || 'unknown'}`,
+        followerCount: (author?.follower_count as number) || 0,
+        verified: (author?.verification_type as number) === 1
       },
-      uploadTimestamp: new Date(data.create_time * 1000),
-      duration: data.video?.duration || 0,
+      uploadTimestamp: new Date((data.create_time as number) * 1000),
+      duration: (video?.duration as number) || 0,
       resolution: {
-        width: data.video?.width || 1080,
-        height: data.video?.height || 1920
+        width: (video?.width as number) || 1080,
+        height: (video?.height as number) || 1920
       },
       enrichedData: {
-        topicEntities: this.extractTopicEntities(data.desc || ''),
-        hashtagTrendScores: this.calculateTrendScores(this.extractHashtagsFromText(data.desc || '')),
-        creatorNiche: this.classifyCreatorNiche(data.desc || '', this.extractHashtagsFromText(data.desc || '')),
+        topicEntities: this.extractTopicEntities((data.desc as string) || ''),
+        hashtagTrendScores: this.calculateTrendScores(this.extractHashtagsFromText((data.desc as string) || '')),
+        creatorNiche: this.classifyCreatorNiche((data.desc as string) || '', this.extractHashtagsFromText((data.desc as string) || '')),
         audioTrend: 'stable' as const
       }
     };
   }
 
-  private static processInstagramData(data: any, postId: string): ScrapedMetadata {
+  private static processInstagramData(data: Record<string, unknown>, postId: string): ScrapedMetadata {
     // Process actual Instagram API response
+    const caption = data.caption as Record<string, unknown> | undefined;
+    const user = data.user as Record<string, unknown> | undefined;
+    
     return {
       videoId: postId,
-      directMediaUrl: data.video_url || '',
-      caption: data.caption?.text || '',
-      hashtags: this.extractHashtagsFromText(data.caption?.text || ''),
-      musicTitle: data.music?.title,
+      directMediaUrl: (data.video_url as string) || '',
+      caption: (caption?.text as string) || '',
+      hashtags: this.extractHashtagsFromText((caption?.text as string) || ''),
+      musicTitle: (data.music as Record<string, unknown>)?.title as string | undefined,
       engagement: {
-        views: data.video_view_count || 0,
-        likes: data.like_count || 0,
-        comments: data.comment_count || 0,
+        views: (data.video_view_count as number) || 0,
+        likes: (data.like_count as number) || 0,
+        comments: (data.comment_count as number) || 0,
         shares: 0 // Instagram doesn't expose share count
       },
       author: {
-        handle: `@${data.user?.username || 'unknown'}`,
-        followerCount: data.user?.follower_count || 0,
-        verified: data.user?.is_verified || false
+        handle: `@${(user?.username as string) || 'unknown'}`,
+        followerCount: (user?.follower_count as number) || 0,
+        verified: (user?.is_verified as boolean) || false
       },
-      uploadTimestamp: new Date(data.taken_at * 1000),
-      duration: data.video_duration || 0,
+      uploadTimestamp: new Date((data.taken_at as number) * 1000),
+      duration: (data.video_duration as number) || 0,
       resolution: {
-        width: data.original_width || 1080,
-        height: data.original_height || 1920
+        width: (data.original_width as number) || 1080,
+        height: (data.original_height as number) || 1920
       },
       enrichedData: {
-        topicEntities: this.extractTopicEntities(data.caption?.text || ''),
-        hashtagTrendScores: this.calculateTrendScores(this.extractHashtagsFromText(data.caption?.text || '')),
-        creatorNiche: this.classifyCreatorNiche(data.caption?.text || '', this.extractHashtagsFromText(data.caption?.text || '')),
+        topicEntities: this.extractTopicEntities((caption?.text as string) || ''),
+        hashtagTrendScores: this.calculateTrendScores(this.extractHashtagsFromText((caption?.text as string) || '')),
+        creatorNiche: this.classifyCreatorNiche((caption?.text as string) || '', this.extractHashtagsFromText((caption?.text as string) || '')),
         audioTrend: 'stable' as const
       }
     };

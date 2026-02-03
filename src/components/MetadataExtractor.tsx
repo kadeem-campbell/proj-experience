@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SocialMediaScraper } from "@/utils/SocialMediaScraper";
+import { logger } from "@/utils/logger";
 
 interface ExtractedMetadata {
   videoId: string;
@@ -106,7 +107,7 @@ export const MetadataExtractor = ({
         await new Promise(resolve => setTimeout(resolve, stepDelays[i] || 1000));
       }
 
-      console.log(`Starting real extraction for ${platform} URL: ${url}`);
+      logger.debug(`Starting real extraction for ${platform}`);
       
       let metadata: ExtractedMetadata;
       
@@ -144,14 +145,14 @@ export const MetadataExtractor = ({
       onMetadataExtracted(metadata);
       onDebugData(debugData);
 
-      console.log('Successfully extracted real metadata:', metadata);
+      logger.debug('Successfully extracted real metadata');
 
       toast({
         title: "Extraction successful!",
         description: `Real content identified: ${metadata.enrichedData?.creatorNiche}`,
       });
     } catch (error) {
-      console.error('Real extraction failed:', error);
+      logger.error('Real extraction failed');
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setExtractionError(errorMessage);

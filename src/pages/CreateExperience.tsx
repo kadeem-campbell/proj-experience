@@ -97,13 +97,12 @@ export default function CreateExperience() {
       return;
     }
 
-    // Auto-switch to creator if needed
+    // Auto-switch to creator if needed via edge function
     if (!isCreator) {
       try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ role: 'creator' })
-          .eq('id', user!.id);
+        const { data, error } = await supabase.functions.invoke('change-role', {
+          body: { role: 'creator' }
+        });
 
         if (error) throw error;
         
@@ -112,7 +111,6 @@ export default function CreateExperience() {
           description: "You've been switched to creator mode!",
         });
       } catch (error) {
-        console.error('Error switching to creator:', error);
         toast({
           title: "Error",
           description: "Failed to switch to creator mode.",
