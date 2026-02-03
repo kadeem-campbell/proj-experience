@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, Check, Heart } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
@@ -82,7 +82,7 @@ export const ExperienceCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container - Square ratio like Uber Eats deals */}
+        {/* Image container - Square ratio */}
         <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
           {videoUrl ? (
             <video
@@ -104,6 +104,22 @@ export const ExperienceCard = ({
               className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
             />
           )}
+
+          {/* Heart button on image - shows on hover */}
+          <button
+            onClick={handleLikeClick}
+            className={cn(
+              "absolute top-2 right-2 p-2 rounded-full bg-background/80 backdrop-blur-sm shadow-sm transition-all duration-200 hover:scale-110",
+              isHovered ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <Heart 
+              className={cn(
+                "w-4 h-4 transition-colors",
+                liked ? "fill-destructive text-destructive" : "text-foreground"
+              )} 
+            />
+          </button>
           
           {/* Add to Itinerary Button - Shows on Hover */}
           <div
@@ -113,7 +129,7 @@ export const ExperienceCard = ({
             }}
             className={cn(
               "absolute bottom-2 right-2 transition-all duration-100",
-              "opacity-0 group-hover:opacity-100"
+              isHovered ? "opacity-100" : "opacity-0"
             )}
           >
             {inItinerary ? (
@@ -135,27 +151,13 @@ export const ExperienceCard = ({
         </div>
 
         {/* Text content below image */}
-        <div className="mt-3 space-y-1">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className={cn(
-              "font-medium line-clamp-1 text-foreground flex-1",
-              compact ? "text-sm" : "text-[15px]"
-            )}>
-              {title}
-            </h3>
-            <button
-              onClick={handleLikeClick}
-              className="shrink-0 p-1 -m-1 hover:scale-110 transition-transform"
-            >
-              <Heart 
-                className={cn(
-                  "w-5 h-5 transition-colors",
-                  liked ? "fill-destructive text-destructive" : "text-muted-foreground hover:text-foreground"
-                )} 
-              />
-            </button>
-          </div>
-          
+        <div className="mt-2 space-y-0.5">
+          <h3 className={cn(
+            "font-medium line-clamp-1 text-foreground",
+            compact ? "text-sm" : "text-[15px]"
+          )}>
+            {title}
+          </h3>
           <p className="text-[13px] text-muted-foreground truncate">
             {location}
           </p>
