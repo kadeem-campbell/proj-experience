@@ -19,13 +19,13 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
   return (
     <Link to={`/public-itinerary/${itinerary.id}`}>
       <div className="group cursor-pointer">
-        {/* Image container - TikTok style */}
-        <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+        {/* Image container with enhanced styling */}
+        <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted shadow-md group-hover:shadow-xl transition-shadow duration-200 ring-1 ring-border/50">
           {itinerary.coverImage ? (
             <img 
               src={itinerary.coverImage} 
               alt={itinerary.name}
-              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-150"
+              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-200"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
@@ -33,17 +33,22 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
             </div>
           )}
           
-          {/* Likes overlay at bottom left - TikTok style */}
+          {/* Gradient overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+          
+          {/* Likes overlay with glassmorphism */}
           <div className="absolute bottom-3 left-3">
-            <span className="inline-flex items-center gap-1.5 text-white text-sm font-medium drop-shadow-lg">
-              <Heart className="w-4 h-4" />
-              {socialData.formattedLikes}
-            </span>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10 shadow-lg">
+              <Heart className="w-3.5 h-3.5 text-white fill-white/90" />
+              <span className="text-xs font-semibold text-white tracking-wide">
+                {socialData.formattedLikes}
+              </span>
+            </div>
           </div>
           
-          {/* Experience count badge */}
+          {/* Experience count badge with glassmorphism */}
           <div className="absolute top-3 left-3">
-            <span className="px-2 py-1 rounded-md text-[11px] font-medium bg-black/50 backdrop-blur-sm text-white">
+            <span className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-black/30 backdrop-blur-md border border-white/10 text-white shadow-lg">
               {itinerary.experiences?.length || 0} experiences
             </span>
           </div>
