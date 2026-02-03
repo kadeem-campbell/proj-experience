@@ -79,16 +79,36 @@ export const useLikedExperiences = () => {
     return likedExperiences.some(exp => exp.id === experienceId);
   };
 
-  const exportLikedExperiences = (format: 'xlsx' | 'txt' | 'docx') => {
+  const exportLikedExperiences = (format: 'csv' | 'txt' | 'docx') => {
     const dateStr = new Date().toISOString().split('T')[0];
     
-    if (format === 'xlsx') {
-      import('xlsx').then((XLSX) => {
-        const ws = XLSX.utils.json_to_sheet(likedExperiences);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Liked Experiences");
-        XLSX.writeFile(wb, `liked-experiences-${dateStr}.xlsx`);
-      });
+    if (format === 'csv') {
+      // Use safe CSV export instead of xlsx library (which has vulnerabilities)
+      const headers = ['Title', 'Creator', 'Location', 'Price', 'Category', 'Liked At'];
+      const escapeCSV = (value: string) => {
+        // Escape quotes and wrap in quotes if contains comma, newline, or quotes
+        if (value.includes(',') || value.includes('\n') || value.includes('"')) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      };
+      const rows = likedExperiences.map(exp => [
+        escapeCSV(exp.title),
+        escapeCSV(exp.creator),
+        escapeCSV(exp.location),
+        escapeCSV(exp.price),
+        escapeCSV(exp.category),
+        escapeCSV(new Date(exp.likedAt).toLocaleDateString())
+      ].join(','));
+      
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `liked-experiences-${dateStr}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
     } else if (format === 'txt') {
       const txtContent = likedExperiences.map(exp => 
         `${exp.title}\nCreator: ${exp.creator}\nLocation: ${exp.location}\nPrice: ${exp.price}\nCategory: ${exp.category}\nLiked on: ${new Date(exp.likedAt).toLocaleDateString()}\n\n`
