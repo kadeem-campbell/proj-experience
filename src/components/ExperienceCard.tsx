@@ -105,36 +105,33 @@ export const ExperienceCard = ({
             />
           )}
 
-          {/* Heart button on image - shows on hover */}
+          {/* Heart button - always visible, Vision Pro style */}
           <button
             onClick={handleLikeClick}
-            className={cn(
-              "absolute top-2 right-2 p-2 rounded-full bg-background/80 backdrop-blur-sm shadow-sm transition-all duration-200 hover:scale-110",
-              isHovered ? "opacity-100" : "opacity-0"
-            )}
+            className="absolute top-2 right-2 p-2 rounded-full bg-white/60 backdrop-blur-2xl shadow-sm border border-white/30 transition-transform duration-200 hover:scale-110"
           >
             <Heart 
               className={cn(
                 "w-4 h-4 transition-colors",
-                liked ? "fill-destructive text-destructive" : "text-foreground"
+                liked ? "fill-destructive text-destructive" : "text-neutral-700"
               )} 
             />
           </button>
           
-          {/* Add to Itinerary Button - Shows on Hover */}
+          {/* Add to Itinerary Button - Vision Pro style, shows on hover */}
           <div
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
             }}
             className={cn(
-              "absolute bottom-2 right-2 transition-all duration-100",
+              "absolute bottom-2 right-2 transition-all duration-200",
               isHovered ? "opacity-100" : "opacity-0"
             )}
           >
             {inItinerary ? (
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] shadow-lg">
-                <Check className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/70 backdrop-blur-2xl border border-white/30 shadow-sm">
+                <Check className="w-4 h-4 text-green-600" />
               </div>
             ) : (
               <ItinerarySelector
@@ -142,8 +139,8 @@ export const ExperienceCard = ({
                 experienceData={experienceData}
                 onAdd={handleAddSuccess}
               >
-                <button className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground hover:scale-105 transition-transform shadow-lg">
-                  <Plus className="w-4 h-4" />
+                <button className="w-8 h-8 rounded-full flex items-center justify-center bg-white/70 backdrop-blur-2xl border border-white/30 shadow-sm hover:bg-white/90 transition-colors">
+                  <Plus className="w-4 h-4 text-neutral-700" />
                 </button>
               </ItinerarySelector>
             )}
