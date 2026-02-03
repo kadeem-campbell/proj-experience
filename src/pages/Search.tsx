@@ -6,7 +6,7 @@ import { BrowseDropdown } from "@/components/BrowseDropdown";
 import { LiveActivityBanner } from "@/components/LiveActivityBanner";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries } from "@/data/itinerariesData";
-import { ArrowRight, MapPin, Search, TrendingUp, Zap } from "lucide-react";
+import { ArrowRight, MapPin, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -322,25 +322,17 @@ const SearchPage = () => {
           {!selectedCity && (
             <div className="mb-6 md:mb-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
-                    <p className="text-xs text-muted-foreground hidden md:block">Loved by travelers worldwide</p>
-                  </div>
-                </div>
+                <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
                 <Link to="/itineraries?filter=popular">
-                  <Button variant="outline" size="sm" className="text-xs md:text-sm border-border/50 hover:border-primary/50">
-                    View all
-                    <ArrowRight className="w-3 md:w-4 h-3 md:h-4 ml-1" />
+                  <Button variant="ghost" size="sm" className="text-sm text-muted-foreground hover:text-foreground">
+                    See All
+                    <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-                {getPopularItineraries().slice(0, 5).map((itinerary) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                {getPopularItineraries().slice(0, 3).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
               </div>
@@ -351,17 +343,9 @@ const SearchPage = () => {
           {!selectedCity && (
             <div className="mb-6 md:mb-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-secondary">
-                    <Zap className="w-5 h-5 text-activity" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
-                    <p className="text-xs text-muted-foreground hidden md:block">Browse {experiences.length}+ unique activities</p>
-                  </div>
-                </div>
+                <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {experiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
