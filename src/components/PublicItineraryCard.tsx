@@ -66,48 +66,45 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
             "absolute top-3 right-3 transition-opacity duration-200",
             isHovered ? "opacity-100" : "opacity-0"
           )}>
-            <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-background/90 backdrop-blur-sm text-foreground shadow-sm">
+            <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/70 backdrop-blur-2xl text-neutral-800 shadow-sm border border-white/20">
               {experienceCount} experiences
             </span>
           </div>
 
-          {/* Heart button on image */}
+          {/* Heart button - always visible, Vision Pro style */}
           <button
             onClick={handleLikeClick}
-            className={cn(
-              "absolute top-3 left-3 p-2 rounded-full bg-background/80 backdrop-blur-sm shadow-sm transition-all duration-200 hover:scale-110",
-              isHovered ? "opacity-100" : "opacity-0"
-            )}
+            className="absolute top-3 left-3 p-2 rounded-full bg-white/60 backdrop-blur-2xl shadow-sm border border-white/30 transition-transform duration-200 hover:scale-110"
           >
             <Heart 
               className={cn(
                 "w-4 h-4 transition-colors",
-                liked ? "fill-destructive text-destructive" : "text-foreground"
+                liked ? "fill-destructive text-destructive" : "text-neutral-700"
               )} 
             />
           </button>
 
-          {/* Navigation arrows - show on hover when multiple images */}
+          {/* Navigation arrows - Vision Pro style */}
           {hasMultipleImages && isHovered && (
             <>
               <button
                 onClick={handlePrev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-background transition-colors"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur-2xl shadow-sm border border-white/30 flex items-center justify-center hover:bg-white/90 transition-colors"
               >
-                <ChevronLeft className="w-5 h-5 text-foreground" />
+                <ChevronLeft className="w-5 h-5 text-neutral-700" />
               </button>
               <button
                 onClick={handleNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-background transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur-2xl shadow-sm border border-white/30 flex items-center justify-center hover:bg-white/90 transition-colors"
               >
-                <ChevronRight className="w-5 h-5 text-foreground" />
+                <ChevronRight className="w-5 h-5 text-neutral-700" />
               </button>
             </>
           )}
 
-          {/* Pagination dots */}
+          {/* Pagination dots - Vision Pro style */}
           {hasMultipleImages && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/50 backdrop-blur-2xl">
               {allImages.map((_, idx) => (
                 <button
                   key={idx}
@@ -119,8 +116,8 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
                   className={cn(
                     "rounded-full transition-all duration-200",
                     idx === currentIndex 
-                      ? "w-2 h-2 bg-background" 
-                      : "w-1.5 h-1.5 bg-background/60"
+                      ? "w-2 h-2 bg-neutral-800" 
+                      : "w-1.5 h-1.5 bg-neutral-500"
                   )}
                 />
               ))}
