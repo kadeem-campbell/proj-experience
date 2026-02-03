@@ -13,16 +13,14 @@ export const RoleSelector = () => {
   const [currentRole, setCurrentRole] = useState<'traveller' | 'creator'>('traveller');
   const [switching, setSwitching] = useState(false);
 
-  // Initialize role from user profile
+  // Initialize role from user profile (role now comes from user_roles table via useAuth)
   useEffect(() => {
     if (userProfile?.role) {
       // Map database roles to UI roles
       const roleMapping: Record<string, 'traveller' | 'creator'> = {
-        'user': 'traveller',
         'traveler': 'traveller', 
         'creator': 'creator',
         'admin': 'creator', // Admins can view as creators
-        'team_member': 'creator'
       };
       setCurrentRole(roleMapping[userProfile.role] || 'traveller');
     }

@@ -43,18 +43,35 @@ export const useAuth = () => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error fetching profile:', profileError);
         return;
       }
       
-      setUserProfile(data);
+      // Fetch role from user_roles table (roles are stored separately for security)
+      // Using type assertion since types may not be regenerated yet
+      const { data: roleData, error: roleError } = await (supabase as any)
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (roleError && roleError.code !== 'PGRST116') {
+        console.error('Error fetching role:', roleError);
+      }
+
+      // Combine profile with role
+      setUserProfile({
+        ...profileData,
+        role: roleData?.role || 'traveler'
+      });
     } catch (error) {
       console.error('Error fetching profile:', error);
     }

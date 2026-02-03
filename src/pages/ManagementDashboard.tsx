@@ -143,17 +143,19 @@ export default function ManagementDashboard() {
       }
 
       try {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
+        // Fetch role from user_roles table (roles are stored separately for security)
+        // Using type assertion since types may not be regenerated yet
+        const { data: roleData, error: roleError } = await (supabase as any)
+          .from('user_roles')
           .select('role')
-          .eq('id', user.id)
+          .eq('user_id', user.id)
           .maybeSingle();
         
-        if (profileError) {
-          logger.error('ManagementDashboard: Profile fetch error');
+        if (roleError) {
+          logger.error('ManagementDashboard: Role fetch error');
         }
         
-        const userRole = profileData?.role;
+        const userRole = roleData?.role as string | undefined;
         if (!userRole || !['admin', 'team_member', 'creator'].includes(userRole)) {
           logger.debug('ManagementDashboard: Access denied');
           toast({
