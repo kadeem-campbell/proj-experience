@@ -50,10 +50,10 @@ export const ItinerarySelector = ({
     setOpen(false);
   };
 
-  const handleCreateAndAdd = () => {
+  const handleCreateAndAdd = async () => {
     if (!newName.trim()) return;
-    const newItinerary = createItinerary(newName.trim());
-    addExperienceToItinerary(newItinerary.id, experienceData);
+    const newItinerary = await createItinerary(newName.trim());
+    await addExperienceToItinerary(newItinerary.id, experienceData);
     onAdd?.();
     setNewName("");
     setShowNewInput(false);

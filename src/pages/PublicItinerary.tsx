@@ -261,7 +261,7 @@ const PublicItinerary = () => {
     });
   };
 
-  const handleSaveTrip = () => {
+  const handleSaveTrip = async () => {
     // Collect all experiences with scheduled times
     const scheduledExperiences = Object.values(generatedTrip).flat().map(exp => ({
       ...exp,
@@ -274,7 +274,7 @@ const PublicItinerary = () => {
     
     if (!parentItinerary) {
       // Create a new itinerary with the base experiences (unscheduled)
-      parentItinerary = createItinerary(parentItineraryName, itinerary.experiences.map(e => ({
+      parentItinerary = await createItinerary(parentItineraryName, itinerary.experiences.map(e => ({
         ...e,
         likedAt: new Date().toISOString()
       })));
@@ -285,7 +285,7 @@ const PublicItinerary = () => {
     const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
     const newTripName = tripName.trim() || `Trip ${(parentItinerary.trips?.length || 0) + 1}`;
     
-    const newTrip = createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
+    const newTrip = await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
     
     // Fire confetti
     const duration = 2000;
@@ -440,11 +440,11 @@ const PublicItinerary = () => {
     toast({ title: "Added to itinerary", description: `${experience.title} added to ${itineraryName}.` });
   };
 
-  const handleCreateAndAdd = (experience: LikedExperience) => {
+  const handleCreateAndAdd = async (experience: LikedExperience) => {
     if (!newItineraryName.trim()) return;
     
-    const newItinerary = createItinerary(newItineraryName.trim());
-    addExperienceToItinerary(newItinerary.id, {
+    const newItinerary = await createItinerary(newItineraryName.trim());
+    await addExperienceToItinerary(newItinerary.id, {
       id: experience.id,
       title: experience.title,
       creator: experience.creator,
