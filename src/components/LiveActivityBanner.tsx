@@ -83,11 +83,17 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
             </div>
           </div>
           
+          {/* Mobile hero tagline - Booking.com style */}
+          <div className="md:hidden mb-2">
+            <h2 className="text-2xl font-bold text-foreground leading-tight">
+              Visiting Zanzibar is one thing.
+            </h2>
+            <h2 className="text-2xl font-bold text-foreground leading-tight">
+              Experiencing it is another.
+            </h2>
+          </div>
+          
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            {/* Mobile tagline */}
-            <p className="text-sm text-muted-foreground italic md:hidden">
-              Visiting Zanzibar is one thing, Experiencing it is another.
-            </p>
             
             <div className="flex items-center gap-3">
               {experienceCount > 0 ? (
