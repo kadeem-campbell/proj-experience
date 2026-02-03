@@ -49,18 +49,19 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Get current role for logging
-    const { data: currentProfile, error: fetchError } = await supabaseService
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    // Get current role from user_roles table
+    const { data: currentRoleData, error: fetchError } = await supabaseService
+      .from("user_roles")
+      .select("id, role")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
     if (fetchError) {
-      throw new Error("Failed to fetch current profile");
+      console.error("Fetch error:", fetchError);
+      throw new Error("Failed to fetch current role");
     }
 
-    const oldRole = currentProfile?.role;
+    const oldRole = currentRoleData?.role;
 
     // Only update if role is actually changing
     if (oldRole === role) {
@@ -77,24 +78,38 @@ serve(async (req) => {
       );
     }
 
-    // Update the role using service role (bypasses RLS)
-    const { error: updateError } = await supabaseService
-      .from("profiles")
-      .update({ role })
-      .eq("id", user.id);
+    // Update or insert the role using service role (bypasses RLS)
+    if (currentRoleData?.id) {
+      // Update existing role
+      const { error: updateError } = await supabaseService
+        .from("user_roles")
+        .update({ role })
+        .eq("id", currentRoleData.id);
 
-    if (updateError) {
-      throw new Error("Failed to update role");
+      if (updateError) {
+        console.error("Update error:", updateError);
+        throw new Error("Failed to update role");
+      }
+    } else {
+      // Insert new role
+      const { error: insertError } = await supabaseService
+        .from("user_roles")
+        .insert({ user_id: user.id, role });
+
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw new Error("Failed to create role");
+      }
     }
 
-    console.log(`Role changed for user ${user.id}: ${oldRole} -> ${role}`);
+    console.log(`Role changed for user ${user.id}: ${oldRole || 'none'} -> ${role}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         message: `Role changed to ${role}`,
         role,
-        previousRole: oldRole
+        previousRole: oldRole || null
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
