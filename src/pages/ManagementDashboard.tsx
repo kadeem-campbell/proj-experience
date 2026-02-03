@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Navigation } from '@/components/Navigation';
+import { logger } from '@/utils/logger';
 import { 
   Settings, 
   Users, 
@@ -128,47 +129,47 @@ export default function ManagementDashboard() {
   // Check user authorization
   useEffect(() => {
     const checkAuth = async () => {
-      console.log('ManagementDashboard: Auth loading:', authLoading, 'isAuthenticated:', isAuthenticated, 'user:', user);
+      logger.debug('ManagementDashboard: Checking auth state');
       
       // Wait for auth to finish loading
       if (authLoading) {
-        console.log('ManagementDashboard: Still loading auth, waiting...');
         return;
       }
 
       if (!isAuthenticated || !user) {
-        console.log('ManagementDashboard: Not authenticated, redirecting to auth');
+        logger.debug('ManagementDashboard: Not authenticated, redirecting');
         navigate('/auth');
         return;
       }
 
       try {
-        console.log('ManagementDashboard: Getting user role for user:', user.id);
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
           .maybeSingle();
         
-        console.log('ManagementDashboard: Profile data:', profileData, 'Error:', profileError);
+        if (profileError) {
+          logger.error('ManagementDashboard: Profile fetch error');
+        }
         
         const userRole = profileData?.role;
         if (!userRole || !['admin', 'team_member', 'creator'].includes(userRole)) {
-          console.log('ManagementDashboard: Access denied, role:', userRole);
+          logger.debug('ManagementDashboard: Access denied');
           toast({
             title: "Access Denied",
-            description: `You don't have permission to access this dashboard. Your current role: ${userRole || 'none'}`,
+            description: `You don't have permission to access this dashboard.`,
             variant: "destructive"
           });
           navigate('/');
           return;
         }
 
-        console.log('ManagementDashboard: Access granted, role:', userRole);
+        logger.debug('ManagementDashboard: Access granted');
         setUserRole(userRole);
         await fetchAllData();
       } catch (error) {
-        console.error('ManagementDashboard: Error checking authorization:', error);
+        logger.error('ManagementDashboard: Authorization check failed');
         navigate('/');
       } finally {
         setLoading(false);

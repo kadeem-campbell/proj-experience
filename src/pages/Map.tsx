@@ -74,8 +74,9 @@ export default function Map() {
 
   useEffect(() => {
     fetchExperiences();
-    // Initialize map with public token for better display
-    mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+    // Initialize map with token from environment variable or fallback to demo token
+    const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+    mapboxgl.accessToken = mapboxToken;
     
     if (mapContainer.current && !map.current) {
       map.current = new mapboxgl.Map({

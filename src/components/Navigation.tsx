@@ -27,10 +27,10 @@ export const Navigation = () => {
     const newRole = userProfile.role === 'creator' ? 'traveler' : 'creator';
     
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', user.id);
+      // Use edge function for role changes (server-side validation)
+      const { data, error } = await supabase.functions.invoke('change-role', {
+        body: { role: newRole }
+      });
 
       if (error) throw error;
       
@@ -42,7 +42,6 @@ export const Navigation = () => {
         description: `You are now a ${newRole}!`,
       });
     } catch (error) {
-      console.error('Error updating role:', error);
       toast({
         title: "Error",
         description: "Failed to update role. Please try again.",

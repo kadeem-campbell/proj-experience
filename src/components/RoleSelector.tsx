@@ -36,11 +36,10 @@ export const RoleSelector = () => {
       // Map UI roles to database roles
       const dbRole = newRole === 'traveller' ? 'traveler' : 'creator';
       
-      // Update role in database
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: dbRole })
-        .eq('id', user.id);
+      // Use edge function for role changes (server-side validation)
+      const { data, error } = await supabase.functions.invoke('change-role', {
+        body: { role: dbRole }
+      });
 
       if (error) throw error;
 
@@ -54,11 +53,11 @@ export const RoleSelector = () => {
         title: `Switched to ${newRole}`,
         description: `You're now viewing the app as a ${newRole}`,
       });
-    } catch (error: any) {
-      console.error('Role switch error:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to switch role';
       toast({
         title: "Error switching role",
-        description: error.message || 'Failed to switch role',
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
