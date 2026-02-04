@@ -230,8 +230,8 @@ const ExperienceGrid = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {experiences.map((experience) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+        {experiences.slice(0, 12).map((experience) => (
           <div key={experience.id}>
             <ExperienceCard {...experience} compact />
           </div>
