@@ -465,7 +465,7 @@ const SearchPage = () => {
                   variant="ghost" 
                   size="sm" 
                   className="text-muted-foreground hover:text-foreground text-sm"
-                  onClick={() => {/* Scroll to load more or navigate */}}
+                  onClick={() => navigate('/experiences')}
                 >
                   View all
                 </Button>
