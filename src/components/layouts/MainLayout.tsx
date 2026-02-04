@@ -4,11 +4,17 @@ import { ItinerarySidebar } from "@/components/ItinerarySidebar";
 import { ItineraryPanel } from "@/components/ItineraryPanel";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
-import { LogOut, User, MapPin } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { LogOut, MapPin, ChevronDown } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useItineraries } from "@/hooks/useItineraries";
+import { AuthModal } from "@/components/AuthModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -16,9 +22,12 @@ interface MainLayoutProps {
 }
 
 export const MainLayout = ({ children, showItineraryPanel = false }: MainLayoutProps) => {
-  const { user, signOut, isAuthenticated, userProfile, isCreator } = useAuth();
+  const { user, signOut, isAuthenticated, userProfile } = useAuth();
   const { experienceCount } = useItineraries();
   const [mobileItineraryOpen, setMobileItineraryOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  const displayName = userProfile?.full_name || user?.email?.split("@")[0] || "User";
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -73,30 +82,39 @@ export const MainLayout = ({ children, showItineraryPanel = false }: MainLayoutP
               </a>
 
               {isAuthenticated ? (
-                <div className="flex items-center gap-2">
-                  {userProfile && (
-                    <Badge variant={isCreator ? "default" : "secondary"} className="text-xs hidden sm:inline-flex">
-                      {userProfile.role || 'user'}
-                    </Badge>
-                  )}
-                  <span className="text-sm text-muted-foreground hidden md:inline">
-                    {user?.email}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={signOut}
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </Button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-semibold text-primary">
+                          {displayName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="hidden md:inline text-sm font-medium">{displayName}</span>
+                      <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <div className="px-2 py-1.5">
+                      <p className="text-sm font-medium">{displayName}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={signOut} className="text-destructive">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm">
-                    <User className="w-4 h-4 md:mr-2" />
-                    <span className="hidden md:inline">Log In</span>
-                  </Button>
-                </Link>
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => setAuthModalOpen(true)}
+                  className="font-medium"
+                >
+                  Sign up
+                </Button>
               )}
             </div>
           </header>
@@ -112,6 +130,9 @@ export const MainLayout = ({ children, showItineraryPanel = false }: MainLayoutP
           </div>
         </SidebarInset>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </SidebarProvider>
   );
 };

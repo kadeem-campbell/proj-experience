@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, ChevronDown } from "lucide-react";
 import { ExportDropdown } from "@/components/ExportDropdown";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AuthModal } from "@/components/AuthModal";
 import {
@@ -25,38 +23,9 @@ const HIDDEN_NAV_ITEMS = {
 };
 
 export const Navigation = () => {
-  const { user, signOut, isAuthenticated, userProfile, isCreator, refreshProfile } = useAuth();
+  const { user, signOut, isAuthenticated, userProfile } = useAuth();
   const { toast } = useToast();
   const [authModalOpen, setAuthModalOpen] = useState(false);
-
-  const handleRoleSwitch = async () => {
-    if (!user || !userProfile) return;
-    
-    const newRole = userProfile.role === 'creator' ? 'traveler' : 'creator';
-    
-    try {
-      // Use edge function for role changes (server-side validation)
-      const { data, error } = await supabase.functions.invoke('change-role', {
-        body: { role: newRole }
-      });
-
-      if (error) throw error;
-      
-      // Refresh the profile to update the UI
-      refreshProfile?.();
-      
-      toast({
-        title: "Role Updated",
-        description: `You are now a ${newRole}!`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update role. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const displayName = userProfile?.full_name || user?.email?.split("@")[0] || "User";
 
@@ -136,21 +105,11 @@ export const Navigation = () => {
                       <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-48">
                     <div className="px-2 py-1.5">
                       <p className="text-sm font-medium">{displayName}</p>
                       <p className="text-xs text-muted-foreground">{user?.email}</p>
                     </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="flex items-center justify-between">
-                      <span>Role</span>
-                      <Badge variant={isCreator ? "default" : "secondary"} className="text-xs">
-                        {userProfile?.role || 'traveler'}
-                      </Badge>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleRoleSwitch}>
-                      Switch to {isCreator ? 'Traveler' : 'Creator'}
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut} className="text-destructive">
                       <LogOut className="w-4 h-4 mr-2" />
