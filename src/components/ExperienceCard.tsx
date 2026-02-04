@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ExperienceCardProps {
   id: string;
@@ -38,6 +39,7 @@ export const ExperienceCard = ({
   const { isInItinerary } = useItineraries();
   const { isLiked, toggleLike } = useLikedExperiences();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const inItinerary = isInItinerary(id);
   const liked = isLiked(id);
@@ -82,8 +84,11 @@ export const ExperienceCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container - Square ratio */}
-        <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
+        {/* Image container - TikTok 4:5 ratio on mobile, square on desktop */}
+        <div className={cn(
+          "relative overflow-hidden rounded-2xl bg-muted",
+          isMobile ? "aspect-[4/5]" : "aspect-square"
+        )}>
           {videoUrl ? (
             <video
               ref={videoRef}
