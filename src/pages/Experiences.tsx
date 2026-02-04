@@ -48,12 +48,12 @@ const ExperiencesPage = () => {
     return () => observer.disconnect();
   }, [visibleCount, filteredExperiences.length]);
 
-  // Mobile App Store-style card view (always show sticky header)
+  // Mobile App Store-style card view (always show fixed header)
   if (isMobile && viewMode === 'cards') {
     return (
       <div className="min-h-screen w-full bg-background">
-        {/* Sticky header - elegant styling matching FixedSearchHeader */}
-        <div className="sticky top-0 z-50 bg-background border-b border-border">
+        {/* Fixed header - guaranteed to stay at top */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
           <div className="px-3 py-2.5">
             <div className="flex items-center gap-2 mb-2.5">
               <Link to="/">
@@ -90,23 +90,25 @@ const ExperiencesPage = () => {
           </div>
         </div>
         
-        {/* Content - grid when searching, card view otherwise */}
-        {searchQuery ? (
-          <div className="p-3">
-            <div className="grid grid-cols-2 gap-3">
-              {filteredExperiences.slice(0, visibleCount).map((experience) => (
-                <ExperienceCard key={experience.id} {...experience} compact />
-              ))}
-            </div>
-            {filteredExperiences.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground text-sm">No experiences found matching "{searchQuery}"</p>
+        {/* Content with top padding to account for fixed header */}
+        <div className="pt-[120px]">
+          {searchQuery ? (
+            <div className="p-3">
+              <div className="grid grid-cols-2 gap-3">
+                {filteredExperiences.slice(0, visibleCount).map((experience) => (
+                  <ExperienceCard key={experience.id} {...experience} compact />
+                ))}
               </div>
-            )}
-          </div>
-        ) : (
-          <AppStoreCardView experiences={filteredExperiences} />
-        )}
+              {filteredExperiences.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground text-sm">No experiences found matching "{searchQuery}"</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <AppStoreCardView experiences={filteredExperiences} />
+          )}
+        </div>
       </div>
     );
   }
