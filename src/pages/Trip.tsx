@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { format, parseISO, isSameDay, addDays, setHours, setMinutes } from "date-fns";
 import confetti from "canvas-confetti";
+import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { 
   Palette, MapPin, Users, Calendar, GripVertical, 
@@ -258,9 +259,9 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     setTimeout(() => setJustSpunUp(false), 5000);
   }, [fireConfetti]);
 
-  // Load itinerary from localStorage if not in hook - with retry for race conditions
+  // Load itinerary from localStorage or Supabase if not in hook
   useEffect(() => {
-    const loadFromStorage = () => {
+    const loadItinerary = async () => {
       if (!useActiveItinerary && id) {
         // First check if it's now in the itineraries hook
         const inHook = itineraries.find(i => i.id === id);
@@ -269,20 +270,55 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           return;
         }
         
+        // Check localStorage
         const stored = localStorage.getItem('itineraries');
         if (stored) {
           const all: Itinerary[] = JSON.parse(stored);
           const found = all.find(i => i.id === id);
-          if (found) setLoadedItinerary(found);
+          if (found) {
+            setLoadedItinerary(found);
+            return;
+          }
+        }
+        
+        // Fetch from Supabase for public itineraries
+        try {
+          const { data, error } = await supabase
+            .from('itineraries')
+            .select('*')
+            .eq('id', id)
+            .eq('is_public', true)
+            .single();
+          
+          if (data && !error) {
+            const publicItinerary: Itinerary = {
+              id: data.id,
+              name: data.name,
+              experiences: (data.experiences as unknown as LikedExperience[]) || [],
+              createdAt: data.created_at || new Date().toISOString(),
+              updatedAt: data.updated_at || new Date().toISOString(),
+              isPublic: data.is_public || false,
+              collaborators: data.collaborators || [],
+              coverImage: data.cover_image || undefined,
+              tag: data.tag as 'popular' | 'fave' | undefined,
+              startDate: data.start_date || undefined,
+              theme: data.theme || undefined,
+              trips: (data.trips as unknown as TripType[]) || [],
+              activeTripId: data.active_trip_id || undefined
+            };
+            setLoadedItinerary(publicItinerary);
+          }
+        } catch (err) {
+          console.error('Error fetching public itinerary:', err);
         }
       }
     };
     
-    loadFromStorage();
+    loadItinerary();
     
     // Also listen for itinerary changes (for newly created itineraries)
     const handleItinerariesChanged = () => {
-      loadFromStorage();
+      loadItinerary();
     };
     
     window.addEventListener('itinerariesChanged', handleItinerariesChanged);
@@ -582,15 +618,30 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
 
   const handleCopyLink = () => {
     if (!itinerary) return;
+    
+    // Auto-make public when sharing
+    if (!itinerary.isPublic && isOwner) {
+      togglePublic(itinerary.id);
+      toast({ title: "Made public & copied!", description: "Your trip is now shareable with anyone" });
+    } else {
+      toast({ title: "Link copied!" });
+    }
+    
     const url = getShareUrl(itinerary.id);
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    toast({ title: "Link copied!" });
   };
 
   const handleShareWhatsApp = () => {
     if (!itinerary) return;
+    
+    // Auto-make public when sharing
+    if (!itinerary.isPublic && isOwner) {
+      togglePublic(itinerary.id);
+      toast({ title: "Made public!", description: "Your trip is now shareable" });
+    }
+    
     const shareUrl = getShareUrl(itinerary.id);
     const text = `Check out this trip: ${itinerary.name}\n${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
