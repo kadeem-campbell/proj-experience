@@ -6,6 +6,43 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Simple in-memory rate limiter (resets on cold start, but provides basic protection)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_MAX = 20; // Max 20 invites per hour per user
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in ms
+
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const record = rateLimitMap.get(userId);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return { allowed: true, remaining: RATE_LIMIT_MAX - 1 };
+  }
+  
+  if (record.count >= RATE_LIMIT_MAX) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  record.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX - record.count };
+}
+
+// Email validation regex (RFC 5322 simplified)
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+function isValidEmail(email: string): boolean {
+  if (!email || typeof email !== 'string') return false;
+  const trimmed = email.trim().toLowerCase();
+  if (trimmed.length === 0 || trimmed.length > 254) return false;
+  return EMAIL_REGEX.test(trimmed);
+}
+
+function sanitizeString(str: string, maxLength: number): string {
+  if (!str || typeof str !== 'string') return '';
+  return str.trim().slice(0, maxLength).replace(/[<>]/g, '');
+}
+
 interface InviteRequest {
   inviteeEmail: string;
   itineraryId: string;
@@ -47,12 +84,63 @@ const handler = async (req: Request): Promise<Response> => {
     const inviterId = claims.claims.sub as string;
     const inviterEmail = claims.claims.email as string;
 
-    // Parse request body
-    const { inviteeEmail, itineraryId, itineraryName, inviterName }: InviteRequest = await req.json();
+    // Check rate limit
+    const rateLimit = checkRateLimit(inviterId);
+    if (!rateLimit.allowed) {
+      console.warn(`Rate limit exceeded for user ${inviterId}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Rate limit exceeded. Please try again later.",
+          retryAfter: 3600 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": "3600"
+          } 
+        }
+      );
+    }
 
+    // Parse request body
+    const body = await req.json();
+    const inviteeEmail = body.inviteeEmail?.trim()?.toLowerCase();
+    const itineraryId = body.itineraryId;
+    const itineraryName = sanitizeString(body.itineraryName || "", 200);
+    const inviterName = sanitizeString(body.inviterName || "", 100);
+
+    // Validate required fields
     if (!inviteeEmail || !itineraryId || !itineraryName) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: inviteeEmail, itineraryId, itineraryName" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate email format
+    if (!isValidEmail(inviteeEmail)) {
+      console.warn(`Invalid email format rejected: ${inviteeEmail}`);
+      return new Response(
+        JSON.stringify({ error: "Invalid email address format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate itinerary ID format (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(itineraryId)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid itinerary ID format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Prevent self-invitation
+    if (inviteeEmail === inviterEmail?.toLowerCase()) {
+      return new Response(
+        JSON.stringify({ error: "You cannot invite yourself" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -65,7 +153,8 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ 
           success: true, 
           emailSent: false, 
-          message: "Collaborator added. Email sending not configured yet." 
+          message: "Collaborator added. Email sending not configured yet.",
+          remaining: rateLimit.remaining
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -73,10 +162,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Build the invitation link
     const appUrl = Deno.env.get("APP_URL") || "https://swam.app";
-    const inviteLink = `${appUrl}/trip/${itineraryId}?invite=true`;
+    const inviteLink = `${appUrl}/trip/${encodeURIComponent(itineraryId)}?invite=true`;
 
     // Send email via Resend
     const displayName = inviterName || inviterEmail?.split("@")[0] || "Someone";
+    // Escape HTML in display name and itinerary name to prevent XSS
+    const escapeHtml = (str: string) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const safeDisplayName = escapeHtml(displayName);
+    const safeItineraryName = escapeHtml(itineraryName);
     
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -85,9 +178,9 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "SWAM <onboarding@resend.dev>", // Use resend.dev for testing, replace with verified domain
+        from: "SWAM <onboarding@resend.dev>",
         to: [inviteeEmail],
-        subject: `${displayName} invited you to collaborate on "${itineraryName}"`,
+        subject: `${safeDisplayName} invited you to collaborate on "${safeItineraryName}"`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -103,11 +196,11 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); border-radius: 12px; padding: 30px; color: white; text-align: center; margin-bottom: 30px;">
               <h2 style="margin: 0 0 10px 0; font-size: 24px;">You're Invited! 🎉</h2>
-              <p style="margin: 0; opacity: 0.9;">${displayName} wants to plan a trip with you</p>
+              <p style="margin: 0; opacity: 0.9;">${safeDisplayName} wants to plan a trip with you</p>
             </div>
             
             <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-              <h3 style="margin: 0 0 10px 0; color: #0ea5e9;">📍 ${itineraryName}</h3>
+              <h3 style="margin: 0 0 10px 0; color: #0ea5e9;">📍 ${safeItineraryName}</h3>
               <p style="margin: 0; color: #666;">You've been invited to collaborate on this travel itinerary. Add your own experiences, suggest changes, and help plan the perfect trip together!</p>
             </div>
             
@@ -140,7 +233,8 @@ const handler = async (req: Request): Promise<Response> => {
           success: true, 
           emailSent: false, 
           message: "Collaborator added but email failed to send",
-          error: errorData 
+          error: errorData,
+          remaining: rateLimit.remaining
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -153,7 +247,8 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         emailSent: true, 
-        message: `Invitation sent to ${inviteeEmail}` 
+        message: `Invitation sent to ${inviteeEmail}`,
+        remaining: rateLimit.remaining
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

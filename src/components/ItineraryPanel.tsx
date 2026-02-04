@@ -135,9 +135,19 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
   const handleAddCollaborator = async () => {
     if (collaboratorEmail.trim()) {
       const email = collaboratorEmail.trim();
-      setCollaboratorEmail("");
       
       const result = await addCollaborator(activeItinerary.id, email);
+      
+      if (!result.success) {
+        toast({
+          title: "Cannot add collaborator",
+          description: result.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setCollaboratorEmail("");
       
       if (result.emailSent) {
         toast({
