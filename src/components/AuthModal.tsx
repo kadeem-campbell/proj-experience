@@ -46,16 +46,16 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && open && session?.user) {
-        // Check if user has a profile with a name set
+        // Check if user has a username set (not just full_name from OAuth)
         setTimeout(async () => {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("full_name")
+            .select("username")
             .eq("id", session.user.id)
-            .single();
+            .maybeSingle();
           
-          // If no full_name, show username step (for OAuth users)
-          if (!profile?.full_name) {
+          // If no username, show username step (for OAuth users)
+          if (!profile?.username) {
             setEmail(session.user.email || "");
             const suggested = generateUsername(session.user.email || "user");
             setUsername(suggested);
@@ -64,7 +64,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           } else {
             onOpenChange(false);
             toast({
-              title: "Welcome!",
+              title: "Welcome back!",
               description: "You're now signed in.",
             });
           }
@@ -193,10 +193,10 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        // OAuth user - just update profile with username
+        // OAuth user - update profile with username
         const { error: updateError } = await supabase.from("profiles").upsert({
           id: session.user.id,
-          full_name: username,
+          username: username,
           email: session.user.email,
         });
 
