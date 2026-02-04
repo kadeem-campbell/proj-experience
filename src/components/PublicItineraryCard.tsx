@@ -61,15 +61,6 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
             </div>
           )}
 
-          {/* Experience count badge - shows on hover */}
-          <div className={cn(
-            "absolute top-3 right-3 transition-opacity duration-200",
-            isHovered ? "opacity-100" : "opacity-0"
-          )}>
-            <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/70 backdrop-blur-2xl text-neutral-800 shadow-sm border border-white/20">
-              {experienceCount} experiences
-            </span>
-          </div>
 
           {/* Heart button - always visible, Vision Pro style */}
           <button
@@ -102,8 +93,8 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
             </>
           )}
 
-          {/* Pagination dots - Vision Pro style */}
-          {hasMultipleImages && (
+          {/* Pagination dots - Vision Pro style - hover only */}
+          {hasMultipleImages && isHovered && (
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/50 backdrop-blur-2xl">
               {allImages.map((_, idx) => (
                 <button
