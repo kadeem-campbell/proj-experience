@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
-import { Search, MapPin, ChevronDown, X } from "lucide-react";
+import { Search, MapPin, ChevronDown, X, PanelLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { City, cities } from "@/data/browseData";
+import { useSidebar } from "@/components/ui/sidebar";
 import {
   Popover,
   PopoverContent,
@@ -45,6 +46,7 @@ export const FixedSearchHeader = ({
 }: FixedSearchHeaderProps) => {
   const [locationOpen, setLocationOpen] = useState(false);
   const tagsContainerRef = useRef<HTMLDivElement>(null);
+  const { toggleSidebar } = useSidebar();
 
   const handleCategoryClick = (categoryName: string) => {
     if (selectedCategory === categoryName) {
@@ -60,31 +62,41 @@ export const FixedSearchHeader = ({
   };
 
   return (
-    <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
+    <div className="sticky top-0 z-40 bg-background border-b border-border">
       {/* Search bar row */}
-      <div className="px-3 md:px-6 py-3">
-        <div className="flex items-center gap-2 max-w-4xl mx-auto md:mx-0">
+      <div className="px-3 md:px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          {/* Sidebar toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="shrink-0 h-9 w-9 rounded-lg"
+          >
+            <PanelLeft className="w-5 h-5" />
+          </Button>
+
           {/* Search input */}
           <div className="flex-1 min-w-0">
             {isMobile ? (
               <button
                 onClick={onMobileSearchClick}
-                className="flex items-center w-full bg-muted/80 border border-border/60 rounded-xl px-4 py-3 text-left"
+                className="flex items-center w-full bg-muted/60 border border-border/50 rounded-xl px-4 py-2.5 text-left"
               >
-                <Search className="w-5 h-5 text-foreground/70 mr-3 shrink-0" />
-                <span className="text-foreground/50 text-base truncate">
+                <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
+                <span className="text-foreground/50 text-sm truncate">
                   {searchQuery || "Search experiences..."}
                 </span>
               </button>
             ) : (
-              <div className="flex items-center bg-muted/80 border border-border/60 rounded-xl px-4 py-2.5">
-                <Search className="w-5 h-5 text-foreground/70 mr-3 shrink-0" />
+              <div className="flex items-center bg-muted/60 border border-border/50 rounded-xl px-4 py-2">
+                <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
                 <Input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
                   placeholder="Search experiences..."
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-base placeholder:text-foreground/50"
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-foreground/50"
                   style={{ fontSize: '16px' }}
                 />
                 {searchQuery && (
@@ -102,7 +114,7 @@ export const FixedSearchHeader = ({
       </div>
 
       {/* Location + Category tags row */}
-      <div className="px-3 md:px-6 pb-3">
+      <div className="px-3 md:px-4 pb-2.5">
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide" ref={tagsContainerRef}>
           {/* Location picker */}
           <Popover open={locationOpen} onOpenChange={setLocationOpen}>
@@ -111,12 +123,12 @@ export const FixedSearchHeader = ({
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "shrink-0 rounded-full gap-1.5 px-3 h-8 border-border/60",
+                  "shrink-0 rounded-full gap-1.5 px-3 h-7 text-xs border-border/60",
                   selectedCity && "border-primary bg-primary/10 text-primary"
                 )}
               >
-                <MapPin className="w-3.5 h-3.5" />
-                <span className="text-sm">{selectedCity?.name || "Location"}</span>
+                <MapPin className="w-3 h-3" />
+                <span>{selectedCity?.name || "Location"}</span>
                 <ChevronDown className="w-3 h-3" />
               </Button>
             </PopoverTrigger>
@@ -160,7 +172,7 @@ export const FixedSearchHeader = ({
           </Popover>
 
           {/* Separator */}
-          <div className="w-px h-5 bg-border/60 shrink-0" />
+          <div className="w-px h-4 bg-border/60 shrink-0" />
 
           {/* Category tags */}
           {categoryTags.map((tag) => (
@@ -168,10 +180,10 @@ export const FixedSearchHeader = ({
               key={tag.id}
               onClick={() => handleCategoryClick(tag.name)}
               className={cn(
-                "shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+                "shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                 selectedCategory === tag.name
                   ? "bg-primary text-primary-foreground"
-                  : "bg-muted/80 text-foreground/80 hover:bg-muted"
+                  : "bg-muted/80 text-foreground/70 hover:bg-muted hover:text-foreground"
               )}
             >
               {tag.name}
@@ -181,12 +193,12 @@ export const FixedSearchHeader = ({
           {/* Clear filters */}
           {(selectedCity || selectedCategory) && (
             <>
-              <div className="w-px h-5 bg-border/60 shrink-0" />
+              <div className="w-px h-4 bg-border/60 shrink-0" />
               <button
                 onClick={clearFilters}
-                className="shrink-0 px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                className="shrink-0 px-2.5 py-1 rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
               >
-                Clear all
+                Clear
               </button>
             </>
           )}
