@@ -57,11 +57,11 @@ const ItinerariesPage = () => {
     location: it.experiences[0]?.location
   }));
 
-  // Mobile App Store-style card view
-  if (isMobile && viewMode === 'cards' && !searchQuery) {
+  // Mobile App Store-style card view (always show sticky header)
+  if (isMobile && viewMode === 'cards') {
     return (
       <div className="min-h-screen w-full bg-background">
-        {/* Sticky header */}
+        {/* Sticky header - always visible */}
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -77,7 +77,7 @@ const ItinerariesPage = () => {
             </div>
           </div>
           
-          {/* Search */}
+          {/* Search - always fixed in header */}
           <div className="flex items-center bg-muted rounded-full px-4 py-2">
             <Search className="w-4 h-4 text-muted-foreground mr-3" />
             <Input
@@ -91,7 +91,23 @@ const ItinerariesPage = () => {
           </div>
         </div>
         
-        <AppStoreItineraryView itineraries={transformedItineraries} />
+        {/* Content - grid when searching, card view otherwise */}
+        {searchQuery ? (
+          <div className="p-3">
+            <div className="grid grid-cols-2 gap-3">
+              {filteredItineraries.map((itinerary) => (
+                <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
+              ))}
+            </div>
+            {filteredItineraries.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground text-sm">No itineraries found matching "{searchQuery}"</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <AppStoreItineraryView itineraries={transformedItineraries} />
+        )}
       </div>
     );
   }
