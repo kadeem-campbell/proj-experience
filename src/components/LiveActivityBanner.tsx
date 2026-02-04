@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Plus, Globe, Zap, Sparkles } from "lucide-react";
+import { ArrowRight, Globe, Zap, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { OnboardingFlow } from "@/components/OnboardingFlow";
 
 interface LiveActivityBannerProps {
   experienceCount: number;
@@ -17,10 +11,7 @@ interface LiveActivityBannerProps {
 export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps) => {
   const [planningNow, setPlanningNow] = useState(0);
   const [itinerariesCreated, setItinerariesCreated] = useState(0);
-  const [showEducationModal, setShowEducationModal] = useState(false);
-
-  // Check if user has seen the education modal before
-  const hasSeenEducation = localStorage.getItem('hasSeenTripEducation') === 'true';
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Initialize and oscillate "planning now" with natural daily fluctuation
   useEffect(() => {
@@ -60,15 +51,8 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
     return () => clearInterval(interval);
   }, []);
 
-  const handlePlanTripClick = () => {
-    if (!hasSeenEducation) {
-      setShowEducationModal(true);
-    }
-  };
-
-  const handleContinueToTrip = () => {
-    localStorage.setItem('hasSeenTripEducation', 'true');
-    setShowEducationModal(false);
+  const handleCreateItinerary = () => {
+    setShowOnboarding(true);
   };
 
   return (
@@ -120,9 +104,9 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
                 </Button>
               </Link>
             ) : (
-              <Button size="sm" onClick={handlePlanTripClick} className="gap-2">
-                <Sparkles className="w-4 h-4" />
-                Plan your trip
+              <Button size="sm" onClick={handleCreateItinerary} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Create Itinerary
               </Button>
             )}
           </div>
@@ -148,38 +132,16 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
               </Button>
             </Link>
           ) : (
-            <Button size="sm" onClick={handlePlanTripClick} className="gap-1.5 h-8 text-xs">
-              <Sparkles className="w-3.5 h-3.5" />
-              Plan trip
+            <Button size="sm" onClick={handleCreateItinerary} className="gap-1.5 h-8 text-xs">
+              <Plus className="w-3.5 h-3.5" />
+              Create Itinerary
             </Button>
           )}
         </div>
       </div>
 
-      {/* Education Modal */}
-      <Dialog open={showEducationModal} onOpenChange={setShowEducationModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center">
-              Welcome to Zanzibar
-            </DialogTitle>
-            <DialogDescription className="text-center pt-4 space-y-4">
-              <p className="text-lg italic text-foreground">
-                "Visiting Zanzibar is one thing, Experiencing it is another."
-              </p>
-              <p className="text-muted-foreground">
-                Browse unique experiences curated by locals and travelers. Tap the <Plus className="w-4 h-4 inline-block mx-1" /> button on any experience to add it to your personal trip itinerary.
-              </p>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center pt-4">
-            <Button onClick={handleContinueToTrip} className="gap-2">
-              Start Exploring
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Onboarding Flow */}
+      <OnboardingFlow open={showOnboarding} onOpenChange={setShowOnboarding} />
     </>
   );
 };
