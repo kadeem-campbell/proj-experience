@@ -98,12 +98,26 @@ export const ItinerarySidebar = () => {
   const [editName, setEditName] = useState("");
   const [itinerariesOpen, setItinerariesOpen] = useState(true);
   const [showOnboardingHint, setShowOnboardingHint] = useState(false);
+  const [highlightItineraries, setHighlightItineraries] = useState(false);
 
   useEffect(() => {
     const hasSeenSidebarGuide = localStorage.getItem('hasSeenSidebarGuide');
     if (!hasSeenSidebarGuide) {
       setShowOnboardingHint(true);
     }
+  }, []);
+
+  // Listen for event to open and highlight itineraries section
+  useEffect(() => {
+    const handleOpenItineraries = () => {
+      setItinerariesOpen(true);
+      setHighlightItineraries(true);
+      // Remove highlight after animation
+      setTimeout(() => setHighlightItineraries(false), 2000);
+    };
+    
+    window.addEventListener('openItinerariesSidebar', handleOpenItineraries);
+    return () => window.removeEventListener('openItinerariesSidebar', handleOpenItineraries);
   }, []);
 
   const dismissOnboardingHint = () => {
@@ -177,7 +191,10 @@ export const ItinerarySidebar = () => {
           <SidebarSeparator />
 
           {/* Itineraries */}
-          <SidebarGroup>
+          <SidebarGroup className={cn(
+            "transition-all duration-500",
+            highlightItineraries && "bg-primary/10 rounded-lg ring-2 ring-primary/30"
+          )}>
             {/* Onboarding hint for first-time users - auto dismisses */}
             {showOnboardingHint && !collapsed && (
               <AutoDismissHint onDismiss={dismissOnboardingHint} />
@@ -186,7 +203,10 @@ export const ItinerarySidebar = () => {
             <Collapsible open={itinerariesOpen} onOpenChange={setItinerariesOpen}>
               <div className="flex items-center justify-between pr-2">
                 <CollapsibleTrigger asChild>
-                  <button className="flex items-center gap-1 text-muted-foreground uppercase text-xs tracking-wider hover:text-foreground transition-colors p-2">
+                  <button className={cn(
+                    "flex items-center gap-1 text-muted-foreground uppercase text-xs tracking-wider hover:text-foreground transition-colors p-2",
+                    highlightItineraries && "text-primary font-semibold"
+                  )}>
                     {itinerariesOpen ? (
                       <ChevronDown className="w-3 h-3" />
                     ) : (

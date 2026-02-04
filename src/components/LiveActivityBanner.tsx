@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, Globe, Zap, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LiveActivityBannerProps {
   experienceCount: number;
@@ -12,6 +14,16 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
   const [planningNow, setPlanningNow] = useState(0);
   const [itinerariesCreated, setItinerariesCreated] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  
+  // Get sidebar context - may not exist if not wrapped in provider
+  let sidebarContext: ReturnType<typeof useSidebar> | null = null;
+  try {
+    sidebarContext = useSidebar();
+  } catch {
+    // Component is outside SidebarProvider
+  }
 
   // Initialize and oscillate "planning now" with natural daily fluctuation
   useEffect(() => {
@@ -55,6 +67,23 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
     setShowOnboarding(true);
   };
 
+  const handleViewTrip = () => {
+    // Dispatch event to tell sidebar to expand itineraries and highlight
+    window.dispatchEvent(new CustomEvent('openItinerariesSidebar'));
+    
+    // Open sidebar on mobile, expand on desktop
+    if (sidebarContext) {
+      if (isMobile) {
+        sidebarContext.setOpenMobile(true);
+      } else {
+        sidebarContext.setOpen(true);
+      }
+    }
+    
+    // Navigate to itinerary page
+    navigate('/itinerary');
+  };
+
   return (
     <>
 
@@ -88,12 +117,10 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
           {/* Right: CTA */}
           <div className="shrink-0">
             {experienceCount > 0 ? (
-              <Link to="/itinerary">
-                <Button size="sm" className="gap-2">
-                  View My Itinerary ({experienceCount})
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
+              <Button size="sm" className="gap-2" onClick={handleViewTrip}>
+                View My Itinerary ({experienceCount})
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             ) : (
               <Button size="sm" onClick={handleCreateItinerary} className="gap-2">
                 <Plus className="w-4 h-4" />
@@ -116,12 +143,10 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
           </div>
           
           {experienceCount > 0 ? (
-            <Link to="/itinerary">
-              <Button size="sm" className="gap-1.5 h-8 text-xs">
-                View Trip ({experienceCount})
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
-            </Link>
+            <Button size="sm" className="gap-1.5 h-8 text-xs" onClick={handleViewTrip}>
+              View Trip ({experienceCount})
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
           ) : (
             <Button size="sm" onClick={handleCreateItinerary} className="gap-1.5 h-8 text-xs">
               <Plus className="w-3.5 h-3.5" />
