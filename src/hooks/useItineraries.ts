@@ -214,12 +214,10 @@ export const useItineraries = () => {
     return () => subscription.unsubscribe();
   }, [loadItineraries]);
 
-  // Listen for cross-tab and same-tab updates (for unauthenticated users)
+  // Listen for cross-component updates (for BOTH authenticated and unauthenticated users)
   useEffect(() => {
-    if (userId) return; // Only for unauthenticated users
-
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
+      if (!userId && e.key === STORAGE_KEY && e.newValue) {
         setItineraries(JSON.parse(e.newValue));
       }
     };
@@ -247,6 +245,9 @@ export const useItineraries = () => {
   const saveItineraries = useCallback((newItineraries: Itinerary[]) => {
     // Update state immediately for instant UI
     setItineraries(newItineraries);
+    
+    // Always dispatch event to sync all hook instances immediately
+    window.dispatchEvent(new CustomEvent('itinerariesChanged', { detail: newItineraries }));
 
     if (userId) {
       // Save to database in background - don't await
@@ -260,7 +261,6 @@ export const useItineraries = () => {
       ).catch(err => console.error('Error saving itineraries:', err));
     } else {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newItineraries));
-      window.dispatchEvent(new CustomEvent('itinerariesChanged', { detail: newItineraries }));
     }
   }, [userId]);
 
