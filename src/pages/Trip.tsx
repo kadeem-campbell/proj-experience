@@ -1117,67 +1117,13 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           </div>
         </div>
 
-        {/* Main Content - Split View with mobile-first trip panel */}
-        <div className="flex-1 flex flex-col lg:flex-row">
-          {/* Mobile: Show trip planning panel ABOVE experiences when active */}
-          {isMobile && showTripView && (
-            <div className="bg-card/30 border-b border-border overflow-y-auto max-h-[60vh]">
-              <div className="p-4 sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border z-10">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    {isCreatingNewTrip ? "Your Generated Trip" : selectedTrip?.name || "Trip Schedule"}
-                  </h3>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => { setShowTripView(false); setIsCreatingNewTrip(false); }}
-                    className="gap-1"
-                  >
-                    <ChevronDown className="w-4 h-4" />
-                    Collapse
-                  </Button>
-                </div>
-                {isCreatingNewTrip && tripStartDate && (
-                  <>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {tripStartDate && tripEndDate 
-                        ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
-                        : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
-                    </p>
-                    <Button onClick={handleSaveTrip} className="w-full gap-2" disabled={Object.keys(generatedTrip).length === 0}>
-                      <Check className="w-4 h-4" />
-                      Save Trip
-                    </Button>
-                  </>
-                )}
-              </div>
-              
-              <div className="p-4">
-                {isCreatingNewTrip ? (
-                  Object.keys(generatedTrip).length > 0 ? (
-                    renderTripTimeline(generatedTrip, { editable: true })
-                  ) : (
-                    <div className="text-center py-8">
-                      <Rocket className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
-                      <p className="text-muted-foreground text-sm">Generating your trip schedule...</p>
-                    </div>
-                  )
-                ) : (
-                  renderTripTimeline(scheduledTripData)
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Left Side: Experiences */}
-          <div className={cn(
-            "flex-1 overflow-y-auto",
-            showTripView && !isMobile && "lg:w-[60%] border-r border-border"
-          )}>
-            {/* Search and Actions Bar */}
-            <div className="px-3 md:px-6 py-3 md:py-4 border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-              <div className="flex items-center justify-between gap-4">
+        {/* Main Content - Toggle View (Experiences OR Trip, not side-by-side) */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Toggle Header with Search and View Switch */}
+          <div className="px-3 md:px-6 py-3 md:py-4 border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+            <div className="flex items-center justify-between gap-4">
+              {/* Search Bar - only show in experiences view */}
+              {!showTripView && (
                 <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 flex-1 max-w-md">
                   <Search className="w-4 h-4 text-muted-foreground mr-2 md:mr-3" />
                   <Input
@@ -1188,65 +1134,87 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
                   />
                 </div>
-                
-                {/* Trip Selector with unified Make a Trip */}
+              )}
+              
+              {/* Trip header when in trip view */}
+              {showTripView && (
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    {isCreatingNewTrip ? "Your Generated Trip" : selectedTrip?.name || "Trip Schedule"}
+                  </h3>
+                  {(isCreatingNewTrip || selectedTrip) && (
+                    <p className="text-sm text-muted-foreground">
+                      {isCreatingNewTrip && tripStartDate && tripEndDate 
+                        ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
+                        : selectedTrip?.startDate && `${format(parseISO(selectedTrip.startDate), "MMM d")}${selectedTrip.endDate ? ` - ${format(parseISO(selectedTrip.endDate), "MMM d")}` : ''}`}
+                      {selectedTrip && ` · ${selectedTrip.experiences.length} activities`}
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              {/* Action buttons */}
+              <div className="flex items-center gap-2">
+                {/* Make a Trip button - only in experiences view */}
                 {isOwner && !showTripView && (
-                  <TripSelector
-                    trips={itinerary.trips || []}
-                    activeTripId={itinerary.activeTripId}
-                    onSelectTrip={handleSelectTrip}
-                    onDeleteTrip={handleDeleteTrip}
-                    onRenameTrip={handleRenameTrip}
-                    onDateRangeSelected={handleDateRangeSelected}
-                    className="hidden md:block"
-                  />
-                )}
-                
-                {/* Mobile Make a Trip button */}
-                {isOwner && !showTripView && isMobile && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button size="sm" className="gap-2">
-                        <Rocket className="w-4 h-4" />
-                        Make a Trip
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <div className="flex flex-col">
-                        <CalendarComponent
-                          mode="range"
-                          selected={{ from: tripStartDate, to: tripEndDate }}
-                          onSelect={(range) => {
-                            setTripStartDate(range?.from);
-                            setTripEndDate(range?.to);
-                            // Auto-trigger when both dates selected
-                            if (range?.from && range?.to) {
-                              handleDateRangeSelected(range.from, range.to);
-                            }
-                          }}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                          numberOfMonths={1}
-                        />
-                        {/* Single date confirm button */}
-                        {tripStartDate && !tripEndDate && (
-                          <div className="p-3 pt-0 border-t border-border">
-                            <Button 
-                              onClick={() => handleDateRangeSelected(tripStartDate, tripStartDate)} 
-                              size="sm" 
-                              className="w-full"
-                            >
-                              Use {format(tripStartDate, "MMM d")} only
-                            </Button>
+                  <>
+                    {/* Desktop TripSelector */}
+                    <TripSelector
+                      trips={itinerary.trips || []}
+                      activeTripId={itinerary.activeTripId}
+                      onSelectTrip={handleSelectTrip}
+                      onDeleteTrip={handleDeleteTrip}
+                      onRenameTrip={handleRenameTrip}
+                      onDateRangeSelected={handleDateRangeSelected}
+                      className="hidden md:block"
+                    />
+                    
+                    {/* Mobile Make a Trip button */}
+                    {isMobile && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button size="sm" className="gap-2">
+                            <Rocket className="w-4 h-4" />
+                            Make a Trip
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <div className="flex flex-col">
+                            <CalendarComponent
+                              mode="range"
+                              selected={{ from: tripStartDate, to: tripEndDate }}
+                              onSelect={(range) => {
+                                setTripStartDate(range?.from);
+                                setTripEndDate(range?.to);
+                                if (range?.from && range?.to) {
+                                  handleDateRangeSelected(range.from, range.to);
+                                }
+                              }}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                              className="p-3 pointer-events-auto"
+                              numberOfMonths={1}
+                            />
+                            {tripStartDate && !tripEndDate && (
+                              <div className="p-3 pt-0 border-t border-border">
+                                <Button 
+                                  onClick={() => handleDateRangeSelected(tripStartDate, tripStartDate)} 
+                                  size="sm" 
+                                  className="w-full"
+                                >
+                                  Use {format(tripStartDate, "MMM d")} only
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </>
                 )}
                 
-                {/* View Trip / Trips toggle - expand/collapse */}
+                {/* View Trip button - switch to trip view */}
                 {(itinerary.trips?.length || 0) > 0 && !showTripView && (
                   <Button 
                     variant="outline" 
@@ -1259,76 +1227,34 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   </Button>
                 )}
                 
-                {showTripView && !isMobile && (
+                {/* Back to Experiences button - switch back */}
+                {showTripView && (
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => { setShowTripView(false); setIsCreatingNewTrip(false); }}
                     className="gap-2"
                   >
-                    <ChevronDown className="w-4 h-4" />
-                    Collapse
+                    <LayoutGrid className="w-4 h-4" />
+                    Experiences
+                  </Button>
+                )}
+                
+                {/* Save Trip button when creating */}
+                {showTripView && isCreatingNewTrip && (
+                  <Button onClick={handleSaveTrip} size="sm" className="gap-2" disabled={Object.keys(generatedTrip).length === 0}>
+                    <Check className="w-4 h-4" />
+                    Save Trip
                   </Button>
                 )}
               </div>
             </div>
-
-            {/* Experiences Grid - matching spacing from Experiences page */}
-            <div className="p-3 md:p-6">
-              <div className={cn(
-                "grid gap-3 md:gap-4",
-                showTripView && !isMobile
-                  ? "grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
-                  : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-              )}>
-                {filteredExperiences.map(renderExperienceCard)}
-              </div>
-
-              {filteredExperiences.length === 0 && (
-                <div className="text-center py-12">
-                  <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                  <h3 className="font-medium mb-2">No experiences yet</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Start adding experiences to build your perfect trip
-                  </p>
-                  <Link to="/">
-                    <Button variant="outline" size="sm">
-                      Discover Experiences
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* Right Side: Trip Planning (Desktop Only) */}
-          {showTripView && !isMobile && (
-            <div className="lg:w-[40%] bg-card/30 overflow-y-auto">
-              <div className="p-4 md:p-6 sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border z-10">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    {isCreatingNewTrip ? "Your Generated Trip" : selectedTrip?.name || "Trip Schedule"}
-                  </h3>
-                </div>
-                {isCreatingNewTrip && tripStartDate && (
-                  <>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {tripStartDate && tripEndDate 
-                        ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d, yyyy")}`
-                        : tripStartDate && format(tripStartDate, "MMMM d, yyyy")}
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Edit times and reorder before saving
-                    </p>
-                    <Button onClick={handleSaveTrip} className="w-full gap-2" disabled={Object.keys(generatedTrip).length === 0}>
-                      <Check className="w-4 h-4" />
-                      Save Trip
-                    </Button>
-                  </>
-                )}
-              </div>
-              
+          {/* Content Area - Either Experiences OR Trip (not both) */}
+          <div className="flex-1 overflow-y-auto">
+            {showTripView ? (
+              /* Trip Timeline View - Full Width */
               <div className="p-4 md:p-6">
                 {isCreatingNewTrip ? (
                   Object.keys(generatedTrip).length > 0 ? (
@@ -1336,18 +1262,57 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   ) : (
                     <div className="text-center py-12">
                       <Rocket className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
-                      <p className="text-muted-foreground text-sm">
-                        Generating your trip schedule...
-                      </p>
+                      <p className="text-muted-foreground text-sm">Generating your trip schedule...</p>
                     </div>
                   )
                 ) : (
-                  renderTripTimeline(scheduledTripData)
+                  <>
+                    {/* Trip selector for multiple trips */}
+                    {(itinerary.trips?.length || 0) > 1 && (
+                      <div className="mb-6 flex flex-wrap gap-2">
+                        {itinerary.trips?.map((trip) => (
+                          <Button
+                            key={trip.id}
+                            variant={selectedTrip?.id === trip.id ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleSelectTrip(trip.id)}
+                            className="gap-2"
+                          >
+                            {trip.name}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                    {renderTripTimeline(scheduledTripData)}
+                  </>
                 )}
               </div>
-            </div>
-          )}
+            ) : (
+              /* Experiences Grid View - Full Width */
+              <div className="p-3 md:p-6">
+                <div className="grid gap-3 md:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                  {filteredExperiences.map(renderExperienceCard)}
+                </div>
+
+                {filteredExperiences.length === 0 && (
+                  <div className="text-center py-12">
+                    <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                    <h3 className="font-medium mb-2">No experiences yet</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Start adding experiences to build your perfect trip
+                    </p>
+                    <Link to="/">
+                      <Button variant="outline" size="sm">
+                        Discover Experiences
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
 
         {/* Spin Up Modal (for non-owners) */}
         <SpinUpModal 
