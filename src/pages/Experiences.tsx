@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
+import { TikTokExperienceView } from "@/components/TikTokExperienceView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicItinerariesData } from "@/data/itinerariesData";
-import { ArrowLeft, Search, Compass } from "lucide-react";
+import { ArrowLeft, Search, Compass, LayoutGrid, Play } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import experience images
 import partyImage from "@/assets/party-experience.jpg";
@@ -111,7 +113,9 @@ const getAllExperiences = () => {
 const ExperiencesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(24);
+  const [viewMode, setViewMode] = useState<'grid' | 'tiktok'>('tiktok');
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   
   const experiences = getAllExperiences();
   
@@ -144,6 +148,33 @@ const ExperiencesPage = () => {
     return () => observer.disconnect();
   }, [visibleCount, filteredExperiences.length]);
 
+  // Mobile TikTok view
+  if (isMobile && viewMode === 'tiktok' && !searchQuery) {
+    return (
+      <div className="h-screen w-full bg-black relative">
+        {/* Floating header */}
+        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-3 bg-gradient-to-b from-black/60 to-transparent">
+          <Link to="/">
+            <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-white hover:bg-white/20">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <h1 className="text-lg font-bold text-white">Experiences</h1>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full h-10 w-10 text-white hover:bg-white/20"
+            onClick={() => setViewMode('grid')}
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </Button>
+        </div>
+        
+        <TikTokExperienceView experiences={filteredExperiences} />
+      </div>
+    );
+  }
+
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
@@ -156,10 +187,22 @@ const ExperiencesPage = () => {
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <Compass className="w-6 h-6 text-primary" />
-              <h1 className="text-lg md:text-2xl font-bold">All Experiences</h1>
+              <Compass className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+              <h1 className="text-base md:text-2xl font-bold">All Experiences</h1>
             </div>
-            <span className="text-muted-foreground text-sm">({experiences.length})</span>
+            <span className="text-muted-foreground text-xs md:text-sm">({experiences.length})</span>
+            
+            {/* View toggle for mobile */}
+            {isMobile && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="ml-auto rounded-full h-8 w-8"
+                onClick={() => setViewMode(viewMode === 'grid' ? 'tiktok' : 'grid')}
+              >
+                {viewMode === 'grid' ? <Play className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
+              </Button>
+            )}
           </div>
           
           {/* Search */}
@@ -171,13 +214,14 @@ const ExperiencesPage = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search experiences..."
               className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm md:text-base placeholder:text-muted-foreground"
+              style={{ fontSize: '16px' }}
             />
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Grid - Responsive breakpoints */}
         <div className="flex-1 overflow-y-auto p-3 md:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
+          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
             {filteredExperiences.slice(0, visibleCount).map((experience) => (
               <ExperienceCard key={experience.id} {...experience} compact />
             ))}
