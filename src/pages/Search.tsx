@@ -308,24 +308,26 @@ const SearchPage = () => {
           onSearch={(q) => setSearchQuery(q)}
         />
 
-        {/* Fixed Search Header with Location & Tags */}
-        <FixedSearchHeader
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedCity={selectedCity}
-          onCitySelect={handleCitySelect}
-          selectedCategory={selectedCategory}
-          onCategorySelect={handleCategorySelect}
-          onMobileSearchClick={() => setMobileSearchOpen(true)}
-          isMobile={isMobile}
-        />
-
-        {/* Scrollable Content */}
-        <div 
+        {/* Scroll container (header + content) so sticky works reliably */}
+        <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-3 md:p-6"
+          className="flex-1 overflow-y-auto"
         >
+          {/* Fixed Search Header with Location & Tags */}
+          <FixedSearchHeader
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedCity={selectedCity}
+            onCitySelect={handleCitySelect}
+            selectedCategory={selectedCategory}
+            onCategorySelect={handleCategorySelect}
+            onMobileSearchClick={() => setMobileSearchOpen(true)}
+            isMobile={isMobile}
+          />
+
+          {/* Content */}
+          <div className="p-3 md:p-6">
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
 
@@ -460,6 +462,7 @@ const SearchPage = () => {
               )}
             </div>
           )}
+          </div>
         </div>
       </div>
     </MainLayout>
