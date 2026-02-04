@@ -61,66 +61,102 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
 
   return (
     <>
-      <div className="bg-card border border-border/50 rounded-xl p-4 mb-6 md:mb-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
-              </span>
-              <span className="text-sm font-medium text-success tabular-nums"><span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning now</span>
-            </div>
-            <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <Globe className="w-4 h-4" />
-                20 destinations
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-activity" />
-                {itinerariesCreated.toLocaleString()}+ itineraries created
-              </span>
-            </div>
-          </div>
-          
-          {/* Hero tagline - one line, separate from stats */}
-          <div className="mb-2 md:mb-0">
-            <h2 className="text-lg md:text-xl font-bold text-foreground leading-tight">
-              Visiting Zanzibar is one thing. Experiencing it is another.
+      <div className="bg-card border border-border/50 rounded-xl p-4 md:p-5 mb-6 md:mb-8">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex md:items-center md:justify-between gap-6">
+          {/* Left: Tagline */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-semibold text-foreground truncate">
+              Visiting Zanzibar is one thing. <span className="text-primary">Experiencing it is another.</span>
             </h2>
           </div>
           
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            
-            <div className="flex items-center gap-3">
-              {experienceCount > 0 ? (
-                <Link to="/itinerary">
-                  <Button size="sm" className="gap-2 md:hidden">
-                    My Trip ({experienceCount})
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                  <Button size="default" className="gap-2 hidden md:flex">
-                    View My Itinerary ({experienceCount})
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-              ) : hasSeenEducation ? (
-                <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg text-sm">
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Click + to start planning</span>
-                  <span className="sm:hidden">Tap + to add</span>
-                </div>
-              ) : (
-                <Button 
-                  size="sm" 
-                  onClick={handlePlanTripClick}
-                  className="gap-2"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Plan your trip
-                </Button>
-              )}
+          {/* Center: Live Stats */}
+          <div className="flex items-center gap-5 text-sm shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+              </span>
+              <span className="font-medium text-success tabular-nums">
+                <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning
+              </span>
             </div>
+            <span className="text-border">•</span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Globe className="w-3.5 h-3.5" />
+              20 destinations
+            </span>
+            <span className="text-border">•</span>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Zap className="w-3.5 h-3.5 text-activity" />
+              <span className="tabular-nums">{itinerariesCreated.toLocaleString()}</span>+ trips
+            </span>
+          </div>
+          
+          {/* Right: CTA */}
+          <div className="shrink-0">
+            {experienceCount > 0 ? (
+              <Link to="/itinerary">
+                <Button size="sm" className="gap-2">
+                  View My Itinerary ({experienceCount})
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            ) : hasSeenEducation ? (
+              <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg text-sm">
+                <Plus className="w-4 h-4" />
+                Click + to start planning
+              </div>
+            ) : (
+              <Button size="sm" onClick={handlePlanTripClick} className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                Plan your trip
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="md:hidden space-y-3">
+          {/* Top row: Live indicator + CTA */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+              </span>
+              <span className="text-sm font-medium text-success tabular-nums">
+                <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning now
+              </span>
+            </div>
+            
+            {experienceCount > 0 ? (
+              <Link to="/itinerary">
+                <Button size="sm" className="gap-1.5 h-8 text-xs">
+                  My Trip ({experienceCount})
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            ) : hasSeenEducation ? (
+              <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-lg text-xs">
+                <Plus className="w-3.5 h-3.5" />
+                Tap + to add
+              </div>
+            ) : (
+              <Button size="sm" onClick={handlePlanTripClick} className="gap-1.5 h-8 text-xs">
+                <Sparkles className="w-3.5 h-3.5" />
+                Plan trip
+              </Button>
+            )}
+          </div>
+          
+          {/* Bottom: Tagline */}
+          <div className="pt-1 border-t border-border/30">
+            <p className="text-base font-semibold text-foreground leading-snug">
+              Visiting Zanzibar is one thing.{" "}
+              <span className="text-primary">Experiencing it is another.</span>
+            </p>
           </div>
         </div>
       </div>
