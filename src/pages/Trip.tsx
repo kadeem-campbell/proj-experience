@@ -1182,7 +1182,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-start gap-2 mb-1">
                               <Plus className="w-4 h-4" />
-                              Add another trip
+                              {(itinerary.trips?.length || 0) > 0 ? "Add another trip" : "Pick dates"}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start" side="left">
