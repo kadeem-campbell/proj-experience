@@ -22,28 +22,41 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
   // Check if user has seen the education modal before
   const hasSeenEducation = localStorage.getItem('hasSeenTripEducation') === 'true';
 
-  // Initialize and oscillate "planning now" naturally (max 300)
+  // Initialize and oscillate "planning now" with natural daily fluctuation
   useEffect(() => {
-    // Start with a random value between 150-280
-    const initialPlanning = Math.floor(Math.random() * 130) + 150;
-    setPlanningNow(initialPlanning);
+    // Get hour of day for realistic fluctuation (more users during day)
+    const getTimeBasedPlanning = () => {
+      const hour = new Date().getHours();
+      // Peak hours: 10am-2pm and 6pm-10pm, lower at night
+      if (hour >= 10 && hour <= 14) return Math.floor(Math.random() * 80) + 180; // 180-260
+      if (hour >= 18 && hour <= 22) return Math.floor(Math.random() * 100) + 200; // 200-300
+      if (hour >= 6 && hour < 10) return Math.floor(Math.random() * 60) + 120; // 120-180
+      if (hour > 14 && hour < 18) return Math.floor(Math.random() * 70) + 150; // 150-220
+      return Math.floor(Math.random() * 50) + 60; // Night: 60-110
+    };
 
-    // Start with a random value between 1000-1500
-    const initialItineraries = Math.floor(Math.random() * 500) + 1000;
-    setItinerariesCreated(initialItineraries);
+    setPlanningNow(getTimeBasedPlanning());
+
+    // Calculate trips created based on "days since launch" + daily increment
+    // Base: 12,400 trips, grows ~200-400 per day
+    const daysSinceLaunch = Math.floor((Date.now() - new Date('2025-01-01').getTime()) / (1000 * 60 * 60 * 24));
+    const baseTrips = 12400 + (daysSinceLaunch * 280);
+    setItinerariesCreated(baseTrips + Math.floor(Math.random() * 100));
 
     const interval = setInterval(() => {
       setPlanningNow(prev => {
-        // Random walk: -5 to +5, clamped between 80 and 300
-        const delta = Math.floor(Math.random() * 11) - 5;
-        return Math.max(80, Math.min(300, prev + delta));
+        // More natural fluctuation: -15 to +15, with time-based bias
+        const hour = new Date().getHours();
+        const bias = (hour >= 8 && hour <= 21) ? 2 : -2; // Trend up during day, down at night
+        const delta = Math.floor(Math.random() * 31) - 15 + bias;
+        const min = 50;
+        const max = 350;
+        return Math.max(min, Math.min(max, prev + delta));
       });
 
-      // Occasionally bump itineraries created (only goes up, slowly)
-      if (Math.random() > 0.7) {
-        setItinerariesCreated(prev => prev + Math.floor(Math.random() * 3) + 1);
-      }
-    }, 3000);
+      // Trips always go up - add 1-3 every few seconds
+      setItinerariesCreated(prev => prev + Math.floor(Math.random() * 3) + 1);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
@@ -61,13 +74,13 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
 
   return (
     <>
-      {/* Netflix-style Hero Tagline */}
-      <div className="mb-4 md:mb-6">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight tracking-tight">
+      {/* Netflix-style Hero Tagline - more structured */}
+      <div className="mb-5 md:mb-8 space-y-1">
+        <h1 className="text-[1.75rem] sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground leading-[1.15] tracking-tight">
           Visiting Zanzibar is one thing.
         </h1>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
-          <span className="text-primary">Experiencing it is another.</span>
+        <h1 className="text-[1.75rem] sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-primary leading-[1.15] tracking-tight">
+          Experiencing it is another.
         </h1>
       </div>
 
@@ -89,7 +102,7 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
             <span className="text-border">•</span>
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <Globe className="w-3.5 h-3.5" />
-              20 destinations
+              5 destinations
             </span>
             <span className="text-border">•</span>
             <span className="flex items-center gap-1.5 text-muted-foreground">
