@@ -34,7 +34,7 @@ const AppStoreItineraryCard = ({ itinerary }: { itinerary: Itinerary }) => {
       to={`/itinerary/${itinerary.id}`}
       className="block w-full"
     >
-      <div className="relative w-full rounded-2xl overflow-hidden bg-card shadow-lg">
+      <div className="relative w-full rounded-2xl overflow-hidden">
         {/* Image - tall aspect ratio like App Store */}
         <div className="relative aspect-[4/5] w-full">
           <img
@@ -43,17 +43,15 @@ const AppStoreItineraryCard = ({ itinerary }: { itinerary: Itinerary }) => {
             className="w-full h-full object-cover"
           />
           
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+          {/* Gradient overlay - cleaner, no weird shade */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
           
-          {/* Stats badge - top right */}
-          <div className="absolute top-3 right-3 flex gap-2">
-            {itinerary.likes !== undefined && (
-              <div className="flex items-center gap-1 bg-black/40 backdrop-blur-xl px-3 py-1.5 rounded-full">
-                <Heart className="w-4 h-4 text-destructive fill-destructive" />
-                <span className="text-white text-xs font-medium">{itinerary.likes}</span>
-              </div>
-            )}
+          {/* Experience count badge - top right */}
+          <div className="absolute top-3 right-3">
+            <div className="flex items-center gap-1 bg-white/60 backdrop-blur-2xl border border-white/30 px-3 py-1.5 rounded-full shadow-sm">
+              <Users className="w-4 h-4 text-neutral-700" />
+              <span className="text-neutral-700 text-xs font-semibold">{itinerary.experienceCount} experiences</span>
+            </div>
           </div>
 
           {/* Content overlay at bottom */}
@@ -63,7 +61,7 @@ const AppStoreItineraryCard = ({ itinerary }: { itinerary: Itinerary }) => {
             </h2>
             
             {itinerary.location && (
-              <div className="flex items-center gap-2 text-white/80 text-sm">
+              <div className="flex items-center gap-2 text-white/90 text-sm">
                 <MapPin className="w-4 h-4" />
                 <span>{itinerary.location}</span>
               </div>
@@ -87,14 +85,10 @@ const AppStoreItineraryCard = ({ itinerary }: { itinerary: Itinerary }) => {
               )}
               
               {/* Trip details */}
-              <div className="flex items-center gap-3 text-white/80 text-sm">
+              <div className="flex items-center gap-2 text-white/80 text-sm">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
                   <span>{itinerary.dayCount} days</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span>{itinerary.experienceCount}</span>
                 </div>
               </div>
             </div>

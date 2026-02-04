@@ -47,6 +47,30 @@ import { AuthModal } from "@/components/AuthModal";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Auto-dismiss hint component
+const AutoDismissHint = ({ onDismiss }: { onDismiss: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onDismiss();
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  return (
+    <div className="mx-2 mb-3 p-3 rounded-lg bg-primary/10 border border-primary/20 relative animate-in fade-in duration-300">
+      <div className="flex items-start gap-2">
+        <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-foreground">Your Trip Planner</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Save experiences here to build your perfect Zanzibar itinerary
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const ItinerarySidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -154,25 +178,9 @@ export const ItinerarySidebar = () => {
 
           {/* Itineraries */}
           <SidebarGroup>
-            {/* Onboarding hint for first-time users */}
+            {/* Onboarding hint for first-time users - auto dismisses */}
             {showOnboardingHint && !collapsed && (
-              <div className="mx-2 mb-3 p-3 rounded-lg bg-primary/10 border border-primary/20 relative">
-                <button 
-                  onClick={dismissOnboardingHint}
-                  className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-                <div className="flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Your Trip Planner</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Save experiences here to build your perfect Zanzibar itinerary
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <AutoDismissHint onDismiss={dismissOnboardingHint} />
             )}
 
             <Collapsible open={itinerariesOpen} onOpenChange={setItinerariesOpen}>
@@ -209,17 +217,18 @@ export const ItinerarySidebar = () => {
                           value={newItineraryName}
                           onChange={(e) => setNewItineraryName(e.target.value)}
                           placeholder="Trip name..."
-                          className="h-8 text-sm"
+                          className="h-10 text-base"
+                          style={{ fontSize: '16px' }} // Prevent iOS zoom
                           onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                           autoFocus
                         />
-                        <Button size="icon" className="h-8 w-8 shrink-0" onClick={handleCreate}>
+                        <Button size="icon" className="h-10 w-10 shrink-0" onClick={handleCreate}>
                           <Check className="w-4 h-4" />
                         </Button>
                         <Button 
                           size="icon" 
                           variant="ghost" 
-                          className="h-8 w-8 shrink-0"
+                          className="h-10 w-10 shrink-0"
                           onClick={() => setIsCreating(false)}
                         >
                           <X className="w-4 h-4" />
@@ -236,7 +245,8 @@ export const ItinerarySidebar = () => {
                             <Input
                               value={editName}
                               onChange={(e) => setEditName(e.target.value)}
-                              className="h-8 text-sm"
+                              className="h-10 text-base"
+                              style={{ fontSize: '16px' }} // Prevent iOS zoom
                               onKeyDown={(e) => e.key === "Enter" && handleRename(itinerary.id)}
                               autoFocus
                             />

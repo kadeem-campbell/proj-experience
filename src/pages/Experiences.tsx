@@ -166,14 +166,6 @@ const ExperiencesPage = () => {
                 <p className="text-xs text-muted-foreground">{experiences.length} to explore</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="rounded-full h-9 w-9"
-              onClick={() => setViewMode('grid')}
-            >
-              <LayoutGrid className="w-5 h-5" />
-            </Button>
           </div>
           
           {/* Search */}
@@ -211,18 +203,6 @@ const ExperiencesPage = () => {
               <h1 className="text-base md:text-2xl font-bold">All Experiences</h1>
             </div>
             <span className="text-muted-foreground text-xs md:text-sm">({experiences.length})</span>
-            
-            {/* View toggle for mobile */}
-            {isMobile && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="ml-auto rounded-full h-8 w-8"
-                onClick={() => setViewMode(viewMode === 'grid' ? 'cards' : 'grid')}
-              >
-                {viewMode === 'grid' ? <Layers className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
-              </Button>
-            )}
           </div>
           
           {/* Search */}
