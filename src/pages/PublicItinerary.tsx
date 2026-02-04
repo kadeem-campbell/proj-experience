@@ -48,6 +48,7 @@ import {
   Sparkles,
   Eye,
   ChevronRight,
+  ChevronDown,
   GripVertical,
   X,
   Sunrise,
@@ -798,57 +799,60 @@ const PublicItinerary = () => {
                 
                 {/* Make it a Trip action with date range */}
                 {!showTripView && (
-                  <div className="flex items-center gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <CalendarIcon className="w-4 h-4" />
-                          {tripStartDate && tripEndDate 
-                            ? `${format(tripStartDate, "MMM d")} - ${format(tripEndDate, "MMM d")}`
-                            : tripStartDate 
-                              ? format(tripStartDate, "MMM d")
-                              : "Pick dates"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="end">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button className="gap-2">
+                        <Rocket className="w-4 h-4" />
+                        Make it a Trip
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <div className="flex flex-col">
                         <Calendar
                           mode="range"
                           selected={{ from: tripStartDate, to: tripEndDate }}
                           onSelect={(range) => {
                             setTripStartDate(range?.from);
                             setTripEndDate(range?.to);
+                            // Auto-generate when both dates are selected
+                            if (range?.from && range?.to) {
+                              generateTrip(range.from, range.to);
+                            }
                           }}
                           disabled={(date) => date < new Date()}
                           initialFocus
                           className="p-3 pointer-events-auto"
                           numberOfMonths={2}
                         />
-                      </PopoverContent>
-                    </Popover>
-                    
-                    <Button 
-                      onClick={handleMakeItATrip} 
-                      disabled={!tripStartDate || isGenerating}
-                      className="gap-2"
-                    >
-                      <Rocket className="w-4 h-4" />
-                      {isGenerating ? "Generating..." : "Make it a Trip"}
-                    </Button>
-                  </div>
+                        {/* Single date confirm button */}
+                        {tripStartDate && !tripEndDate && (
+                          <div className="p-3 pt-0 border-t border-border">
+                            <Button 
+                              onClick={() => generateTrip(tripStartDate, tripStartDate)} 
+                              size="sm" 
+                              className="w-full"
+                            >
+                              Use {format(tripStartDate, "MMM d")} only
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
                 
                 {showTripView && (
-                  <Button variant="ghost" size="sm" onClick={() => setShowTripView(false)}>
-                    <X className="w-4 h-4 mr-2" />
-                    Close Trip View
+                  <Button variant="outline" size="sm" onClick={() => setShowTripView(false)} className="gap-2">
+                    <ChevronDown className="w-4 h-4" />
+                    Collapse
                   </Button>
                 )}
               </div>
             </div>
 
-            {/* Experiences Grid */}
+            {/* Experiences Grid - matching spacing from Experiences page */}
             <div className="p-3 md:p-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                 {filteredExperiences.map(renderExperienceCard)}
               </div>
 

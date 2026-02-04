@@ -1128,8 +1128,14 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     <Sparkles className="w-5 h-5 text-primary" />
                     {isCreatingNewTrip ? "Your Generated Trip" : selectedTrip?.name || "Trip Schedule"}
                   </h3>
-                  <Button variant="ghost" size="sm" onClick={() => { setShowTripView(false); setIsCreatingNewTrip(false); }}>
-                    <X className="w-4 h-4" />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => { setShowTripView(false); setIsCreatingNewTrip(false); }}
+                    className="gap-1"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                    Collapse
                   </Button>
                 </div>
                 {isCreatingNewTrip && tripStartDate && (
@@ -1206,36 +1212,71 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
-                      <CalendarComponent
-                        mode="range"
-                        selected={{ from: tripStartDate, to: tripEndDate }}
-                        onSelect={(range) => {
-                          if (range?.from && range?.to) {
-                            handleDateRangeSelected(range.from, range.to);
-                          }
-                        }}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                        numberOfMonths={1}
-                      />
+                      <div className="flex flex-col">
+                        <CalendarComponent
+                          mode="range"
+                          selected={{ from: tripStartDate, to: tripEndDate }}
+                          onSelect={(range) => {
+                            setTripStartDate(range?.from);
+                            setTripEndDate(range?.to);
+                            // Auto-trigger when both dates selected
+                            if (range?.from && range?.to) {
+                              handleDateRangeSelected(range.from, range.to);
+                            }
+                          }}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                          numberOfMonths={1}
+                        />
+                        {/* Single date confirm button */}
+                        {tripStartDate && !tripEndDate && (
+                          <div className="p-3 pt-0 border-t border-border">
+                            <Button 
+                              onClick={() => handleDateRangeSelected(tripStartDate, tripStartDate)} 
+                              size="sm" 
+                              className="w-full"
+                            >
+                              Use {format(tripStartDate, "MMM d")} only
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </PopoverContent>
                   </Popover>
                 )}
                 
+                {/* View Trip / Trips toggle - expand/collapse */}
+                {(itinerary.trips?.length || 0) > 0 && !showTripView && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowTripView(true)}
+                    className="gap-2"
+                  >
+                    <CalendarDays className="w-4 h-4" />
+                    {(itinerary.trips?.length || 0) === 1 ? "View Trip" : `Trips (${itinerary.trips?.length})`}
+                  </Button>
+                )}
+                
                 {showTripView && !isMobile && (
-                  <Button variant="ghost" size="sm" onClick={() => { setShowTripView(false); setIsCreatingNewTrip(false); }}>
-                    <X className="w-4 h-4 mr-2" />
-                    Close Trip View
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => { setShowTripView(false); setIsCreatingNewTrip(false); }}
+                    className="gap-2"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                    Collapse
                   </Button>
                 )}
               </div>
             </div>
 
-            {/* Experiences Grid */}
+            {/* Experiences Grid - matching spacing from Experiences page */}
             <div className="p-3 md:p-6">
               <div className={cn(
-                "grid gap-2 md:gap-4",
+                "grid gap-3 md:gap-4",
                 showTripView && !isMobile
                   ? "grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
                   : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
