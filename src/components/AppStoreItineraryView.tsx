@@ -31,7 +31,7 @@ export const AppStoreItineraryView = ({ itineraries }: AppStoreItineraryViewProp
 const AppStoreItineraryCard = ({ itinerary }: { itinerary: Itinerary }) => {
   return (
     <Link 
-      to={`/itinerary/${itinerary.id}`}
+      to={`/public-itinerary/${itinerary.id}`}
       className="block w-full"
     >
       <div className="relative w-full rounded-2xl overflow-hidden">
