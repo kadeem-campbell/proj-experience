@@ -468,7 +468,7 @@ export const useItineraries = () => {
     const baseUrl = (hostname === 'localhost' || hostname === '127.0.0.1')
       ? window.location.origin 
       : 'https://swam.app';
-    return `${baseUrl}/itinerary/${itineraryId}`;
+    return `${baseUrl}/trip/${itineraryId}`;
   }, []);
 
   const copyItinerary = useCallback((sourceItinerary: Itinerary, newName?: string, targetItineraryId?: string) => {
