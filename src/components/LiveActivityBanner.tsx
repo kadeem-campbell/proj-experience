@@ -91,31 +91,16 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
 
   return (
     <>
-
-      {/* Live Activity Bar */}
+      {/* CTA Bar - Clean, minimal */}
       <div className="bg-card border border-border/50 rounded-xl p-3 md:p-4 mb-6 md:mb-8">
-        {/* Desktop Layout */}
-        <div className="hidden md:flex md:items-center md:justify-between gap-6">
-          {/* Left: Live Stats */}
-          <div className="flex items-center gap-5 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
-              </span>
-              <span className="font-medium text-success tabular-nums">
-                <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning now
-              </span>
-            </div>
-            <span className="text-border">•</span>
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Globe className="w-3.5 h-3.5" />
-              5 destinations
-            </span>
-            <span className="text-border">•</span>
+        <div className="flex items-center justify-between">
+          {/* Left: Trips created stat */}
+          <div className="flex items-center gap-2 text-sm">
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <Zap className="w-3.5 h-3.5 text-activity" />
-              <span className="tabular-nums">{itinerariesCreated.toLocaleString()}</span>+ trips created
+              <span className="tabular-nums font-medium">{itinerariesCreated.toLocaleString()}</span>
+              <span className="hidden sm:inline">+ trips created</span>
+              <span className="sm:hidden">trips</span>
             </span>
           </div>
           
@@ -123,41 +108,19 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
           <div className="shrink-0">
             {experienceCount > 0 ? (
               <Button size="sm" className="gap-2" onClick={handleViewTrip}>
-                View My Itinerary ({experienceCount})
+                <span className="hidden sm:inline">View My Itinerary</span>
+                <span className="sm:hidden">View Trip</span>
+                <span>({experienceCount})</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
             ) : (
               <Button size="sm" onClick={handleCreateItinerary} className="gap-2">
                 <Plus className="w-4 h-4" />
-                Create Itinerary
+                <span className="hidden sm:inline">Create Itinerary</span>
+                <span className="sm:hidden">Create</span>
               </Button>
             )}
           </div>
-        </div>
-
-        {/* Mobile Layout - Simplified with just CTA */}
-        <div className="md:hidden flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
-            </span>
-            <span className="text-sm font-medium text-success tabular-nums">
-              <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning
-            </span>
-          </div>
-          
-          {experienceCount > 0 ? (
-            <Button size="sm" className="gap-1.5 h-8 text-xs" onClick={handleViewTrip}>
-              View Trip ({experienceCount})
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          ) : (
-            <Button size="sm" onClick={handleCreateItinerary} className="gap-1.5 h-8 text-xs">
-              <Plus className="w-3.5 h-3.5" />
-              Create
-            </Button>
-          )}
         </div>
       </div>
 
