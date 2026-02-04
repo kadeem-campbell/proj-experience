@@ -371,10 +371,10 @@ const SearchPage = () => {
             {isMobile ? (
               <button
                 onClick={() => setMobileSearchOpen(true)}
-                className="flex items-center flex-1 bg-muted/60 border border-border/50 rounded-full px-4 py-3 text-left"
+                className="flex items-center flex-1 min-w-0 bg-muted/60 border border-border/50 rounded-full px-4 py-3.5 text-left"
               >
                 <Search className="w-5 h-5 text-foreground/70 mr-3 shrink-0" />
-                <span className="text-foreground/50 text-base">
+                <span className="text-foreground/50 text-base truncate">
                   {searchQuery || "What do you want to explore?"}
                 </span>
               </button>
