@@ -60,7 +60,7 @@ export const FixedSearchHeader = ({
   };
 
   return (
-    <div className="fixed top-12 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
+    <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
       {/* Search bar row */}
       <div className="px-3 md:px-6 py-3">
         <div className="flex items-center gap-2 max-w-4xl mx-auto md:mx-0">

@@ -285,7 +285,7 @@ const SearchPage = () => {
 
   if (loading) {
     return (
-      <MainLayout showSmartHeader={false}>
+      <MainLayout>
         <div className="flex items-center justify-center h-full">
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -297,7 +297,7 @@ const SearchPage = () => {
   }
 
   return (
-    <MainLayout showSmartHeader={true}>
+    <MainLayout>
       <div className="flex flex-col h-full">
         {/* Mobile Search Overlay */}
         <MobileSearchOverlay
@@ -320,11 +320,11 @@ const SearchPage = () => {
           isMobile={isMobile}
         />
 
-        {/* Scrollable Content - add top padding for fixed headers (smart header 12 + search header ~24) */}
+        {/* Scrollable Content */}
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-3 md:p-6 pt-36 md:pt-36"
+          className="flex-1 overflow-y-auto p-3 md:p-6"
         >
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
