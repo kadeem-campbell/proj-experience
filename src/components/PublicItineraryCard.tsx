@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Layers, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Layers, Heart } from "lucide-react";
 import { Itinerary } from "@/hooks/useItineraries";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PublicItineraryCardProps {
   itinerary: Itinerary;
@@ -12,6 +13,7 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
   const [liked, setLiked] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
 
   // Get all images from experiences
   const images = itinerary.experiences?.map(exp => exp.videoThumbnail).filter(Boolean) || [];
@@ -47,11 +49,14 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container with carousel */}
-        <div className="relative aspect-[3/2] overflow-hidden rounded-2xl bg-muted">
+        {/* Image container - TikTok square ratio on mobile, 3:2 on desktop */}
+        <div className={cn(
+          "relative overflow-hidden rounded-2xl bg-muted",
+          isMobile ? "aspect-[4/5]" : "aspect-[3/2]"
+        )}>
           {allImages.length > 0 ? (
             <img 
-              src={allImages[currentIndex]} 
+              src={isMobile ? allImages[0] : allImages[currentIndex]} 
               alt={itinerary.name}
               className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
             />
@@ -60,7 +65,6 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
               <Layers className="w-10 h-10 text-primary/40" />
             </div>
           )}
-
 
           {/* Heart button - always visible, Vision Pro style */}
           <button
@@ -75,26 +79,32 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
             />
           </button>
 
-          {/* Navigation arrows - Vision Pro style */}
-          {hasMultipleImages && isHovered && (
+          {/* Experience count badge - always visible */}
+          <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-white/60 backdrop-blur-2xl shadow-sm border border-white/30 flex items-center gap-1">
+            <Layers className="w-3 h-3 text-neutral-700" />
+            <span className="text-xs font-medium text-neutral-700">{experienceCount}</span>
+          </div>
+
+          {/* Navigation arrows - Desktop only, Vision Pro style */}
+          {!isMobile && hasMultipleImages && isHovered && (
             <>
               <button
                 onClick={handlePrev}
                 className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur-2xl shadow-sm border border-white/30 flex items-center justify-center hover:bg-white/90 transition-colors"
               >
-                <ChevronLeft className="w-5 h-5 text-neutral-700" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-700"><path d="m15 18-6-6 6-6"/></svg>
               </button>
               <button
                 onClick={handleNext}
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 backdrop-blur-2xl shadow-sm border border-white/30 flex items-center justify-center hover:bg-white/90 transition-colors"
               >
-                <ChevronRight className="w-5 h-5 text-neutral-700" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-700"><path d="m9 18 6-6-6-6"/></svg>
               </button>
             </>
           )}
 
-          {/* Pagination dots - Vision Pro style - hover only */}
-          {hasMultipleImages && isHovered && (
+          {/* Pagination dots - Desktop only, Vision Pro style - hover only */}
+          {!isMobile && hasMultipleImages && isHovered && (
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/50 backdrop-blur-2xl">
               {allImages.map((_, idx) => (
                 <button

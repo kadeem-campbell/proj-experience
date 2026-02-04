@@ -437,8 +437,18 @@ const SearchPage = () => {
           {/* Top Itineraries Section */}
           {!selectedCity && filteredItineraries.length > 0 && (
             <div className="mb-6 md:mb-10">
-              <h2 className="text-lg md:text-xl font-bold mb-4">Top Itineraries</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:text-foreground text-sm"
+                  onClick={() => navigate('/itineraries')}
+                >
+                  View all
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 {filteredItineraries.slice(0, 4).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
@@ -449,8 +459,18 @@ const SearchPage = () => {
           {/* All Experiences Section with Infinite Scroll */}
           {!selectedCity && filteredExperiences.length > 0 && (
             <div className="mb-6 md:mb-10">
-              <h2 className="text-lg md:text-xl font-bold mb-4">All Experiences</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:text-foreground text-sm"
+                  onClick={() => {/* Scroll to load more or navigate */}}
+                >
+                  View all
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
