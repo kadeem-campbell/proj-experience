@@ -91,12 +91,36 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
 
   return (
     <>
-      {/* CTA Bar - Clean, minimal */}
+      {/* CTA Bar */}
       <div className="bg-card border border-border/50 rounded-xl p-3 md:p-4 mb-6 md:mb-8">
-        <div className="flex items-center justify-between">
-          {/* Left: Trips created stat */}
-          <div className="flex items-center gap-2 text-sm">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left: Live Stats */}
+          <div className="flex items-center gap-3 lg:gap-5 text-sm min-w-0">
+            {/* Planning now - desktop only */}
+            <div className="hidden lg:flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+              </span>
+              <span className="font-medium text-success tabular-nums whitespace-nowrap">
+                {planningNow.toLocaleString()} planning now
+              </span>
+            </div>
+            
+            {/* Separator - desktop only */}
+            <span className="hidden lg:block text-border">•</span>
+            
+            {/* Destinations - desktop only */}
+            <span className="hidden lg:flex items-center gap-1.5 text-muted-foreground whitespace-nowrap">
+              <Globe className="w-3.5 h-3.5" />
+              5 destinations
+            </span>
+            
+            {/* Separator - desktop only */}
+            <span className="hidden lg:block text-border">•</span>
+            
+            {/* Trips created - always visible */}
+            <span className="flex items-center gap-1.5 text-muted-foreground whitespace-nowrap">
               <Zap className="w-3.5 h-3.5 text-activity" />
               <span className="tabular-nums font-medium">{itinerariesCreated.toLocaleString()}</span>
               <span className="hidden sm:inline">+ trips created</span>
