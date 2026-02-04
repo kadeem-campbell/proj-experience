@@ -65,6 +65,9 @@ export const MobileSearchOverlay = ({
     if (searchQuery.trim()) {
       addToRecentSearches(searchQuery);
       onSearch(searchQuery);
+      // Scroll to top after search
+      window.scrollTo({ top: 0 });
+      document.querySelector('main')?.scrollTo({ top: 0 });
       onClose();
     }
   };
@@ -73,6 +76,9 @@ export const MobileSearchOverlay = ({
     onSearchChange(query);
     addToRecentSearches(query);
     onSearch(query);
+    // Scroll to top after search
+    window.scrollTo({ top: 0 });
+    document.querySelector('main')?.scrollTo({ top: 0 });
     onClose();
   };
 

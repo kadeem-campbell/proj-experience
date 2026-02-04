@@ -52,9 +52,13 @@ export const OnboardingFlow = ({ open, onOpenChange }: OnboardingFlowProps) => {
           allExperiencesHeading.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         
-        // Show the add experiences hint after scroll
+        // Show the add experiences hint after scroll, then auto-dismiss
         setTimeout(() => {
           setStep("add-experiences");
+          // Auto-dismiss after 4 seconds
+          setTimeout(() => {
+            handleComplete();
+          }, 4000);
         }, 800);
       }, 2000);
     } catch (error) {

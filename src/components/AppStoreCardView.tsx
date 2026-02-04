@@ -57,10 +57,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
   };
 
   const handleAddSuccess = () => {
-    toast({
-      title: "Added to itinerary",
-      description: `${experience.title} has been added to your trip`,
-    });
+    // No toast - optimistic UI update only
   };
 
   return (
@@ -68,7 +65,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
       to={`/experience/${experience.id}`}
       className="block w-full"
     >
-      <div className="relative w-full rounded-2xl overflow-hidden bg-card shadow-lg">
+      <div className="relative w-full rounded-2xl overflow-hidden">
         {/* Image - tall aspect ratio like App Store */}
         <div className="relative aspect-[4/5] w-full">
           <img
@@ -77,12 +74,12 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
             className="w-full h-full object-cover"
           />
           
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+          {/* Gradient overlay - cleaner, no weird shade */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
           
           {/* Category badge */}
           <div className="absolute top-3 left-3">
-            <span className="bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
+            <span className="bg-white/90 text-foreground px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
               {experience.category}
             </span>
           </div>
@@ -91,20 +88,20 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
           <div className="absolute top-3 right-3 flex gap-2">
             <button
               onClick={handleLikeClick}
-              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl flex items-center justify-center"
+              className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-2xl border border-white/30 flex items-center justify-center shadow-sm"
             >
               <Heart 
                 className={cn(
                   "w-5 h-5 transition-colors",
-                  liked ? "fill-destructive text-destructive" : "text-white"
+                  liked ? "fill-destructive text-destructive" : "text-neutral-700"
                 )} 
               />
             </button>
             
             <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
               {inItinerary ? (
-                <div className="w-10 h-10 rounded-full bg-success/40 backdrop-blur-xl flex items-center justify-center">
-                  <Check className="w-5 h-5 text-success" />
+                <div className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-2xl border border-white/30 flex items-center justify-center shadow-sm">
+                  <Check className="w-5 h-5 text-green-600" />
                 </div>
               ) : (
                 <ItinerarySelector
@@ -112,8 +109,8 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
                   experienceData={experienceData}
                   onAdd={handleAddSuccess}
                 >
-                  <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-xl flex items-center justify-center cursor-pointer">
-                    <Plus className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-2xl border border-white/30 flex items-center justify-center shadow-sm cursor-pointer hover:bg-white/80 transition-colors">
+                    <Plus className="w-5 h-5 text-neutral-700" />
                   </div>
                 </ItinerarySelector>
               )}
@@ -126,7 +123,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
               {experience.title}
             </h2>
             
-            <div className="flex items-center gap-2 text-white/80 text-sm">
+            <div className="flex items-center gap-2 text-white/90 text-sm">
               <MapPin className="w-4 h-4" />
               <span>{experience.location}</span>
             </div>

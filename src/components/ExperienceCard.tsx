@@ -65,10 +65,7 @@ export const ExperienceCard = ({
   };
 
   const handleAddSuccess = () => {
-    toast({
-      title: "Added to itinerary",
-      description: `${title} has been added to your trip`,
-    });
+    // No toast - optimistic UI update only
   };
 
   const handleLikeClick = (e: React.MouseEvent) => {
@@ -123,16 +120,13 @@ export const ExperienceCard = ({
             />
           </button>
           
-          {/* Add to Itinerary Button - Vision Pro style, shows on hover */}
+          {/* Add to Itinerary Button - Vision Pro style, always visible */}
           <div
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
             }}
-            className={cn(
-              "absolute bottom-2 right-2 transition-all duration-200",
-              isHovered ? "opacity-100" : "opacity-0"
-            )}
+            className="absolute bottom-2 right-2"
           >
             {inItinerary ? (
               <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/70 backdrop-blur-2xl border border-white/30 shadow-sm">

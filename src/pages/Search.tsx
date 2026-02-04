@@ -331,11 +331,10 @@ const SearchPage = () => {
                 <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
                 <Button 
                   variant="ghost" 
-                  size="sm" 
-                  className="text-muted-foreground hover:text-foreground text-sm"
+                  className="text-muted-foreground hover:text-foreground text-sm md:text-base font-medium px-4 py-2 h-auto"
                   onClick={() => navigate('/itineraries')}
                 >
-                  View all
+                  View all →
                 </Button>
               </div>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -353,11 +352,10 @@ const SearchPage = () => {
                 <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
                 <Button 
                   variant="ghost" 
-                  size="sm" 
-                  className="text-muted-foreground hover:text-foreground text-sm"
+                  className="text-muted-foreground hover:text-foreground text-sm md:text-base font-medium px-4 py-2 h-auto"
                   onClick={() => navigate('/experiences')}
                 >
-                  View all
+                  View all →
                 </Button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
@@ -394,29 +392,7 @@ const SearchPage = () => {
             </div>
           )}
 
-          {/* City Category Rows - When a city is selected but no category */}
-          {selectedCity && !selectedCategory && (
-            <div className="mb-6 md:mb-10">
-              <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">
-                Explore {selectedCity.name}
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
-                {selectedCity.categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => handleCategorySelect(cat.name)}
-                    className="relative h-20 md:h-24 rounded-lg overflow-hidden group transition-transform hover:scale-[1.02]"
-                    style={{ backgroundColor: cat.color }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/30" />
-                    <span className="absolute top-2 left-2 md:top-3 md:left-3 font-bold text-white text-sm md:text-base">
-                      {cat.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Removed Explore City colored cards section per user request */}
 
           {/* Filtered Experiences Section - Only show when city/category is selected */}
           {(selectedCity || selectedCategory || searchQuery) && (
