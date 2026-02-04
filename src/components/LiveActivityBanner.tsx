@@ -37,11 +37,10 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
 
     setPlanningNow(getTimeBasedPlanning());
 
-    // Calculate trips created based on "days since launch" + daily increment
-    // Base: 12,400 trips, grows ~200-400 per day
-    const daysSinceLaunch = Math.floor((Date.now() - new Date('2025-01-01').getTime()) / (1000 * 60 * 60 * 24));
-    const baseTrips = 12400 + (daysSinceLaunch * 280);
-    setItinerariesCreated(baseTrips + Math.floor(Math.random() * 100));
+    // Start trips at 1,231 base, grows slowly per day
+    const daysSinceLaunch = Math.floor((Date.now() - new Date('2026-02-01').getTime()) / (1000 * 60 * 60 * 24));
+    const baseTrips = 1231 + (daysSinceLaunch * 15);
+    setItinerariesCreated(baseTrips + Math.floor(Math.random() * 10));
 
     const interval = setInterval(() => {
       setPlanningNow(prev => {
@@ -120,11 +119,6 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
-            ) : hasSeenEducation ? (
-              <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg text-sm">
-                <Plus className="w-4 h-4" />
-                Click + to start planning
-              </div>
             ) : (
               <Button size="sm" onClick={handlePlanTripClick} className="gap-2">
                 <Sparkles className="w-4 h-4" />
@@ -153,11 +147,6 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
                 <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
-          ) : hasSeenEducation ? (
-            <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-lg text-xs">
-              <Plus className="w-3.5 h-3.5" />
-              Tap + to add
-            </div>
           ) : (
             <Button size="sm" onClick={handlePlanTripClick} className="gap-1.5 h-8 text-xs">
               <Sparkles className="w-3.5 h-3.5" />
