@@ -24,40 +24,23 @@ export const SearchBar = ({ onSearch, selectedCity, onCityChange }: SearchBarPro
 
   return (
     <div className="max-w-4xl mx-auto mb-8">
-      {/* City Selector */}
-      <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
-        <MapPin className="w-4 h-4" />
-        <span>Exploring</span>
-        <select 
-          value={selectedCity}
-          onChange={(e) => onCityChange(e.target.value)}
-          className="bg-transparent border-none text-accent font-medium cursor-pointer hover:text-primary transition-colors"
-        >
-          <option value="Dar Es Salaam">Dar Es Salaam</option>
-          <option value="New York">New York</option>
-          <option value="London">London</option>
-          <option value="Tokyo">Tokyo</option>
-          <option value="Paris">Paris</option>
-        </select>
-      </div>
-
       {/* Main Search Bar */}
-      <div className="relative bg-muted rounded-2xl p-6 border border-border">
+      <div className="relative bg-muted/60 rounded-2xl p-6 border border-border/50">
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-foreground/70 w-5 h-5" />
             <Input
               type="text"
               value={searchQuery}
               onChange={(e) => { const val = e.target.value; setSearchQuery(val); if (val.trim() === '') onSearch(''); }}
               onKeyPress={handleKeyPress}
-              placeholder='Tell me what you want... e.g., "Party with fish"'
-              className="pl-12 pr-4 py-6 text-lg bg-transparent border-none focus:ring-0 placeholder:text-muted-foreground"
+              placeholder='What do you want to explore?'
+              className="pl-12 pr-4 py-7 text-lg bg-background/40 border border-border/60 rounded-xl focus:ring-1 focus:ring-accent/50 placeholder:text-foreground/50"
             />
           </div>
           <Button
             onClick={handleSearch}
-            className="rounded-full p-3 bg-accent hover:bg-accent/90 text-accent-foreground"
+            className="rounded-full p-3.5 bg-accent hover:bg-accent/90 text-accent-foreground"
           >
             <ArrowRight className="w-6 h-6" />
           </Button>
