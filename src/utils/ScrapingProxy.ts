@@ -32,9 +32,12 @@ export class ScrapingProxy {
       let oembedUrl = '';
       
       if (platform === 'tiktok') {
+        // TikTok oEmbed is publicly accessible
         oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
       } else {
-        oembedUrl = `https://graph.facebook.com/v18.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=your_access_token`;
+        // Instagram oEmbed requires server-side implementation with proper API token
+        // TODO: Implement via edge function with INSTAGRAM_ACCESS_TOKEN secret
+        throw new Error('Instagram oEmbed requires server-side implementation. Please use an edge function with proper authentication.');
       }
 
       const response = await fetch(oembedUrl);
