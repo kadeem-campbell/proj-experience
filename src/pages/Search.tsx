@@ -155,7 +155,7 @@ const ItineraryCarousel = ({
   };
 
   return (
-    <div className="mb-6 md:mb-10 overflow-hidden">
+    <div className="mb-6 md:mb-10">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
         <div className="flex items-center gap-3">
@@ -185,12 +185,12 @@ const ItineraryCarousel = ({
       </div>
       <div 
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {itineraries.map((itinerary) => (
-          <div key={itinerary.id} className="flex-shrink-0 w-[180px] sm:w-[200px]">
-            <PublicItineraryCard itinerary={itinerary} compact />
+          <div key={itinerary.id} className="flex-shrink-0 w-[260px] sm:w-[280px]">
+            <PublicItineraryCard itinerary={itinerary} />
           </div>
         ))}
       </div>
@@ -484,7 +484,7 @@ const SearchPage = () => {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-3 md:p-6"
+          className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-6"
         >
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
@@ -501,7 +501,7 @@ const SearchPage = () => {
           {!selectedCity && filteredExperiences.length > 0 && (
             <div id="all-experiences-section" className="mb-6 md:mb-10">
               <h2 className="text-lg md:text-xl font-bold mb-4">All Experiences</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3">
                 {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
