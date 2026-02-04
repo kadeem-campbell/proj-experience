@@ -167,20 +167,22 @@ const ItineraryCarousel = ({
 
   return (
     <div className="mb-6 md:mb-10">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
-        <div className="flex items-center gap-3">
-          <button 
+      <div className="flex items-center justify-between gap-3 mb-4 min-w-0">
+        <h2 className="text-lg md:text-xl font-bold min-w-0 truncate">Top Itineraries</h2>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
             onClick={onSeeAll}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            type="button"
           >
             Show All
           </button>
-          <div className="flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1">
             <button
               onClick={() => scrollByDir("left")}
               disabled={!canScrollLeft}
               className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              type="button"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -188,16 +190,17 @@ const ItineraryCarousel = ({
               onClick={() => scrollByDir("right")}
               disabled={!canScrollRight}
               className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              type="button"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
-      <div className="overflow-hidden">
+      <div className="overflow-hidden min-w-0">
         <div 
           ref={scrollRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1 -mx-3 px-3 md:mx-0 md:px-0"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
         {itineraries.map((itinerary) => (
@@ -222,20 +225,22 @@ const ExperienceCarousel = ({
 
   return (
     <div id="all-experiences-section" className="mb-6 md:mb-10">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 mb-4 min-w-0">
+        <h2 className="text-lg md:text-xl font-bold min-w-0 truncate">All Experiences</h2>
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onSeeAll}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            type="button"
           >
             Show All
           </button>
-          <div className="flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1">
             <button
               onClick={() => scrollByDir("left")}
               disabled={!canScrollLeft}
               className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              type="button"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -243,6 +248,7 @@ const ExperienceCarousel = ({
               onClick={() => scrollByDir("right")}
               disabled={!canScrollRight}
               className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              type="button"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -250,10 +256,10 @@ const ExperienceCarousel = ({
         </div>
       </div>
 
-      <div className="overflow-hidden">
+      <div className="overflow-hidden min-w-0">
         <div
           ref={scrollRef}
-          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1 -mx-3 px-3 md:mx-0 md:px-0"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {experiences.map((experience) => (
