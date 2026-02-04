@@ -6,7 +6,7 @@ import { BrowseDropdown } from "@/components/BrowseDropdown";
 import { LiveActivityBanner } from "@/components/LiveActivityBanner";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries } from "@/data/itinerariesData";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,6 +114,89 @@ const getAllExperiences = () => {
 };
 
 const SCROLL_STORAGE_KEY = 'discover_scroll_position';
+
+// Itinerary Carousel Component with arrow navigation
+const ItineraryCarousel = ({ 
+  itineraries, 
+  onSeeAll 
+}: { 
+  itineraries: ReturnType<typeof getPopularItineraries>;
+  onSeeAll: () => void;
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScrollButtons = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    checkScrollButtons();
+    const container = scrollRef.current;
+    if (container) {
+      container.addEventListener('scroll', checkScrollButtons);
+      return () => container.removeEventListener('scroll', checkScrollButtons);
+    }
+  }, []);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 340;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  return (
+    <div className="mb-6 md:mb-10">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={onSeeAll}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            See All
+          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <div 
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {itineraries.map((itinerary) => (
+          <div key={itinerary.id} className="flex-shrink-0 w-[280px] sm:w-[300px]">
+            <PublicItineraryCard itinerary={itinerary} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -406,40 +489,18 @@ const SearchPage = () => {
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
 
-          {/* Top Itineraries Section - Horizontal Scroll */}
+          {/* Top Itineraries Section - Horizontal Carousel */}
           {!selectedCity && filteredItineraries.length > 0 && (
-            <div className="mb-6 md:mb-10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
-                <button 
-                  onClick={() => navigate('/itineraries')}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  See All
-                </button>
-              </div>
-              <div className="flex gap-4 md:gap-5 overflow-x-auto pb-2 -mx-3 px-3 md:-mx-6 md:px-6 scrollbar-hide">
-                {filteredItineraries.slice(0, 7).map((itinerary) => (
-                  <div key={itinerary.id} className="flex-shrink-0 w-[280px] sm:w-[320px]">
-                    <PublicItineraryCard itinerary={itinerary} />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ItineraryCarousel 
+              itineraries={filteredItineraries.slice(0, 7)} 
+              onSeeAll={() => navigate('/itineraries')}
+            />
           )}
 
           {/* All Experiences Section with Infinite Scroll */}
           {!selectedCity && filteredExperiences.length > 0 && (
             <div id="all-experiences-section" className="mb-6 md:mb-10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
-                <button 
-                  onClick={() => navigate('/search')}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  See All
-                </button>
-              </div>
+              <h2 className="text-lg md:text-xl font-bold mb-4">All Experiences</h2>
               <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
