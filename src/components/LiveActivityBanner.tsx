@@ -69,7 +69,7 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
               </span>
-              <span className="text-sm font-medium text-success">{planningNow.toLocaleString()} planning now</span>
+              <span className="text-sm font-medium text-success tabular-nums"><span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning now</span>
             </div>
             <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
