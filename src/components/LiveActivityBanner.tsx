@@ -103,7 +103,7 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
           </div>
         </div>
 
-        {/* Mobile Layout */}
+        {/* Mobile Layout - Simplified with just CTA */}
         <div className="md:hidden flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
@@ -111,21 +111,21 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
             </span>
             <span className="text-sm font-medium text-success tabular-nums">
-              <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning now
+              <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning
             </span>
           </div>
           
           {experienceCount > 0 ? (
             <Link to="/itinerary">
               <Button size="sm" className="gap-1.5 h-8 text-xs">
-                My Trip ({experienceCount})
+                View Trip ({experienceCount})
                 <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
           ) : (
             <Button size="sm" onClick={handleCreateItinerary} className="gap-1.5 h-8 text-xs">
               <Plus className="w-3.5 h-3.5" />
-              Create Itinerary
+              Create
             </Button>
           )}
         </div>
