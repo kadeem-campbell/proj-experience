@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Plus, MapPin, Sparkles } from "lucide-react";
+import { ArrowRight, Plus, MapPin, Sparkles, ArrowDown } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,7 +11,7 @@ interface OnboardingFlowProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type OnboardingStep = "name" | "sidebar-animation" | "add-experiences" | "complete";
+type OnboardingStep = "name" | "sidebar-animation" | "scroll-to-experiences" | "add-experiences" | "complete";
 
 const ONBOARDING_KEY = "hasCompletedOnboarding";
 const FIRST_EXPERIENCE_KEY = "hasAddedFirstExperience";
@@ -38,9 +38,24 @@ export const OnboardingFlow = ({ open, onOpenChange }: OnboardingFlowProps) => {
       await createItinerary(itineraryName.trim());
       setStep("sidebar-animation");
       
-      // After animation, show the add experiences hint
+      // After sidebar animation, scroll to experiences
       setTimeout(() => {
-        setStep("add-experiences");
+        setStep("scroll-to-experiences");
+        
+        // Scroll to "All Experiences" section
+        const experiencesSection = document.querySelector('h2');
+        const allExperiencesHeading = Array.from(document.querySelectorAll('h2')).find(
+          h => h.textContent?.includes('All Experiences')
+        );
+        
+        if (allExperiencesHeading) {
+          allExperiencesHeading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Show the add experiences hint after scroll
+        setTimeout(() => {
+          setStep("add-experiences");
+        }, 800);
       }, 2000);
     } catch (error) {
       console.error("Error creating itinerary:", error);
@@ -153,51 +168,48 @@ export const OnboardingFlow = ({ open, onOpenChange }: OnboardingFlowProps) => {
         )}
       </AnimatePresence>
 
-      {/* Step 3: Add experiences hint */}
-      <Dialog open={open && step === "add-experiences"} onOpenChange={(val) => {
-        if (!val) handleComplete();
-      }}>
-        <DialogContent className="sm:max-w-md p-0 gap-0 rounded-2xl overflow-hidden border-border/50 shadow-2xl">
-          <div className="p-6 pt-8">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-success to-success/60 flex items-center justify-center">
-                <Plus className="w-8 h-8 text-success-foreground" />
-              </div>
-            </div>
-            
-            <DialogHeader className="text-center space-y-2 mb-6">
-              <DialogTitle className="text-2xl font-bold">
-                Add experiences
-              </DialogTitle>
-              <p className="text-muted-foreground text-sm">
-                Browse experiences and tap the <Plus className="w-4 h-4 inline-block mx-1" /> button to add them to your itinerary
-              </p>
-            </DialogHeader>
-
-            <div className="bg-muted/50 rounded-xl p-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-muted-foreground" />
+      {/* Step 3: Floating guide pointing to experiences */}
+      <AnimatePresence>
+        {open && step === "add-experiences" && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
+          >
+            <div className="bg-card border border-border rounded-2xl p-5 shadow-2xl max-w-sm mx-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shrink-0">
+                  <Plus className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Pro tip</p>
-                  <p className="text-xs text-muted-foreground">
-                    After adding experiences, you can create a trip schedule!
+                  <p className="font-bold text-base">Add experiences</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Tap the <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-primary text-primary-foreground text-xs font-bold mx-0.5">+</span> on any experience to add it to your itinerary
                   </p>
                 </div>
               </div>
-            </div>
+              
+              {/* Arrow pointing down */}
+              <div className="flex justify-center mt-4">
+                <motion.div
+                  animate={{ y: [0, 8, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <ArrowDown className="w-6 h-6 text-primary" />
+                </motion.div>
+              </div>
 
-            <Button
-              className="w-full h-12 rounded-xl text-base font-medium gap-2"
-              onClick={handleComplete}
-            >
-              Start Exploring
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+              <Button
+                className="w-full mt-4 h-10 rounded-xl text-sm font-medium"
+                onClick={handleComplete}
+              >
+                Got it, let me explore!
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
