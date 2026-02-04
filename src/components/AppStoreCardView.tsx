@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
-import { Heart, Plus, Check, MapPin } from "lucide-react";
-import { useItineraries } from "@/hooks/useItineraries";
+import { Heart, Plus, MapPin } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
-import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 
@@ -33,11 +31,8 @@ export const AppStoreCardView = ({ experiences }: AppStoreCardViewProps) => {
 };
 
 const AppStoreCard = ({ experience }: { experience: Experience }) => {
-  const { isInItinerary } = useItineraries();
   const { isLiked, toggleLike } = useLikedExperiences();
-  const { toast } = useToast();
 
-  const inItinerary = isInItinerary(experience.id);
   const liked = isLiked(experience.id);
 
   const experienceData = {
@@ -99,21 +94,15 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
             </button>
             
             <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-              {inItinerary ? (
-                <div className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-2xl border border-white/30 flex items-center justify-center shadow-sm">
-                  <Check className="w-5 h-5 text-green-600" />
+              <ItinerarySelector
+                experienceId={experience.id}
+                experienceData={experienceData}
+                onAdd={handleAddSuccess}
+              >
+                <div className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-2xl border border-white/30 flex items-center justify-center shadow-sm cursor-pointer hover:bg-white/80 transition-colors">
+                  <Plus className="w-5 h-5 text-neutral-700" />
                 </div>
-              ) : (
-                <ItinerarySelector
-                  experienceId={experience.id}
-                  experienceData={experienceData}
-                  onAdd={handleAddSuccess}
-                >
-                  <div className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-2xl border border-white/30 flex items-center justify-center shadow-sm cursor-pointer hover:bg-white/80 transition-colors">
-                    <Plus className="w-5 h-5 text-neutral-700" />
-                  </div>
-                </ItinerarySelector>
-              )}
+              </ItinerarySelector>
             </div>
           </div>
 
