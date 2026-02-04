@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ItinerarySelectorProps {
   experienceId: string;
@@ -44,10 +45,19 @@ export const ItinerarySelector = ({
   } = useItineraries();
 
   const handleAddToItinerary = (itinerary: Itinerary) => {
+    const result = addExperienceToItinerary(itinerary.id, experienceData);
+    
+    if (result.alreadyExists) {
+      toast.error(`Already in "${itinerary.name}"`, {
+        description: "This experience is already in this itinerary"
+      });
+      return;
+    }
+    
     setActiveItinerary(itinerary.id);
-    addExperienceToItinerary(itinerary.id, experienceData);
     onAdd?.();
     setOpen(false);
+    toast.success(`Added to "${itinerary.name}"`);
   };
 
   const handleCreateAndAdd = async () => {
@@ -60,10 +70,10 @@ export const ItinerarySelector = ({
     setOpen(false);
   };
 
-  // Check how many times this experience is in an itinerary
-  const countInItinerary = (itineraryId: string) => {
+  // Check if this experience is already in an itinerary
+  const isInItinerary = (itineraryId: string) => {
     const itinerary = itineraries.find(i => i.id === itineraryId);
-    return itinerary?.experiences.filter(e => e.id === experienceId).length || 0;
+    return itinerary?.experiences.some(e => e.id === experienceId) || false;
   };
 
   return (
@@ -93,27 +103,28 @@ export const ItinerarySelector = ({
         
         <div className="max-h-60 overflow-y-auto">
           {itineraries.map((itinerary) => {
-            const count = countInItinerary(itinerary.id);
+            const alreadyAdded = isInItinerary(itinerary.id);
             return (
               <button
                 key={itinerary.id}
                 onClick={() => handleAddToItinerary(itinerary)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                className={cn(
+                  "w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors",
+                  alreadyAdded ? "bg-muted/50 cursor-default" : "hover:bg-muted"
+                )}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <div className={cn(
                     "w-2 h-2 rounded-full flex-shrink-0",
                     itinerary.id === activeItineraryId ? "bg-primary" : "bg-muted-foreground/30"
                   )} />
-                  <span className="text-sm truncate">{itinerary.name}</span>
+                  <span className={cn("text-sm truncate", alreadyAdded && "text-muted-foreground")}>{itinerary.name}</span>
                   <span className="text-xs text-muted-foreground flex-shrink-0">
                     ({itinerary.experiences.length})
                   </span>
                 </div>
-                {count > 0 && (
-                  <span className="text-xs text-primary font-medium flex-shrink-0">
-                    +{count} added
-                  </span>
+                {alreadyAdded && (
+                  <Check className="w-4 h-4 text-primary flex-shrink-0" />
                 )}
               </button>
             );

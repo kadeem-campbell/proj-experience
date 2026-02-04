@@ -362,7 +362,14 @@ export const useItineraries = () => {
     return true;
   }, [activeItineraryId, itineraries, saveItineraries]);
 
-  const addExperienceToItinerary = useCallback((itineraryId: string, experience: Omit<LikedExperience, 'likedAt'>) => {
+  const addExperienceToItinerary = useCallback((itineraryId: string, experience: Omit<LikedExperience, 'likedAt'>): { success: boolean; alreadyExists: boolean } => {
+    const targetItinerary = itineraries.find(i => i.id === itineraryId);
+    
+    // Check if experience already exists in this itinerary
+    if (targetItinerary?.experiences.some(e => e.id === experience.id)) {
+      return { success: false, alreadyExists: true };
+    }
+    
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
@@ -372,7 +379,7 @@ export const useItineraries = () => {
       };
     });
     saveItineraries(updated);
-    return true;
+    return { success: true, alreadyExists: false };
   }, [itineraries, saveItineraries]);
 
   const removeExperience = useCallback((experienceId: string) => {
