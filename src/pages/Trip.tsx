@@ -13,6 +13,7 @@ import {
   Link2, Mail, UserPlus, Search, MoreHorizontal, Sunrise, Sun, Sunset, Moon,
   ChevronDown, Presentation
 } from "lucide-react";
+import { DraggableTripItem } from "@/components/DraggableTripItem";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -861,6 +862,60 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     return scheduledByDay;
   }, [selectedTrip, scheduledByDay]);
 
+  // Handle time change for trip experiences
+  const handleTripTimeChange = useCallback((expId: string, newTime: string) => {
+    if (!itinerary || !selectedTrip) return;
+    
+    const updatedExperiences = selectedTrip.experiences.map(exp =>
+      exp.id === expId ? { ...exp, scheduledTime: newTime } : exp
+    ).sort((a, b) => 
+      new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+    );
+    
+    updateTripExperiences(itinerary.id, selectedTrip.id, updatedExperiences);
+  }, [itinerary, selectedTrip, updateTripExperiences]);
+
+  // Handle reordering within a day
+  const handleTripReorder = useCallback((dayKey: string, fromIndex: number, toIndex: number) => {
+    if (!itinerary || !selectedTrip) return;
+    
+    // Get experiences for this day
+    const dayExperiences = selectedTrip.experiences
+      .filter(exp => exp.scheduledTime && format(parseISO(exp.scheduledTime), "yyyy-MM-dd") === dayKey)
+      .sort((a, b) => new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime());
+    
+    // Reorder within the day
+    const [moved] = dayExperiences.splice(fromIndex, 1);
+    dayExperiences.splice(toIndex, 0, moved);
+    
+    // Update times to reflect new order (maintain same time slots but swap)
+    const times = dayExperiences.map(exp => exp.scheduledTime);
+    const reorderedWithTimes = dayExperiences.map((exp, idx) => ({
+      ...exp,
+      scheduledTime: times[idx]
+    }));
+    
+    // Rebuild full experiences list
+    const otherExperiences = selectedTrip.experiences.filter(
+      exp => !exp.scheduledTime || format(parseISO(exp.scheduledTime), "yyyy-MM-dd") !== dayKey
+    );
+    
+    const updatedExperiences = [...otherExperiences, ...reorderedWithTimes].sort((a, b) => 
+      new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+    );
+    
+    updateTripExperiences(itinerary.id, selectedTrip.id, updatedExperiences);
+  }, [itinerary, selectedTrip, updateTripExperiences]);
+
+  // Handle removing experience from trip
+  const handleRemoveFromTrip = useCallback((expId: string) => {
+    if (!itinerary || !selectedTrip) return;
+    
+    const updatedExperiences = selectedTrip.experiences.filter(exp => exp.id !== expId);
+    updateTripExperiences(itinerary.id, selectedTrip.id, updatedExperiences);
+    toast({ title: "Removed from trip" });
+  }, [itinerary, selectedTrip, updateTripExperiences, toast]);
+
   // Render trip timeline
   const renderTripTimeline = (
     tripData: Record<string, LikedExperience[]>,
@@ -884,49 +939,34 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
               </div>
               
               <div className="space-y-2 pl-6 border-l-2 border-primary/20">
-                {dayExperiences.map((exp) => (
-                  <div 
+                {dayExperiences.map((exp, idx) => (
+                  <DraggableTripItem
                     key={exp.id}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-card/60 border border-border/30 group"
-                  >
-                    <div className="w-12 h-12 rounded-md overflow-hidden shrink-0">
-                      {exp.videoThumbnail ? (
-                        <img src={exp.videoThumbnail} alt={exp.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-muted flex items-center justify-center">
-                          <MapPin className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{exp.title}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        {exp.scheduledTime && (
-                          editable ? (
-                            <Input
-                              type="time"
-                              value={format(new Date(exp.scheduledTime), "HH:mm")}
-                              onChange={(e) => {
-                                const [hours, mins] = e.target.value.split(':').map(Number);
-                                const newDate = new Date(exp.scheduledTime!);
-                                newDate.setHours(hours, mins, 0, 0);
-                                handleUpdateExperienceTime(exp.id, newDate.toISOString());
-                              }}
-                              className="h-6 w-24 text-xs px-2"
-                            />
-                          ) : (
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {format(new Date(exp.scheduledTime), "h:mm a")}
-                            </span>
-                          )
-                        )}
-                        {exp.location && (
-                          <span className="text-muted-foreground truncate">{exp.location}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                    experience={exp}
+                    index={idx}
+                    totalItems={dayExperiences.length}
+                    isOwner={isOwner}
+                    onTimeChange={editable ? handleUpdateExperienceTime : handleTripTimeChange}
+                    onReorder={(from, to) => {
+                      if (editable) {
+                        // For generated trip (preview), update local state
+                        setGeneratedTrip(prev => {
+                          const updated = { ...prev };
+                          const dayItems = [...(updated[dayKey] || [])];
+                          const [moved] = dayItems.splice(from, 1);
+                          dayItems.splice(to, 0, moved);
+                          // Swap times to maintain order
+                          const times = dayItems.map(e => e.scheduledTime);
+                          updated[dayKey] = dayItems.map((e, i) => ({ ...e, scheduledTime: times[i] }));
+                          return updated;
+                        });
+                      } else {
+                        handleTripReorder(dayKey, from, to);
+                      }
+                    }}
+                    onRemove={isOwner ? handleRemoveFromTrip : undefined}
+                    dayKey={dayKey}
+                  />
                 ))}
               </div>
             </div>
