@@ -6,7 +6,7 @@ import { BrowseDropdown } from "@/components/BrowseDropdown";
 import { LiveActivityBanner } from "@/components/LiveActivityBanner";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries } from "@/data/itinerariesData";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,181 +114,6 @@ const getAllExperiences = () => {
 };
 
 const SCROLL_STORAGE_KEY = 'discover_scroll_position';
-
-type CarouselDirection = "left" | "right";
-
-const useCarouselScroll = (scrollAmount: number) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const checkScrollButtons = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const { scrollLeft, scrollWidth, clientWidth } = el;
-    setCanScrollLeft(scrollLeft > 0);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-  };
-
-  useEffect(() => {
-    checkScrollButtons();
-    const el = scrollRef.current;
-    if (!el) return;
-    el.addEventListener("scroll", checkScrollButtons);
-    return () => el.removeEventListener("scroll", checkScrollButtons);
-  }, []);
-
-  const scrollByDir = (direction: CarouselDirection) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
-
-  return {
-    scrollRef,
-    canScrollLeft,
-    canScrollRight,
-    scrollByDir,
-  };
-};
-
-// Itinerary Carousel Component with arrow navigation
-const ItineraryCarousel = ({ 
-  itineraries, 
-  onSeeAll 
-}: { 
-  itineraries: ReturnType<typeof getPopularItineraries>;
-  onSeeAll: () => void;
-}) => {
-  const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(340);
-
-  return (
-    <section className="mb-6 md:mb-10 w-full min-w-0">
-      <div className="flex flex-col gap-2 mb-4 w-full sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div className="flex items-baseline justify-between gap-3 sm:block">
-          <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
-          <button
-            onClick={onSeeAll}
-            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors sm:hidden"
-            type="button"
-          >
-            Show All
-          </button>
-        </div>
-        <div className="flex items-center justify-between sm:justify-end gap-3">
-          <button
-            onClick={onSeeAll}
-            className="hidden sm:inline-flex text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-            type="button"
-          >
-            Show All
-          </button>
-          <div className="hidden sm:flex items-center gap-1">
-            <button
-              onClick={() => scrollByDir("left")}
-              disabled={!canScrollLeft}
-              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              type="button"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => scrollByDir("right")}
-              disabled={!canScrollRight}
-              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              type="button"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div 
-        ref={scrollRef}
-        className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {itineraries.map((itinerary) => (
-          <div key={itinerary.id} className="flex-shrink-0 w-[200px] sm:w-[240px] md:w-[280px]">
-            <PublicItineraryCard itinerary={itinerary} />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-};
-
-const ExperienceCarousel = ({
-  experiences,
-  onSeeAll,
-}: {
-  experiences: any[];
-  onSeeAll: () => void;
-}) => {
-  const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(420);
-
-  return (
-    <section id="all-experiences-section" className="mb-6 md:mb-10 w-full min-w-0">
-      <div className="flex flex-col gap-2 mb-4 w-full sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div className="flex items-baseline justify-between gap-3 sm:block">
-          <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
-          <button
-            onClick={onSeeAll}
-            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors sm:hidden"
-            type="button"
-          >
-            Show All
-          </button>
-        </div>
-        <div className="flex items-center justify-between sm:justify-end gap-3">
-          <button
-            onClick={onSeeAll}
-            className="hidden sm:inline-flex text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-            type="button"
-          >
-            Show All
-          </button>
-          <div className="hidden sm:flex items-center gap-1">
-            <button
-              onClick={() => scrollByDir("left")}
-              disabled={!canScrollLeft}
-              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              type="button"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => scrollByDir("right")}
-              disabled={!canScrollRight}
-              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              type="button"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div
-        ref={scrollRef}
-        className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {experiences.map((experience) => (
-          <div
-            key={experience.id}
-            className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px]"
-          >
-            <ExperienceCard {...experience} compact />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-};
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -525,7 +350,7 @@ const SearchPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-col h-full min-w-0 overflow-x-hidden">
+      <div className="flex flex-col h-full">
         {/* Fixed Search Header - Spotify Style */}
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-3 md:px-4 py-2 md:py-3">
           <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-2xl">
@@ -576,25 +401,42 @@ const SearchPage = () => {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-3 md:p-6 w-full max-w-full"
+          className="flex-1 overflow-y-auto p-3 md:p-6"
         >
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
 
-          {/* Top Itineraries Section - Horizontal Carousel */}
+          {/* Top Itineraries Section */}
           {!selectedCity && filteredItineraries.length > 0 && (
-            <ItineraryCarousel 
-              itineraries={filteredItineraries.slice(0, 7)} 
-              onSeeAll={() => navigate('/itineraries')}
-            />
+            <div className="mb-6 md:mb-10">
+              <h2 className="text-lg md:text-xl font-bold mb-4">Top Itineraries</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                {filteredItineraries.map((itinerary) => (
+                  <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
+                ))}
+              </div>
+            </div>
           )}
 
-          {/* All Experiences Section - Horizontal Carousel (small square cards) */}
+          {/* All Experiences Section with Infinite Scroll */}
           {!selectedCity && filteredExperiences.length > 0 && (
-            <ExperienceCarousel
-              experiences={filteredExperiences.slice(0, 24)}
-              onSeeAll={() => navigate("/search")}
-            />
+            <div className="mb-6 md:mb-10">
+              <h2 className="text-lg md:text-xl font-bold mb-4">All Experiences</h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+                {filteredExperiences.slice(0, visibleCount).map((experience) => (
+                  <ExperienceCard key={experience.id} {...experience} compact />
+                ))}
+              </div>
+              {/* Infinite scroll trigger */}
+              {visibleCount < filteredExperiences.length && (
+                <div 
+                  ref={loadMoreRef}
+                  className="flex justify-center py-6 md:py-8"
+                >
+                  <div className="animate-spin rounded-full h-5 md:h-6 w-5 md:w-6 border-b-2 border-primary"></div>
+                </div>
+              )}
+            </div>
           )}
 
           {/* City-specific Popular Experiences - When city is selected */}
