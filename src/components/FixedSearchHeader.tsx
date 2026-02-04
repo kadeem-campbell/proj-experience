@@ -1,16 +1,24 @@
 import { useState, useRef } from "react";
-import { Search, MapPin, ChevronDown, X, PanelLeft } from "lucide-react";
+import { Search, MapPin, ChevronDown, X, PanelLeft, UserCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { City, cities } from "@/data/browseData";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthModal } from "@/components/AuthModal";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 // Category tags for quick filtering
 const categoryTags = [
   { id: "water-sports", name: "Water Sports", color: "hsl(200, 70%, 50%)" },
@@ -45,9 +53,10 @@ export const FixedSearchHeader = ({
   isMobile = false,
 }: FixedSearchHeaderProps) => {
   const [locationOpen, setLocationOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const tagsContainerRef = useRef<HTMLDivElement>(null);
   const { toggleSidebar } = useSidebar();
-
+  const { user, userProfile, signOut, isAuthenticated } = useAuth();
   const handleCategoryClick = (categoryName: string) => {
     if (selectedCategory === categoryName) {
       onCategorySelect(null);
@@ -62,56 +71,90 @@ export const FixedSearchHeader = ({
   };
 
   return (
-    <div className="sticky top-0 z-40 bg-background border-b border-border">
-      {/* Search bar row */}
-      <div className="px-3 md:px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          {/* Sidebar toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="shrink-0 h-9 w-9 rounded-lg"
-          >
-            <PanelLeft className="w-5 h-5" />
-          </Button>
+    <>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+      
+      <div className="sticky top-0 z-40 bg-background border-b border-border">
+        {/* Search bar row */}
+        <div className="px-3 md:px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            {/* Sidebar toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="shrink-0 h-9 w-9 rounded-lg"
+            >
+              <PanelLeft className="w-5 h-5" />
+            </Button>
 
-          {/* Search input */}
-          <div className="flex-1 min-w-0">
-            {isMobile ? (
-              <button
-                onClick={onMobileSearchClick}
-                className="flex items-center w-full bg-muted/60 border border-border/50 rounded-xl px-4 py-2.5 text-left"
-              >
-                <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
-                <span className="text-foreground/50 text-sm truncate">
-                  {searchQuery || "Search experiences..."}
-                </span>
-              </button>
-            ) : (
-              <div className="flex items-center bg-muted/60 border border-border/50 rounded-xl px-4 py-2">
-                <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
-                <Input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  placeholder="Search experiences..."
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-foreground/50"
-                  style={{ fontSize: '16px' }}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => onSearchChange("")}
-                    className="ml-2 p-1 hover:bg-muted rounded-full"
-                  >
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
+            {/* Search input - constrained width on desktop */}
+            <div className="flex-1 min-w-0 md:max-w-md">
+              {isMobile ? (
+                <button
+                  onClick={onMobileSearchClick}
+                  className="flex items-center w-full bg-muted/60 border border-border/50 rounded-xl px-4 py-2.5 text-left"
+                >
+                  <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
+                  <span className="text-foreground/50 text-sm truncate">
+                    {searchQuery || "Search experiences..."}
+                  </span>
+                </button>
+              ) : (
+                <div className="flex items-center bg-muted/60 border border-border/50 rounded-xl px-4 py-2">
+                  <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
+                  <Input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    placeholder="Search experiences..."
+                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-foreground/50"
+                    style={{ fontSize: '16px' }}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => onSearchChange("")}
+                      className="ml-2 p-1 hover:bg-muted rounded-full"
+                    >
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop: Sign Up / User dropdown */}
+            {!isMobile && (
+              <div className="ml-auto shrink-0">
+                {isAuthenticated ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="gap-2">
+                        <UserCircle className="w-5 h-5" />
+                        <span className="max-w-[120px] truncate">
+                          {userProfile?.username || userProfile?.full_name || user?.email?.split('@')[0]}
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                        {user?.email}
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={signOut} className="text-destructive">
+                        Sign out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button size="sm" onClick={() => setAuthModalOpen(true)}>
+                    Sign Up
+                  </Button>
                 )}
               </div>
             )}
           </div>
         </div>
-      </div>
 
       {/* Location + Category tags row */}
       <div className="px-3 md:px-4 pb-2.5">
@@ -204,6 +247,7 @@ export const FixedSearchHeader = ({
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

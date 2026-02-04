@@ -15,7 +15,8 @@ import {
   Compass,
   Search,
   UserCircle,
-  Sparkles
+  Sparkles,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,13 +42,17 @@ import {
   CollapsibleTrigger
 } from "@/components/ui/collapsible";
 import { useItineraries } from "@/hooks/useItineraries";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthModal } from "@/components/AuthModal";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const ItinerarySidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const isMobile = useIsMobile();
   
   const {
     itineraries,
@@ -59,6 +64,9 @@ export const ItinerarySidebar = () => {
     renameItinerary,
     togglePublic
   } = useItineraries();
+
+  const { user, userProfile, signOut, isAuthenticated } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [isCreating, setIsCreating] = useState(false);
   const [newItineraryName, setNewItineraryName] = useState("");
@@ -330,6 +338,37 @@ export const ItinerarySidebar = () => {
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
+          {/* Mobile: Show Sign Up / User info */}
+          {isMobile && (
+            <SidebarMenuItem>
+              {isAuthenticated ? (
+                <>
+                  <div className="px-3 py-2 text-sm">
+                    <div className="font-medium truncate">
+                      {userProfile?.username || userProfile?.full_name || user?.email?.split('@')[0]}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {user?.email}
+                    </div>
+                  </div>
+                  <SidebarMenuButton onClick={signOut} className="text-destructive">
+                    <LogOut className="w-4 h-4" />
+                    {!collapsed && <span>Sign out</span>}
+                  </SidebarMenuButton>
+                </>
+              ) : (
+                <Button 
+                  className="w-full" 
+                  size="sm"
+                  onClick={() => setAuthModalOpen(true)}
+                >
+                  <UserCircle className="w-4 h-4 mr-2" />
+                  Sign Up
+                </Button>
+              )}
+            </SidebarMenuItem>
+          )}
+          
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="About">
               <Link to="/about" className="flex items-center gap-3">
@@ -340,6 +379,9 @@ export const ItinerarySidebar = () => {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      {/* Auth Modal for mobile sign up */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </Sidebar>
   );
 };
