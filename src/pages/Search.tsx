@@ -4,6 +4,7 @@ import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { BrowseDropdown } from "@/components/BrowseDropdown";
 import { LiveActivityBanner } from "@/components/LiveActivityBanner";
+import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries } from "@/data/itinerariesData";
 import { Search } from "lucide-react";
@@ -11,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { City, cities } from "@/data/browseData";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import experience images
 import partyImage from "@/assets/party-experience.jpg";
@@ -122,9 +124,11 @@ const SearchPage = () => {
   const [experiences, setExperiences] = useState<any[]>(getAllExperiences());
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { activeItinerary, experienceCount } = useItineraries();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // Restore scroll position on mount
   useEffect(() => {
@@ -351,25 +355,49 @@ const SearchPage = () => {
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
+        {/* Mobile Search Overlay */}
+        <MobileSearchOverlay
+          isOpen={mobileSearchOpen}
+          onClose={() => setMobileSearchOpen(false)}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearch={(q) => setSearchQuery(q)}
+        />
+
         {/* Fixed Search Header - Spotify Style */}
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-3 md:px-4 py-2 md:py-3">
-          <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-2xl">
-            <div className="flex items-center flex-1 bg-muted rounded-full px-3 md:px-4 py-2">
-              <Search className="w-4 md:w-5 h-4 md:h-5 text-muted-foreground mr-2 md:mr-3 shrink-0" />
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="What do you want to explore?"
-                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm md:text-base placeholder:text-muted-foreground"
-              />
-            </div>
+          <div className="flex items-center gap-2 max-w-2xl">
+            {/* Mobile: Tappable search trigger */}
+            {isMobile ? (
+              <button
+                onClick={() => setMobileSearchOpen(true)}
+                className="flex items-center flex-1 bg-muted/60 border border-border/50 rounded-full px-4 py-3 text-left"
+              >
+                <Search className="w-5 h-5 text-foreground/70 mr-3 shrink-0" />
+                <span className="text-foreground/50 text-base">
+                  {searchQuery || "What do you want to explore?"}
+                </span>
+              </button>
+            ) : (
+              /* Desktop: Inline search input */
+              <form onSubmit={handleSearch} className="flex items-center flex-1 bg-muted/60 border border-border/50 rounded-full px-4 py-2">
+                <Search className="w-5 h-5 text-foreground/70 mr-3 shrink-0" />
+                <Input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="What do you want to explore?"
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-base placeholder:text-foreground/50"
+                  style={{ fontSize: '16px' }}
+                />
+              </form>
+            )}
             <div className="h-6 w-px bg-border hidden sm:block" />
             <BrowseDropdown 
               onSelectCity={handleCitySelect}
               onClearFilters={clearFilters}
             />
-          </form>
+          </div>
 
           {/* Active filters */}
           {(selectedCity || selectedCategory) && (
