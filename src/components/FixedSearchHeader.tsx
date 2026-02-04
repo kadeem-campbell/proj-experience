@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Search, MapPin, ChevronDown, X, PanelLeft, UserCircle } from "lucide-react";
+import { Search, MapPin, ChevronDown, X, PanelLeft, UserCircle, User, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,7 @@ import { City, cities } from "@/data/browseData";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
+import { useNavigate } from "react-router-dom";
 import {
   Popover,
   PopoverContent,
@@ -57,6 +58,7 @@ export const FixedSearchHeader = ({
   const tagsContainerRef = useRef<HTMLDivElement>(null);
   const { toggleSidebar } = useSidebar();
   const { user, userProfile, signOut, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const handleCategoryClick = (categoryName: string) => {
     if (selectedCategory === categoryName) {
       onCategorySelect(null);
@@ -141,7 +143,13 @@ export const FixedSearchHeader = ({
                         {user?.email}
                       </div>
                       <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate('/profile')}>
+                        <User className="w-4 h-4 mr-2" />
+                        Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={signOut} className="text-destructive">
+                        <LogOut className="w-4 h-4 mr-2" />
                         Sign out
                       </DropdownMenuItem>
                     </DropdownMenuContent>

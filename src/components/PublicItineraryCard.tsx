@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Layers, Heart } from "lucide-react";
 import { Itinerary } from "@/hooks/useItineraries";
+import { useUserLikes } from "@/hooks/useUserLikes";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -10,10 +12,16 @@ interface PublicItineraryCardProps {
 }
 
 export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => {
-  const [liked, setLiked] = useState(false);
+  const [localLiked, setLocalLiked] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   const isMobile = useIsMobile();
+  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
+  const { isAuthenticated } = useAuth();
+
+  // Use database likes for authenticated users, local state for guests
+  const liked = isAuthenticated ? isDbLiked(itinerary.id, 'itinerary') : localLiked;
 
   // Get all images from experiences
   const images = itinerary.experiences?.map(exp => exp.videoThumbnail).filter(Boolean) || [];
@@ -24,11 +32,27 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
   const hasMultipleImages = allImages.length > 1;
   const experienceCount = itinerary.experiences?.length || 0;
 
-  const handleLikeClick = (e: React.MouseEvent) => {
+  const handleLikeClick = useCallback(async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setLiked(!liked);
-  };
+    
+    // Haptic feedback for mobile
+    if (isMobile && 'vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+    
+    if (isAuthenticated) {
+      await toggleDbLike(itinerary.id, 'itinerary', {
+        id: itinerary.id,
+        name: itinerary.name,
+        coverImage: itinerary.coverImage,
+        creatorName: itinerary.creatorName,
+        experiences: itinerary.experiences?.slice(0, 3) // Store only first 3 for preview
+      });
+    } else {
+      setLocalLiked(!localLiked);
+    }
+  }, [itinerary, isAuthenticated, toggleDbLike, localLiked, isMobile]);
 
   const handlePrev = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -46,9 +70,17 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
   const linkPath = `/public-itinerary/${itinerary.id}`;
 
   return (
-    <Link to={linkPath}>
+    <Link 
+      to={linkPath}
+      className="touch-manipulation"
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+    >
       <div 
-        className="group cursor-pointer"
+        className={cn(
+          "group cursor-pointer transition-transform duration-150",
+          isPressed && isMobile && "scale-[0.98]"
+        )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -69,15 +101,19 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
             </div>
           )}
 
-          {/* Heart button - always visible, Vision Pro style */}
+          {/* Heart button - always visible, Vision Pro style with haptic feedback */}
           <button
             onClick={handleLikeClick}
-            className="absolute top-3 left-3 p-2 rounded-full bg-white/60 backdrop-blur-2xl shadow-sm border border-white/30 transition-transform duration-200 hover:scale-110"
+            onTouchEnd={handleLikeClick}
+            className={cn(
+              "absolute top-3 left-3 p-2 rounded-full bg-white/60 backdrop-blur-2xl shadow-sm border border-white/30 transition-all duration-200 active:scale-90",
+              liked && "bg-destructive/20"
+            )}
           >
             <Heart 
               className={cn(
-                "w-4 h-4 transition-colors",
-                liked ? "fill-destructive text-destructive" : "text-neutral-700"
+                "w-4 h-4 transition-all duration-200",
+                liked ? "fill-destructive text-destructive scale-110" : "text-neutral-700"
               )} 
             />
           </button>

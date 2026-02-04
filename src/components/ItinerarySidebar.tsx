@@ -373,14 +373,19 @@ export const ItinerarySidebar = () => {
             <SidebarMenuItem>
               {isAuthenticated ? (
                 <>
-                  <div className="px-3 py-2 text-sm">
-                    <div className="font-medium truncate">
-                      {userProfile?.username || userProfile?.full_name || user?.email?.split('@')[0]}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {user?.email}
-                    </div>
-                  </div>
+                  <SidebarMenuButton
+                    onClick={() => navigate('/profile')}
+                    className="mb-1"
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    {!collapsed && (
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate text-sm">
+                          {userProfile?.username || userProfile?.full_name || user?.email?.split('@')[0]}
+                        </div>
+                      </div>
+                    )}
+                  </SidebarMenuButton>
                   <SidebarMenuButton onClick={signOut} className="text-destructive">
                     <LogOut className="w-4 h-4" />
                     {!collapsed && <span>Sign out</span>}
