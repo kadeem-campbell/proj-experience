@@ -243,18 +243,21 @@ export const useItineraries = () => {
     };
   }, [userId]);
 
-  // Save itineraries (to DB or localStorage)
-  const saveItineraries = useCallback(async (newItineraries: Itinerary[]) => {
+  // Save itineraries (to DB or localStorage) - fire and forget for optimistic UI
+  const saveItineraries = useCallback((newItineraries: Itinerary[]) => {
+    // Update state immediately for instant UI
     setItineraries(newItineraries);
 
     if (userId) {
-      // Save to database - batch update all modified itineraries
-      for (const itinerary of newItineraries) {
-        const dbData = itineraryToDb(itinerary, userId);
-        await supabase
-          .from('itineraries')
-          .upsert(dbData, { onConflict: 'id' });
-      }
+      // Save to database in background - don't await
+      Promise.all(
+        newItineraries.map(itinerary => {
+          const dbData = itineraryToDb(itinerary, userId);
+          return supabase
+            .from('itineraries')
+            .upsert(dbData, { onConflict: 'id' });
+        })
+      ).catch(err => console.error('Error saving itineraries:', err));
     } else {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newItineraries));
       window.dispatchEvent(new CustomEvent('itinerariesChanged', { detail: newItineraries }));
@@ -336,14 +339,14 @@ export const useItineraries = () => {
     }
   }, [userId, itineraries, activeItineraryId, setActiveItinerary]);
 
-  const renameItinerary = useCallback(async (id: string, newName: string) => {
+  const renameItinerary = useCallback((id: string, newName: string) => {
     const updated = itineraries.map(i =>
       i.id === id ? { ...i, name: newName, updatedAt: new Date().toISOString() } : i
     );
-    await saveItineraries(updated);
+    saveItineraries(updated);
   }, [itineraries, saveItineraries]);
 
-  const addExperience = useCallback(async (experience: Omit<LikedExperience, 'likedAt'>) => {
+  const addExperience = useCallback((experience: Omit<LikedExperience, 'likedAt'>) => {
     if (!activeItineraryId) return false;
 
     const updated = itineraries.map(i => {
@@ -355,11 +358,11 @@ export const useItineraries = () => {
         updatedAt: new Date().toISOString()
       };
     });
-    await saveItineraries(updated);
+    saveItineraries(updated);
     return true;
   }, [activeItineraryId, itineraries, saveItineraries]);
 
-  const addExperienceToItinerary = useCallback(async (itineraryId: string, experience: Omit<LikedExperience, 'likedAt'>) => {
+  const addExperienceToItinerary = useCallback((itineraryId: string, experience: Omit<LikedExperience, 'likedAt'>) => {
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
@@ -368,11 +371,11 @@ export const useItineraries = () => {
         updatedAt: new Date().toISOString()
       };
     });
-    await saveItineraries(updated);
+    saveItineraries(updated);
     return true;
   }, [itineraries, saveItineraries]);
 
-  const removeExperience = useCallback(async (experienceId: string) => {
+  const removeExperience = useCallback((experienceId: string) => {
     if (!activeItineraryId) return;
 
     const updated = itineraries.map(i => {
@@ -383,10 +386,10 @@ export const useItineraries = () => {
         updatedAt: new Date().toISOString()
       };
     });
-    await saveItineraries(updated);
+    saveItineraries(updated);
   }, [activeItineraryId, itineraries, saveItineraries]);
 
-  const updateExperienceDetails = useCallback(async (experienceId: string, updates: Partial<LikedExperience>, targetItineraryId?: string) => {
+  const updateExperienceDetails = useCallback((experienceId: string, updates: Partial<LikedExperience>, targetItineraryId?: string) => {
     const itineraryIdToUpdate = targetItineraryId || activeItineraryId;
     if (!itineraryIdToUpdate) return;
 
@@ -400,10 +403,10 @@ export const useItineraries = () => {
         updatedAt: new Date().toISOString()
       };
     });
-    await saveItineraries(updated);
+    saveItineraries(updated);
   }, [activeItineraryId, itineraries, saveItineraries]);
 
-  const reorderExperiences = useCallback(async (startIndex: number, endIndex: number) => {
+  const reorderExperiences = useCallback((startIndex: number, endIndex: number) => {
     if (!activeItineraryId) return;
 
     const updated = itineraries.map(i => {
@@ -413,17 +416,17 @@ export const useItineraries = () => {
       experiences.splice(endIndex, 0, removed);
       return { ...i, experiences, updatedAt: new Date().toISOString() };
     });
-    await saveItineraries(updated);
+    saveItineraries(updated);
   }, [activeItineraryId, itineraries, saveItineraries]);
 
-  const togglePublic = useCallback(async (id: string) => {
+  const togglePublic = useCallback((id: string) => {
     const updated = itineraries.map(i =>
       i.id === id ? { ...i, isPublic: !i.isPublic, updatedAt: new Date().toISOString() } : i
     );
-    await saveItineraries(updated);
+    saveItineraries(updated);
   }, [itineraries, saveItineraries]);
 
-  const addCollaborator = useCallback(async (itineraryId: string, email: string) => {
+  const addCollaborator = useCallback((itineraryId: string, email: string) => {
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       if (i.collaborators.includes(email)) return i;
@@ -433,10 +436,10 @@ export const useItineraries = () => {
         updatedAt: new Date().toISOString()
       };
     });
-    await saveItineraries(updated);
+    saveItineraries(updated);
   }, [itineraries, saveItineraries]);
 
-  const removeCollaborator = useCallback(async (itineraryId: string, email: string) => {
+  const removeCollaborator = useCallback((itineraryId: string, email: string) => {
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
@@ -445,7 +448,7 @@ export const useItineraries = () => {
         updatedAt: new Date().toISOString()
       };
     });
-    await saveItineraries(updated);
+    saveItineraries(updated);
   }, [itineraries, saveItineraries]);
 
   const isInItinerary = useCallback((experienceId: string) => {
@@ -456,7 +459,7 @@ export const useItineraries = () => {
     return `${window.location.origin}/itinerary/${itineraryId}`;
   }, []);
 
-  const copyItinerary = useCallback(async (sourceItinerary: Itinerary, newName?: string, targetItineraryId?: string) => {
+  const copyItinerary = useCallback((sourceItinerary: Itinerary, newName?: string, targetItineraryId?: string) => {
     if (targetItineraryId) {
       const updated = itineraries.map(i => {
         if (i.id !== targetItineraryId) return i;
@@ -468,7 +471,7 @@ export const useItineraries = () => {
           updatedAt: new Date().toISOString()
         };
       });
-      await saveItineraries(updated);
+      saveItineraries(updated);
       return itineraries.find(i => i.id === targetItineraryId) || null;
     } else {
       const newId = userId ? crypto.randomUUID() : generateId();
@@ -483,7 +486,14 @@ export const useItineraries = () => {
       };
       
       if (userId) {
-        await supabase.from('itineraries').insert(itineraryToDb(newItinerary, userId));
+        // Fire and forget for optimistic UI
+        (async () => {
+          try {
+            await supabase.from('itineraries').insert(itineraryToDb(newItinerary, userId));
+          } catch (err) {
+            console.error('Error creating itinerary:', err);
+          }
+        })();
       }
       
       const updated = [...itineraries, newItinerary];
@@ -499,11 +509,11 @@ export const useItineraries = () => {
     }
   }, [userId, itineraries, saveItineraries, setActiveItinerary]);
 
-  const updateItineraryCover = useCallback(async (id: string, coverImage: string) => {
+  const updateItineraryCover = useCallback((id: string, coverImage: string) => {
     const updated = itineraries.map(i =>
       i.id === id ? { ...i, coverImage, updatedAt: new Date().toISOString() } : i
     );
-    await saveItineraries(updated);
+    saveItineraries(updated);
   }, [itineraries, saveItineraries]);
 
   const createTrip = useCallback(async (itineraryId: string, tripName: string, startDate: string, endDate?: string, scheduledExperiences?: LikedExperience[]): Promise<Trip | null> => {
