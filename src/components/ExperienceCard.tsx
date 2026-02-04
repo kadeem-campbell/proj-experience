@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, Check, Heart } from "lucide-react";
-import { useItineraries } from "@/hooks/useItineraries";
+import { Plus, Heart } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { Link } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -36,12 +34,9 @@ export const ExperienceCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isInItinerary } = useItineraries();
   const { isLiked, toggleLike } = useLikedExperiences();
-  const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  const inItinerary = isInItinerary(id);
   const liked = isLiked(id);
 
   useEffect(() => {
@@ -120,7 +115,7 @@ export const ExperienceCard = ({
             />
           </button>
           
-          {/* Add to Itinerary Button - Vision Pro style, always visible */}
+          {/* Add to Itinerary Button - always show + to allow adding to multiple itineraries */}
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -128,21 +123,15 @@ export const ExperienceCard = ({
             }}
             className="absolute bottom-2 right-2"
           >
-            {inItinerary ? (
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/70 backdrop-blur-2xl border border-white/30 shadow-sm">
-                <Check className="w-4 h-4 text-green-600" />
-              </div>
-            ) : (
-              <ItinerarySelector
-                experienceId={id}
-                experienceData={experienceData}
-                onAdd={handleAddSuccess}
-              >
-                <button className="w-8 h-8 rounded-full flex items-center justify-center bg-white/70 backdrop-blur-2xl border border-white/30 shadow-sm hover:bg-white/90 transition-colors">
-                  <Plus className="w-4 h-4 text-neutral-700" />
-                </button>
-              </ItinerarySelector>
-            )}
+            <ItinerarySelector
+              experienceId={id}
+              experienceData={experienceData}
+              onAdd={handleAddSuccess}
+            >
+              <button className="w-8 h-8 rounded-full flex items-center justify-center bg-white/70 backdrop-blur-2xl border border-white/30 shadow-sm hover:bg-white/90 transition-colors">
+                <Plus className="w-4 h-4 text-neutral-700" />
+              </button>
+            </ItinerarySelector>
           </div>
         </div>
 
