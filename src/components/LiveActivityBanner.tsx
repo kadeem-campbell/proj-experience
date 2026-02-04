@@ -83,17 +83,9 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
             </div>
           </div>
           
-          {/* Hero tagline */}
+          {/* Hero tagline - one line, separate from stats */}
           <div className="mb-2 md:mb-0">
-            {/* Mobile: Two lines */}
-            <h2 className="text-2xl font-bold text-foreground leading-tight md:hidden">
-              Visiting Zanzibar is one thing.
-            </h2>
-            <h2 className="text-2xl font-bold text-foreground leading-tight md:hidden">
-              Experiencing it is another.
-            </h2>
-            {/* Desktop: One line */}
-            <h2 className="hidden md:block text-xl font-bold text-foreground">
+            <h2 className="text-lg md:text-xl font-bold text-foreground leading-tight">
               Visiting Zanzibar is one thing. Experiencing it is another.
             </h2>
           </div>
