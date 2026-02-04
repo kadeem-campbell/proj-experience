@@ -6,7 +6,7 @@ import { AppStoreItineraryView } from "@/components/AppStoreItineraryView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
-import { ArrowLeft, Search, Users, Heart, LayoutGrid, Layers } from "lucide-react";
+import { ArrowLeft, Search, Users, Heart, LayoutGrid, Layers, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const ItinerariesPage = () => {
@@ -61,33 +61,41 @@ const ItinerariesPage = () => {
   if (isMobile && viewMode === 'cards') {
     return (
       <div className="min-h-screen w-full bg-background">
-        {/* Sticky header - always visible */}
-        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
+        {/* Sticky header - elegant styling matching FixedSearchHeader */}
+        <div className="sticky top-0 z-50 bg-background border-b border-border">
+          <div className="px-3 py-2.5">
+            <div className="flex items-center gap-2 mb-2.5">
               <Link to="/">
-                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                <Button variant="ghost" size="icon" className="rounded-lg h-9 w-9">
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
               </Link>
-              <div>
-                <h1 className="text-xl font-bold">{getTitle()}</h1>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-bold leading-tight">{getTitle()}</h1>
                 <p className="text-xs text-muted-foreground">{itineraries.length} itineraries</p>
               </div>
             </div>
-          </div>
-          
-          {/* Search - always fixed in header */}
-          <div className="flex items-center bg-muted rounded-full px-4 py-2">
-            <Search className="w-4 h-4 text-muted-foreground mr-3" />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search itineraries..."
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground"
-              style={{ fontSize: '16px' }}
-            />
+            
+            {/* Search - elegant styling matching FixedSearchHeader */}
+            <div className="flex items-center bg-muted/60 border border-border/50 rounded-xl px-4 py-2.5">
+              <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search itineraries..."
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-foreground/50"
+                style={{ fontSize: '16px' }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="ml-2 p-1 hover:bg-muted rounded-full"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
         
