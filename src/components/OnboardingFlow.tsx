@@ -11,7 +11,7 @@ interface OnboardingFlowProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type OnboardingStep = "name" | "sidebar-animation" | "scroll-to-experiences" | "add-experiences" | "complete";
+type OnboardingStep = "name" | "sidebar-animation" | "add-experiences" | "complete";
 
 const ONBOARDING_KEY = "hasCompletedOnboarding";
 const FIRST_EXPERIENCE_KEY = "hasAddedFirstExperience";
@@ -38,24 +38,9 @@ export const OnboardingFlow = ({ open, onOpenChange }: OnboardingFlowProps) => {
       await createItinerary(itineraryName.trim());
       setStep("sidebar-animation");
       
-      // After sidebar animation, scroll to experiences
+      // After sidebar animation, show the add experiences hint
       setTimeout(() => {
-        setStep("scroll-to-experiences");
-        
-        // Scroll to "All Experiences" section
-        const experiencesSection = document.querySelector('h2');
-        const allExperiencesHeading = Array.from(document.querySelectorAll('h2')).find(
-          h => h.textContent?.includes('All Experiences')
-        );
-        
-        if (allExperiencesHeading) {
-          allExperiencesHeading.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        
-        // Show the add experiences hint after scroll
-        setTimeout(() => {
-          setStep("add-experiences");
-        }, 800);
+        setStep("add-experiences");
       }, 2000);
     } catch (error) {
       console.error("Error creating itinerary:", error);

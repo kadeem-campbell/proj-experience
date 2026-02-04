@@ -406,13 +406,23 @@ const SearchPage = () => {
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
 
-          {/* Top Itineraries Section */}
+          {/* Top Itineraries Section - Horizontal Scroll */}
           {!selectedCity && filteredItineraries.length > 0 && (
             <div className="mb-6 md:mb-10">
-              <h2 className="text-lg md:text-xl font-bold mb-4">Top Itineraries</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                {filteredItineraries.map((itinerary) => (
-                  <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
+                <button 
+                  onClick={() => navigate('/itineraries')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  See All
+                </button>
+              </div>
+              <div className="flex gap-4 md:gap-5 overflow-x-auto pb-2 -mx-3 px-3 md:-mx-6 md:px-6 scrollbar-hide">
+                {filteredItineraries.slice(0, 7).map((itinerary) => (
+                  <div key={itinerary.id} className="flex-shrink-0 w-[280px] sm:w-[320px]">
+                    <PublicItineraryCard itinerary={itinerary} />
+                  </div>
                 ))}
               </div>
             </div>
@@ -420,8 +430,16 @@ const SearchPage = () => {
 
           {/* All Experiences Section with Infinite Scroll */}
           {!selectedCity && filteredExperiences.length > 0 && (
-            <div className="mb-6 md:mb-10">
-              <h2 className="text-lg md:text-xl font-bold mb-4">All Experiences</h2>
+            <div id="all-experiences-section" className="mb-6 md:mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
+                <button 
+                  onClick={() => navigate('/search')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  See All
+                </button>
+              </div>
               <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
