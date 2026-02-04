@@ -124,13 +124,46 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     }
   };
 
-  const handleEmailContinue = () => {
+  const handleEmailContinue = async () => {
     setError("");
     try {
       emailSchema.parse(email);
-      setStep("password");
     } catch (err: any) {
       setError(err.errors?.[0]?.message || "Invalid email");
+      return;
+    }
+
+    // Check if email already exists by attempting a password reset
+    // This is a safe way to check without exposing user info
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false, // Don't create user, just check if exists
+        },
+      });
+      
+      // If no error and we get here with shouldCreateUser: false,
+      // it means the email exists (OTP was sent or user found)
+      if (!error) {
+        setError("This email is already registered. Please log in instead.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // If error says "User not found" or similar, email doesn't exist - proceed
+      if (error.message.includes("not found") || error.message.includes("Signups not allowed")) {
+        setStep("password");
+      } else {
+        // Email exists or other issue
+        setError("This email is already registered. Please log in instead.");
+      }
+    } catch (err) {
+      // Network error - let them proceed and catch at signup
+      setStep("password");
+    } finally {
+      setIsLoading(false);
     }
   };
 
