@@ -60,7 +60,7 @@ const ItinerariesPage = () => {
   // Mobile App Store-style card view (scrollable)
   if (isMobile && viewMode === 'cards') {
     return (
-      <div className="min-h-screen w-full bg-background">
+      <div className="min-h-screen w-full bg-background touch-manipulation">
         {/* Fixed header - guaranteed to stay at top */}
         <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
           <div className="px-3 py-2.5">

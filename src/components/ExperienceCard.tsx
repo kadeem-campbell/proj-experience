@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Plus, Heart } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
+import { useUserLikes } from "@/hooks/useUserLikes";
+import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
@@ -33,11 +35,15 @@ export const ExperienceCard = ({
 }: ExperienceCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isLiked, toggleLike } = useLikedExperiences();
+  const { isLiked: isLocalLiked, toggleLike: toggleLocalLike } = useLikedExperiences();
+  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
+  const { isAuthenticated } = useAuth();
   const isMobile = useIsMobile();
 
-  const liked = isLiked(id);
+  // Use database likes for authenticated users, localStorage for guests
+  const liked = isAuthenticated ? isDbLiked(id, 'experience') : isLocalLiked(id);
 
   useEffect(() => {
     if (isHovered && videoRef.current && videoUrl) {
@@ -63,16 +69,34 @@ export const ExperienceCard = ({
     // No toast - optimistic UI update only
   };
 
-  const handleLikeClick = (e: React.MouseEvent) => {
+  const handleLikeClick = useCallback(async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleLike(experienceData);
-  };
+    
+    // Haptic feedback for mobile
+    if (isMobile && 'vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+    
+    if (isAuthenticated) {
+      await toggleDbLike(id, 'experience', experienceData);
+    } else {
+      toggleLocalLike(experienceData);
+    }
+  }, [id, isAuthenticated, experienceData, toggleDbLike, toggleLocalLike, isMobile]);
 
   return (
-    <Link to={`/experience/${id}`}>
+    <Link 
+      to={`/experience/${id}`}
+      className="touch-manipulation"
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+    >
       <div 
-        className="group cursor-pointer"
+        className={cn(
+          "group cursor-pointer transition-transform duration-150",
+          isPressed && isMobile && "scale-[0.98]"
+        )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -102,15 +126,19 @@ export const ExperienceCard = ({
             />
           )}
 
-          {/* Heart button - always visible, Vision Pro style */}
+          {/* Heart button - always visible, Vision Pro style with haptic feedback */}
           <button
             onClick={handleLikeClick}
-            className="absolute top-2 right-2 p-2 rounded-full bg-white/60 backdrop-blur-2xl shadow-sm border border-white/30 transition-transform duration-200 hover:scale-110"
+            onTouchEnd={handleLikeClick}
+            className={cn(
+              "absolute top-2 right-2 p-2 rounded-full bg-white/60 backdrop-blur-2xl shadow-sm border border-white/30 transition-all duration-200 active:scale-90",
+              liked && "bg-destructive/20"
+            )}
           >
             <Heart 
               className={cn(
-                "w-4 h-4 transition-colors",
-                liked ? "fill-destructive text-destructive" : "text-neutral-700"
+                "w-4 h-4 transition-all duration-200",
+                liked ? "fill-destructive text-destructive scale-110" : "text-neutral-700"
               )} 
             />
           </button>
