@@ -6,8 +6,8 @@ import { BrowseDropdown } from "@/components/BrowseDropdown";
 import { LiveActivityBanner } from "@/components/LiveActivityBanner";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries } from "@/data/itinerariesData";
-import { MapPin, Search } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { City, cities } from "@/data/browseData";
@@ -200,10 +200,10 @@ const SearchPage = () => {
     setSearchQuery("");
   };
 
-  // Synonym-based filtering
+  // Synonym-based filtering for tags
   const synonyms: Record<string, string[]> = {
     Party: ["party", "nightlife", "club", "clubbing", "rave", "dj", "dance", "turn up", "night out", "bar hopping", "drinks", "afterparty", "go out", "going out"],
-    "Water Sports": ["water sports", "watersports", "jet ski", "jetski", "kayak", "kayaking", "surf", "surfing", "snorkel", "snorkeling", "dive", "diving", "boat", "sail", "paddle board", "paddleboard"],
+    "Water Sports": ["water", "water sports", "watersports", "watersport", "jet ski", "jetski", "kayak", "kayaking", "surf", "surfing", "snorkel", "snorkeling", "dive", "diving", "boat", "sail", "paddle board", "paddleboard", "swimming", "swim"],
     Beach: ["beach", "sun", "sand", "sea", "ocean", "coast", "shore", "tropical"],
     Food: ["food", "eat", "dine", "dining", "restaurant", "cuisine", "street food", "tasting", "dinner", "lunch", "brunch", "cook", "cooking"],
     Wildlife: ["wildlife", "safari", "animals", "nature", "reserve", "park"],
@@ -211,40 +211,74 @@ const SearchPage = () => {
     Culture: ["culture", "museum", "art", "heritage", "history", "local", "traditional"],
   };
 
+  // City names for search matching
+  const cityNames = cities.map(c => c.name.toLowerCase());
+
+  const filterByQuery = (item: { title?: string; name?: string; description?: string; creator?: string; location?: string; category?: string; experiences?: any[] }, q: string) => {
+    if (!q) return true;
+    
+    const searchTerms = q.toLowerCase().split(/\s+/);
+    
+    // Check for city match in search
+    const matchedCity = cityNames.find(city => q.toLowerCase().includes(city));
+    if (matchedCity) {
+      const locationMatch = item.location?.toLowerCase().includes(matchedCity) ||
+        item.experiences?.some(exp => exp.location?.toLowerCase().includes(matchedCity));
+      if (locationMatch) return true;
+    }
+
+    // Check for tag/category synonym match
+    const matchedCategories = new Set<string>();
+    Object.entries(synonyms).forEach(([cat, terms]) => {
+      if (searchTerms.some(term => terms.some(t => t.includes(term) || term.includes(t)))) {
+        matchedCategories.add(cat.toLowerCase());
+      }
+    });
+
+    if (matchedCategories.size > 0) {
+      const categoryMatch = matchedCategories.has((item.category || "").toLowerCase()) ||
+        item.experiences?.some(exp => matchedCategories.has((exp.category || "").toLowerCase()));
+      if (categoryMatch) return true;
+    }
+
+    // Text match on all fields
+    const textMatch =
+      (item.title || item.name || "").toLowerCase().includes(q) ||
+      item.description?.toLowerCase().includes(q) ||
+      item.creator?.toLowerCase().includes(q) ||
+      item.location?.toLowerCase().includes(q) ||
+      item.category?.toLowerCase().includes(q);
+
+    return textMatch;
+  };
+
   const filteredExperiences = experiences.filter((experience) => {
-    // City filter
+    // City filter from dropdown
     if (selectedCity) {
       const cityMatch = experience.location?.toLowerCase().includes(selectedCity.name.toLowerCase());
       if (!cityMatch) return false;
     }
 
-    // Category filter (from browse)
+    // Category filter from browse
     if (selectedCategory) {
       const catMatch = experience.category?.toLowerCase().includes(selectedCategory.toLowerCase());
       if (!catMatch) return false;
     }
 
     const q = searchQuery.trim().toLowerCase();
+    return filterByQuery(experience, q);
+  });
+
+  // Filter itineraries by search query
+  const filteredItineraries = getPopularItineraries().filter((itinerary) => {
+    const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
-
-    const textMatch =
-      experience.title?.toLowerCase().includes(q) ||
-      experience.description?.toLowerCase().includes(q) ||
-      experience.creator?.toLowerCase().includes(q) ||
-      experience.location?.toLowerCase().includes(q) ||
-      experience.category?.toLowerCase().includes(q);
-
-    const hintedCategories = new Set<string>();
-    Object.entries(synonyms).forEach(([cat, terms]) => {
-      if (terms.some((t) => q.includes(t))) hintedCategories.add(cat.toLowerCase());
-    });
-
-    const synonymMatch =
-      hintedCategories.size > 0
-        ? hintedCategories.has((experience.category || "").toLowerCase())
-        : false;
-
-    return textMatch || synonymMatch;
+    
+    // Check itinerary name
+    if (itinerary.name.toLowerCase().includes(q)) return true;
+    
+    // Check if any experience matches
+    return filterByQuery(itinerary, q);
   });
 
   if (loading) {
@@ -319,19 +353,11 @@ const SearchPage = () => {
           <LiveActivityBanner experienceCount={experienceCount} />
 
           {/* Top Itineraries Section */}
-          {!selectedCity && (
+          {!selectedCity && filteredItineraries.length > 0 && (
             <div className="mb-6 md:mb-10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
-                <Link to="/itineraries?filter=popular">
-                  <Button variant="secondary" size="sm" className="text-sm font-medium">
-                    See All
-                  </Button>
-                </Link>
-              </div>
-
+              <h2 className="text-lg md:text-xl font-bold mb-4">Top Itineraries</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                {getPopularItineraries().slice(0, 3).map((itinerary) => (
+                {filteredItineraries.map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
               </div>
@@ -339,23 +365,16 @@ const SearchPage = () => {
           )}
 
           {/* All Experiences Section with Infinite Scroll */}
-          {!selectedCity && (
+          {!selectedCity && filteredExperiences.length > 0 && (
             <div className="mb-6 md:mb-10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
-                <Link to="/experiences">
-                  <Button variant="secondary" size="sm" className="text-sm font-medium">
-                    See All
-                  </Button>
-                </Link>
-              </div>
+              <h2 className="text-lg md:text-xl font-bold mb-4">All Experiences</h2>
               <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-                {experiences.slice(0, visibleCount).map((experience) => (
+                {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
               </div>
               {/* Infinite scroll trigger */}
-              {visibleCount < experiences.length && (
+              {visibleCount < filteredExperiences.length && (
                 <div 
                   ref={loadMoreRef}
                   className="flex justify-center py-6 md:py-8"
@@ -369,12 +388,9 @@ const SearchPage = () => {
           {/* City-specific Popular Experiences - When city is selected */}
           {selectedCity && !selectedCategory && (
             <div className="mb-6 md:mb-10">
-              <div className="flex items-center justify-between mb-3 md:mb-4">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 md:w-5 h-4 md:h-5 text-primary" />
-                  <h2 className="text-base md:text-xl font-semibold">{selectedCity.name} Popular Experiences</h2>
-                </div>
-              </div>
+              <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">
+                {selectedCity.name} Popular Experiences
+              </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-3">
                 {publicItinerariesData
                   .filter(it => it.name.toLowerCase().includes(selectedCity.name.toLowerCase()) || 
