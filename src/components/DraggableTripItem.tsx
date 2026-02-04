@@ -1,9 +1,15 @@
 import { useState, useRef, useCallback } from "react";
 import { format, parseISO, setHours, setMinutes } from "date-fns";
-import { GripVertical, Clock, MapPin, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { GripVertical, Clock, MapPin, Trash2, ChevronUp, ChevronDown, CalendarDays } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LikedExperience } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -15,8 +21,10 @@ interface DraggableTripItemProps {
   isOwner: boolean;
   onTimeChange: (expId: string, newTime: string) => void;
   onReorder: (fromIndex: number, toIndex: number) => void;
+  onMoveToDay?: (expId: string, targetDayKey: string) => void;
   onRemove?: (expId: string) => void;
   dayKey: string;
+  allDays?: string[];
 }
 
 export const DraggableTripItem = ({
@@ -26,8 +34,10 @@ export const DraggableTripItem = ({
   isOwner,
   onTimeChange,
   onReorder,
+  onMoveToDay,
   onRemove,
   dayKey,
+  allDays = [],
 }: DraggableTripItemProps) => {
   const isMobile = useIsMobile();
   const [isDragging, setIsDragging] = useState(false);
@@ -49,11 +59,16 @@ export const DraggableTripItem = ({
     setIsEditingTime(false);
   };
 
-  // Desktop drag handlers
+  // Desktop drag handlers - include expId for cross-day drops
   const handleDragStart = (e: React.DragEvent) => {
     if (!isOwner) return;
     e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", JSON.stringify({ index, dayKey }));
+    e.dataTransfer.setData("text/plain", JSON.stringify({ 
+      index, 
+      dayKey, 
+      expId: experience.id,
+      scheduledTime: experience.scheduledTime 
+    }));
     setIsDragging(true);
   };
 
@@ -139,7 +154,7 @@ export const DraggableTripItem = ({
       onTouchMove={isMobile ? handleTouchMove : undefined}
       onTouchEnd={isMobile ? handleTouchEnd : undefined}
     >
-      {/* Drag Handle */}
+      {/* Drag Handle & Controls */}
       {isOwner && (
         <div className="flex flex-col items-center gap-1 pt-1 shrink-0">
           {isMobile ? (
@@ -162,6 +177,26 @@ export const DraggableTripItem = ({
               >
                 <ChevronDown className="w-3 h-3" />
               </Button>
+              {/* Move to different day dropdown */}
+              {allDays.length > 1 && onMoveToDay && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                      <CalendarDays className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="min-w-[140px]">
+                    {allDays.filter(d => d !== dayKey).map(targetDay => (
+                      <DropdownMenuItem
+                        key={targetDay}
+                        onClick={() => onMoveToDay(experience.id, targetDay)}
+                      >
+                        {format(parseISO(targetDay), "EEE, MMM d")}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           ) : (
             <GripVertical className="w-4 h-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />

@@ -916,6 +916,49 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     toast({ title: "Removed from trip" });
   }, [itinerary, selectedTrip, updateTripExperiences, toast]);
 
+  // Handle moving experience to a different day
+  const handleMoveToDay = useCallback((expId: string, targetDayKey: string) => {
+    if (!itinerary || !selectedTrip) return;
+    
+    const experience = selectedTrip.experiences.find(exp => exp.id === expId);
+    if (!experience || !experience.scheduledTime) return;
+    
+    // Parse target day and preserve the time
+    const currentTime = parseISO(experience.scheduledTime);
+    const targetDate = parseISO(targetDayKey);
+    const newScheduledTime = setMinutes(
+      setHours(targetDate, currentTime.getHours()),
+      currentTime.getMinutes()
+    );
+    
+    const updatedExperiences = selectedTrip.experiences.map(exp =>
+      exp.id === expId ? { ...exp, scheduledTime: newScheduledTime.toISOString() } : exp
+    ).sort((a, b) => 
+      new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+    );
+    
+    updateTripExperiences(itinerary.id, selectedTrip.id, updatedExperiences);
+    toast({ title: "Moved to " + format(targetDate, "EEEE, MMM d") });
+  }, [itinerary, selectedTrip, updateTripExperiences, toast]);
+
+  // Handle drop on day header (cross-day move via desktop drag)
+  const handleDayDrop = useCallback((e: React.DragEvent, targetDayKey: string) => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+      if (data.dayKey !== targetDayKey && data.expId) {
+        handleMoveToDay(data.expId, targetDayKey);
+      }
+    } catch (err) {
+      console.error("Day drop error:", err);
+    }
+  }, [handleMoveToDay]);
+
+  const handleDayDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
   // Render trip timeline
   const renderTripTimeline = (
     tripData: Record<string, LikedExperience[]>,
@@ -932,13 +975,22 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           
           return (
             <div key={dayKey} className="space-y-3">
-              <div className="flex items-center gap-2">
+              {/* Day header - droppable on desktop */}
+              <div 
+                className="flex items-center gap-2 p-2 -ml-2 rounded-lg transition-colors hover:bg-primary/5"
+                onDragOver={handleDayDragOver}
+                onDrop={(e) => handleDayDrop(e, dayKey)}
+              >
                 <Calendar className="w-4 h-4 text-primary" />
                 <h4 className="font-semibold">{format(dayDate, "EEEE, MMM d")}</h4>
                 <Badge variant="secondary" className="text-xs">{dayExperiences.length} experiences</Badge>
               </div>
               
-              <div className="space-y-2 pl-6 border-l-2 border-primary/20">
+              <div 
+                className="space-y-2 pl-6 border-l-2 border-primary/20 min-h-[40px]"
+                onDragOver={handleDayDragOver}
+                onDrop={(e) => handleDayDrop(e, dayKey)}
+              >
                 {dayExperiences.map((exp, idx) => (
                   <DraggableTripItem
                     key={exp.id}
@@ -964,8 +1016,10 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                         handleTripReorder(dayKey, from, to);
                       }
                     }}
+                    onMoveToDay={isOwner ? handleMoveToDay : undefined}
                     onRemove={isOwner ? handleRemoveFromTrip : undefined}
                     dayKey={dayKey}
+                    allDays={days}
                   />
                 ))}
               </div>
