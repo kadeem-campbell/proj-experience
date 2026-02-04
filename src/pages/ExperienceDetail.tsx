@@ -281,7 +281,6 @@ export default function ExperienceDetail() {
     
     if (inItinerary) {
       removeExperience(experience.id);
-      toast({ title: "Removed from itinerary", description: `${experience.title} removed` });
       setJustAdded(false);
     } else {
       addExperience({
@@ -294,10 +293,6 @@ export default function ExperienceDetail() {
         price: "",
       });
       setJustAdded(true);
-      toast({ 
-        title: "Added to itinerary! 🎉", 
-        description: "Keep exploring and build your perfect trip" 
-      });
       setTimeout(() => setJustAdded(false), 2000);
     }
   };
@@ -573,10 +568,6 @@ export default function ExperienceDetail() {
                     }}
                     onAdd={() => {
                       setJustAdded(true);
-                      toast({ 
-                        title: "Added to itinerary! 🎉", 
-                        description: "Keep exploring and build your perfect trip" 
-                      });
                       setTimeout(() => setJustAdded(false), 2000);
                     }}
                   >
@@ -701,10 +692,6 @@ export default function ExperienceDetail() {
                 }}
                 onAdd={() => {
                   setJustAdded(true);
-                  toast({ 
-                    title: "Added to itinerary! 🎉", 
-                    description: "Keep exploring and build your perfect trip" 
-                  });
                   setTimeout(() => setJustAdded(false), 2000);
                 }}
               >
