@@ -6,9 +6,10 @@ import { cn } from "@/lib/utils";
 
 interface PublicItineraryCardProps {
   itinerary: Itinerary;
+  compact?: boolean;
 }
 
-export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => {
+export const PublicItineraryCard = ({ itinerary, compact = false }: PublicItineraryCardProps) => {
   const [liked, setLiked] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -20,7 +21,6 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
     : images.slice(0, 6);
   
   const hasMultipleImages = allImages.length > 1;
-  const experienceCount = itinerary.experiences?.length || 0;
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,6 +39,53 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
     e.stopPropagation();
     setCurrentIndex(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
   };
+
+  // Compact mode: simpler card for carousels
+  if (compact) {
+    return (
+      <Link to={`/public-itinerary/${itinerary.id}`}>
+        <div className="group cursor-pointer">
+          {/* Simple image */}
+          <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+            {allImages.length > 0 ? (
+              <img 
+                src={allImages[0]} 
+                alt={itinerary.name}
+                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                <Layers className="w-8 h-8 text-primary/40" />
+              </div>
+            )}
+
+            {/* Heart button */}
+            <button
+              onClick={handleLikeClick}
+              className="absolute top-2 left-2 p-1.5 rounded-full bg-white/60 backdrop-blur-xl shadow-sm border border-white/30 transition-transform duration-200 hover:scale-110"
+            >
+              <Heart 
+                className={cn(
+                  "w-3.5 h-3.5 transition-colors",
+                  liked ? "fill-destructive text-destructive" : "text-neutral-700"
+                )} 
+              />
+            </button>
+          </div>
+
+          {/* Text content */}
+          <div className="mt-2 space-y-0.5">
+            <h3 className="font-medium text-sm line-clamp-1 text-foreground">
+              {itinerary.name}
+            </h3>
+            <p className="text-xs text-muted-foreground truncate">
+              {itinerary.experiences?.[0]?.location || "Curated itinerary"}
+            </p>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link to={`/public-itinerary/${itinerary.id}`}>

@@ -155,7 +155,7 @@ const ItineraryCarousel = ({
   };
 
   return (
-    <div className="mb-6 md:mb-10">
+    <div className="mb-6 md:mb-10 overflow-hidden">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
         <div className="flex items-center gap-3">
@@ -185,12 +185,12 @@ const ItineraryCarousel = ({
       </div>
       <div 
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+        className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {itineraries.map((itinerary) => (
-          <div key={itinerary.id} className="flex-shrink-0 w-[280px] sm:w-[300px]">
-            <PublicItineraryCard itinerary={itinerary} />
+          <div key={itinerary.id} className="flex-shrink-0 w-[180px] sm:w-[200px]">
+            <PublicItineraryCard itinerary={itinerary} compact />
           </div>
         ))}
       </div>
