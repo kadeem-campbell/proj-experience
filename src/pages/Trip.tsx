@@ -1510,6 +1510,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           onOpenChange={setPresentationOpen}
           itinerary={itinerary}
           selectedTrip={selectedTrip}
+          isOwner={isOwner}
         />
       </div>
     </MainLayout>
