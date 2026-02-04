@@ -219,11 +219,18 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   };
   
   // Trip generation state (for personal itineraries without dates)
+  // Default to experiences view - reset when navigating to this page
   const [showTripView, setShowTripView] = useState(false);
   const [tripStartDate, setTripStartDate] = useState<Date | undefined>(undefined);
   const [tripEndDate, setTripEndDate] = useState<Date | undefined>(undefined);
   const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Reset to experiences view when component mounts or ID changes
+  useEffect(() => {
+    setShowTripView(false);
+    setIsCreatingNewTrip(false);
+  }, [id]);
 
   const theme = themes[currentTheme];
 
@@ -1251,11 +1258,12 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
             </div>
           </div>
 
-          {/* Content Area - Either Experiences OR Trip (not both) */}
+          {/* Content Area - Either Experiences OR Trip (not both) with smooth transition */}
           <div className="flex-1 overflow-y-auto">
-            {showTripView ? (
-              /* Trip Timeline View - Full Width */
-              <div className="p-4 md:p-6">
+            <div className="transition-opacity duration-150 ease-out">
+              {showTripView ? (
+                /* Trip Timeline View - Full Width */
+                <div className="p-4 md:p-6 animate-in fade-in duration-150">
                 {isCreatingNewTrip ? (
                   Object.keys(generatedTrip).length > 0 ? (
                     renderTripTimeline(generatedTrip, { editable: true })
@@ -1288,9 +1296,9 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                 )}
               </div>
             ) : (
-              /* Experiences Grid View - Full Width */
-              <div className="p-3 md:p-6">
-                <div className="grid gap-3 md:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              /* Experiences Grid View - Full Width - matching Experiences page grid */
+              <div className="p-3 md:p-6 animate-in fade-in duration-150">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
                   {filteredExperiences.map(renderExperienceCard)}
                 </div>
 
@@ -1310,6 +1318,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                 )}
               </div>
             )}
+            </div>
           </div>
         </div>
 
