@@ -2,16 +2,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
-import { BrowseDropdown } from "@/components/BrowseDropdown";
+import { FixedSearchHeader } from "@/components/FixedSearchHeader";
 import { LiveActivityBanner } from "@/components/LiveActivityBanner";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries } from "@/data/itinerariesData";
-import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { City, cities } from "@/data/browseData";
+import { City } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import experience images
@@ -129,13 +127,13 @@ const SearchPage = () => {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   // Restore scroll position on mount
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
     if (savedPosition && scrollContainerRef.current) {
       const position = parseInt(savedPosition, 10);
-      // Use setTimeout to ensure DOM is ready
       setTimeout(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTop = position;
@@ -168,33 +166,13 @@ const SearchPage = () => {
 
     return () => observer.disconnect();
   }, [visibleCount, experiences.length]);
-  const navigate = useNavigate();
 
-  const getDefaultImage = (category: string) => {
-    const imageMap: { [key: string]: string } = {
-      'Water Sports': jetskiImage,
-      'Party': partyImage,
-      'Wildlife': wildlifeImage,
-      'Food': foodImage,
-      'Beach': beachImage,
-      'Adventure': adventureImage,
-      'Food & Dining': foodImage,
-      'Nightlife': partyImage
-    };
-    return imageMap[category] || jetskiImage;
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Search is live, this is just for form submission
-  };
-
-  const handleCitySelect = (city: City) => {
+  const handleCitySelect = (city: City | null) => {
     setSelectedCity(city);
     setSelectedCategory(null);
   };
 
-  const handleCategorySelect = (categoryName: string) => {
+  const handleCategorySelect = (categoryName: string | null) => {
     setSelectedCategory(categoryName);
   };
 
@@ -213,22 +191,7 @@ const SearchPage = () => {
     Wildlife: ["wildlife", "wild life", "wild", "safari", "safaris", "animal", "animals", "nature", "natural", "reserve", "reserves", "park", "parks", "national park", "game", "game drive", "game drives", "lion", "lions", "elephant", "elephants", "giraffe", "giraffes", "zebra", "zebras", "hippo", "hippos", "rhino", "rhinos", "leopard", "leopards", "cheetah", "cheetahs", "bird", "birds", "birding", "birdwatching", "bird watching", "monkey", "monkeys", "gorilla", "gorillas", "chimp", "chimps", "chimpanzee", "chimpanzees", "migration", "wildebeest", "buffalo", "buffalos", "crocodile", "crocodiles", "flamingo", "flamingos", "sanctuary", "conservancy", "conservation", "jungle", "forest", "rainforest"],
     Adventure: ["adventure", "adventures", "adventurous", "hike", "hikes", "hiking", "trek", "treks", "trekking", "zipline", "ziplines", "ziplining", "zip line", "climb", "climbs", "climbing", "mountain", "mountains", "mountaineering", "explore", "explores", "exploring", "exploration", "explorer", "extreme", "thrill", "thrills", "thrilling", "adrenaline", "bungee", "skydive", "skydiving", "paraglide", "paragliding", "abseil", "abseiling", "rappel", "rappelling", "rock climbing", "caving", "cave", "caves", "volcano", "volcanoes", "crater", "craters", "waterfall", "waterfalls", "canopy", "outdoor", "outdoors", "off road", "offroad", "quad", "quad bike", "atv", "4x4", "jeep"],
     Culture: ["culture", "cultures", "cultural", "museum", "museums", "art", "arts", "artistic", "heritage", "history", "historic", "historical", "local", "locals", "traditional", "tradition", "traditions", "temple", "temples", "church", "churches", "mosque", "mosques", "monument", "monuments", "architecture", "architectural", "ancient", "ruins", "ruin", "craft", "crafts", "craftsmanship", "artisan", "artisans", "handicraft", "handicrafts", "gallery", "galleries", "festival", "festivals", "ceremony", "ceremonies", "dance", "dances", "music", "tribe", "tribes", "tribal", "village", "villages", "community", "communities", "tour", "tours", "walking tour", "guided"],
-    Romantic: ["romantic", "romance", "couple", "couples", "honeymoon", "honeymoons", "anniversary", "love", "date", "dates", "dating", "sunset", "sunsets", "sunrise", "sunrises", "candlelit", "candle", "spa", "spas", "massage", "massages", "private", "intimate", "secluded", "getaway", "getaways", "retreat", "retreats", "escape", "escapes"],
-    Family: ["family", "families", "kid", "kids", "child", "children", "family friendly", "family-friendly", "educational", "education", "learn", "learning", "playground", "playgrounds", "zoo", "zoos", "aquarium", "aquariums", "theme park", "amusement"],
     Wellness: ["wellness", "spa", "spas", "massage", "massages", "yoga", "meditation", "meditate", "relax", "relaxing", "relaxation", "retreat", "retreats", "health", "healthy", "healing", "holistic", "mindfulness", "zen", "detox", "fitness", "gym", "workout", "exercise"],
-    Shopping: ["shopping", "shop", "shops", "store", "stores", "market", "markets", "mall", "malls", "boutique", "boutiques", "souvenir", "souvenirs", "craft", "crafts", "art", "antique", "antiques", "fashion", "clothes", "clothing", "jewelry", "jewellery"],
-    Nightlife: ["nightlife", "night life", "club", "clubs", "clubbing", "bar", "bars", "pub", "pubs", "lounge", "lounges", "disco", "discos", "party", "parties", "dj", "djs", "live music", "dance", "dancing", "drinks", "cocktail", "cocktails", "rooftop"],
-  };
-
-  // City names and aliases for search matching
-  const cityAliases: Record<string, string[]> = {
-    "zanzibar": ["zanzibar", "stone town", "stonetown", "unguja", "pemba", "nungwi", "kendwa", "paje", "jambiani"],
-    "dar es salaam": ["dar es salaam", "dar", "dsm", "dar-es-salaam", "daressalaam"],
-    "nairobi": ["nairobi", "nai", "nairobi kenya", "kenya"],
-    "addis ababa": ["addis ababa", "addis", "ethiopia", "ethiopian"],
-    "kigali": ["kigali", "rwanda", "rwandan"],
-    "kampala": ["kampala", "uganda", "ugandan"],
-    "entebbe": ["entebbe", "lake victoria"],
   };
 
   // Normalize search text
@@ -248,20 +211,7 @@ const SearchPage = () => {
     const normalizedQuery = normalizeText(q);
     const searchTerms = normalizedQuery.split(' ').filter(t => t.length > 1);
     
-    // Check for city match in search
-    for (const [cityKey, aliases] of Object.entries(cityAliases)) {
-      if (aliases.some(alias => normalizedQuery.includes(alias) || searchTerms.some(term => alias.includes(term)))) {
-        const locationMatch = item.location && aliases.some(alias => 
-          normalizeText(item.location!).includes(alias) || partialMatch(item.location!, alias.split(' ')[0])
-        );
-        const expLocationMatch = item.experiences?.some(exp => 
-          exp.location && aliases.some(alias => normalizeText(exp.location).includes(alias))
-        );
-        if (locationMatch || expLocationMatch) return true;
-      }
-    }
-
-    // Check for tag/category synonym match - more flexible matching
+    // Check for tag/category synonym match
     const matchedCategories = new Set<string>();
     for (const [cat, terms] of Object.entries(synonyms)) {
       const catMatched = searchTerms.some(term => 
@@ -277,7 +227,6 @@ const SearchPage = () => {
     if (matchedCategories.size > 0) {
       const categoryMatch = matchedCategories.has(normalizeText(item.category || "")) ||
         item.experiences?.some(exp => matchedCategories.has(normalizeText(exp.category || "")));
-      // Also check if title contains category keywords
       const titleCategoryMatch = Array.from(matchedCategories).some(cat => 
         normalizeText(item.title || item.name || "").includes(cat)
       );
@@ -298,7 +247,6 @@ const SearchPage = () => {
       fieldsToSearch.some(field => field.includes(term) || partialMatch(field, term))
     );
 
-    // Also check experience fields for itineraries
     if (!textMatch && item.experiences) {
       const expMatch = item.experiences.some(exp => {
         const expFields = [exp.title, exp.location, exp.category, exp.creator].map(f => normalizeText(f || ""));
@@ -317,7 +265,7 @@ const SearchPage = () => {
       if (!cityMatch) return false;
     }
 
-    // Category filter from browse
+    // Category filter from tags
     if (selectedCategory) {
       const catMatch = experience.category?.toLowerCase().includes(selectedCategory.toLowerCase());
       if (!catMatch) return false;
@@ -331,17 +279,13 @@ const SearchPage = () => {
   const filteredItineraries = getPopularItineraries().filter((itinerary) => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
-    
-    // Check itinerary name
     if (itinerary.name.toLowerCase().includes(q)) return true;
-    
-    // Check if any experience matches
     return filterByQuery(itinerary, q);
   });
 
   if (loading) {
     return (
-      <MainLayout>
+      <MainLayout showSmartHeader={false}>
         <div className="flex items-center justify-center h-full">
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -353,7 +297,7 @@ const SearchPage = () => {
   }
 
   return (
-    <MainLayout>
+    <MainLayout showSmartHeader={true}>
       <div className="flex flex-col h-full">
         {/* Mobile Search Overlay */}
         <MobileSearchOverlay
@@ -364,72 +308,23 @@ const SearchPage = () => {
           onSearch={(q) => setSearchQuery(q)}
         />
 
-        {/* Fixed Search Header - Spotify Style */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-3 md:px-4 py-2 md:py-3">
-          <div className="flex items-center gap-2 max-w-2xl">
-            {/* Mobile: Tappable search trigger */}
-            {isMobile ? (
-              <button
-                onClick={() => setMobileSearchOpen(true)}
-                className="flex items-center flex-1 min-w-0 bg-muted/60 border border-border/50 rounded-full px-4 py-3.5 text-left"
-              >
-                <Search className="w-5 h-5 text-foreground/70 mr-3 shrink-0" />
-                <span className="text-foreground/50 text-base truncate">
-                  {searchQuery || "What do you want to explore?"}
-                </span>
-              </button>
-            ) : (
-              /* Desktop: Inline search input */
-              <form onSubmit={handleSearch} className="flex items-center flex-1 bg-muted/60 border border-border/50 rounded-full px-4 py-2">
-                <Search className="w-5 h-5 text-foreground/70 mr-3 shrink-0" />
-                <Input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="What do you want to explore?"
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-base placeholder:text-foreground/50"
-                  style={{ fontSize: '16px' }}
-                />
-              </form>
-            )}
-            <div className="h-6 w-px bg-border hidden sm:block" />
-            <BrowseDropdown 
-              onSelectCity={handleCitySelect}
-              onClearFilters={clearFilters}
-            />
-          </div>
+        {/* Fixed Search Header with Location & Tags */}
+        <FixedSearchHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedCity={selectedCity}
+          onCitySelect={handleCitySelect}
+          selectedCategory={selectedCategory}
+          onCategorySelect={handleCategorySelect}
+          onMobileSearchClick={() => setMobileSearchOpen(true)}
+          isMobile={isMobile}
+        />
 
-          {/* Active filters */}
-          {(selectedCity || selectedCategory) && (
-            <div className="flex items-center gap-2 mt-3">
-              {selectedCity && (
-                <span 
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white"
-                  style={{ backgroundColor: selectedCity.color }}
-                >
-                  {selectedCity.name}
-                </span>
-              )}
-              {selectedCategory && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-primary text-primary-foreground">
-                  {selectedCategory}
-                </span>
-              )}
-              <button
-                onClick={clearFilters}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Scrollable Content */}
+        {/* Scrollable Content - add top padding for fixed headers (smart header 12 + search header ~24) */}
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-3 md:p-6"
+          className="flex-1 overflow-y-auto p-3 md:p-6 pt-36 md:pt-36"
         >
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
@@ -533,7 +428,7 @@ const SearchPage = () => {
             <div>
               <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">
                 {selectedCategory 
-                  ? `${selectedCategory} in ${selectedCity?.name}`
+                  ? `${selectedCategory} in ${selectedCity?.name || 'All Locations'}`
                   : selectedCity 
                     ? `${selectedCity.name} Experiences`
                     : "Search Results"
