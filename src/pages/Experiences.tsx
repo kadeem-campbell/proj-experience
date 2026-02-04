@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
-import { TikTokExperienceView } from "@/components/TikTokExperienceView";
+import { AppStoreCardView } from "@/components/AppStoreCardView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicItinerariesData } from "@/data/itinerariesData";
-import { ArrowLeft, Search, Compass, LayoutGrid, Play } from "lucide-react";
+import { ArrowLeft, Search, Compass, LayoutGrid, Layers } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import experience images
@@ -113,7 +113,7 @@ const getAllExperiences = () => {
 const ExperiencesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(24);
-  const [viewMode, setViewMode] = useState<'grid' | 'tiktok'>('tiktok');
+  const [viewMode, setViewMode] = useState<'grid' | 'cards'>('cards');
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
@@ -148,29 +148,49 @@ const ExperiencesPage = () => {
     return () => observer.disconnect();
   }, [visibleCount, filteredExperiences.length]);
 
-  // Mobile TikTok view
-  if (isMobile && viewMode === 'tiktok' && !searchQuery) {
+  // Mobile App Store-style card view
+  if (isMobile && viewMode === 'cards' && !searchQuery) {
     return (
-      <div className="h-screen w-full bg-black relative">
-        {/* Floating header */}
-        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-3 bg-gradient-to-b from-black/60 to-transparent">
-          <Link to="/">
-            <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-white hover:bg-white/20">
-              <ArrowLeft className="w-5 h-5" />
+      <div className="min-h-screen w-full bg-background">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <Link to="/">
+                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-xl font-bold">Experiences</h1>
+                <p className="text-xs text-muted-foreground">{experiences.length} to explore</p>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full h-9 w-9"
+              onClick={() => setViewMode('grid')}
+            >
+              <LayoutGrid className="w-5 h-5" />
             </Button>
-          </Link>
-          <h1 className="text-lg font-bold text-white">Experiences</h1>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-10 w-10 text-white hover:bg-white/20"
-            onClick={() => setViewMode('grid')}
-          >
-            <LayoutGrid className="w-5 h-5" />
-          </Button>
+          </div>
+          
+          {/* Search */}
+          <div className="flex items-center bg-muted rounded-full px-4 py-2">
+            <Search className="w-4 h-4 text-muted-foreground mr-3" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search experiences..."
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground"
+              style={{ fontSize: '16px' }}
+            />
+          </div>
         </div>
         
-        <TikTokExperienceView experiences={filteredExperiences} />
+        <AppStoreCardView experiences={filteredExperiences} />
       </div>
     );
   }
@@ -198,9 +218,9 @@ const ExperiencesPage = () => {
                 variant="ghost" 
                 size="icon" 
                 className="ml-auto rounded-full h-8 w-8"
-                onClick={() => setViewMode(viewMode === 'grid' ? 'tiktok' : 'grid')}
+                onClick={() => setViewMode(viewMode === 'grid' ? 'cards' : 'grid')}
               >
-                {viewMode === 'grid' ? <Play className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
+                {viewMode === 'grid' ? <Layers className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
               </Button>
             )}
           </div>

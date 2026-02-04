@@ -1,16 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
+import { AppStoreItineraryView } from "@/components/AppStoreItineraryView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
-import { ArrowLeft, Search, Users, Heart } from "lucide-react";
+import { ArrowLeft, Search, Users, Heart, LayoutGrid, Layers } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ItinerariesPage = () => {
   const [searchParams] = useSearchParams();
   const filter = searchParams.get('filter');
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<'grid' | 'cards'>('cards');
+  const isMobile = useIsMobile();
   
   const getItineraries = () => {
     if (filter === 'popular') return getPopularItineraries();
@@ -30,15 +34,75 @@ const ItinerariesPage = () => {
   });
 
   const getTitle = () => {
-    if (filter === 'popular') return 'Most Popular Itineraries';
+    if (filter === 'popular') return 'Most Popular';
     if (filter === 'fave') return 'Staff Picks';
     return 'All Itineraries';
   };
 
   const getIcon = () => {
-    if (filter === 'fave') return <Heart className="w-6 h-6 text-primary" />;
-    return <Users className="w-6 h-6 text-primary" />;
+    if (filter === 'fave') return <Heart className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
+    return <Users className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
   };
+
+  // Transform itineraries for AppStoreItineraryView
+  const transformedItineraries = filteredItineraries.map(it => ({
+    id: it.id,
+    name: it.name,
+    coverImage: it.coverImage || 'https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?w=400',
+    creatorName: it.creatorName,
+    creatorAvatar: undefined,
+    experienceCount: it.experiences.length,
+    dayCount: Math.ceil(it.experiences.length / 4) || 1,
+    likes: undefined,
+    location: it.experiences[0]?.location
+  }));
+
+  // Mobile App Store-style card view
+  if (isMobile && viewMode === 'cards' && !searchQuery) {
+    return (
+      <div className="min-h-screen w-full bg-background">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <Link to="/">
+                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-xl font-bold">{getTitle()}</h1>
+                <p className="text-xs text-muted-foreground">{itineraries.length} itineraries</p>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full h-9 w-9"
+              onClick={() => setViewMode('grid')}
+            >
+              <LayoutGrid className="w-5 h-5" />
+            </Button>
+          </div>
+          
+          {/* Search */}
+          <div className="flex items-center bg-muted rounded-full px-4 py-2">
+            <Search className="w-4 h-4 text-muted-foreground mr-3" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search itineraries..."
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground"
+              style={{ fontSize: '16px' }}
+            />
+          </div>
+        </div>
+        
+        <AppStoreItineraryView itineraries={transformedItineraries} />
+      </div>
+    );
+  }
 
   return (
     <MainLayout>
@@ -56,6 +120,18 @@ const ItinerariesPage = () => {
               <h1 className="text-lg md:text-2xl font-bold">{getTitle()}</h1>
             </div>
             <span className="text-muted-foreground text-sm">({itineraries.length})</span>
+            
+            {/* View toggle for mobile */}
+            {isMobile && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="ml-auto rounded-full h-8 w-8"
+                onClick={() => setViewMode(viewMode === 'grid' ? 'cards' : 'grid')}
+              >
+                {viewMode === 'grid' ? <Layers className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
+              </Button>
+            )}
           </div>
           
           {/* Search */}
