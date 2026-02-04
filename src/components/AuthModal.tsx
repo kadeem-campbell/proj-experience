@@ -203,13 +203,15 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         return;
       }
 
-      if (data.user) {
-        await supabase.from("profiles").upsert({
-          id: data.user.id,
-          full_name: username,
-          email: email,
-        });
+      // Check for duplicate signup - Supabase returns empty identities array
+      // when email already exists (for privacy, it doesn't error)
+      if (data.user && (!data.user.identities || data.user.identities.length === 0)) {
+        setError("This email is already registered. Try logging in instead.");
+        setIsLoading(false);
+        return;
       }
+
+      // Profile is created by handle_new_user trigger when user verifies email
 
       // Close modal and show success
       onOpenChange(false);
