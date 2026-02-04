@@ -57,15 +57,6 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
 
   return (
     <>
-      {/* Netflix-style Hero Tagline - more structured */}
-      <div className="mb-5 md:mb-8 space-y-1">
-        <h1 className="text-[1.75rem] sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground leading-[1.15] tracking-tight">
-          Visiting Zanzibar is one thing.
-        </h1>
-        <h1 className="text-[1.75rem] sm:text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-primary leading-[1.15] tracking-tight">
-          Experiencing it is another.
-        </h1>
-      </div>
 
       {/* Live Activity Bar */}
       <div className="bg-card border border-border/50 rounded-xl p-3 md:p-4 mb-6 md:mb-8">
