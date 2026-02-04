@@ -24,6 +24,18 @@ export const MobileSearchOverlay = ({
 }: MobileSearchOverlayProps) => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
+  // Lock body scroll when overlay is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   // Load recent searches from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
