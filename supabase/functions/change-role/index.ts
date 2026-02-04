@@ -8,6 +8,28 @@ const corsHeaders = {
 
 const ALLOWED_ROLES = ['traveler', 'creator'];
 
+// Simple in-memory rate limiter (resets on cold start, but provides basic protection)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_MAX = 10; // Max 10 role changes per hour per user
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in ms
+
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const record = rateLimitMap.get(userId);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return { allowed: true, remaining: RATE_LIMIT_MAX - 1 };
+  }
+  
+  if (record.count >= RATE_LIMIT_MAX) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  record.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX - record.count };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -32,6 +54,26 @@ serve(async (req) => {
 
     if (authError || !user) {
       throw new Error("User not authenticated");
+    }
+
+    // Check rate limit
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      console.warn(`Rate limit exceeded for user ${user.id}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Rate limit exceeded. Please try again later.",
+          retryAfter: 3600 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": "3600"
+          } 
+        }
+      );
     }
 
     // Parse request body
@@ -69,7 +111,8 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: "Role unchanged",
-          role 
+          role,
+          remaining: rateLimit.remaining
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -109,7 +152,8 @@ serve(async (req) => {
         success: true,
         message: `Role changed to ${role}`,
         role,
-        previousRole: oldRole || null
+        previousRole: oldRole || null,
+        remaining: rateLimit.remaining
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LikedExperience } from './useLikedExperiences';
+import { validateEmail } from '@/utils/inputValidation';
 
 export interface Trip {
   id: string;
@@ -434,19 +435,26 @@ export const useItineraries = () => {
   }, [itineraries, saveItineraries]);
 
   const addCollaborator = useCallback(async (itineraryId: string, email: string): Promise<{ success: boolean; emailSent: boolean; message: string }> => {
+    const trimmedEmail = email.trim().toLowerCase();
+    
+    // Client-side email validation
+    if (!validateEmail(trimmedEmail)) {
+      return { success: false, emailSent: false, message: "Invalid email address format" };
+    }
+    
     const targetItinerary = itineraries.find(i => i.id === itineraryId);
     
-    // Check if already a collaborator
-    if (targetItinerary?.collaborators.includes(email)) {
+    // Check if already a collaborator (case-insensitive)
+    if (targetItinerary?.collaborators.some(c => c.toLowerCase() === trimmedEmail)) {
       return { success: false, emailSent: false, message: "Already a collaborator" };
     }
     
-    // Update the collaborators list
+    // Update the collaborators list with normalized email
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
         ...i,
-        collaborators: [...i.collaborators, email],
+        collaborators: [...i.collaborators, trimmedEmail],
         updatedAt: new Date().toISOString()
       };
     });

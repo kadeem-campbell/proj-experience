@@ -707,9 +707,19 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   const handleAddCollaborator = async () => {
     if (collaboratorEmail.trim() && itinerary) {
       const email = collaboratorEmail.trim();
-      setCollaboratorEmail("");
       
       const result = await addCollaborator(itinerary.id, email);
+      
+      if (!result.success) {
+        toast({ 
+          title: "Cannot add collaborator", 
+          description: result.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setCollaboratorEmail("");
       
       if (result.emailSent) {
         toast({ 
