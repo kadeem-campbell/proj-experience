@@ -61,25 +61,29 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
 
   return (
     <>
-      <div className="bg-card border border-border/50 rounded-xl p-4 md:p-5 mb-6 md:mb-8">
+      {/* Netflix-style Hero Tagline */}
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight tracking-tight">
+          Visiting Zanzibar is one thing.
+        </h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
+          <span className="text-primary">Experiencing it is another.</span>
+        </h1>
+      </div>
+
+      {/* Live Activity Bar */}
+      <div className="bg-card border border-border/50 rounded-xl p-3 md:p-4 mb-6 md:mb-8">
         {/* Desktop Layout */}
         <div className="hidden md:flex md:items-center md:justify-between gap-6">
-          {/* Left: Tagline */}
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-foreground truncate">
-              Visiting Zanzibar is one thing. <span className="text-primary">Experiencing it is another.</span>
-            </h2>
-          </div>
-          
-          {/* Center: Live Stats */}
-          <div className="flex items-center gap-5 text-sm shrink-0">
+          {/* Left: Live Stats */}
+          <div className="flex items-center gap-5 text-sm">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
               </span>
               <span className="font-medium text-success tabular-nums">
-                <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning
+                <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning now
               </span>
             </div>
             <span className="text-border">•</span>
@@ -90,7 +94,7 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
             <span className="text-border">•</span>
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <Zap className="w-3.5 h-3.5 text-activity" />
-              <span className="tabular-nums">{itinerariesCreated.toLocaleString()}</span>+ trips
+              <span className="tabular-nums">{itinerariesCreated.toLocaleString()}</span>+ trips created
             </span>
           </div>
           
@@ -118,46 +122,35 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
         </div>
 
         {/* Mobile Layout */}
-        <div className="md:hidden space-y-3">
-          {/* Top row: Live indicator + CTA */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
-              </span>
-              <span className="text-sm font-medium text-success tabular-nums">
-                <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning now
-              </span>
-            </div>
-            
-            {experienceCount > 0 ? (
-              <Link to="/itinerary">
-                <Button size="sm" className="gap-1.5 h-8 text-xs">
-                  My Trip ({experienceCount})
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Button>
-              </Link>
-            ) : hasSeenEducation ? (
-              <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-lg text-xs">
-                <Plus className="w-3.5 h-3.5" />
-                Tap + to add
-              </div>
-            ) : (
-              <Button size="sm" onClick={handlePlanTripClick} className="gap-1.5 h-8 text-xs">
-                <Sparkles className="w-3.5 h-3.5" />
-                Plan trip
-              </Button>
-            )}
+        <div className="md:hidden flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+            </span>
+            <span className="text-sm font-medium text-success tabular-nums">
+              <span className="inline-block min-w-[2.5ch] text-right">{planningNow.toLocaleString()}</span> planning now
+            </span>
           </div>
           
-          {/* Bottom: Tagline */}
-          <div className="pt-1 border-t border-border/30">
-            <p className="text-base font-semibold text-foreground leading-snug">
-              Visiting Zanzibar is one thing.{" "}
-              <span className="text-primary">Experiencing it is another.</span>
-            </p>
-          </div>
+          {experienceCount > 0 ? (
+            <Link to="/itinerary">
+              <Button size="sm" className="gap-1.5 h-8 text-xs">
+                My Trip ({experienceCount})
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
+          ) : hasSeenEducation ? (
+            <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/50 px-2.5 py-1.5 rounded-lg text-xs">
+              <Plus className="w-3.5 h-3.5" />
+              Tap + to add
+            </div>
+          ) : (
+            <Button size="sm" onClick={handlePlanTripClick} className="gap-1.5 h-8 text-xs">
+              <Sparkles className="w-3.5 h-3.5" />
+              Plan trip
+            </Button>
+          )}
         </div>
       </div>
 
