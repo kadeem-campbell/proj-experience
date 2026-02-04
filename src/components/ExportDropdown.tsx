@@ -3,10 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Heart, Download, Eye, DollarSign } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
+import { useItineraries } from "@/hooks/useItineraries";
 import { Link } from "react-router-dom";
 
 export const ExportDropdown = () => {
   const { exportLikedExperiences, count } = useLikedExperiences();
+  const { itineraries } = useItineraries();
+  const itineraryCount = itineraries.length;
 
   return (
     <DropdownMenu>
@@ -14,9 +17,9 @@ export const ExportDropdown = () => {
         <Button variant="ghost" className="text-foreground hover:text-primary flex items-center gap-2 relative">
           <Heart className="w-4 h-4" />
           <span className="hidden sm:inline">Itinerary</span>
-          {count > 0 && (
+          {itineraryCount > 0 && (
             <Badge variant="default" className="bg-red-500 hover:bg-red-600 text-white min-w-[20px] h-5 text-xs px-1">
-              {count}
+              {itineraryCount}
             </Badge>
           )}
         </Button>
@@ -25,7 +28,7 @@ export const ExportDropdown = () => {
         <Link to="/itinerary">
           <DropdownMenuItem>
             <Eye className="w-4 h-4 mr-2" />
-            View Itinerary
+            View Itinerary {itineraryCount > 0 && `(${itineraryCount})`}
           </DropdownMenuItem>
         </Link>
         <DropdownMenuItem disabled className="opacity-50 cursor-not-allowed">
