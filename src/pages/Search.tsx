@@ -174,7 +174,7 @@ const ItineraryCarousel = ({
             onClick={onSeeAll}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            See All
+            Show All
           </button>
           <div className="flex items-center gap-1">
             <button
@@ -194,10 +194,10 @@ const ItineraryCarousel = ({
           </div>
         </div>
       </div>
-      <div className="overflow-hidden min-w-0">
+      <div className="overflow-hidden">
         <div 
           ref={scrollRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
         {itineraries.map((itinerary) => (
@@ -229,7 +229,7 @@ const ExperienceCarousel = ({
             onClick={onSeeAll}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            See All
+            Show All
           </button>
           <div className="flex items-center gap-1">
             <button
@@ -250,10 +250,10 @@ const ExperienceCarousel = ({
         </div>
       </div>
 
-      <div className="overflow-hidden min-w-0">
+      <div className="overflow-hidden">
         <div
           ref={scrollRef}
-          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {experiences.map((experience) => (
