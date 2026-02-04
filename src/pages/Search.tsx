@@ -501,7 +501,7 @@ const SearchPage = () => {
           {!selectedCity && filteredExperiences.length > 0 && (
             <div id="all-experiences-section" className="mb-6 md:mb-10">
               <h2 className="text-lg md:text-xl font-bold mb-4">All Experiences</h2>
-              <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3">
+              <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9 gap-2">
                 {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
