@@ -194,14 +194,14 @@ const ItineraryCarousel = ({
           </div>
         </div>
       </div>
-      <div className="overflow-hidden -mx-3 px-3 md:-mx-6 md:px-6">
+      <div className="overflow-hidden">
         <div 
           ref={scrollRef}
-          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
         {itineraries.map((itinerary) => (
-          <div key={itinerary.id} className="flex-shrink-0 w-[200px] sm:w-[240px] md:w-[280px]">
+          <div key={itinerary.id} className="flex-shrink-0 w-[260px] sm:w-[280px]">
             <PublicItineraryCard itinerary={itinerary} />
           </div>
         ))}
@@ -211,30 +211,60 @@ const ItineraryCarousel = ({
   );
 };
 
-// Experience Grid Section (shows all experiences in a responsive grid)
-const ExperienceGrid = ({
+const ExperienceCarousel = ({
   experiences,
   onSeeAll,
 }: {
   experiences: any[];
   onSeeAll: () => void;
 }) => {
+  const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(420);
+
   return (
     <div id="all-experiences-section" className="mb-6 md:mb-10">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
-        <button
-          onClick={onSeeAll}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          See All
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onSeeAll}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            See All
+          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => scrollByDir("left")}
+              disabled={!canScrollLeft}
+              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => scrollByDir("right")}
+              disabled={!canScrollRight}
+              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 md:gap-3">
-        {experiences.map((experience) => (
-          <ExperienceCard key={experience.id} {...experience} compact />
-        ))}
+      <div className="overflow-hidden">
+        <div
+          ref={scrollRef}
+          className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {experiences.map((experience) => (
+            <div
+              key={experience.id}
+              className="flex-shrink-0 w-[132px] sm:w-[148px] md:w-[160px]"
+            >
+              <ExperienceCard {...experience} compact />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -539,10 +569,10 @@ const SearchPage = () => {
             />
           )}
 
-          {/* All Experiences Section - Grid layout */}
+          {/* All Experiences Section - Horizontal Carousel (small square cards) */}
           {!selectedCity && filteredExperiences.length > 0 && (
-            <ExperienceGrid
-              experiences={filteredExperiences}
+            <ExperienceCarousel
+              experiences={filteredExperiences.slice(0, 24)}
               onSeeAll={() => navigate("/search")}
             />
           )}
