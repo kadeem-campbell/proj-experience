@@ -57,12 +57,12 @@ const ItinerariesPage = () => {
     location: it.experiences[0]?.location
   }));
 
-  // Mobile App Store-style card view (always show fixed header)
+  // Mobile App Store-style card view (scrollable)
   if (isMobile && viewMode === 'cards') {
     return (
-      <div className="min-h-screen w-full bg-background">
-        {/* Fixed header - guaranteed to stay at top */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
+      <div className="min-h-screen w-full bg-background overflow-y-auto">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-50 bg-background border-b border-border">
           <div className="px-3 py-2.5">
             <div className="flex items-center gap-2 mb-2.5">
               <Link to="/">
@@ -99,8 +99,8 @@ const ItinerariesPage = () => {
           </div>
         </div>
         
-        {/* Content with top padding to account for fixed header */}
-        <div className="pt-[120px]">
+        {/* Scrollable content */}
+        <div className="pb-20">
           {searchQuery ? (
             <div className="p-3">
               <div className="grid grid-cols-2 gap-3">

@@ -42,8 +42,8 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
     setCurrentIndex(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
   };
 
-  // Determine correct link - public itineraries go to /public-itinerary, user's own go to /trip
-  const linkPath = itinerary.isPublic ? `/public-itinerary/${itinerary.id}` : `/trip/${itinerary.id}`;
+  // All public itineraries link to /public-itinerary
+  const linkPath = `/public-itinerary/${itinerary.id}`;
 
   return (
     <Link to={linkPath}>

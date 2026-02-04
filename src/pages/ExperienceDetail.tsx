@@ -6,8 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Plus, 
-  Minus,
-  Check,
   ArrowLeft, 
   Share2, 
   MapPin, 
@@ -211,7 +209,7 @@ const experienceMap = buildExperienceMap();
 
 export default function ExperienceDetail() {
   const { id } = useParams();
-  const { isInItinerary, addExperience, removeExperience, itineraries } = useItineraries();
+  const { itineraries } = useItineraries();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -263,35 +261,12 @@ export default function ExperienceDetail() {
   }, [id]);
 
 
-  const inItinerary = experience ? isInItinerary(experience.id) : false;
-
   useEffect(() => {
     if (experience) {
       document.title = `${experience.title} | Add to Your Itinerary`;
     }
     return () => { document.title = 'Experience East Africa'; };
   }, [experience]);
-
-  const handleToggleItinerary = () => {
-    if (!experience) return;
-    
-    if (inItinerary) {
-      removeExperience(experience.id);
-      setJustAdded(false);
-    } else {
-      addExperience({
-        id: experience.id,
-        title: experience.title,
-        creator: experience.creator,
-        videoThumbnail: experience.videoThumbnail,
-        category: experience.category,
-        location: experience.location,
-        price: "",
-      });
-      setJustAdded(true);
-      setTimeout(() => setJustAdded(false), 2000);
-    }
-  };
 
   const handleShare = async () => {
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
@@ -325,7 +300,7 @@ export default function ExperienceDetail() {
 
   return (
     <MainLayout showItineraryPanel={false}>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background overflow-y-auto">
         {/* Header Nav */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
           <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
@@ -401,7 +376,7 @@ export default function ExperienceDetail() {
                 {/* Desktop overlay content */}
                 <div className="hidden lg:flex absolute bottom-0 left-0 right-0 p-8 flex-col gap-4">
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-white/20 backdrop-blur-sm text-white border-0">
+                    <Badge className="bg-foreground/90 text-background border-0">
                       {experience.category}
                     </Badge>
                     <div className="flex items-center gap-1 text-white/90 text-sm">
@@ -461,7 +436,7 @@ export default function ExperienceDetail() {
               {/* Mobile-only title section */}
               <div className="lg:hidden">
                 <div className="flex flex-wrap items-center gap-2 mb-4">
-                  <Badge className="bg-primary/10 text-primary border-0 font-medium">
+                  <Badge className="bg-foreground text-background border-0 font-medium">
                     {experience.category}
                   </Badge>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -527,55 +502,43 @@ export default function ExperienceDetail() {
 
               {/* Desktop CTA - Inline */}
               <div className="hidden lg:block mb-8">
-                {inItinerary ? (
+                <ItinerarySelector
+                  experienceId={experience.id}
+                  experienceData={{
+                    id: experience.id,
+                    title: experience.title,
+                    creator: experience.creator,
+                    videoThumbnail: experience.videoThumbnail,
+                    category: experience.category,
+                    location: experience.location,
+                    price: "",
+                  }}
+                  onAdd={() => {
+                    setJustAdded(true);
+                    setTimeout(() => setJustAdded(false), 2000);
+                  }}
+                >
                   <Button 
-                    onClick={handleToggleItinerary}
                     size="lg"
-                    className="w-full h-14 rounded-2xl font-semibold text-base bg-card border-2 border-primary text-primary hover:bg-primary/10"
-                    variant="outline"
+                    className={cn(
+                      "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
+                      justAdded && "animate-pulse"
+                    )}
                   >
                     <span className="flex items-center gap-2">
-                      <Check className="w-5 h-5" />
-                      Added to Itinerary
-                      <span className="text-xs opacity-70 ml-1">• click to remove</span>
+                      <Plus className="w-5 h-5" />
+                      Add to Itinerary
+                      {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length > 0 && (
+                        <span className="ml-1 px-2 py-0.5 rounded-full bg-primary-foreground/20 text-xs">
+                          {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length}
+                        </span>
+                      )}
                     </span>
                   </Button>
-                ) : (
-                  <ItinerarySelector
-                    experienceId={experience.id}
-                    experienceData={{
-                      id: experience.id,
-                      title: experience.title,
-                      creator: experience.creator,
-                      videoThumbnail: experience.videoThumbnail,
-                      category: experience.category,
-                      location: experience.location,
-                      price: "",
-                    }}
-                    onAdd={() => {
-                      setJustAdded(true);
-                      setTimeout(() => setJustAdded(false), 2000);
-                    }}
-                  >
-                    <Button 
-                      size="lg"
-                      className={cn(
-                        "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
-                        justAdded && "animate-pulse"
-                      )}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Plus className="w-5 h-5" />
-                        Add to My Itinerary
-                      </span>
-                    </Button>
-                  </ItinerarySelector>
-                )}
-                {!inItinerary && (
-                  <p className="text-center text-xs text-muted-foreground mt-2">
-                    <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this to their trip
-                  </p>
-                )}
+                </ItinerarySelector>
+                <p className="text-center text-xs text-muted-foreground mt-2">
+                  <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this to their trip
+                </p>
               </div>
 
               {/* Description */}
@@ -652,55 +615,44 @@ export default function ExperienceDetail() {
         {/* Fixed Bottom CTA - Mobile only */}
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border lg:hidden">
           <div className="px-4 py-4">
-            {inItinerary ? (
+            <ItinerarySelector
+              experienceId={experience.id}
+              experienceData={{
+                id: experience.id,
+                title: experience.title,
+                creator: experience.creator,
+                videoThumbnail: experience.videoThumbnail,
+                category: experience.category,
+                location: experience.location,
+                price: "",
+              }}
+              onAdd={() => {
+                setJustAdded(true);
+                setTimeout(() => setJustAdded(false), 2000);
+              }}
+            >
               <Button 
-                onClick={handleToggleItinerary}
                 size="lg"
-                className="w-full h-14 rounded-2xl font-semibold text-base bg-card border-2 border-primary text-primary hover:bg-primary/10"
-                variant="outline"
+                className={cn(
+                  "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
+                  justAdded && "animate-pulse"
+                )}
               >
                 <span className="flex items-center gap-2">
-                  <Check className="w-5 h-5" />
-                  Added to Itinerary
+                  <Plus className="w-5 h-5" />
+                  Add to Itinerary
+                  {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length > 0 && (
+                    <span className="ml-1 px-2 py-0.5 rounded-full bg-primary-foreground/20 text-xs">
+                      {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length}
+                    </span>
+                  )}
                 </span>
               </Button>
-            ) : (
-              <ItinerarySelector
-                experienceId={experience.id}
-                experienceData={{
-                  id: experience.id,
-                  title: experience.title,
-                  creator: experience.creator,
-                  videoThumbnail: experience.videoThumbnail,
-                  category: experience.category,
-                  location: experience.location,
-                  price: "",
-                }}
-                onAdd={() => {
-                  setJustAdded(true);
-                  setTimeout(() => setJustAdded(false), 2000);
-                }}
-              >
-                <Button 
-                  size="lg"
-                  className={cn(
-                    "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
-                    justAdded && "animate-pulse"
-                  )}
-                >
-                  <span className="flex items-center gap-2">
-                    <Plus className="w-5 h-5" />
-                    Add to My Itinerary
-                  </span>
-                </Button>
-              </ItinerarySelector>
-            )}
+            </ItinerarySelector>
             
-            {!inItinerary && (
-              <p className="text-center text-xs text-muted-foreground mt-2">
-                <span className="text-primary font-medium">{socialProof.added}</span> travelers added this
-              </p>
-            )}
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              <span className="text-primary font-medium">{socialProof.added}</span> travelers added this
+            </p>
           </div>
         </div>
       </div>

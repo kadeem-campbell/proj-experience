@@ -208,14 +208,14 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     }
   };
 
-  // Unified Make a Trip - triggered when dates are selected
-  const handleDateRangeSelected = (startDate: Date, endDate?: Date) => {
+  // Unified Make a Trip - triggered when dates are selected - auto-save
+  const handleDateRangeSelected = async (startDate: Date, endDate?: Date) => {
     setTripStartDate(startDate);
     setTripEndDate(endDate);
     setIsCreatingNewTrip(true);
     setShowTripView(true);
-    // Generate the trip immediately
-    generateTrip(startDate, endDate);
+    // Generate the trip immediately and auto-save
+    await generateTripAndSave(startDate, endDate);
   };
   
   // Trip generation state (for personal itineraries without dates)
@@ -419,10 +419,9 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     return `${hours}h ${mins}m`;
   };
 
-  // Auto-generate trip based on experiences and their time slots
-  const generateTrip = (startDate: Date, endDate?: Date) => {
-    if (!itinerary) return;
-    setIsGenerating(true);
+  // Auto-generate trip based on experiences and their time slots - returns trip data
+  const generateTripData = (startDate: Date, endDate?: Date): Record<string, LikedExperience[]> => {
+    if (!itinerary) return {};
     
     // Group experiences by time slot
     const bySlot: Record<TimeSlot, LikedExperience[]> = {
@@ -484,11 +483,70 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
       );
     }
     
-    setTimeout(() => {
-      setGeneratedTrip(tripDays);
-      setIsGenerating(false);
-      setShowTripView(true);
-    }, 500);
+    return tripDays;
+  };
+
+  // Generate trip and auto-save
+  const generateTripAndSave = async (startDate: Date, endDate?: Date) => {
+    if (!itinerary) return;
+    setIsGenerating(true);
+    
+    const tripDays = generateTripData(startDate, endDate);
+    setGeneratedTrip(tripDays);
+    
+    // Collect all scheduled experiences from the generated trip
+    const allScheduledExperiences = Object.values(tripDays).flat();
+    
+    // Create a new Trip object with all the scheduled experiences
+    const tripName = `Trip ${(itinerary.trips?.length || 0) + 1}`;
+    const newTrip = await createTrip(
+      itinerary.id, 
+      tripName, 
+      startDate.toISOString(), 
+      endDate?.toISOString(),
+      allScheduledExperiences
+    );
+    
+    // Fire confetti
+    const duration = 2000;
+    const end = Date.now() + duration;
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'];
+    
+    (function frame() {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.7 },
+        colors
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.7 },
+        colors
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    }());
+    
+    toast({
+      title: "Trip created! 🎉",
+      description: `${allScheduledExperiences.length} experiences have been scheduled.`,
+    });
+
+    // Keep the Trip View open and select the new trip
+    setShowTripView(true);
+    setIsCreatingNewTrip(false);
+    setGeneratedTrip({});
+    setTripStartDate(undefined);
+    setTripEndDate(undefined);
+    setIsGenerating(false);
+    
+    // Select the newly created trip
+    if (newTrip) {
+      setSearchParams({ trip: newTrip.id });
+    }
   };
 
   // Update experience time in generated trip
@@ -507,7 +565,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     });
   };
 
-  // Save generated trip to itinerary
+  // Save generated trip to itinerary - keeping for manual edits but auto-save is primary
   const handleSaveTrip = async () => {
     if (!itinerary || !tripStartDate) return;
     
@@ -715,7 +773,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
             {/* Category badge */}
             {experience.category && (
               <div className="absolute top-2 left-2">
-                <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs">
+                <Badge variant="secondary" className="bg-foreground text-background text-xs">
                   {experience.category}
                 </Badge>
               </div>
@@ -1185,7 +1243,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                               {(itinerary.trips?.length || 0) > 0 ? "Add another trip" : "Pick dates"}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start" side="left">
+                          <PopoverContent className="w-auto p-0 max-h-[80vh] overflow-auto" align="end" side="bottom" sideOffset={8}>
                             <div className="flex flex-col">
                               <CalendarComponent
                                 mode="range"
@@ -1275,13 +1333,6 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                   </Button>
                 )}
                 
-                {/* Save Trip button when creating */}
-                {showTripView && isCreatingNewTrip && (
-                  <Button onClick={handleSaveTrip} size="sm" className="gap-2" disabled={Object.keys(generatedTrip).length === 0}>
-                    <Check className="w-4 h-4" />
-                    Save Trip
-                  </Button>
-                )}
               </div>
             </div>
           </div>
