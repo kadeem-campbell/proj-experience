@@ -704,14 +704,24 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const handleAddCollaborator = () => {
+  const handleAddCollaborator = async () => {
     if (collaboratorEmail.trim() && itinerary) {
-      addCollaborator(itinerary.id, collaboratorEmail.trim());
-      toast({ 
-        title: "Collaborator added!", 
-        description: `${collaboratorEmail.trim()} can now access this trip when they sign in.` 
-      });
+      const email = collaboratorEmail.trim();
       setCollaboratorEmail("");
+      
+      const result = await addCollaborator(itinerary.id, email);
+      
+      if (result.emailSent) {
+        toast({ 
+          title: "Invitation sent! 📧", 
+          description: `${email} will receive an email with a link to collaborate.` 
+        });
+      } else {
+        toast({ 
+          title: "Collaborator added", 
+          description: result.message || `${email} can now access this trip when they sign in.`
+        });
+      }
     }
   };
 

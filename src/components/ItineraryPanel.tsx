@@ -132,14 +132,24 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const handleAddCollaborator = () => {
+  const handleAddCollaborator = async () => {
     if (collaboratorEmail.trim()) {
-      addCollaborator(activeItinerary.id, collaboratorEmail.trim());
+      const email = collaboratorEmail.trim();
       setCollaboratorEmail("");
-      toast({
-        title: "Collaborator added",
-        description: `${collaboratorEmail} can now view this itinerary`,
-      });
+      
+      const result = await addCollaborator(activeItinerary.id, email);
+      
+      if (result.emailSent) {
+        toast({
+          title: "Invitation sent! 📧",
+          description: `${email} will receive an email with a link to collaborate.`,
+        });
+      } else {
+        toast({
+          title: "Collaborator added",
+          description: result.message || `${email} can now view this itinerary`,
+        });
+      }
     }
   };
 
