@@ -42,15 +42,33 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     }
   }, [open]);
 
-  // Listen for auth state changes to close modal on success
+  // Listen for auth state changes - check if username needed for OAuth users
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' && open) {
-        onOpenChange(false);
-        toast({
-          title: "Welcome!",
-          description: "You're now signed in.",
-        });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && open && session?.user) {
+        // Check if user has a profile with a name set
+        setTimeout(async () => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", session.user.id)
+            .single();
+          
+          // If no full_name, show username step (for OAuth users)
+          if (!profile?.full_name) {
+            setEmail(session.user.email || "");
+            const suggested = generateUsername(session.user.email || "user");
+            setUsername(suggested);
+            setStep("username");
+            setIsLoading(false);
+          } else {
+            onOpenChange(false);
+            toast({
+              title: "Welcome!",
+              description: "You're now signed in.",
+            });
+          }
+        }, 0);
       }
     });
 
@@ -138,6 +156,32 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
     setIsLoading(true);
     try {
+      // Check if user is already signed in (OAuth flow)
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // OAuth user - just update profile with username
+        const { error: updateError } = await supabase.from("profiles").upsert({
+          id: session.user.id,
+          full_name: username,
+          email: session.user.email,
+        });
+
+        if (updateError) {
+          setError("Failed to save username. Please try again.");
+          setIsLoading(false);
+          return;
+        }
+
+        onOpenChange(false);
+        toast({
+          title: "Welcome!",
+          description: "Your account is ready.",
+        });
+        return;
+      }
+
+      // Email sign-up flow
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
