@@ -194,14 +194,14 @@ const ItineraryCarousel = ({
           </div>
         </div>
       </div>
-      <div className="overflow-hidden">
+      <div className="overflow-hidden min-w-0">
         <div 
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1 -mx-4 px-4 sm:mx-0 sm:px-0"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
         {itineraries.map((itinerary) => (
-          <div key={itinerary.id} className="flex-shrink-0 w-[260px] sm:w-[280px]">
+          <div key={itinerary.id} className="flex-shrink-0 w-[200px] sm:w-[240px] md:w-[280px]">
             <PublicItineraryCard itinerary={itinerary} />
           </div>
         ))}
@@ -250,16 +250,16 @@ const ExperienceCarousel = ({
         </div>
       </div>
 
-      <div className="overflow-hidden">
+      <div className="overflow-hidden min-w-0">
         <div
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1 -mx-4 px-4 sm:mx-0 sm:px-0"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {experiences.map((experience) => (
             <div
               key={experience.id}
-              className="flex-shrink-0 w-[132px] sm:w-[148px] md:w-[160px]"
+              className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px]"
             >
               <ExperienceCard {...experience} compact />
             </div>
