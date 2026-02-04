@@ -166,9 +166,9 @@ const ItineraryCarousel = ({
   const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(340);
 
   return (
-    <div className="mb-6 md:mb-10">
-      <div className="flex items-center justify-between gap-3 mb-4 min-w-0">
-        <h2 className="text-lg md:text-xl font-bold min-w-0 truncate">Top Itineraries</h2>
+    <div className="mb-6 md:mb-10 w-full max-w-full">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onSeeAll}
@@ -197,10 +197,10 @@ const ItineraryCarousel = ({
           </div>
         </div>
       </div>
-      <div className="overflow-hidden min-w-0">
+      <div className="w-full overflow-hidden">
         <div 
           ref={scrollRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1 -mx-3 px-3 md:mx-0 md:px-0"
+          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1 pr-4"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
         {itineraries.map((itinerary) => (
@@ -224,9 +224,9 @@ const ExperienceCarousel = ({
   const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(420);
 
   return (
-    <div id="all-experiences-section" className="mb-6 md:mb-10">
-      <div className="flex items-center justify-between gap-3 mb-4 min-w-0">
-        <h2 className="text-lg md:text-xl font-bold min-w-0 truncate">All Experiences</h2>
+    <div id="all-experiences-section" className="mb-6 md:mb-10 w-full max-w-full">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onSeeAll}
@@ -256,10 +256,10 @@ const ExperienceCarousel = ({
         </div>
       </div>
 
-      <div className="overflow-hidden min-w-0">
+      <div className="w-full overflow-hidden">
         <div
           ref={scrollRef}
-          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1 -mx-3 px-3 md:mx-0 md:px-0"
+          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1 pr-4"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {experiences.map((experience) => (
