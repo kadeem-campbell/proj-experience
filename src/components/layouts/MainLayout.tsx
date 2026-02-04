@@ -11,7 +11,12 @@ interface MainLayoutProps {
 export const MainLayout = ({ children, showItineraryPanel = false }: MainLayoutProps) => {
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background">
+      {/*
+        IMPORTANT: use a fixed viewport height so the scroll happens inside our <main>
+        (overflow-auto). If the browser window scrolls instead, `position: sticky` inside
+        overflow-hidden ancestors won't work reliably.
+      */}
+      <div className="h-screen flex w-full bg-background overflow-hidden">
         <ItinerarySidebar />
         
         <SidebarInset className="flex-1 flex flex-col min-w-0">
