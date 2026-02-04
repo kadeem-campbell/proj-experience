@@ -166,13 +166,13 @@ const ItineraryCarousel = ({
   const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(340);
 
   return (
-    <div className="mb-6 md:mb-10 w-full max-w-full">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
-        <div className="flex items-center gap-2 shrink-0">
+    <section className="mb-6 md:mb-10 w-full min-w-0">
+      <div className="flex items-center justify-between gap-4 mb-4 w-full">
+        <h2 className="text-lg md:text-xl font-bold flex-shrink-0">Top Itineraries</h2>
+        <div className="flex items-center gap-3 flex-shrink-0">
           <button
             onClick={onSeeAll}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
             type="button"
           >
             Show All
@@ -197,20 +197,18 @@ const ItineraryCarousel = ({
           </div>
         </div>
       </div>
-      <div className="w-full overflow-hidden">
-        <div 
-          ref={scrollRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1 pr-4"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
+      <div 
+        ref={scrollRef}
+        className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {itineraries.map((itinerary) => (
           <div key={itinerary.id} className="flex-shrink-0 w-[200px] sm:w-[240px] md:w-[280px]">
             <PublicItineraryCard itinerary={itinerary} />
           </div>
         ))}
-        </div>
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -224,13 +222,13 @@ const ExperienceCarousel = ({
   const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(420);
 
   return (
-    <div id="all-experiences-section" className="mb-6 md:mb-10 w-full max-w-full">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
-        <div className="flex items-center gap-2 shrink-0">
+    <section id="all-experiences-section" className="mb-6 md:mb-10 w-full min-w-0">
+      <div className="flex items-center justify-between gap-4 mb-4 w-full">
+        <h2 className="text-lg md:text-xl font-bold flex-shrink-0">All Experiences</h2>
+        <div className="flex items-center gap-3 flex-shrink-0">
           <button
             onClick={onSeeAll}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
             type="button"
           >
             Show All
@@ -256,23 +254,21 @@ const ExperienceCarousel = ({
         </div>
       </div>
 
-      <div className="w-full overflow-hidden">
-        <div
-          ref={scrollRef}
-          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1 pr-4"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {experiences.map((experience) => (
-            <div
-              key={experience.id}
-              className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px]"
-            >
-              <ExperienceCard {...experience} compact />
-            </div>
-          ))}
-        </div>
+      <div
+        ref={scrollRef}
+        className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {experiences.map((experience) => (
+          <div
+            key={experience.id}
+            className="flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px]"
+          >
+            <ExperienceCard {...experience} compact />
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -562,7 +558,7 @@ const SearchPage = () => {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-3 md:p-6"
+          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-3 md:p-6 w-full max-w-full"
         >
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
