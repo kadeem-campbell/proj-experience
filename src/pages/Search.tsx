@@ -115,6 +115,46 @@ const getAllExperiences = () => {
 
 const SCROLL_STORAGE_KEY = 'discover_scroll_position';
 
+type CarouselDirection = "left" | "right";
+
+const useCarouselScroll = (scrollAmount: number) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScrollButtons = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  useEffect(() => {
+    checkScrollButtons();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", checkScrollButtons);
+    return () => el.removeEventListener("scroll", checkScrollButtons);
+  }, []);
+
+  const scrollByDir = (direction: CarouselDirection) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  return {
+    scrollRef,
+    canScrollLeft,
+    canScrollRight,
+    scrollByDir,
+  };
+};
+
 // Itinerary Carousel Component with arrow navigation
 const ItineraryCarousel = ({ 
   itineraries, 
@@ -123,36 +163,7 @@ const ItineraryCarousel = ({
   itineraries: ReturnType<typeof getPopularItineraries>;
   onSeeAll: () => void;
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const checkScrollButtons = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  };
-
-  useEffect(() => {
-    checkScrollButtons();
-    const container = scrollRef.current;
-    if (container) {
-      container.addEventListener('scroll', checkScrollButtons);
-      return () => container.removeEventListener('scroll', checkScrollButtons);
-    }
-  }, []);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = 340;
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
+  const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(340);
 
   return (
     <div className="mb-6 md:mb-10">
@@ -167,14 +178,14 @@ const ItineraryCarousel = ({
           </button>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => scroll('left')}
+              onClick={() => scrollByDir("left")}
               disabled={!canScrollLeft}
               className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={() => scroll('right')}
+              onClick={() => scrollByDir("right")}
               disabled={!canScrollRight}
               className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
@@ -183,16 +194,77 @@ const ItineraryCarousel = ({
           </div>
         </div>
       </div>
-      <div 
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
+      <div className="overflow-hidden">
+        <div 
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
         {itineraries.map((itinerary) => (
           <div key={itinerary.id} className="flex-shrink-0 w-[260px] sm:w-[280px]">
             <PublicItineraryCard itinerary={itinerary} />
           </div>
         ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ExperienceCarousel = ({
+  experiences,
+  onSeeAll,
+}: {
+  experiences: any[];
+  onSeeAll: () => void;
+}) => {
+  const { scrollRef, canScrollLeft, canScrollRight, scrollByDir } = useCarouselScroll(420);
+
+  return (
+    <div id="all-experiences-section" className="mb-6 md:mb-10">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onSeeAll}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            See All
+          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => scrollByDir("left")}
+              disabled={!canScrollLeft}
+              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => scrollByDir("right")}
+              disabled={!canScrollRight}
+              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-hidden">
+        <div
+          ref={scrollRef}
+          className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {experiences.map((experience) => (
+            <div
+              key={experience.id}
+              className="flex-shrink-0 w-[132px] sm:w-[148px] md:w-[160px]"
+            >
+              <ExperienceCard {...experience} compact />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -433,7 +505,7 @@ const SearchPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full min-w-0 overflow-x-hidden">
         {/* Fixed Search Header - Spotify Style */}
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-3 md:px-4 py-2 md:py-3">
           <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-2xl">
@@ -484,7 +556,7 @@ const SearchPage = () => {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-6"
+          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-3 md:p-6"
         >
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
@@ -497,25 +569,12 @@ const SearchPage = () => {
             />
           )}
 
-          {/* All Experiences Section with Infinite Scroll */}
+          {/* All Experiences Section - Horizontal Carousel (small square cards) */}
           {!selectedCity && filteredExperiences.length > 0 && (
-            <div id="all-experiences-section" className="mb-6 md:mb-10">
-              <h2 className="text-lg md:text-xl font-bold mb-4">All Experiences</h2>
-              <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9 gap-2">
-                {filteredExperiences.slice(0, visibleCount).map((experience) => (
-                  <ExperienceCard key={experience.id} {...experience} compact />
-                ))}
-              </div>
-              {/* Infinite scroll trigger */}
-              {visibleCount < filteredExperiences.length && (
-                <div 
-                  ref={loadMoreRef}
-                  className="flex justify-center py-6 md:py-8"
-                >
-                  <div className="animate-spin rounded-full h-5 md:h-6 w-5 md:w-6 border-b-2 border-primary"></div>
-                </div>
-              )}
-            </div>
+            <ExperienceCarousel
+              experiences={filteredExperiences.slice(0, 24)}
+              onSeeAll={() => navigate("/search")}
+            />
           )}
 
           {/* City-specific Popular Experiences - When city is selected */}
