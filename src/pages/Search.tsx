@@ -167,12 +167,21 @@ const ItineraryCarousel = ({
 
   return (
     <section className="mb-6 md:mb-10 w-full min-w-0">
-      <div className="flex items-center justify-between gap-4 mb-4 w-full">
-        <h2 className="text-lg md:text-xl font-bold flex-shrink-0">Top Itineraries</h2>
-        <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex flex-col gap-2 mb-4 w-full sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex items-baseline justify-between gap-3 sm:block">
+          <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
           <button
             onClick={onSeeAll}
-            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors sm:hidden"
+            type="button"
+          >
+            Show All
+          </button>
+        </div>
+        <div className="flex items-center justify-between sm:justify-end gap-3">
+          <button
+            onClick={onSeeAll}
+            className="hidden sm:inline-flex text-sm text-primary hover:text-primary/80 font-medium transition-colors"
             type="button"
           >
             Show All
@@ -223,12 +232,21 @@ const ExperienceCarousel = ({
 
   return (
     <section id="all-experiences-section" className="mb-6 md:mb-10 w-full min-w-0">
-      <div className="flex items-center justify-between gap-4 mb-4 w-full">
-        <h2 className="text-lg md:text-xl font-bold flex-shrink-0">All Experiences</h2>
-        <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex flex-col gap-2 mb-4 w-full sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex items-baseline justify-between gap-3 sm:block">
+          <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
           <button
             onClick={onSeeAll}
-            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors sm:hidden"
+            type="button"
+          >
+            Show All
+          </button>
+        </div>
+        <div className="flex items-center justify-between sm:justify-end gap-3">
+          <button
+            onClick={onSeeAll}
+            className="hidden sm:inline-flex text-sm text-primary hover:text-primary/80 font-medium transition-colors"
             type="button"
           >
             Show All
