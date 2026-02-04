@@ -298,36 +298,29 @@ const SearchPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-col h-full">
-        {/* Mobile Search Overlay */}
-        <MobileSearchOverlay
-          isOpen={mobileSearchOpen}
-          onClose={() => setMobileSearchOpen(false)}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onSearch={(q) => setSearchQuery(q)}
-        />
+      {/* Mobile Search Overlay */}
+      <MobileSearchOverlay
+        isOpen={mobileSearchOpen}
+        onClose={() => setMobileSearchOpen(false)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={(q) => setSearchQuery(q)}
+      />
 
-        {/* Scroll container (header + content) so sticky works reliably */}
-        <div
-          ref={scrollContainerRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto"
-        >
-          {/* Fixed Search Header with Location & Tags */}
-          <FixedSearchHeader
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedCity={selectedCity}
-            onCitySelect={handleCitySelect}
-            selectedCategory={selectedCategory}
-            onCategorySelect={handleCategorySelect}
-            onMobileSearchClick={() => setMobileSearchOpen(true)}
-            isMobile={isMobile}
-          />
+      {/* Fixed Search Header with Location & Tags - sticky inside MainLayout's scroll container */}
+      <FixedSearchHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedCity={selectedCity}
+        onCitySelect={handleCitySelect}
+        selectedCategory={selectedCategory}
+        onCategorySelect={handleCategorySelect}
+        onMobileSearchClick={() => setMobileSearchOpen(true)}
+        isMobile={isMobile}
+      />
 
-          {/* Content */}
-          <div className="p-3 md:p-6">
+      {/* Content */}
+      <div className="p-3 md:p-6">
           {/* Live Activity Banner - Polymarket style */}
           <LiveActivityBanner experienceCount={experienceCount} />
 
@@ -462,10 +455,8 @@ const SearchPage = () => {
               )}
             </div>
           )}
-          </div>
         </div>
-      </div>
-    </MainLayout>
+      </MainLayout>
   );
 };
 
