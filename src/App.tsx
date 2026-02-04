@@ -19,6 +19,7 @@ import ManagementDashboard from "./pages/ManagementDashboard";
 import SocialFinder from "./pages/SocialFinder";
 import PublicItinerary from "./pages/PublicItinerary";
 import Itineraries from "./pages/Itineraries";
+import Experiences from "./pages/Experiences";
 import Trip from "./pages/Trip";
 import NotFound from "./pages/NotFound";
 
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/social-finder" element={<SocialFinder />} />
           <Route path="/public-itinerary/:id" element={<PublicItinerary />} />
           <Route path="/itineraries" element={<Itineraries />} />
+          <Route path="/experiences" element={<Experiences />} />
           <Route path="/trip/:id" element={<Trip />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
