@@ -1161,68 +1161,96 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                 </div>
               )}
               
-              {/* Action buttons */}
+              {/* Action buttons - UNIFIED TRIPS DROPDOWN */}
               <div className="flex items-center gap-2">
-                {/* Make a Trip button - only in experiences view */}
                 {isOwner && !showTripView && (
-                  <>
-                    {/* Desktop TripSelector */}
-                    <TripSelector
-                      trips={itinerary.trips || []}
-                      activeTripId={itinerary.activeTripId}
-                      onSelectTrip={handleSelectTrip}
-                      onDeleteTrip={handleDeleteTrip}
-                      onRenameTrip={handleRenameTrip}
-                      onDateRangeSelected={handleDateRangeSelected}
-                      className="hidden md:block"
-                    />
-                    
-                    {/* Mobile Make a Trip button */}
-                    {isMobile && (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button size="sm" className="gap-2">
-                            <Rocket className="w-4 h-4" />
-                            Make a Trip
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                          <div className="flex flex-col">
-                            <CalendarComponent
-                              mode="range"
-                              selected={{ from: tripStartDate, to: tripEndDate }}
-                              onSelect={(range) => {
-                                setTripStartDate(range?.from);
-                                setTripEndDate(range?.to);
-                                if (range?.from && range?.to) {
-                                  handleDateRangeSelected(range.from, range.to);
-                                }
-                              }}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                              className="p-3 pointer-events-auto"
-                              numberOfMonths={1}
-                            />
-                            {tripStartDate && !tripEndDate && (
-                              <div className="p-3 pt-0 border-t border-border">
-                                <Button 
-                                  onClick={() => handleDateRangeSelected(tripStartDate, tripStartDate)} 
-                                  size="sm" 
-                                  className="w-full"
-                                >
-                                  Use {format(tripStartDate, "MMM d")} only
-                                </Button>
-                              </div>
-                            )}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <CalendarDays className="w-4 h-4" />
+                        {(itinerary.trips?.length || 0) > 0 
+                          ? `Trips (${itinerary.trips?.length})`
+                          : "Make a Trip"
+                        }
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-0" align="end">
+                      <div className="p-2">
+                        {/* Add new trip with date picker */}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 mb-1">
+                              <Plus className="w-4 h-4" />
+                              Add another trip
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start" side="left">
+                            <div className="flex flex-col">
+                              <CalendarComponent
+                                mode="range"
+                                selected={{ from: tripStartDate, to: tripEndDate }}
+                                onSelect={(range) => {
+                                  setTripStartDate(range?.from);
+                                  setTripEndDate(range?.to);
+                                  if (range?.from && range?.to) {
+                                    handleDateRangeSelected(range.from, range.to);
+                                  }
+                                }}
+                                disabled={(date) => date < new Date()}
+                                initialFocus
+                                className="p-3 pointer-events-auto"
+                                numberOfMonths={1}
+                              />
+                              {tripStartDate && !tripEndDate && (
+                                <div className="p-3 pt-0 border-t border-border">
+                                  <Button 
+                                    onClick={() => handleDateRangeSelected(tripStartDate, tripStartDate)} 
+                                    size="sm" 
+                                    className="w-full"
+                                  >
+                                    Use {format(tripStartDate, "MMM d")} only
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        
+                        {/* Existing trips list */}
+                        {(itinerary.trips?.length || 0) > 0 && (
+                          <div className="border-t border-border pt-2 mt-1 space-y-1">
+                            {itinerary.trips?.map((trip, index) => (
+                              <Button
+                                key={trip.id}
+                                variant="ghost"
+                                size="sm"
+                                className="w-full justify-between"
+                                onClick={() => {
+                                  handleSelectTrip(trip.id);
+                                  setShowTripView(true);
+                                }}
+                              >
+                                <span className="flex items-center gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
+                                    {index + 1}
+                                  </span>
+                                  <span className="truncate">{trip.name}</span>
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {trip.experiences.length} exp
+                                </span>
+                              </Button>
+                            ))}
                           </div>
-                        </PopoverContent>
-                      </Popover>
-                    )}
-                  </>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
                 
-                {/* View Trip button - switch to trip view */}
-                {(itinerary.trips?.length || 0) > 0 && !showTripView && (
+                {/* Non-owner: just show View Trip if trips exist */}
+                {!isOwner && (itinerary.trips?.length || 0) > 0 && !showTripView && (
                   <Button 
                     variant="outline" 
                     size="sm" 
