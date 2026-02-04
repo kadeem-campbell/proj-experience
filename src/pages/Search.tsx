@@ -200,54 +200,108 @@ const SearchPage = () => {
     setSearchQuery("");
   };
 
-  // Synonym-based filtering for tags
+  // Comprehensive synonym-based filtering for tags
   const synonyms: Record<string, string[]> = {
-    Party: ["party", "nightlife", "club", "clubbing", "rave", "dj", "dance", "turn up", "night out", "bar hopping", "drinks", "afterparty", "go out", "going out"],
-    "Water Sports": ["water", "water sports", "watersports", "watersport", "jet ski", "jetski", "kayak", "kayaking", "surf", "surfing", "snorkel", "snorkeling", "dive", "diving", "boat", "sail", "paddle board", "paddleboard", "swimming", "swim"],
-    Beach: ["beach", "sun", "sand", "sea", "ocean", "coast", "shore", "tropical"],
-    Food: ["food", "eat", "dine", "dining", "restaurant", "cuisine", "street food", "tasting", "dinner", "lunch", "brunch", "cook", "cooking"],
-    Wildlife: ["wildlife", "safari", "animals", "nature", "reserve", "park"],
-    Adventure: ["adventure", "hike", "hiking", "trek", "trekking", "zipline", "climb", "climbing", "mountain", "explore", "exploring"],
-    Culture: ["culture", "museum", "art", "heritage", "history", "local", "traditional"],
+    Party: ["party", "parties", "nightlife", "night life", "club", "clubs", "clubbing", "rave", "raves", "dj", "djs", "dance", "dancing", "turn up", "night out", "nights out", "bar", "bars", "bar hopping", "drinks", "drinking", "afterparty", "after party", "go out", "going out", "lounge", "lounges", "rooftop", "cocktail", "cocktails", "pub", "pubs", "disco", "live music"],
+    "Water Sports": ["water", "waters", "water sports", "watersports", "watersport", "water sport", "jet ski", "jetski", "jet skis", "jetskis", "kayak", "kayaks", "kayaking", "surf", "surfs", "surfing", "snorkel", "snorkels", "snorkeling", "snorkelling", "dive", "dives", "diving", "scuba", "boat", "boats", "boating", "sail", "sails", "sailing", "paddle", "paddles", "paddle board", "paddleboard", "paddleboarding", "swimming", "swim", "swims", "sea", "ocean", "marine", "underwater", "fishing", "fish", "wakeboard", "wakeboarding", "kite", "kiteboarding", "kitesurf", "kitesurfing", "canoe", "canoeing", "rafting", "raft"],
+    Beach: ["beach", "beaches", "beachy", "sun", "sunny", "sunbathe", "sunbathing", "sand", "sandy", "sands", "sea", "seas", "ocean", "oceans", "coast", "coastal", "coasts", "shore", "shores", "shoreline", "tropical", "tropics", "island", "islands", "lagoon", "lagoons", "bay", "bays", "cove", "coves", "seaside", "waterfront", "palm", "palms", "palm tree", "paradise", "relax", "relaxing", "relaxation", "tan", "tanning", "hammock"],
+    Food: ["food", "foods", "foodie", "foodies", "eat", "eats", "eating", "dine", "dines", "dining", "restaurant", "restaurants", "cuisine", "cuisines", "street food", "streetfood", "tasting", "tastings", "taste", "dinner", "dinners", "lunch", "lunches", "brunch", "brunches", "breakfast", "breakfasts", "cook", "cooks", "cooking", "chef", "chefs", "culinary", "gastronomy", "gourmet", "local food", "traditional food", "dish", "dishes", "meal", "meals", "cafe", "cafes", "coffee", "coffees", "tea", "teas", "bakery", "bakeries", "pastry", "pastries", "market", "markets", "spice", "spices", "seafood", "bbq", "barbecue", "grill", "grilled"],
+    Wildlife: ["wildlife", "wild life", "wild", "safari", "safaris", "animal", "animals", "nature", "natural", "reserve", "reserves", "park", "parks", "national park", "game", "game drive", "game drives", "lion", "lions", "elephant", "elephants", "giraffe", "giraffes", "zebra", "zebras", "hippo", "hippos", "rhino", "rhinos", "leopard", "leopards", "cheetah", "cheetahs", "bird", "birds", "birding", "birdwatching", "bird watching", "monkey", "monkeys", "gorilla", "gorillas", "chimp", "chimps", "chimpanzee", "chimpanzees", "migration", "wildebeest", "buffalo", "buffalos", "crocodile", "crocodiles", "flamingo", "flamingos", "sanctuary", "conservancy", "conservation", "jungle", "forest", "rainforest"],
+    Adventure: ["adventure", "adventures", "adventurous", "hike", "hikes", "hiking", "trek", "treks", "trekking", "zipline", "ziplines", "ziplining", "zip line", "climb", "climbs", "climbing", "mountain", "mountains", "mountaineering", "explore", "explores", "exploring", "exploration", "explorer", "extreme", "thrill", "thrills", "thrilling", "adrenaline", "bungee", "skydive", "skydiving", "paraglide", "paragliding", "abseil", "abseiling", "rappel", "rappelling", "rock climbing", "caving", "cave", "caves", "volcano", "volcanoes", "crater", "craters", "waterfall", "waterfalls", "canopy", "outdoor", "outdoors", "off road", "offroad", "quad", "quad bike", "atv", "4x4", "jeep"],
+    Culture: ["culture", "cultures", "cultural", "museum", "museums", "art", "arts", "artistic", "heritage", "history", "historic", "historical", "local", "locals", "traditional", "tradition", "traditions", "temple", "temples", "church", "churches", "mosque", "mosques", "monument", "monuments", "architecture", "architectural", "ancient", "ruins", "ruin", "craft", "crafts", "craftsmanship", "artisan", "artisans", "handicraft", "handicrafts", "gallery", "galleries", "festival", "festivals", "ceremony", "ceremonies", "dance", "dances", "music", "tribe", "tribes", "tribal", "village", "villages", "community", "communities", "tour", "tours", "walking tour", "guided"],
+    Romantic: ["romantic", "romance", "couple", "couples", "honeymoon", "honeymoons", "anniversary", "love", "date", "dates", "dating", "sunset", "sunsets", "sunrise", "sunrises", "candlelit", "candle", "spa", "spas", "massage", "massages", "private", "intimate", "secluded", "getaway", "getaways", "retreat", "retreats", "escape", "escapes"],
+    Family: ["family", "families", "kid", "kids", "child", "children", "family friendly", "family-friendly", "educational", "education", "learn", "learning", "playground", "playgrounds", "zoo", "zoos", "aquarium", "aquariums", "theme park", "amusement"],
+    Wellness: ["wellness", "spa", "spas", "massage", "massages", "yoga", "meditation", "meditate", "relax", "relaxing", "relaxation", "retreat", "retreats", "health", "healthy", "healing", "holistic", "mindfulness", "zen", "detox", "fitness", "gym", "workout", "exercise"],
+    Shopping: ["shopping", "shop", "shops", "store", "stores", "market", "markets", "mall", "malls", "boutique", "boutiques", "souvenir", "souvenirs", "craft", "crafts", "art", "antique", "antiques", "fashion", "clothes", "clothing", "jewelry", "jewellery"],
+    Nightlife: ["nightlife", "night life", "club", "clubs", "clubbing", "bar", "bars", "pub", "pubs", "lounge", "lounges", "disco", "discos", "party", "parties", "dj", "djs", "live music", "dance", "dancing", "drinks", "cocktail", "cocktails", "rooftop"],
   };
 
-  // City names for search matching
-  const cityNames = cities.map(c => c.name.toLowerCase());
+  // City names and aliases for search matching
+  const cityAliases: Record<string, string[]> = {
+    "zanzibar": ["zanzibar", "stone town", "stonetown", "unguja", "pemba", "nungwi", "kendwa", "paje", "jambiani"],
+    "dar es salaam": ["dar es salaam", "dar", "dsm", "dar-es-salaam", "daressalaam"],
+    "nairobi": ["nairobi", "nai", "nairobi kenya", "kenya"],
+    "addis ababa": ["addis ababa", "addis", "ethiopia", "ethiopian"],
+    "kigali": ["kigali", "rwanda", "rwandan"],
+    "kampala": ["kampala", "uganda", "ugandan"],
+    "entebbe": ["entebbe", "lake victoria"],
+  };
 
-  const filterByQuery = (item: { title?: string; name?: string; description?: string; creator?: string; location?: string; category?: string; experiences?: any[] }, q: string) => {
+  // Normalize search text
+  const normalizeText = (text: string) => {
+    return text.toLowerCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+  };
+
+  // Check if any word starts with the search term (for partial matching)
+  const partialMatch = (text: string, term: string) => {
+    const words = normalizeText(text).split(' ');
+    return words.some(word => word.startsWith(term) || term.startsWith(word));
+  };
+
+  const filterByQuery = (item: { title?: string; name?: string; description?: string; creator?: string; location?: string; category?: string; experiences?: any[]; tags?: string[] }, q: string) => {
     if (!q) return true;
     
-    const searchTerms = q.toLowerCase().split(/\s+/);
+    const normalizedQuery = normalizeText(q);
+    const searchTerms = normalizedQuery.split(' ').filter(t => t.length > 1);
     
     // Check for city match in search
-    const matchedCity = cityNames.find(city => q.toLowerCase().includes(city));
-    if (matchedCity) {
-      const locationMatch = item.location?.toLowerCase().includes(matchedCity) ||
-        item.experiences?.some(exp => exp.location?.toLowerCase().includes(matchedCity));
-      if (locationMatch) return true;
+    for (const [cityKey, aliases] of Object.entries(cityAliases)) {
+      if (aliases.some(alias => normalizedQuery.includes(alias) || searchTerms.some(term => alias.includes(term)))) {
+        const locationMatch = item.location && aliases.some(alias => 
+          normalizeText(item.location!).includes(alias) || partialMatch(item.location!, alias.split(' ')[0])
+        );
+        const expLocationMatch = item.experiences?.some(exp => 
+          exp.location && aliases.some(alias => normalizeText(exp.location).includes(alias))
+        );
+        if (locationMatch || expLocationMatch) return true;
+      }
     }
 
-    // Check for tag/category synonym match
+    // Check for tag/category synonym match - more flexible matching
     const matchedCategories = new Set<string>();
-    Object.entries(synonyms).forEach(([cat, terms]) => {
-      if (searchTerms.some(term => terms.some(t => t.includes(term) || term.includes(t)))) {
-        matchedCategories.add(cat.toLowerCase());
-      }
-    });
+    for (const [cat, terms] of Object.entries(synonyms)) {
+      const catMatched = searchTerms.some(term => 
+        terms.some(t => {
+          const normalizedTerm = normalizeText(t);
+          return normalizedTerm.includes(term) || term.includes(normalizedTerm) || 
+                 normalizedTerm.split(' ').some(w => w.startsWith(term) || term.startsWith(w));
+        })
+      );
+      if (catMatched) matchedCategories.add(cat.toLowerCase());
+    }
 
     if (matchedCategories.size > 0) {
-      const categoryMatch = matchedCategories.has((item.category || "").toLowerCase()) ||
-        item.experiences?.some(exp => matchedCategories.has((exp.category || "").toLowerCase()));
-      if (categoryMatch) return true;
+      const categoryMatch = matchedCategories.has(normalizeText(item.category || "")) ||
+        item.experiences?.some(exp => matchedCategories.has(normalizeText(exp.category || "")));
+      // Also check if title contains category keywords
+      const titleCategoryMatch = Array.from(matchedCategories).some(cat => 
+        normalizeText(item.title || item.name || "").includes(cat)
+      );
+      if (categoryMatch || titleCategoryMatch) return true;
     }
 
-    // Text match on all fields
-    const textMatch =
-      (item.title || item.name || "").toLowerCase().includes(q) ||
-      item.description?.toLowerCase().includes(q) ||
-      item.creator?.toLowerCase().includes(q) ||
-      item.location?.toLowerCase().includes(q) ||
-      item.category?.toLowerCase().includes(q);
+    // Text match on all fields with partial matching
+    const fieldsToSearch = [
+      item.title || item.name || "",
+      item.description || "",
+      item.creator || "",
+      item.location || "",
+      item.category || "",
+      ...(item.tags || [])
+    ].map(f => normalizeText(f));
+
+    const textMatch = searchTerms.every(term =>
+      fieldsToSearch.some(field => field.includes(term) || partialMatch(field, term))
+    );
+
+    // Also check experience fields for itineraries
+    if (!textMatch && item.experiences) {
+      const expMatch = item.experiences.some(exp => {
+        const expFields = [exp.title, exp.location, exp.category, exp.creator].map(f => normalizeText(f || ""));
+        return searchTerms.some(term => expFields.some(field => field.includes(term) || partialMatch(field, term)));
+      });
+      if (expMatch) return true;
+    }
 
     return textMatch;
   };
