@@ -32,8 +32,6 @@ import {
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { publicItinerariesData } from "@/data/itinerariesData";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 // Mock data
@@ -161,16 +159,98 @@ const mockExperiences = [
   }
 ];
 
+const getDefaultImage = (category: string) => {
+  const imageMap: { [key: string]: string } = {
+    'water-sports': jetskiImage, 'Water Sports': jetskiImage,
+    'party': partyImage, 'Party': partyImage,
+    'wildlife': wildlifeImage, 'Wildlife': wildlifeImage,
+    'food': foodImage, 'Food': foodImage, 'Food & Dining': foodImage,
+    'beach': beachImage, 'Beach': beachImage,
+    'adventure': adventureImage, 'Adventure': adventureImage,
+    'nightlife': partyImage, 'Nightlife': partyImage
+  };
+  return imageMap[category] || jetskiImage;
+};
+
+// Pre-compute all experiences for instant lookup
+const buildExperienceMap = () => {
+  const map = new Map<string, any>();
+  
+  // Add mock experiences with full details
+  mockExperiences.forEach(exp => map.set(exp.id, exp));
+  
+  // Add experiences from public itineraries
+  publicItinerariesData.forEach(itinerary => {
+    itinerary.experiences.forEach(exp => {
+      if (!map.has(exp.id)) {
+        map.set(exp.id, {
+          id: exp.id,
+          title: exp.title,
+          creator: exp.creator,
+          videoThumbnail: exp.videoThumbnail || getDefaultImage(exp.category),
+          category: exp.category,
+          location: exp.location,
+          description: `Experience the best of ${exp.location} with this amazing ${exp.category.toLowerCase()} experience.`,
+          duration: "3 hours",
+          groupSize: "2-10 people",
+          rating: 4.7,
+          highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
+          gallery: [exp.videoThumbnail || getDefaultImage(exp.category)],
+          bestTime: "Flexible",
+          meetingPoints: [{ name: exp.location, type: "Main Location" }]
+        });
+      }
+    });
+  });
+  
+  return map;
+};
+
+// Build once at module load
+const experienceMap = buildExperienceMap();
+
 export default function ExperienceDetail() {
   const { id } = useParams();
   const { isInItinerary, addExperience, removeExperience, itineraries } = useItineraries();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [experienceData, setExperienceData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
-  const { toast } = useToast();
+
+  // Instant lookup - no loading state needed for cached data
+  const experience = useMemo(() => {
+    if (!id) return null;
+    
+    // Check pre-computed map first (instant)
+    if (experienceMap.has(id)) {
+      return experienceMap.get(id);
+    }
+    
+    // Fallback: check user's itineraries
+    for (const userItinerary of itineraries) {
+      const userExp = userItinerary.experiences.find(exp => exp.id === id);
+      if (userExp) {
+        return {
+          id: userExp.id,
+          title: userExp.title,
+          creator: userExp.creator,
+          videoThumbnail: userExp.videoThumbnail || getDefaultImage(userExp.category),
+          category: userExp.category,
+          location: userExp.location,
+          description: `Experience the best of ${userExp.location} with this amazing ${userExp.category?.toLowerCase() || 'local'} experience.`,
+          duration: "3 hours",
+          groupSize: "2-10 people",
+          rating: 4.7,
+          highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
+          gallery: [userExp.videoThumbnail || getDefaultImage(userExp.category)],
+          bestTime: "Flexible",
+          meetingPoints: [{ name: userExp.location, type: "Main Location" }]
+        };
+      }
+    }
+    
+    return null;
+  }, [id, itineraries]);
 
   // Generate consistent social proof numbers based on id
   const socialProof = useMemo(() => {
@@ -182,91 +262,7 @@ export default function ExperienceDetail() {
     return { added, planning, trending };
   }, [id]);
 
-  useEffect(() => {
-    const fetchExperience = async () => {
-      try {
-        // First check mock experiences (experiences table doesn't exist yet)
-        const mockExperience = mockExperiences.find(exp => exp.id === id);
-        if (mockExperience) {
-          setExperienceData(mockExperience);
-          return;
-        }
-        
-        for (const itinerary of publicItinerariesData) {
-          const itineraryExp = itinerary.experiences.find(exp => exp.id === id);
-          if (itineraryExp) {
-            setExperienceData({
-              id: itineraryExp.id,
-              title: itineraryExp.title,
-              creator: itineraryExp.creator,
-              videoThumbnail: itineraryExp.videoThumbnail || getDefaultImage(itineraryExp.category),
-              category: itineraryExp.category,
-              location: itineraryExp.location,
-              description: `Experience the best of ${itineraryExp.location} with this amazing ${itineraryExp.category.toLowerCase()} experience.`,
-              duration: "3 hours",
-              groupSize: "2-10 people",
-              rating: 4.7,
-              highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
-              gallery: [itineraryExp.videoThumbnail || getDefaultImage(itineraryExp.category)],
-              bestTime: "Flexible",
-              meetingPoints: [{ name: itineraryExp.location, type: "Main Location" }]
-            });
-            return;
-          }
-        }
-        
-        for (const userItinerary of itineraries) {
-          const userExp = userItinerary.experiences.find(exp => exp.id === id);
-          if (userExp) {
-            setExperienceData({
-              id: userExp.id,
-              title: userExp.title,
-              creator: userExp.creator,
-              videoThumbnail: userExp.videoThumbnail || getDefaultImage(userExp.category),
-              category: userExp.category,
-              location: userExp.location,
-              description: `Experience the best of ${userExp.location} with this amazing ${userExp.category?.toLowerCase() || 'local'} experience.`,
-              duration: "3 hours",
-              groupSize: "2-10 people",
-              rating: 4.7,
-              highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
-              gallery: [userExp.videoThumbnail || getDefaultImage(userExp.category)],
-              bestTime: "Flexible",
-              meetingPoints: [{ name: userExp.location, type: "Main Location" }]
-            });
-            return;
-          }
-        }
-        
-        throw new Error('Experience not found');
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load experience details.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    if (id) fetchExperience();
-  }, [id, toast, itineraries]);
-
-  const getDefaultImage = (category: string) => {
-    const imageMap: { [key: string]: string } = {
-      'water-sports': jetskiImage, 'Water Sports': jetskiImage,
-      'party': partyImage, 'Party': partyImage,
-      'wildlife': wildlifeImage, 'Wildlife': wildlifeImage,
-      'food': foodImage, 'Food': foodImage, 'Food & Dining': foodImage,
-      'beach': beachImage, 'Beach': beachImage,
-      'adventure': adventureImage, 'Adventure': adventureImage,
-      'nightlife': partyImage, 'Nightlife': partyImage
-    };
-    return imageMap[category] || jetskiImage;
-  };
-
-  const experience = experienceData || mockExperiences.find(exp => exp.id === id);
   const inItinerary = experience ? isInItinerary(experience.id) : false;
 
   useEffect(() => {
@@ -298,7 +294,6 @@ export default function ExperienceDetail() {
   };
 
   const handleShare = async () => {
-    // Use production URL for sharing
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
     const shareUrl = `${baseUrl}/experience/${id}`;
     
@@ -307,23 +302,11 @@ export default function ExperienceDetail() {
         await navigator.share({ title: experience?.title, url: shareUrl });
       } catch {
         await navigator.clipboard.writeText(shareUrl);
-        toast({ title: "Link copied!" });
       }
     } else {
       await navigator.clipboard.writeText(shareUrl);
-      toast({ title: "Link copied!" });
     }
   };
-
-  if (loading) {
-    return (
-      <MainLayout showItineraryPanel={false}>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-        </div>
-      </MainLayout>
-    );
-  }
 
   if (!experience) {
     return (
