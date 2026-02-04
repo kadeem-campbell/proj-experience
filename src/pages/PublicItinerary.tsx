@@ -351,7 +351,9 @@ const PublicItinerary = () => {
   };
 
   const handleShare = async () => {
-    const shareUrl = window.location.href;
+    // Use production URL for sharing
+    const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
+    const shareUrl = `${baseUrl}/public-itinerary/${itinerary.id}`;
     
     if (navigator.share) {
       try {
@@ -375,7 +377,8 @@ const PublicItinerary = () => {
   };
 
   const handleShareWhatsApp = () => {
-    const shareUrl = window.location.href;
+    const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
+    const shareUrl = `${baseUrl}/public-itinerary/${itinerary.id}`;
     const text = `Check out this itinerary: ${itinerary.name}\n${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };

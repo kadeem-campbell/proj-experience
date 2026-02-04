@@ -456,7 +456,12 @@ export const useItineraries = () => {
   }, [activeItinerary]);
 
   const getShareUrl = useCallback((itineraryId: string) => {
-    return `${window.location.origin}/itinerary/${itineraryId}`;
+    // Use production domain for sharing
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const baseUrl = (hostname === 'localhost' || hostname === '127.0.0.1')
+      ? window.location.origin 
+      : 'https://swam.app';
+    return `${baseUrl}/itinerary/${itineraryId}`;
   }, []);
 
   const copyItinerary = useCallback((sourceItinerary: Itinerary, newName?: string, targetItineraryId?: string) => {

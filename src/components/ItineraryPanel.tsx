@@ -101,17 +101,32 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
   };
 
   const handleCopyLink = () => {
+    // Auto-make public when sharing
+    if (!activeItinerary.isPublic) {
+      togglePublic(activeItinerary.id);
+      toast({
+        title: "Made public & link copied!",
+        description: "Your itinerary is now shareable with anyone",
+      });
+    } else {
+      toast({
+        title: "Link copied!",
+        description: "Share this link with your friends",
+      });
+    }
+    
     const url = getShareUrl(activeItinerary.id);
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    toast({
-      title: "Link copied!",
-      description: "Share this link with your friends",
-    });
   };
 
   const handleShareWhatsApp = () => {
+    // Auto-make public when sharing
+    if (!activeItinerary.isPublic) {
+      togglePublic(activeItinerary.id);
+    }
+    
     const url = getShareUrl(activeItinerary.id);
     const text = `Check out my itinerary: ${activeItinerary.name}\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');

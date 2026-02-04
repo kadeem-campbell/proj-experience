@@ -298,7 +298,10 @@ export default function ExperienceDetail() {
   };
 
   const handleShare = async () => {
-    const shareUrl = window.location.href;
+    // Use production URL for sharing
+    const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
+    const shareUrl = `${baseUrl}/experience/${id}`;
+    
     if (navigator.share) {
       try {
         await navigator.share({ title: experience?.title, url: shareUrl });
