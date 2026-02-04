@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { 
-  Calendar, ChevronDown, ChevronRight, Trash2, Edit2, Check, X, Rocket 
+  Calendar, ChevronDown, ChevronRight, Trash2, Edit2, Check, X, Rocket, CalendarDays
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,10 +63,21 @@ export function TripSelector({
     setTempStartDate(range?.from);
     setTempEndDate(range?.to);
     
-    // Auto-generate when both dates are selected
+    // Auto-generate when date range is selected (both dates selected)
+    // OR when user selects the same date twice (single day trip)
     if (range?.from && range?.to) {
       setDatePickerOpen(false);
       onDateRangeSelected(range.from, range.to);
+      setTempStartDate(undefined);
+      setTempEndDate(undefined);
+    }
+  };
+
+  // Allow confirming a single date selection
+  const handleConfirmSingleDate = () => {
+    if (tempStartDate) {
+      setDatePickerOpen(false);
+      onDateRangeSelected(tempStartDate, tempStartDate);
       setTempStartDate(undefined);
       setTempEndDate(undefined);
     }
@@ -86,15 +97,25 @@ export function TripSelector({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="center">
-          <CalendarComponent
-            mode="range"
-            selected={{ from: tempStartDate, to: tempEndDate }}
-            onSelect={handleDateSelect}
-            disabled={(date) => date < new Date()}
-            initialFocus
-            className="p-3 pointer-events-auto"
-            numberOfMonths={2}
-          />
+          <div className="flex flex-col">
+            <CalendarComponent
+              mode="range"
+              selected={{ from: tempStartDate, to: tempEndDate }}
+              onSelect={handleDateSelect}
+              disabled={(date) => date < new Date()}
+              initialFocus
+              className="p-3 pointer-events-auto"
+              numberOfMonths={2}
+            />
+            {/* Show confirm button when only start date is selected */}
+            {tempStartDate && !tempEndDate && (
+              <div className="p-3 pt-0 border-t border-border">
+                <Button onClick={handleConfirmSingleDate} size="sm" className="w-full">
+                  Use {format(tempStartDate, "MMM d")} only
+                </Button>
+              </div>
+            )}
+          </div>
         </PopoverContent>
       </Popover>
 
