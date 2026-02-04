@@ -433,10 +433,17 @@ export const useItineraries = () => {
     saveItineraries(updated);
   }, [itineraries, saveItineraries]);
 
-  const addCollaborator = useCallback((itineraryId: string, email: string) => {
+  const addCollaborator = useCallback(async (itineraryId: string, email: string): Promise<{ success: boolean; emailSent: boolean; message: string }> => {
+    const targetItinerary = itineraries.find(i => i.id === itineraryId);
+    
+    // Check if already a collaborator
+    if (targetItinerary?.collaborators.includes(email)) {
+      return { success: false, emailSent: false, message: "Already a collaborator" };
+    }
+    
+    // Update the collaborators list
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
-      if (i.collaborators.includes(email)) return i;
       return {
         ...i,
         collaborators: [...i.collaborators, email],
@@ -444,6 +451,37 @@ export const useItineraries = () => {
       };
     });
     saveItineraries(updated);
+    
+    // Try to send email invitation via edge function
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        return { success: true, emailSent: false, message: "Collaborator added (sign in to send email invite)" };
+      }
+      
+      const { data, error } = await supabase.functions.invoke('send-collaboration-invite', {
+        body: {
+          inviteeEmail: email,
+          itineraryId,
+          itineraryName: targetItinerary?.name || "Trip",
+          inviterName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0]
+        }
+      });
+      
+      if (error) {
+        console.error("Error sending invite email:", error);
+        return { success: true, emailSent: false, message: "Collaborator added (email not sent)" };
+      }
+      
+      return { 
+        success: true, 
+        emailSent: data?.emailSent || false, 
+        message: data?.message || "Collaborator added" 
+      };
+    } catch (err) {
+      console.error("Error invoking send-collaboration-invite:", err);
+      return { success: true, emailSent: false, message: "Collaborator added (email not sent)" };
+    }
   }, [itineraries, saveItineraries]);
 
   const removeCollaborator = useCallback((itineraryId: string, email: string) => {

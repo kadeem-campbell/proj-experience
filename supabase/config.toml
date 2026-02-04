@@ -1,1 +1,7 @@
 project_id = "cyhdcavibrypqlybkact"
+
+[functions.change-role]
+verify_jwt = false
+
+[functions.send-collaboration-invite]
+verify_jwt = false
