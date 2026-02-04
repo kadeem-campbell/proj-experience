@@ -138,42 +138,11 @@ export const ItinerarySidebar = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
-
-                {/* Always-available trip creation action (also visible when collapsed via tooltip) */}
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip="Create your trip"
-                    onClick={() => {
-                      setItinerariesOpen(true);
-                      setIsCreating(true);
-                    }}
-                  >
-                    <Plus className="w-4 h-4" />
-                    {!collapsed && <span>Create your trip</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
 
           <SidebarSeparator />
-
-          {/* Primary action (expanded sidebar only) */}
-          {!collapsed && (
-            <div className="px-2 pt-3">
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2"
-                onClick={() => {
-                  setItinerariesOpen(true);
-                  setIsCreating(true);
-                }}
-              >
-                <Plus className="w-4 h-4" />
-                Create your trip
-              </Button>
-            </div>
-          )}
 
           {/* Itineraries */}
           <SidebarGroup>
