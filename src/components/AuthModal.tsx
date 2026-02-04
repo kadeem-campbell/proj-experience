@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -28,24 +28,24 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [error, setError] = useState("");
   const { toast } = useToast();
 
-  // Reset state when modal closes
+  // Reset state when modal opens (not just closes)
   useEffect(() => {
-    if (!open) {
-      setTimeout(() => {
-        setStep("main");
-        setEmail("");
-        setPassword("");
-        setUsername("");
-        setError("");
-        setShowPassword(false);
-      }, 300);
+    if (open) {
+      // Reset everything when modal opens
+      setStep("main");
+      setEmail("");
+      setPassword("");
+      setUsername("");
+      setError("");
+      setShowPassword(false);
+      setIsLoading(false);
     }
   }, [open]);
 
   // Listen for auth state changes to close modal on success
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
+      if (event === 'SIGNED_IN' && open) {
         onOpenChange(false);
         toast({
           title: "Welcome!",
@@ -55,7 +55,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     });
 
     return () => subscription.unsubscribe();
-  }, [onOpenChange, toast]);
+  }, [onOpenChange, toast, open]);
 
   const generateUsername = (email: string) => {
     const localPart = email.split("@")[0];
@@ -498,14 +498,9 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] p-0 gap-0 rounded-2xl overflow-hidden border-border/50 shadow-2xl">
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 p-2 rounded-full hover:bg-muted transition-colors z-10"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
+      <DialogContent 
+        className="sm:max-w-[400px] p-0 gap-0 rounded-2xl overflow-hidden border-border/50 shadow-2xl"
+      >
         {step === "main" && renderMainStep()}
         {step === "email" && renderEmailStep()}
         {step === "password" && renderPasswordStep()}
