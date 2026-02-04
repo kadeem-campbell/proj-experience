@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useItineraries } from "@/hooks/useItineraries";
 
 interface LiveActivityBannerProps {
   experienceCount: number;
@@ -16,6 +17,7 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
   const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { itineraries } = useItineraries();
   
   // Get sidebar context - may not exist if not wrapped in provider
   let sidebarContext: ReturnType<typeof useSidebar> | null = null;
@@ -80,8 +82,11 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
       }
     }
     
-    // Navigate to itinerary page
-    navigate('/itinerary');
+    // Only navigate to itinerary if there's exactly one itinerary
+    // Otherwise, let user choose from sidebar
+    if (itineraries.length === 1) {
+      navigate('/itinerary');
+    }
   };
 
   return (
