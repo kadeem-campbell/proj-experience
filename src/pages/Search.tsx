@@ -6,7 +6,7 @@ import { BrowseDropdown } from "@/components/BrowseDropdown";
 import { LiveActivityBanner } from "@/components/LiveActivityBanner";
 import { useItineraries } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries } from "@/data/itinerariesData";
-import { ArrowRight, MapPin, Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -324,9 +324,8 @@ const SearchPage = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg md:text-xl font-bold">Top Itineraries</h2>
                 <Link to="/itineraries?filter=popular">
-                  <Button variant="ghost" size="sm" className="text-sm text-muted-foreground hover:text-foreground">
+                  <Button variant="secondary" size="sm" className="text-sm font-medium">
                     See All
-                    <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
               </div>
@@ -344,6 +343,11 @@ const SearchPage = () => {
             <div className="mb-6 md:mb-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
+                <Link to="/experiences">
+                  <Button variant="secondary" size="sm" className="text-sm font-medium">
+                    See All
+                  </Button>
+                </Link>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {experiences.slice(0, visibleCount).map((experience) => (
