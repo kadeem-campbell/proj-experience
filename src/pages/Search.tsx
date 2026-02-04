@@ -410,8 +410,8 @@ const SearchPage = () => {
           {!selectedCity && filteredItineraries.length > 0 && (
             <div className="mb-6 md:mb-10">
               <h2 className="text-lg md:text-xl font-bold mb-4">Top Itineraries</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                {filteredItineraries.map((itinerary) => (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                {filteredItineraries.slice(0, 4).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
               </div>
