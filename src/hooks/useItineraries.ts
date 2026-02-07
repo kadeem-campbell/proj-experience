@@ -397,6 +397,18 @@ export const useItineraries = () => {
     saveItineraries(updated);
   }, [activeItineraryId, itineraries, saveItineraries]);
 
+  const removeExperienceFromItinerary = useCallback((itineraryId: string, experienceId: string) => {
+    const updated = itineraries.map(i => {
+      if (i.id !== itineraryId) return i;
+      return {
+        ...i,
+        experiences: i.experiences.filter(e => e.id !== experienceId),
+        updatedAt: new Date().toISOString()
+      };
+    });
+    saveItineraries(updated);
+  }, [itineraries, saveItineraries]);
+
   const updateExperienceDetails = useCallback((experienceId: string, updates: Partial<LikedExperience>, targetItineraryId?: string) => {
     const itineraryIdToUpdate = targetItineraryId || activeItineraryId;
     if (!itineraryIdToUpdate) return;
@@ -658,6 +670,7 @@ export const useItineraries = () => {
     addExperience,
     addExperienceToItinerary,
     removeExperience,
+    removeExperienceFromItinerary,
     reorderExperiences,
     togglePublic,
     addCollaborator,

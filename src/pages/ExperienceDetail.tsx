@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -209,11 +209,24 @@ const experienceMap = buildExperienceMap();
 
 export default function ExperienceDetail() {
   const { id } = useParams();
-  const { itineraries } = useItineraries();
+  const navigate = useNavigate();
+  const { itineraries, removeExperience, isInItinerary } = useItineraries();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
+
+  // Smart back navigation - go to referrer or default to experiences
+  const handleGoBack = () => {
+    if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.origin)) {
+      navigate(-1);
+    } else {
+      navigate('/experiences');
+    }
+  };
+
+  // Check if experience is in active itinerary
+  const inItinerary = isInItinerary(id || '');
 
   // Instant lookup - no loading state needed for cached data
   const experience = useMemo(() => {
@@ -304,13 +317,13 @@ export default function ExperienceDetail() {
         {/* Header Nav */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
           <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
-            <Link 
-              to="/" 
+            <button 
+              onClick={handleGoBack}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="text-sm font-medium hidden sm:inline">Discover</span>
-            </Link>
+              <span className="text-sm font-medium hidden sm:inline">Back</span>
+            </button>
             
             <div className="flex items-center gap-2">
               {socialProof.trending && (
@@ -498,6 +511,20 @@ export default function ExperienceDetail() {
                   <Calendar className="w-4 h-4 text-primary" />
                   <span className="font-medium">Best: {experience.bestTime}</span>
                 </div>
+              </div>
+
+              {/* Indicative Pricing Section */}
+              <div className="mb-6 p-4 rounded-2xl bg-muted/50 border border-border">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
+                  Typical prices people are paying
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-foreground">$15 - $75</span>
+                  <span className="text-sm text-muted-foreground">per person</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Prices vary by provider and season. This is informational only.
+                </p>
               </div>
 
               {/* Desktop CTA - Inline */}

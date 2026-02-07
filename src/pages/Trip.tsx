@@ -1056,10 +1056,10 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
         <div className="p-6 max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold mb-4">Itinerary Not Found</h1>
           <p className="text-muted-foreground mb-6">This itinerary doesn't exist or has been removed.</p>
-          <Link to="/">
+          <Link to="/experiences">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Discover
+              Back to Experiences
             </Button>
           </Link>
         </div>
@@ -1091,10 +1091,19 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           style={{ background: `linear-gradient(180deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--background)) 100%)` }}
         >
           {/* Back Button */}
-          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors text-sm">
+          <button 
+            onClick={() => {
+              if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.origin)) {
+                navigate(-1);
+              } else {
+                navigate('/experiences');
+              }
+            }}
+            className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors text-sm"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Discover
-          </Link>
+            Back
+          </button>
 
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 md:gap-6">
             {/* Cover Image */}
