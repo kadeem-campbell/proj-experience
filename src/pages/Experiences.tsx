@@ -94,7 +94,7 @@ const ExperiencesPage = () => {
         <div className="pt-[120px]">
           {searchQuery ? (
             <div className="p-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
@@ -145,9 +145,9 @@ const ExperiencesPage = () => {
           </div>
         </div>
 
-        {/* Grid - Responsive breakpoints */}
+        {/* Grid - 3 cols mobile, 6 cols desktop */}
         <div className="flex-1 overflow-y-auto p-3 md:p-6">
-          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
             {filteredExperiences.slice(0, visibleCount).map((experience) => (
               <ExperienceCard key={experience.id} {...experience} compact />
             ))}
