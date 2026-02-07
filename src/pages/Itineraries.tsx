@@ -103,7 +103,7 @@ const ItinerariesPage = () => {
         <div className="pt-[120px] pb-20">
           {searchQuery ? (
             <div className="p-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 {filteredItineraries.map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
@@ -153,9 +153,9 @@ const ItinerariesPage = () => {
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Grid - 3 cols mobile */}
         <div className="flex-1 overflow-y-auto p-3 md:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
             {filteredItineraries.map((itinerary) => (
               <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
             ))}

@@ -1489,9 +1489,9 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                 )}
               </div>
             ) : (
-              /* Experiences Grid View - Full Width - matching Experiences page grid */
+              /* Experiences Grid View - 3 cols mobile, 6 cols desktop */
               <div className="p-3 md:p-6 animate-in fade-in duration-150">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
+                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                   {filteredExperiences.map(renderExperienceCard)}
                 </div>
 

@@ -218,16 +218,20 @@ export const ItinerarySidebar = ({
                       onClick={() => !isMobile && setSearchFocused(true)}
                       className="justify-center"
                     >
-                      <Search className="w-4 h-4" />
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                        <Search className="w-4 h-4" />
+                      </div>
                     </SidebarMenuButton>
                   ) : (
                     <Popover open={searchFocused} onOpenChange={setSearchFocused}>
                       <PopoverTrigger asChild>
                         <SidebarMenuButton className={cn(
-                          "w-full justify-start",
+                          "w-full justify-start gap-2",
                           searchFocused && "bg-muted"
                         )}>
-                          <Search className="w-4 h-4 shrink-0" />
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                            <Search className="w-4 h-4" />
+                          </div>
                           <span className="flex-1 text-left truncate text-muted-foreground">
                             {searchQuery || "Search"}
                           </span>
@@ -237,7 +241,7 @@ export const ItinerarySidebar = ({
                         align="start" 
                         side="bottom"
                         sideOffset={4}
-                        className="w-[--radix-popover-trigger-width] p-0 bg-card border border-border shadow-lg"
+                        className="w-[--radix-popover-trigger-width] p-0 bg-muted border border-border shadow-lg"
                         onOpenAutoFocus={(e) => e.preventDefault()}
                       >
                         {/* Search Input - Fixed at top */}

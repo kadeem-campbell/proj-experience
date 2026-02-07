@@ -225,6 +225,16 @@ const SearchPage = () => {
 
       {/* Content */}
       <div className="p-3 md:p-6">
+          {/* Welcome Intro - visible for first-time visitors */}
+          {!selectedCity && !searchQuery && (
+            <div className="mb-6 md:mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">Discover Experiences</h1>
+              <p className="text-muted-foreground text-sm md:text-base max-w-xl">
+                Curated activities and itineraries from local creators. Save your favorites and plan your perfect trip.
+              </p>
+            </div>
+          )}
+
           {/* Top Itineraries Section */}
           {!selectedCity && filteredItineraries.length > 0 && (
             <div className="mb-6 md:mb-10">
@@ -238,7 +248,7 @@ const SearchPage = () => {
                   View all →
                 </Button>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
                 {filteredItineraries.slice(0, 4).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
@@ -259,8 +269,8 @@ const SearchPage = () => {
                   View all →
                 </Button>
               </div>
-              {/* TikTok-style grid: 6 columns on desktop, responsive on smaller screens */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              {/* TikTok-style grid: 3 columns on mobile, 6 on desktop */}
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                 {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
@@ -283,7 +293,7 @@ const SearchPage = () => {
               <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">
                 {selectedCity.name} Popular Experiences
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                 {publicItinerariesData
                   .filter(it => it.name.toLowerCase().includes(selectedCity.name.toLowerCase()) || 
                     it.experiences.some(exp => exp.location?.toLowerCase().includes(selectedCity.name.toLowerCase())))
@@ -306,7 +316,7 @@ const SearchPage = () => {
                 }
               </h2>
               
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                 {filteredExperiences.map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
