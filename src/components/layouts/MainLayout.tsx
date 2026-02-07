@@ -1,14 +1,28 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { ItinerarySidebar } from "@/components/ItinerarySidebar";
 import { ItineraryPanel } from "@/components/ItineraryPanel";
+import { City } from "@/data/browseData";
 
 interface MainLayoutProps {
   children: ReactNode;
   showItineraryPanel?: boolean;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  selectedCity?: City | null;
+  onCitySelect?: (city: City | null) => void;
+  onMobileSearchClick?: () => void;
 }
 
-export const MainLayout = ({ children, showItineraryPanel = false }: MainLayoutProps) => {
+export const MainLayout = ({ 
+  children, 
+  showItineraryPanel = false,
+  searchQuery,
+  onSearchChange,
+  selectedCity,
+  onCitySelect,
+  onMobileSearchClick,
+}: MainLayoutProps) => {
   return (
     <SidebarProvider defaultOpen={true}>
       {/*
@@ -17,7 +31,13 @@ export const MainLayout = ({ children, showItineraryPanel = false }: MainLayoutP
         overflow-hidden ancestors won't work reliably.
       */}
       <div className="h-screen flex w-full bg-background overflow-hidden">
-        <ItinerarySidebar />
+        <ItinerarySidebar
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          selectedCity={selectedCity}
+          onCitySelect={onCitySelect}
+          onMobileSearchClick={onMobileSearchClick}
+        />
         
         <SidebarInset className="flex-1 flex flex-col min-w-0">
           {/* Main Content Area */}
