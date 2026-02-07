@@ -193,7 +193,7 @@ export const ItinerarySidebar = ({
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50 bg-card">
       <SidebarHeader className="p-3">
-        <Link to="/" className="flex items-center justify-center">
+        <Link to="/" className="flex items-center justify-start">
           <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
             <MapPin className="w-4 h-4 text-primary-foreground" />
           </div>
@@ -207,34 +207,36 @@ export const ItinerarySidebar = ({
 
       <SidebarContent>
         <ScrollArea className="flex-1">
-          {/* Search */}
+          {/* Discover with integrated Search */}
           <SidebarGroup className="py-2">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   {isCollapsedView ? (
                     <SidebarMenuButton
-                      tooltip="Search"
-                      onClick={() => !isMobile && setSearchFocused(true)}
+                      tooltip="Discover"
+                      asChild
+                      isActive={location.pathname === "/"}
                       className="justify-center"
                     >
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                        <Search className="w-4 h-4" />
-                      </div>
+                      <Link to="/">
+                        <Compass className="w-4 h-4" />
+                      </Link>
                     </SidebarMenuButton>
                   ) : (
                     <Popover open={searchFocused} onOpenChange={setSearchFocused}>
                       <PopoverTrigger asChild>
-                        <SidebarMenuButton className={cn(
-                          "w-full justify-start gap-2",
-                          searchFocused && "bg-muted"
-                        )}>
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                            <Search className="w-4 h-4" />
+                        <SidebarMenuButton 
+                          className="w-full justify-start gap-2 px-2 py-2"
+                          isActive={location.pathname === "/"}
+                        >
+                          <Compass className="w-4 h-4 shrink-0" />
+                          <div className="flex-1 flex items-center bg-muted rounded-lg px-2.5 py-1.5">
+                            <Search className="w-3.5 h-3.5 text-muted-foreground mr-2 shrink-0" />
+                            <span className="text-sm text-muted-foreground truncate">
+                              {searchQuery || "Search"}
+                            </span>
                           </div>
-                          <span className="flex-1 text-left truncate text-muted-foreground">
-                            {searchQuery || "Search"}
-                          </span>
                         </SidebarMenuButton>
                       </PopoverTrigger>
                       <PopoverContent 
@@ -246,7 +248,7 @@ export const ItinerarySidebar = ({
                       >
                         {/* Search Input - Fixed at top */}
                         <div className="p-3 border-b border-border/50">
-                          <div className="flex items-center bg-muted/50 rounded-lg px-3 py-2">
+                          <div className="flex items-center bg-background/50 rounded-lg px-3 py-2">
                             <Search className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
                             <Input
                               type="text"
@@ -281,7 +283,7 @@ export const ItinerarySidebar = ({
                                     onSearchChange?.(search);
                                     setSearchFocused(false);
                                   }}
-                                  className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-muted transition-colors text-foreground"
+                                  className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-background/50 transition-colors text-foreground"
                                 >
                                   <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                                   <span className="truncate">{search}</span>
@@ -301,7 +303,7 @@ export const ItinerarySidebar = ({
                                     onSearchChange?.(tag);
                                     setSearchFocused(false);
                                   }}
-                                  className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-muted/70 text-foreground hover:bg-muted transition-colors"
+                                  className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-background/50 text-foreground hover:bg-background/70 transition-colors"
                                 >
                                   {tag}
                                 </button>
@@ -319,7 +321,7 @@ export const ItinerarySidebar = ({
                                   onSearchChange?.(suggestion);
                                   setSearchFocused(false);
                                 }}
-                                className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-muted transition-colors text-foreground/80"
+                                className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-background/50 transition-colors text-foreground/80"
                               >
                                 <Compass className="w-3.5 h-3.5 text-muted-foreground" />
                                 <span>{suggestion}</span>
@@ -366,7 +368,7 @@ export const ItinerarySidebar = ({
                     <PopoverContent 
                       align="start" 
                       side={isCollapsedView ? "right" : "bottom"}
-                      className="w-52 p-1.5 bg-card border border-border shadow-lg"
+                      className="w-52 p-1.5 bg-muted border border-border shadow-lg"
                     >
                       <div className="space-y-0.5">
                         {selectedCity && (
@@ -375,7 +377,7 @@ export const ItinerarySidebar = ({
                               onCitySelect?.(null);
                               setLocationOpen(false);
                             }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-muted-foreground hover:bg-background/50 rounded-md transition-colors"
                           >
                             <X className="w-4 h-4" />
                             Clear filter
@@ -392,7 +394,7 @@ export const ItinerarySidebar = ({
                               "w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-md transition-colors",
                               selectedCity?.id === city.id
                                 ? "bg-primary/10 text-primary"
-                                : "hover:bg-muted"
+                                : "hover:bg-background/50"
                             )}
                           >
                             <div
@@ -405,27 +407,6 @@ export const ItinerarySidebar = ({
                       </div>
                     </PopoverContent>
                   </Popover>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {/* Discover - navigate to home */}
-          <SidebarGroup className="py-0">
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === "/"}
-                    tooltip="Discover"
-                    className={isCollapsedView ? "justify-center" : ""}
-                  >
-                    <Link to="/">
-                      <Compass className="w-4 h-4" />
-                      {!isCollapsedView && <span>Discover</span>}
-                    </Link>
-                  </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
