@@ -9,7 +9,6 @@ import {
   X, 
   Globe, 
   Lock,
-  Users,
   ChevronDown,
   ChevronRight,
   Compass,
@@ -41,11 +40,27 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
+import { RotatingStatModule } from "@/components/RotatingStatModule";
+import { SidebarItineraryCTA } from "@/components/SidebarItineraryCTA";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { City, cities } from "@/data/browseData";
+
+interface ItinerarySidebarProps {
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  selectedCity?: City | null;
+  onCitySelect?: (city: City | null) => void;
+  onMobileSearchClick?: () => void;
+}
 
 // Auto-dismiss hint component
 const AutoDismissHint = ({ onDismiss }: { onDismiss: () => void }) => {
@@ -71,12 +86,19 @@ const AutoDismissHint = ({ onDismiss }: { onDismiss: () => void }) => {
   );
 };
 
-export const ItinerarySidebar = () => {
+export const ItinerarySidebar = ({
+  searchQuery = "",
+  onSearchChange,
+  selectedCity,
+  onCitySelect,
+  onMobileSearchClick,
+}: ItinerarySidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
+  const [locationOpen, setLocationOpen] = useState(false);
   
   const {
     itineraries,
@@ -112,7 +134,6 @@ export const ItinerarySidebar = () => {
     const handleOpenItineraries = () => {
       setItinerariesOpen(true);
       setHighlightItineraries(true);
-      // Remove highlight after animation
       setTimeout(() => setHighlightItineraries(false), 2000);
     };
     
@@ -140,9 +161,8 @@ export const ItinerarySidebar = () => {
     }
   };
 
-  const navItems = [
-    { path: "/", label: "Discover", icon: Compass },
-  ];
+  // Show + button only if user has 2+ itineraries
+  const showPlusButton = itineraries.length >= 2;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border bg-card">
@@ -163,32 +183,133 @@ export const ItinerarySidebar = () => {
 
       <SidebarContent>
         <ScrollArea className="flex-1">
-          {/* Navigation */}
+          {/* Discover row with search */}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-muted-foreground uppercase text-xs tracking-wider">
-              {!collapsed && "Browse"}
-            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {navItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
+                <SidebarMenuItem>
+                  {collapsed ? (
                     <SidebarMenuButton
                       asChild
-                      isActive={location.pathname === item.path}
-                      tooltip={item.label}
+                      isActive={location.pathname === "/"}
+                      tooltip="Discover"
                     >
-                      <Link to={item.path} className="flex items-center gap-3">
-                        <item.icon className="w-4 h-4" />
-                        {!collapsed && <span>{item.label}</span>}
+                      <Link to="/" className="flex items-center justify-center">
+                        <Compass className="w-4 h-4" />
                       </Link>
                     </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                  ) : (
+                    <div className="flex items-center gap-2 px-2 py-1">
+                      <Compass className="w-4 h-4 shrink-0 text-muted-foreground" />
+                      {isMobile ? (
+                        <button
+                          onClick={onMobileSearchClick}
+                          className="flex-1 flex items-center bg-muted/60 border border-border/50 rounded-lg px-3 py-1.5 text-left"
+                        >
+                          <Search className="w-3.5 h-3.5 text-foreground/60 mr-2 shrink-0" />
+                          <span className="text-foreground/50 text-xs truncate">
+                            {searchQuery || "Search..."}
+                          </span>
+                        </button>
+                      ) : (
+                        <div className="flex-1 flex items-center bg-muted/60 border border-border/50 rounded-lg px-2 py-1">
+                          <Search className="w-3.5 h-3.5 text-foreground/60 mr-2 shrink-0" />
+                          <Input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => onSearchChange?.(e.target.value)}
+                            placeholder="Search..."
+                            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-6 text-xs placeholder:text-foreground/50"
+                            style={{ fontSize: '16px' }}
+                          />
+                          {searchQuery && (
+                            <button
+                              onClick={() => onSearchChange?.("")}
+                              className="p-0.5 hover:bg-muted rounded-full"
+                            >
+                              <X className="w-3 h-3 text-muted-foreground" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Location filter */}
+          <SidebarGroup className="py-0">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  {collapsed ? (
+                    <SidebarMenuButton tooltip="Location">
+                      <MapPin className="w-4 h-4" />
+                    </SidebarMenuButton>
+                  ) : (
+                    <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                      <PopoverTrigger asChild>
+                        <button className={cn(
+                          "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors hover:bg-muted",
+                          selectedCity && "text-primary"
+                        )}>
+                          <MapPin className="w-4 h-4 shrink-0" />
+                          <span className="flex-1 text-left truncate text-xs">
+                            {selectedCity?.name || "All Locations"}
+                          </span>
+                          <ChevronDown className="w-3 h-3 shrink-0" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-48 p-2">
+                        <div className="space-y-1">
+                          {selectedCity && (
+                            <button
+                              onClick={() => {
+                                onCitySelect?.(null);
+                                setLocationOpen(false);
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md"
+                            >
+                              <X className="w-4 h-4" />
+                              Clear location
+                            </button>
+                          )}
+                          {cities.map((city) => (
+                            <button
+                              key={city.id}
+                              onClick={() => {
+                                onCitySelect?.(city);
+                                setLocationOpen(false);
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
+                                selectedCity?.id === city.id
+                                  ? "bg-primary/10 text-primary"
+                                  : "hover:bg-muted"
+                              )}
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: city.color }}
+                              />
+                              {city.name}
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
 
           <SidebarSeparator />
+
+          {/* Itinerary CTA - only for 0-1 itineraries */}
+          <SidebarItineraryCTA collapsed={collapsed} />
 
           {/* Itineraries */}
           <SidebarGroup className={cn(
@@ -215,7 +336,7 @@ export const ItinerarySidebar = () => {
                     {!collapsed && "My Itineraries"}
                   </button>
                 </CollapsibleTrigger>
-                {!collapsed && (
+                {!collapsed && showPlusButton && (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -238,7 +359,7 @@ export const ItinerarySidebar = () => {
                           onChange={(e) => setNewItineraryName(e.target.value)}
                           placeholder="Trip name..."
                           className="h-10 text-base"
-                          style={{ fontSize: '16px' }} // Prevent iOS zoom
+                          style={{ fontSize: '16px' }}
                           onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                           autoFocus
                         />
@@ -266,7 +387,7 @@ export const ItinerarySidebar = () => {
                               value={editName}
                               onChange={(e) => setEditName(e.target.value)}
                               className="h-10 text-base"
-                              style={{ fontSize: '16px' }} // Prevent iOS zoom
+                              style={{ fontSize: '16px' }}
                               onKeyDown={(e) => e.key === "Enter" && handleRename(itinerary.id)}
                               autoFocus
                             />
@@ -368,6 +489,11 @@ export const ItinerarySidebar = () => {
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
+          {/* Rotating stats module - replaces About */}
+          <SidebarMenuItem>
+            <RotatingStatModule collapsed={collapsed} />
+          </SidebarMenuItem>
+
           {/* Mobile: Show Sign Up / User info */}
           {isMobile && (
             <SidebarMenuItem>
@@ -403,15 +529,6 @@ export const ItinerarySidebar = () => {
               )}
             </SidebarMenuItem>
           )}
-          
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="About">
-              <Link to="/about" className="flex items-center gap-3">
-                <Compass className="w-4 h-4" />
-                {!collapsed && <span>About</span>}
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
 

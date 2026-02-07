@@ -3,7 +3,6 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { FixedSearchHeader } from "@/components/FixedSearchHeader";
-import { LiveActivityBanner } from "@/components/LiveActivityBanner";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { useItineraries } from "@/hooks/useItineraries";
 import { getPopularItineraries, publicItinerariesData } from "@/data/itinerariesData";
@@ -19,10 +18,9 @@ const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  // Use pre-computed cached data - no recalculation on render
   const experiences = allExperiences;
   const [loading, setLoading] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCount, setVisibleCount] = useState(18);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { activeItinerary, experienceCount } = useItineraries();
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -55,7 +53,7 @@ const SearchPage = () => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && visibleCount < experiences.length) {
-          setVisibleCount(prev => Math.min(prev + 12, experiences.length));
+          setVisibleCount(prev => Math.min(prev + 18, experiences.length));
         }
       },
       { threshold: 0.1 }
@@ -95,12 +93,10 @@ const SearchPage = () => {
     Wellness: ["wellness", "spa", "spas", "massage", "massages", "yoga", "meditation", "meditate", "relax", "relaxing", "relaxation", "retreat", "retreats", "health", "healthy", "healing", "holistic", "mindfulness", "zen", "detox", "fitness", "gym", "workout", "exercise"],
   };
 
-  // Normalize search text
   const normalizeText = (text: string) => {
     return text.toLowerCase().replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
   };
 
-  // Check if any word starts with the search term (for partial matching)
   const partialMatch = (text: string, term: string) => {
     const words = normalizeText(text).split(' ');
     return words.some(word => word.startsWith(term) || term.startsWith(word));
@@ -112,7 +108,6 @@ const SearchPage = () => {
     const normalizedQuery = normalizeText(q);
     const searchTerms = normalizedQuery.split(' ').filter(t => t.length > 1);
     
-    // Check for tag/category synonym match
     const matchedCategories = new Set<string>();
     for (const [cat, terms] of Object.entries(synonyms)) {
       const catMatched = searchTerms.some(term => 
@@ -134,7 +129,6 @@ const SearchPage = () => {
       if (categoryMatch || titleCategoryMatch) return true;
     }
 
-    // Text match on all fields with partial matching
     const fieldsToSearch = [
       item.title || item.name || "",
       item.description || "",
@@ -160,13 +154,11 @@ const SearchPage = () => {
   };
 
   const filteredExperiences = experiences.filter((experience) => {
-    // City filter from dropdown
     if (selectedCity) {
       const cityMatch = experience.location?.toLowerCase().includes(selectedCity.name.toLowerCase());
       if (!cityMatch) return false;
     }
 
-    // Category filter from tags
     if (selectedCategory) {
       const catMatch = experience.category?.toLowerCase().includes(selectedCategory.toLowerCase());
       if (!catMatch) return false;
@@ -176,7 +168,6 @@ const SearchPage = () => {
     return filterByQuery(experience, q);
   });
 
-  // Filter itineraries by search query
   const filteredItineraries = getPopularItineraries().filter((itinerary) => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
@@ -186,7 +177,13 @@ const SearchPage = () => {
 
   if (loading) {
     return (
-      <MainLayout>
+      <MainLayout
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedCity={selectedCity}
+        onCitySelect={handleCitySelect}
+        onMobileSearchClick={() => setMobileSearchOpen(true)}
+      >
         <div className="flex items-center justify-center h-full">
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -198,7 +195,13 @@ const SearchPage = () => {
   }
 
   return (
-    <MainLayout>
+    <MainLayout
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      selectedCity={selectedCity}
+      onCitySelect={handleCitySelect}
+      onMobileSearchClick={() => setMobileSearchOpen(true)}
+    >
       {/* Mobile Search Overlay */}
       <MobileSearchOverlay
         isOpen={mobileSearchOpen}
@@ -208,7 +211,7 @@ const SearchPage = () => {
         onSearch={(q) => setSearchQuery(q)}
       />
 
-      {/* Fixed Search Header with Location & Tags - sticky inside MainLayout's scroll container */}
+      {/* TikTok-style hide-on-scroll header */}
       <FixedSearchHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -222,9 +225,6 @@ const SearchPage = () => {
 
       {/* Content */}
       <div className="p-3 md:p-6">
-          {/* Live Activity Banner - Polymarket style */}
-          <LiveActivityBanner experienceCount={experienceCount} />
-
           {/* Top Itineraries Section */}
           {!selectedCity && filteredItineraries.length > 0 && (
             <div className="mb-6 md:mb-10">
@@ -246,7 +246,7 @@ const SearchPage = () => {
             </div>
           )}
 
-          {/* All Experiences Section with Infinite Scroll */}
+          {/* All Experiences Section - TikTok-style 6-column grid on desktop */}
           {!selectedCity && filteredExperiences.length > 0 && (
             <div className="mb-6 md:mb-10">
               <div className="flex items-center justify-between mb-4">
@@ -259,7 +259,8 @@ const SearchPage = () => {
                   View all →
                 </Button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
+              {/* TikTok-style grid: 6 columns on desktop, responsive on smaller screens */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {filteredExperiences.slice(0, visibleCount).map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
@@ -293,8 +294,6 @@ const SearchPage = () => {
             </div>
           )}
 
-          {/* Removed Explore City colored cards section per user request */}
-
           {/* Filtered Experiences Section - Only show when city/category is selected */}
           {(selectedCity || selectedCategory || searchQuery) && (
             <div>
@@ -307,7 +306,7 @@ const SearchPage = () => {
                 }
               </h2>
               
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {filteredExperiences.map((experience) => (
                   <ExperienceCard key={experience.id} {...experience} compact />
                 ))}
