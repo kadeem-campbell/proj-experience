@@ -100,10 +100,10 @@ export const ExperienceCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container - TikTok 4:5 ratio on mobile, square on desktop */}
+        {/* Image container - TikTok style 4:5 ratio for more immersive feel */}
         <div className={cn(
           "relative overflow-hidden rounded-2xl bg-muted",
-          isMobile ? "aspect-[4/5]" : "aspect-square"
+          isMobile ? "aspect-[4/5]" : "aspect-[4/5]"
         )}>
           {videoUrl ? (
             <video
@@ -131,14 +131,14 @@ export const ExperienceCard = ({
             onClick={handleLikeClick}
             onTouchEnd={handleLikeClick}
             className={cn(
-              "absolute top-2 right-2 p-2 rounded-full bg-white/60 backdrop-blur-2xl shadow-sm border border-white/30 transition-all duration-200 active:scale-90",
+              "absolute top-2 right-2 p-2 rounded-full bg-background/60 backdrop-blur-2xl shadow-sm border border-border/30 transition-all duration-200 active:scale-90",
               liked && "bg-destructive/20"
             )}
           >
             <Heart 
               className={cn(
                 "w-4 h-4 transition-all duration-200",
-                liked ? "fill-destructive text-destructive scale-110" : "text-neutral-700"
+                liked ? "fill-destructive text-destructive scale-110" : "text-foreground/70"
               )} 
             />
           </button>
@@ -156,8 +156,8 @@ export const ExperienceCard = ({
               experienceData={experienceData}
               onAdd={handleAddSuccess}
             >
-              <button className="w-8 h-8 rounded-full flex items-center justify-center bg-white/70 backdrop-blur-2xl border border-white/30 shadow-sm hover:bg-white/90 transition-colors">
-                <Plus className="w-4 h-4 text-neutral-700" />
+              <button className="w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-2xl border border-border/30 shadow-sm hover:bg-background/90 transition-colors">
+                <Plus className="w-4 h-4 text-foreground/70" />
               </button>
             </ItinerarySelector>
           </div>

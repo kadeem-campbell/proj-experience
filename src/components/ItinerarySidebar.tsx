@@ -164,9 +164,23 @@ export const ItinerarySidebar = ({
   // Show + button only if user has 2+ itineraries
   const showPlusButton = itineraries.length >= 2;
 
+  const [searchFocused, setSearchFocused] = useState(false);
+  
+  // Recent searches from localStorage
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const stored = localStorage.getItem('recentSearches');
+    if (stored) {
+      setRecentSearches(JSON.parse(stored).slice(0, 5));
+    }
+  }, []);
+
+  const suggestedTags = ["Beach", "Adventure", "Food", "Wildlife", "Party", "Culture"];
+
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-card">
-      <SidebarHeader className="p-4">
+    <Sidebar collapsible="icon" className="border-r border-border/50 bg-card">
+      <SidebarHeader className="p-4 pb-3">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
             <MapPin className="w-4 h-4 text-primary-foreground" />
@@ -179,12 +193,12 @@ export const ItinerarySidebar = ({
         </Link>
       </SidebarHeader>
 
-      <SidebarSeparator />
+      {/* No separator - removed for cleaner look */}
 
       <SidebarContent>
         <ScrollArea className="flex-1">
-          {/* Discover row with search */}
-          <SidebarGroup>
+          {/* Discover row with refined search */}
+          <SidebarGroup className="py-2">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -199,39 +213,95 @@ export const ItinerarySidebar = ({
                       </Link>
                     </SidebarMenuButton>
                   ) : (
-                    <div className="flex items-center gap-2 px-2 py-1">
-                      <Compass className="w-4 h-4 shrink-0 text-muted-foreground" />
-                      {isMobile ? (
-                        <button
-                          onClick={onMobileSearchClick}
-                          className="flex-1 flex items-center bg-muted/60 border border-border/50 rounded-lg px-3 py-1.5 text-left"
-                        >
-                          <Search className="w-3.5 h-3.5 text-foreground/60 mr-2 shrink-0" />
-                          <span className="text-foreground/50 text-xs truncate">
-                            {searchQuery || "Search..."}
-                          </span>
-                        </button>
-                      ) : (
-                        <div className="flex-1 flex items-center bg-muted/60 border border-border/50 rounded-lg px-2 py-1">
-                          <Search className="w-3.5 h-3.5 text-foreground/60 mr-2 shrink-0" />
-                          <Input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => onSearchChange?.(e.target.value)}
-                            placeholder="Search..."
-                            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-6 text-xs placeholder:text-foreground/50"
-                            style={{ fontSize: '16px' }}
-                          />
-                          {searchQuery && (
-                            <button
-                              onClick={() => onSearchChange?.("")}
-                              className="p-0.5 hover:bg-muted rounded-full"
+                    <div className="px-2">
+                      <div className="flex items-center gap-2.5">
+                        <Compass className="w-4 h-4 shrink-0 text-primary" />
+                        {isMobile ? (
+                          <button
+                            onClick={onMobileSearchClick}
+                            className="flex-1 flex items-center bg-muted/40 border border-border/40 rounded-xl px-3 py-2 text-left hover:bg-muted/60 transition-colors"
+                          >
+                            <Search className="w-3.5 h-3.5 text-muted-foreground mr-2 shrink-0" />
+                            <span className="text-muted-foreground text-sm truncate">
+                              {searchQuery || "Search..."}
+                            </span>
+                          </button>
+                        ) : (
+                          <Popover open={searchFocused} onOpenChange={setSearchFocused}>
+                            <PopoverTrigger asChild>
+                              <div className={cn(
+                                "flex-1 flex items-center bg-muted/40 border border-border/40 rounded-xl px-3 py-2 transition-all duration-200",
+                                "hover:bg-muted/60 hover:border-border/60",
+                                searchFocused && "bg-muted/60 border-primary/40 ring-1 ring-primary/20"
+                              )}>
+                                <Search className="w-3.5 h-3.5 text-muted-foreground mr-2 shrink-0" />
+                                <Input
+                                  type="text"
+                                  value={searchQuery}
+                                  onChange={(e) => onSearchChange?.(e.target.value)}
+                                  onFocus={() => setSearchFocused(true)}
+                                  placeholder="Search..."
+                                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-5 text-sm placeholder:text-muted-foreground"
+                                  style={{ fontSize: '16px' }}
+                                />
+                                {searchQuery && (
+                                  <button
+                                    onClick={() => onSearchChange?.("")}
+                                    className="p-0.5 hover:bg-muted-foreground/20 rounded-full transition-colors"
+                                  >
+                                    <X className="w-3 h-3 text-muted-foreground" />
+                                  </button>
+                                )}
+                              </div>
+                            </PopoverTrigger>
+                            <PopoverContent 
+                              align="start" 
+                              side="bottom"
+                              className="w-[var(--radix-popover-trigger-width)] p-3 bg-card border border-border/60"
+                              onOpenAutoFocus={(e) => e.preventDefault()}
                             >
-                              <X className="w-3 h-3 text-muted-foreground" />
-                            </button>
-                          )}
-                        </div>
-                      )}
+                              {/* Recent Searches */}
+                              {recentSearches.length > 0 && (
+                                <div className="mb-3">
+                                  <p className="text-xs font-medium text-muted-foreground mb-2">Recent</p>
+                                  <div className="space-y-1">
+                                    {recentSearches.map((search, i) => (
+                                      <button
+                                        key={i}
+                                        onClick={() => {
+                                          onSearchChange?.(search);
+                                          setSearchFocused(false);
+                                        }}
+                                        className="w-full text-left text-sm py-1.5 px-2 rounded-md hover:bg-muted transition-colors text-foreground/80"
+                                      >
+                                        {search}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {/* Suggested Tags */}
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground mb-2">Suggested</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {suggestedTags.map((tag) => (
+                                    <button
+                                      key={tag}
+                                      onClick={() => {
+                                        onSearchChange?.(tag);
+                                        setSearchFocused(false);
+                                      }}
+                                      className="px-2.5 py-1 text-xs rounded-full bg-muted/60 text-foreground/80 hover:bg-muted transition-colors"
+                                    >
+                                      {tag}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </div>
                     </div>
                   )}
                 </SidebarMenuItem>
@@ -239,8 +309,8 @@ export const ItinerarySidebar = ({
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Location filter */}
-          <SidebarGroup className="py-0">
+          {/* Location filter - styled like My Itineraries */}
+          <SidebarGroup className="py-1">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -249,64 +319,76 @@ export const ItinerarySidebar = ({
                       <MapPin className="w-4 h-4" />
                     </SidebarMenuButton>
                   ) : (
-                    <Popover open={locationOpen} onOpenChange={setLocationOpen}>
-                      <PopoverTrigger asChild>
-                        <button className={cn(
-                          "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors hover:bg-muted",
-                          selectedCity && "text-primary"
-                        )}>
-                          <MapPin className="w-4 h-4 shrink-0" />
-                          <span className="flex-1 text-left truncate text-xs">
-                            {selectedCity?.name || "All Locations"}
-                          </span>
-                          <ChevronDown className="w-3 h-3 shrink-0" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent align="start" className="w-48 p-2">
-                        <div className="space-y-1">
-                          {selectedCity && (
-                            <button
-                              onClick={() => {
-                                onCitySelect?.(null);
-                                setLocationOpen(false);
-                              }}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md"
-                            >
-                              <X className="w-4 h-4" />
-                              Clear location
-                            </button>
-                          )}
-                          {cities.map((city) => (
-                            <button
-                              key={city.id}
-                              onClick={() => {
-                                onCitySelect?.(city);
-                                setLocationOpen(false);
-                              }}
-                              className={cn(
-                                "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
-                                selectedCity?.id === city.id
-                                  ? "bg-primary/10 text-primary"
-                                  : "hover:bg-muted"
-                              )}
-                            >
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: city.color }}
-                              />
-                              {city.name}
-                            </button>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                    <div className="px-2">
+                      <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                        <PopoverTrigger asChild>
+                          <button className={cn(
+                            "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-200",
+                            "bg-muted/30 hover:bg-muted/50 border border-transparent",
+                            selectedCity && "bg-primary/10 border-primary/20 text-primary"
+                          )}>
+                            <MapPin className={cn(
+                              "w-4 h-4 shrink-0",
+                              selectedCity ? "text-primary" : "text-muted-foreground"
+                            )} />
+                            <span className="flex-1 text-left truncate">
+                              {selectedCity?.name || "All Locations"}
+                            </span>
+                            <ChevronDown className={cn(
+                              "w-3.5 h-3.5 shrink-0 transition-transform duration-200",
+                              locationOpen && "rotate-180"
+                            )} />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-56 p-2 bg-card border border-border/60">
+                          <div className="space-y-0.5">
+                            {selectedCity && (
+                              <button
+                                onClick={() => {
+                                  onCitySelect?.(null);
+                                  setLocationOpen(false);
+                                }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                              >
+                                <X className="w-4 h-4" />
+                                Clear location
+                              </button>
+                            )}
+                            {cities.map((city) => (
+                              <button
+                                key={city.id}
+                                onClick={() => {
+                                  onCitySelect?.(city);
+                                  setLocationOpen(false);
+                                }}
+                                className={cn(
+                                  "w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-lg transition-colors",
+                                  selectedCity?.id === city.id
+                                    ? "bg-primary/10 text-primary"
+                                    : "hover:bg-muted"
+                                )}
+                              >
+                                <div
+                                  className="w-2.5 h-2.5 rounded-full ring-2 ring-offset-1 ring-offset-card"
+                                  style={{ 
+                                    backgroundColor: city.color,
+                                    boxShadow: `0 0 6px ${city.color}40`
+                                  }}
+                                />
+                                <span>{city.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   )}
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
 
-          <SidebarSeparator />
+          <div className="mx-4 my-3 h-px bg-border/40" />
 
           {/* Itinerary CTA - only for 0-1 itineraries */}
           <SidebarItineraryCTA collapsed={collapsed} />
