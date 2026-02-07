@@ -309,79 +309,120 @@ export const ItinerarySidebar = ({
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Location filter - styled like My Itineraries */}
+          {/* Location filter - aligned with other sidebar items */}
           <SidebarGroup className="py-1">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   {collapsed ? (
-                    <SidebarMenuButton tooltip="Location">
-                      <MapPin className="w-4 h-4" />
-                    </SidebarMenuButton>
+                    <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                      <PopoverTrigger asChild>
+                        <SidebarMenuButton tooltip="Location" className={cn(selectedCity && "text-primary")}>
+                          <MapPin className="w-4 h-4" />
+                        </SidebarMenuButton>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" side="right" className="w-56 p-2 bg-card border border-border/60">
+                        <div className="space-y-0.5">
+                          {selectedCity && (
+                            <button
+                              onClick={() => {
+                                onCitySelect?.(null);
+                                setLocationOpen(false);
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                              Clear location
+                            </button>
+                          )}
+                          {cities.map((city) => (
+                            <button
+                              key={city.id}
+                              onClick={() => {
+                                onCitySelect?.(city);
+                                setLocationOpen(false);
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-lg transition-colors",
+                                selectedCity?.id === city.id
+                                  ? "bg-primary/10 text-primary"
+                                  : "hover:bg-muted"
+                              )}
+                            >
+                              <div
+                                className="w-2.5 h-2.5 rounded-full ring-2 ring-offset-1 ring-offset-card"
+                                style={{ 
+                                  backgroundColor: city.color,
+                                  boxShadow: `0 0 6px ${city.color}40`
+                                }}
+                              />
+                              <span>{city.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   ) : (
-                    <div className="px-2">
-                      <Popover open={locationOpen} onOpenChange={setLocationOpen}>
-                        <PopoverTrigger asChild>
-                          <button className={cn(
-                            "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-200",
-                            "bg-muted/30 hover:bg-muted/50 border border-transparent",
-                            selectedCity && "bg-primary/10 border-primary/20 text-primary"
-                          )}>
-                            <MapPin className={cn(
-                              "w-4 h-4 shrink-0",
-                              selectedCity ? "text-primary" : "text-muted-foreground"
-                            )} />
-                            <span className="flex-1 text-left truncate">
-                              {selectedCity?.name || "All Locations"}
-                            </span>
-                            <ChevronDown className={cn(
-                              "w-3.5 h-3.5 shrink-0 transition-transform duration-200",
-                              locationOpen && "rotate-180"
-                            )} />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent align="start" className="w-56 p-2 bg-card border border-border/60">
-                          <div className="space-y-0.5">
-                            {selectedCity && (
-                              <button
-                                onClick={() => {
-                                  onCitySelect?.(null);
-                                  setLocationOpen(false);
+                    <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+                      <PopoverTrigger asChild>
+                        <SidebarMenuButton className={cn(
+                          "w-full justify-start",
+                          selectedCity && "text-primary"
+                        )}>
+                          <MapPin className={cn(
+                            "w-4 h-4 shrink-0",
+                            selectedCity ? "text-primary" : ""
+                          )} />
+                          <span className="flex-1 text-left truncate">
+                            {selectedCity?.name || "All Locations"}
+                          </span>
+                          <ChevronDown className={cn(
+                            "w-3.5 h-3.5 shrink-0 transition-transform duration-200 ml-auto",
+                            locationOpen && "rotate-180"
+                          )} />
+                        </SidebarMenuButton>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-56 p-2 bg-card border border-border/60">
+                        <div className="space-y-0.5">
+                          {selectedCity && (
+                            <button
+                              onClick={() => {
+                                onCitySelect?.(null);
+                                setLocationOpen(false);
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                              Clear location
+                            </button>
+                          )}
+                          {cities.map((city) => (
+                            <button
+                              key={city.id}
+                              onClick={() => {
+                                onCitySelect?.(city);
+                                setLocationOpen(false);
+                              }}
+                              className={cn(
+                                "w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-lg transition-colors",
+                                selectedCity?.id === city.id
+                                  ? "bg-primary/10 text-primary"
+                                  : "hover:bg-muted"
+                              )}
+                            >
+                              <div
+                                className="w-2.5 h-2.5 rounded-full ring-2 ring-offset-1 ring-offset-card"
+                                style={{ 
+                                  backgroundColor: city.color,
+                                  boxShadow: `0 0 6px ${city.color}40`
                                 }}
-                                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted rounded-lg transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                                Clear location
-                              </button>
-                            )}
-                            {cities.map((city) => (
-                              <button
-                                key={city.id}
-                                onClick={() => {
-                                  onCitySelect?.(city);
-                                  setLocationOpen(false);
-                                }}
-                                className={cn(
-                                  "w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-lg transition-colors",
-                                  selectedCity?.id === city.id
-                                    ? "bg-primary/10 text-primary"
-                                    : "hover:bg-muted"
-                                )}
-                              >
-                                <div
-                                  className="w-2.5 h-2.5 rounded-full ring-2 ring-offset-1 ring-offset-card"
-                                  style={{ 
-                                    backgroundColor: city.color,
-                                    boxShadow: `0 0 6px ${city.color}40`
-                                  }}
-                                />
-                                <span>{city.name}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                              />
+                              <span>{city.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   )}
                 </SidebarMenuItem>
               </SidebarMenu>
