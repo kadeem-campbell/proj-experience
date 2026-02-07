@@ -191,6 +191,34 @@ const Sidebar = React.forwardRef<
     }
 
     if (isMobile) {
+      // On mobile, show a fixed icon-only sidebar instead of a sheet
+      if (collapsible === "icon") {
+        return (
+          <div
+            ref={ref}
+            className="fixed left-0 top-0 z-40 h-svh w-[--sidebar-width-icon] bg-sidebar border-r border-sidebar-border text-sidebar-foreground"
+            data-state="collapsed"
+            data-collapsible="icon"
+            data-variant={variant}
+            data-side={side}
+            style={
+              {
+                "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+              } as React.CSSProperties
+            }
+            {...props}
+          >
+            <div
+              data-sidebar="sidebar"
+              className="flex h-full w-full flex-col"
+            >
+              {children}
+            </div>
+          </div>
+        )
+      }
+      
+      // Fallback to sheet for other collapsible modes
       return (
         <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
           <SheetContent

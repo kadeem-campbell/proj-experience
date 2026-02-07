@@ -4,7 +4,15 @@ import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { useItineraries } from "@/hooks/useItineraries";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar";
 
 interface SidebarItineraryCTAProps {
   collapsed?: boolean;
@@ -14,6 +22,9 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
   const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
   const { itineraries, experienceCount } = useItineraries();
+  const isMobile = useIsMobile();
+  
+  const isCollapsedView = collapsed || isMobile;
 
   // If user has 2+ itineraries, don't show this CTA
   if (itineraries.length >= 2) {
@@ -37,38 +48,38 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
 
   return (
     <>
-      <div className={cn("px-2 mb-2", collapsed && "flex justify-center")}>
-        {hasExperiences ? (
-          <Button
-            size="sm"
-            className={cn(
-              "gap-2 w-full justify-start",
-              collapsed && "w-auto px-2"
-            )}
-            onClick={handleViewTrip}
-          >
-            <ArrowRight className="w-4 h-4 shrink-0" />
-            {!collapsed && (
-              <>
-                <span>View Itinerary</span>
-                <span className="ml-auto">({experienceCount})</span>
-              </>
-            )}
-          </Button>
-        ) : (
-          <Button
-            size="sm"
-            className={cn(
-              "gap-2 w-full justify-start",
-              collapsed && "w-auto px-2"
-            )}
-            onClick={handleCreateItinerary}
-          >
-            <Plus className="w-4 h-4 shrink-0" />
-            {!collapsed && <span>Create Itinerary</span>}
-          </Button>
-        )}
-      </div>
+      <SidebarGroup className="py-0">
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              {hasExperiences ? (
+                <SidebarMenuButton
+                  tooltip="View Itinerary"
+                  onClick={handleViewTrip}
+                  className={cn(isCollapsedView && "justify-center")}
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  {!isCollapsedView && (
+                    <>
+                      <span>View Itinerary</span>
+                      <span className="ml-auto text-xs text-muted-foreground">({experienceCount})</span>
+                    </>
+                  )}
+                </SidebarMenuButton>
+              ) : (
+                <SidebarMenuButton
+                  tooltip="Create Itinerary"
+                  onClick={handleCreateItinerary}
+                  className={cn(isCollapsedView && "justify-center")}
+                >
+                  <Plus className="w-4 h-4" />
+                  {!isCollapsedView && <span>Create Itinerary</span>}
+                </SidebarMenuButton>
+              )}
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
 
       <OnboardingFlow open={showOnboarding} onOpenChange={setShowOnboarding} />
     </>
