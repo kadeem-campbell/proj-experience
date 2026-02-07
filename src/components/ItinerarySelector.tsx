@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, ChevronDown, Check } from "lucide-react";
+import { Plus, ChevronDown, Check, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -23,6 +23,7 @@ interface ItinerarySelectorProps {
     price: string;
   };
   onAdd?: () => void;
+  onRemove?: () => void;
   children?: React.ReactNode;
 }
 
@@ -30,6 +31,7 @@ export const ItinerarySelector = ({
   experienceId, 
   experienceData,
   onAdd,
+  onRemove,
   children 
 }: ItinerarySelectorProps) => {
   const [open, setOpen] = useState(false);
@@ -41,23 +43,34 @@ export const ItinerarySelector = ({
     activeItineraryId,
     setActiveItinerary,
     createItinerary,
-    addExperienceToItinerary
+    addExperienceToItinerary,
+    removeExperienceFromItinerary
   } = useItineraries();
 
-  const handleAddToItinerary = (itinerary: Itinerary) => {
-    const result = addExperienceToItinerary(itinerary.id, experienceData);
+  const handleToggleItinerary = (itinerary: Itinerary) => {
+    const alreadyAdded = isInItinerary(itinerary.id);
     
-    if (result.alreadyExists) {
-      toast.error(`Already in "${itinerary.name}"`, {
-        description: "This experience is already in this itinerary"
-      });
-      return;
+    if (alreadyAdded) {
+      // Remove from itinerary
+      removeExperienceFromItinerary(itinerary.id, experienceId);
+      onRemove?.();
+      toast.success(`Removed from "${itinerary.name}"`);
+    } else {
+      // Add to itinerary
+      const result = addExperienceToItinerary(itinerary.id, experienceData);
+      
+      if (result.alreadyExists) {
+        toast.error(`Already in "${itinerary.name}"`, {
+          description: "This experience is already in this itinerary"
+        });
+        return;
+      }
+      
+      setActiveItinerary(itinerary.id);
+      onAdd?.();
+      toast.success(`Added to "${itinerary.name}"`);
     }
-    
-    setActiveItinerary(itinerary.id);
-    onAdd?.();
     setOpen(false);
-    toast.success(`Added to "${itinerary.name}"`);
   };
 
   const handleCreateAndAdd = async () => {
@@ -98,7 +111,8 @@ export const ItinerarySelector = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-3 border-b border-border">
-          <h4 className="font-semibold text-sm">Add to itinerary</h4>
+          <h4 className="font-semibold text-sm">Manage itineraries</h4>
+          <p className="text-xs text-muted-foreground mt-0.5">Tap to add or remove</p>
         </div>
         
         <div className="max-h-60 overflow-y-auto">
@@ -107,10 +121,10 @@ export const ItinerarySelector = ({
             return (
               <button
                 key={itinerary.id}
-                onClick={() => handleAddToItinerary(itinerary)}
+                onClick={() => handleToggleItinerary(itinerary)}
                 className={cn(
-                  "w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors",
-                  alreadyAdded ? "bg-muted/50 cursor-default" : "hover:bg-muted"
+                  "w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors hover:bg-muted",
+                  alreadyAdded && "bg-primary/5"
                 )}
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -118,13 +132,15 @@ export const ItinerarySelector = ({
                     "w-2 h-2 rounded-full flex-shrink-0",
                     itinerary.id === activeItineraryId ? "bg-primary" : "bg-muted-foreground/30"
                   )} />
-                  <span className={cn("text-sm truncate", alreadyAdded && "text-muted-foreground")}>{itinerary.name}</span>
+                  <span className="text-sm truncate">{itinerary.name}</span>
                   <span className="text-xs text-muted-foreground flex-shrink-0">
                     ({itinerary.experiences.length})
                   </span>
                 </div>
-                {alreadyAdded && (
-                  <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                {alreadyAdded ? (
+                  <Minus className="w-4 h-4 text-destructive flex-shrink-0" />
+                ) : (
+                  <Plus className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 )}
               </button>
             );

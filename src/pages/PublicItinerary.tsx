@@ -124,10 +124,10 @@ const PublicItinerary = () => {
         <div className="p-6 max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold mb-4">Itinerary Not Found</h1>
           <p className="text-muted-foreground mb-6">This itinerary doesn't exist or has been removed.</p>
-          <Link to="/">
+          <Link to="/experiences">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Discover
+              Back to Experiences
             </Button>
           </Link>
         </div>
@@ -704,10 +704,19 @@ const PublicItinerary = () => {
           style={{ background: `linear-gradient(180deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--background)) 100%)` }}
         >
           {/* Back Button */}
-          <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 md:mb-8 transition-colors text-sm font-medium">
+          <button 
+            onClick={() => {
+              if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.origin)) {
+                navigate(-1);
+              } else {
+                navigate('/experiences');
+              }
+            }}
+            className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 md:mb-8 transition-colors text-sm font-medium"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Discover
-          </Link>
+            Back
+          </button>
 
           <div className="flex flex-col sm:flex-row sm:items-start gap-5 md:gap-8">
             {/* Cover Image - Slightly rounded, TikTok profile style */}

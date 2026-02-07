@@ -248,8 +248,9 @@ const SearchPage = () => {
                   View all →
                 </Button>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
-                {filteredItineraries.slice(0, 4).map((itinerary) => (
+              {/* Itinerary grid: 2 on mobile, 3 on desktop for larger cards */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
+                {filteredItineraries.slice(0, 6).map((itinerary) => (
                   <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                 ))}
               </div>
