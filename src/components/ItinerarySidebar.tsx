@@ -178,40 +178,47 @@ export const ItinerarySidebar = ({
   }, []);
 
   const suggestedTags = ["Beach", "Adventure", "Food", "Wildlife", "Party", "Culture"];
+  
+  // Professional search suggestions - calm, product-like language
+  const searchSuggestions = [
+    "Beach experiences nearby",
+    "Popular food spots",
+    "Adventure activities",
+    "Cultural attractions"
+  ];
+
+  // Check if we're on mobile (collapsed state is forced on mobile)
+  const isCollapsedView = collapsed || isMobile;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50 bg-card">
-      <SidebarHeader className="p-4 pb-3">
-        <Link to="/" className="flex items-center gap-2">
+      <SidebarHeader className="p-3">
+        <Link to="/" className="flex items-center justify-center">
           <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
             <MapPin className="w-4 h-4 text-primary-foreground" />
           </div>
-          {!collapsed && (
-            <span className="text-xl font-bold gradient-primary bg-clip-text text-transparent">
+          {!isCollapsedView && (
+            <span className="ml-2 text-xl font-bold gradient-primary bg-clip-text text-transparent">
               SWAM
             </span>
           )}
         </Link>
       </SidebarHeader>
 
-      {/* No separator - removed for cleaner look */}
-
       <SidebarContent>
         <ScrollArea className="flex-1">
-          {/* Discover row with expanded search */}
+          {/* Search */}
           <SidebarGroup className="py-2">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  {collapsed ? (
+                  {isCollapsedView ? (
                     <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === "/"}
-                      tooltip="Discover"
+                      tooltip="Search"
+                      onClick={() => !isMobile && setSearchFocused(true)}
+                      className="justify-center"
                     >
-                      <Link to="/" className="flex items-center justify-center">
-                        <Compass className="w-4 h-4" />
-                      </Link>
+                      <Search className="w-4 h-4" />
                     </SidebarMenuButton>
                   ) : (
                     <Popover open={searchFocused} onOpenChange={setSearchFocused}>
@@ -222,7 +229,7 @@ export const ItinerarySidebar = ({
                         )}>
                           <Search className="w-4 h-4 shrink-0" />
                           <span className="flex-1 text-left truncate text-muted-foreground">
-                            {searchQuery || "Search..."}
+                            {searchQuery || "Search"}
                           </span>
                         </SidebarMenuButton>
                       </PopoverTrigger>
@@ -230,18 +237,18 @@ export const ItinerarySidebar = ({
                         align="start" 
                         side="bottom"
                         sideOffset={4}
-                        className="w-[--radix-popover-trigger-width] p-0 bg-card border border-border shadow-xl"
+                        className="w-[--radix-popover-trigger-width] p-0 bg-card border border-border shadow-lg"
                         onOpenAutoFocus={(e) => e.preventDefault()}
                       >
-                        {/* Search Input */}
-                        <div className="p-3 border-b border-border">
-                          <div className="flex items-center bg-muted/60 rounded-lg px-3 py-2">
-                            <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+                        {/* Search Input - Fixed at top */}
+                        <div className="p-3 border-b border-border/50">
+                          <div className="flex items-center bg-muted/50 rounded-lg px-3 py-2">
+                            <Search className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
                             <Input
                               type="text"
                               value={searchQuery}
                               onChange={(e) => onSearchChange?.(e.target.value)}
-                              placeholder="Search experiences..."
+                              placeholder="Search experiences"
                               className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-5 text-sm placeholder:text-muted-foreground"
                               style={{ fontSize: '16px' }}
                               autoFocus
@@ -249,40 +256,39 @@ export const ItinerarySidebar = ({
                             {searchQuery && (
                               <button
                                 onClick={() => onSearchChange?.("")}
-                                className="p-0.5 hover:bg-muted-foreground/20 rounded-full transition-colors"
+                                className="p-1 hover:bg-muted rounded transition-colors"
                               >
-                                <X className="w-3 h-3 text-muted-foreground" />
+                                <X className="w-3.5 h-3.5 text-muted-foreground" />
                               </button>
                             )}
                           </div>
                         </div>
                         
-                        <div className="p-3 space-y-4 max-h-[400px] overflow-y-auto">
+                        {/* Unified search surface */}
+                        <div className="py-2 max-h-[360px] overflow-y-auto">
                           {/* Recent Searches */}
                           {recentSearches.length > 0 && (
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Recent</p>
-                              <div className="space-y-0.5">
-                                {recentSearches.map((search, i) => (
-                                  <button
-                                    key={i}
-                                    onClick={() => {
-                                      onSearchChange?.(search);
-                                      setSearchFocused(false);
-                                    }}
-                                    className="w-full flex items-center gap-2 text-sm py-2 px-2 rounded-lg hover:bg-muted transition-colors text-foreground"
-                                  >
-                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                                    {search}
-                                  </button>
-                                ))}
-                              </div>
+                            <div className="px-3 py-2">
+                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Recent</p>
+                              {recentSearches.map((search, i) => (
+                                <button
+                                  key={i}
+                                  onClick={() => {
+                                    onSearchChange?.(search);
+                                    setSearchFocused(false);
+                                  }}
+                                  className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-muted transition-colors text-foreground"
+                                >
+                                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                                  <span className="truncate">{search}</span>
+                                </button>
+                              ))}
                             </div>
                           )}
                           
-                          {/* Suggested Tags */}
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Categories</p>
+                          {/* Categories */}
+                          <div className="px-3 py-2">
+                            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">Categories</p>
                             <div className="flex flex-wrap gap-1.5">
                               {suggestedTags.map((tag) => (
                                 <button
@@ -291,7 +297,7 @@ export const ItinerarySidebar = ({
                                     onSearchChange?.(tag);
                                     setSearchFocused(false);
                                   }}
-                                  className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted text-foreground hover:bg-muted/80 transition-colors"
+                                  className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-muted/70 text-foreground hover:bg-muted transition-colors"
                                 >
                                   {tag}
                                 </button>
@@ -299,29 +305,22 @@ export const ItinerarySidebar = ({
                             </div>
                           </div>
                           
-                          {/* Recommended Searches */}
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">Try searching</p>
-                            <div className="space-y-0.5">
-                              {[
-                                "Find me somewhere to party 🎉",
-                                "What beaches are cool right now? 🏖️",
-                                "Best local food experiences 🍽️",
-                                "Adventure activities nearby 🚀"
-                              ].map((suggestion, i) => (
-                                <button
-                                  key={i}
-                                  onClick={() => {
-                                    onSearchChange?.(suggestion.replace(/[🎉🏖️🍽️🚀]/g, '').trim());
-                                    setSearchFocused(false);
-                                  }}
-                                  className="w-full flex items-center gap-2 text-sm py-2 px-2 rounded-lg hover:bg-muted transition-colors text-foreground/80"
-                                >
-                                  <Sparkles className="w-3.5 h-3.5 text-primary" />
-                                  {suggestion}
-                                </button>
-                              ))}
-                            </div>
+                          {/* Suggestions */}
+                          <div className="px-3 py-2">
+                            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Suggestions</p>
+                            {searchSuggestions.map((suggestion, i) => (
+                              <button
+                                key={i}
+                                onClick={() => {
+                                  onSearchChange?.(suggestion);
+                                  setSearchFocused(false);
+                                }}
+                                className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-muted transition-colors text-foreground/80"
+                              >
+                                <Compass className="w-3.5 h-3.5 text-muted-foreground" />
+                                <span>{suggestion}</span>
+                              </button>
+                            ))}
                           </div>
                         </div>
                       </PopoverContent>
@@ -332,7 +331,7 @@ export const ItinerarySidebar = ({
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Location filter - unified with sidebar style */}
+          {/* Location filter */}
           <SidebarGroup className="py-0">
             <SidebarGroupContent>
               <SidebarMenu>
@@ -341,10 +340,13 @@ export const ItinerarySidebar = ({
                     <PopoverTrigger asChild>
                       <SidebarMenuButton 
                         tooltip="Location" 
-                        className={cn(selectedCity && "text-primary")}
+                        className={cn(
+                          isCollapsedView && "justify-center",
+                          selectedCity && "text-primary"
+                        )}
                       >
                         <MapPin className="w-4 h-4" />
-                        {!collapsed && (
+                        {!isCollapsedView && (
                           <>
                             <span className="flex-1 text-left truncate">
                               {selectedCity?.name || "All Locations"}
@@ -359,8 +361,8 @@ export const ItinerarySidebar = ({
                     </PopoverTrigger>
                     <PopoverContent 
                       align="start" 
-                      side={collapsed ? "right" : "bottom"}
-                      className="w-56 p-2 bg-card border border-border shadow-xl"
+                      side={isCollapsedView ? "right" : "bottom"}
+                      className="w-52 p-1.5 bg-card border border-border shadow-lg"
                     >
                       <div className="space-y-0.5">
                         {selectedCity && (
@@ -369,10 +371,10 @@ export const ItinerarySidebar = ({
                               onCitySelect?.(null);
                               setLocationOpen(false);
                             }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors"
                           >
                             <X className="w-4 h-4" />
-                            Clear location
+                            Clear filter
                           </button>
                         )}
                         {cities.map((city) => (
@@ -383,14 +385,14 @@ export const ItinerarySidebar = ({
                               setLocationOpen(false);
                             }}
                             className={cn(
-                              "w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-lg transition-colors",
+                              "w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-md transition-colors",
                               selectedCity?.id === city.id
                                 ? "bg-primary/10 text-primary"
                                 : "hover:bg-muted"
                             )}
                           >
                             <div
-                              className="w-2.5 h-2.5 rounded-full"
+                              className="w-2 h-2 rounded-full"
                               style={{ backgroundColor: city.color }}
                             />
                             <span>{city.name}</span>
@@ -404,10 +406,31 @@ export const ItinerarySidebar = ({
             </SidebarGroupContent>
           </SidebarGroup>
 
-          <div className="mx-4 my-3 h-px bg-border/40" />
+          {/* Discover - navigate to home */}
+          <SidebarGroup className="py-0">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/"}
+                    tooltip="Discover"
+                    className={isCollapsedView ? "justify-center" : ""}
+                  >
+                    <Link to="/">
+                      <Compass className="w-4 h-4" />
+                      {!isCollapsedView && <span>Discover</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {!isCollapsedView && <div className="mx-4 my-3 h-px bg-border/30" />}
 
           {/* Itinerary CTA - only for 0-1 itineraries */}
-          <SidebarItineraryCTA collapsed={collapsed} />
+          <SidebarItineraryCTA collapsed={isCollapsedView} />
 
           {/* Itineraries */}
           <SidebarGroup className={cn(
@@ -415,10 +438,26 @@ export const ItinerarySidebar = ({
             highlightItineraries && "bg-primary/10 rounded-lg ring-2 ring-primary/30"
           )}>
             {/* Onboarding hint for first-time users - auto dismisses */}
-            {showOnboardingHint && !collapsed && (
+            {showOnboardingHint && !isCollapsedView && (
               <AutoDismissHint onDismiss={dismissOnboardingHint} />
             )}
 
+            {isCollapsedView ? (
+              // Collapsed: just show icon for itineraries
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      tooltip="My Itineraries"
+                      onClick={() => navigate('/itineraries')}
+                      className="justify-center"
+                    >
+                      <Globe className="w-4 h-4" />
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            ) : (
             <Collapsible open={itinerariesOpen} onOpenChange={setItinerariesOpen}>
               <div className="flex items-center justify-between pr-2">
                 <CollapsibleTrigger asChild>
@@ -431,10 +470,10 @@ export const ItinerarySidebar = ({
                     ) : (
                       <ChevronRight className="w-3 h-3" />
                     )}
-                    {!collapsed && "My Itineraries"}
+                    My Itineraries
                   </button>
                 </CollapsibleTrigger>
-                {!collapsed && showPlusButton && (
+                {showPlusButton && (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -449,7 +488,7 @@ export const ItinerarySidebar = ({
               <CollapsibleContent>
                 <SidebarGroupContent>
                   {/* New Itinerary Input */}
-                  {isCreating && !collapsed && (
+                  {isCreating && !isCollapsedView && (
                     <div className="px-2 py-2">
                       <div className="flex items-center gap-2">
                         <Input
@@ -479,7 +518,7 @@ export const ItinerarySidebar = ({
                   <SidebarMenu>
                     {itineraries.map((itinerary) => (
                       <SidebarMenuItem key={itinerary.id}>
-                        {editingId === itinerary.id && !collapsed ? (
+                        {editingId === itinerary.id && !isCollapsedView ? (
                           <div className="flex items-center gap-2 px-2 py-1">
                             <Input
                               value={editName}
@@ -520,7 +559,7 @@ export const ItinerarySidebar = ({
                               ) : (
                                 <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
                               )}
-                              {!collapsed && (
+                              {!isCollapsedView && (
                                 <>
                                   <span className="truncate">{itinerary.name}</span>
                                   <Badge variant="secondary" className="ml-auto text-xs shrink-0">
@@ -530,7 +569,7 @@ export const ItinerarySidebar = ({
                               )}
                             </div>
                             
-                            {!collapsed && (
+                            {!isCollapsedView && (
                               <div className="opacity-0 group-hover/item:opacity-100 flex items-center gap-1 ml-2">
                                 <span
                                   role="button"
@@ -579,54 +618,48 @@ export const ItinerarySidebar = ({
                 </SidebarGroupContent>
               </CollapsibleContent>
             </Collapsible>
+            )}
           </SidebarGroup>
         </ScrollArea>
       </SidebarContent>
 
-      <SidebarSeparator />
+      {!isCollapsedView && <SidebarSeparator />}
 
       <SidebarFooter className="p-2">
         <SidebarMenu>
-          {/* Rotating stats module - replaces About */}
-          <SidebarMenuItem>
-            <RotatingStatModule collapsed={collapsed} />
-          </SidebarMenuItem>
-
-          {/* Mobile: Show Sign Up / User info */}
-          {isMobile && (
+          {/* Rotating stats module - only on expanded view */}
+          {!isCollapsedView && (
             <SidebarMenuItem>
-              {isAuthenticated ? (
-                <>
-                  <SidebarMenuButton
-                    onClick={() => navigate('/profile')}
-                    className="mb-1"
-                  >
-                    <UserCircle className="w-4 h-4" />
-                    {!collapsed && (
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate text-sm">
-                          {userProfile?.username || userProfile?.full_name || user?.email?.split('@')[0]}
-                        </div>
-                      </div>
-                    )}
-                  </SidebarMenuButton>
-                  <SidebarMenuButton onClick={signOut} className="text-destructive">
-                    <LogOut className="w-4 h-4" />
-                    {!collapsed && <span>Sign out</span>}
-                  </SidebarMenuButton>
-                </>
-              ) : (
-                <Button 
-                  className="w-full" 
-                  size="sm"
-                  onClick={() => setAuthModalOpen(true)}
-                >
-                  <UserCircle className="w-4 h-4 mr-2" />
-                  Sign Up
-                </Button>
-              )}
+              <RotatingStatModule collapsed={isCollapsedView} />
             </SidebarMenuItem>
           )}
+
+          {/* Profile / Sign up button */}
+          <SidebarMenuItem>
+            {isAuthenticated ? (
+              <SidebarMenuButton
+                onClick={() => navigate('/profile')}
+                tooltip="Profile"
+                className={isCollapsedView ? "justify-center" : ""}
+              >
+                <UserCircle className="w-4 h-4" />
+                {!isCollapsedView && (
+                  <span className="truncate text-sm">
+                    {userProfile?.username || userProfile?.full_name || user?.email?.split('@')[0]}
+                  </span>
+                )}
+              </SidebarMenuButton>
+            ) : (
+              <SidebarMenuButton
+                onClick={() => setAuthModalOpen(true)}
+                tooltip="Sign Up"
+                className={isCollapsedView ? "justify-center" : ""}
+              >
+                <UserCircle className="w-4 h-4" />
+                {!isCollapsedView && <span>Sign Up</span>}
+              </SidebarMenuButton>
+            )}
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
 
