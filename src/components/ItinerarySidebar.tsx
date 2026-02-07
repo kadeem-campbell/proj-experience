@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Plus, 
@@ -166,6 +166,8 @@ export const ItinerarySidebar = ({
   const showPlusButton = itineraries.length >= 2;
 
   const [searchFocused, setSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   
   // Recent searches from localStorage
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -176,6 +178,22 @@ export const ItinerarySidebar = ({
       setRecentSearches(JSON.parse(stored).slice(0, 5));
     }
   }, []);
+
+  // Exit search mode on click-away
+  useEffect(() => {
+    if (!searchFocused) return;
+
+    const onMouseDown = (e: MouseEvent) => {
+      const el = searchContainerRef.current;
+      if (!el) return;
+      if (e.target instanceof Node && !el.contains(e.target)) {
+        setSearchFocused(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [searchFocused]);
 
   const suggestedTags = ["Beach", "Adventure", "Food", "Wildlife", "Party", "Culture"];
   
@@ -224,113 +242,123 @@ export const ItinerarySidebar = ({
                       </Link>
                     </SidebarMenuButton>
                   ) : (
-                    <Popover open={searchFocused} onOpenChange={setSearchFocused}>
-                      <PopoverTrigger asChild>
-                        <SidebarMenuButton 
-                          className="w-full justify-start gap-2 px-2 py-2"
-                          isActive={location.pathname === "/"}
-                        >
-                          <Compass className="w-4 h-4 shrink-0" />
-                          <div className="flex-1 flex items-center bg-muted rounded-lg px-2.5 py-1.5">
-                            <Search className="w-3.5 h-3.5 text-muted-foreground mr-2 shrink-0" />
-                            <span className="text-sm text-muted-foreground truncate">
-                              {searchQuery || "Search"}
-                            </span>
-                          </div>
-                        </SidebarMenuButton>
-                      </PopoverTrigger>
-                      <PopoverContent 
-                        align="start" 
-                        side="bottom"
-                        sideOffset={4}
-                        className="w-[--radix-popover-trigger-width] p-0 bg-muted border border-border shadow-lg"
-                        onOpenAutoFocus={(e) => e.preventDefault()}
+                    <div ref={searchContainerRef} className="w-full">
+                      {/* Discover row (Compass + grey search box) */}
+                      <SidebarMenuButton
+                        isActive={location.pathname === "/"}
+                        className="w-full justify-start gap-2 px-2 py-2"
+                        onClick={(e) => {
+                          // Clicking the row should navigate, but interacting with the input should not.
+                          const target = e.target as HTMLElement;
+                          const clickedInput = !!target.closest('input');
+                          const clickedClear = !!target.closest('button');
+                          if (clickedInput || clickedClear) return;
+                          navigate("/");
+                        }}
                       >
-                        {/* Search Input - Fixed at top */}
-                        <div className="p-3 border-b border-border/50">
-                          <div className="flex items-center bg-background/50 rounded-lg px-3 py-2">
-                            <Search className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
-                            <Input
-                              type="text"
-                              value={searchQuery}
-                              onChange={(e) => onSearchChange?.(e.target.value)}
-                              placeholder="Search experiences"
-                              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-5 text-sm placeholder:text-muted-foreground"
-                              style={{ fontSize: '16px' }}
-                              autoFocus
-                            />
-                            {searchQuery && (
-                              <button
-                                onClick={() => onSearchChange?.("")}
-                                className="p-1 hover:bg-muted rounded transition-colors"
-                              >
-                                <X className="w-3.5 h-3.5 text-muted-foreground" />
-                              </button>
-                            )}
-                          </div>
+                        <Compass className="w-4 h-4 shrink-0" />
+                        <div className="flex-1 flex items-center bg-muted rounded-lg px-2.5 py-1.5">
+                          <Search className="w-3.5 h-3.5 text-muted-foreground mr-2 shrink-0" />
+                          <Input
+                            ref={searchInputRef}
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => onSearchChange?.(e.target.value)}
+                            onFocus={() => setSearchFocused(true)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Escape") {
+                                setSearchFocused(false);
+                                (e.currentTarget as HTMLInputElement).blur();
+                              }
+                            }}
+                            placeholder="Search"
+                            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-5 text-sm placeholder:text-muted-foreground"
+                            style={{ fontSize: '16px' }}
+                          />
+                          {searchQuery && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onSearchChange?.("");
+                                searchInputRef.current?.focus();
+                              }}
+                              className="p-1 hover:bg-background/40 rounded transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5 text-muted-foreground" />
+                            </button>
+                          )}
                         </div>
-                        
-                        {/* Unified search surface */}
-                        <div className="py-2 max-h-[360px] overflow-y-auto">
-                          {/* Recent Searches */}
-                          {recentSearches.length > 0 && (
+                      </SidebarMenuButton>
+
+                      {/* Search mode surface (inline, continuous panel) */}
+                      {searchFocused && (
+                        <div
+                          className="mt-2 mx-2 rounded-lg bg-muted border border-border shadow-sm overflow-hidden"
+                          onMouseDown={(e) => {
+                            // Prevent input blur when clicking inside the panel
+                            e.preventDefault();
+                          }}
+                        >
+                          <div className="py-2 max-h-[360px] overflow-y-auto">
+                            {recentSearches.length > 0 && (
+                              <div className="px-3 py-2">
+                                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Recent</p>
+                                {recentSearches.map((search, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => {
+                                      onSearchChange?.(search);
+                                      setSearchFocused(false);
+                                    }}
+                                    className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-background/50 transition-colors text-foreground"
+                                  >
+                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                                    <span className="truncate">{search}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
                             <div className="px-3 py-2">
-                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Recent</p>
-                              {recentSearches.map((search, i) => (
+                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">Categories</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {suggestedTags.map((tag) => (
+                                  <button
+                                    key={tag}
+                                    onClick={() => {
+                                      onSearchChange?.(tag);
+                                      setSearchFocused(false);
+                                    }}
+                                    className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-background/50 text-foreground hover:bg-background/70 transition-colors"
+                                  >
+                                    {tag}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="px-3 py-2">
+                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Suggestions</p>
+                              {searchSuggestions.map((suggestion, i) => (
                                 <button
                                   key={i}
                                   onClick={() => {
-                                    onSearchChange?.(search);
+                                    onSearchChange?.(suggestion);
                                     setSearchFocused(false);
                                   }}
-                                  className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-background/50 transition-colors text-foreground"
+                                  className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-background/50 transition-colors text-foreground/80"
                                 >
-                                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                                  <span className="truncate">{search}</span>
+                                  <Compass className="w-3.5 h-3.5 text-muted-foreground" />
+                                  <span>{suggestion}</span>
                                 </button>
                               ))}
                             </div>
-                          )}
-                          
-                          {/* Categories */}
-                          <div className="px-3 py-2">
-                            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">Categories</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {suggestedTags.map((tag) => (
-                                <button
-                                  key={tag}
-                                  onClick={() => {
-                                    onSearchChange?.(tag);
-                                    setSearchFocused(false);
-                                  }}
-                                  className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-background/50 text-foreground hover:bg-background/70 transition-colors"
-                                >
-                                  {tag}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          {/* Suggestions */}
-                          <div className="px-3 py-2">
-                            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Suggestions</p>
-                            {searchSuggestions.map((suggestion, i) => (
-                              <button
-                                key={i}
-                                onClick={() => {
-                                  onSearchChange?.(suggestion);
-                                  setSearchFocused(false);
-                                }}
-                                className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-background/50 transition-colors text-foreground/80"
-                              >
-                                <Compass className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span>{suggestion}</span>
-                              </button>
-                            ))}
                           </div>
                         </div>
-                      </PopoverContent>
-                    </Popover>
+                      )}
+                    </div>
                   )}
                 </SidebarMenuItem>
               </SidebarMenu>
