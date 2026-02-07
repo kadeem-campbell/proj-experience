@@ -236,7 +236,7 @@ export const ItinerarySidebar = ({
                       {/* Discover row (Compass + grey search box) */}
                       <SidebarMenuButton
                         isActive={location.pathname === "/"}
-                        className="w-full justify-start gap-2 px-2 py-2 group/search"
+                        className="w-full justify-start gap-2 px-2 py-2"
                         onClick={(e) => {
                           // Clicking the row should navigate, but interacting with the input should not.
                           const target = e.target as HTMLElement;
@@ -247,9 +247,7 @@ export const ItinerarySidebar = ({
                         }}
                       >
                         <Compass className="w-4 h-4 shrink-0" />
-
-                        {/* UPDATE: Changed bg-muted to bg-secondary/50 and added hover effect */}
-                        <div className="flex-1 flex items-center bg-secondary/50 group-hover/search:bg-secondary/80 transition-colors rounded-lg px-2.5 py-1.5">
+                        <div className="flex-1 flex items-center bg-muted rounded-lg px-2.5 py-1.5">
                           <Search className="w-3.5 h-3.5 text-muted-foreground mr-2 shrink-0" />
                           <Input
                             ref={searchInputRef}
@@ -263,9 +261,8 @@ export const ItinerarySidebar = ({
                                 (e.currentTarget as HTMLInputElement).blur();
                               }
                             }}
-                            placeholder="Search experiences..."
-                            // UPDATE: Added shadow-none and ensured w-full and min-h-0 to fix sizing/colors
-                            className="min-h-0 w-full border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-5 text-sm placeholder:text-muted-foreground"
+                            placeholder="Search"
+                            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-5 text-sm placeholder:text-muted-foreground"
                             style={{ fontSize: "16px" }}
                           />
                           {searchQuery && (
@@ -284,6 +281,7 @@ export const ItinerarySidebar = ({
                           )}
                         </div>
                       </SidebarMenuButton>
+
                       {/* Search mode surface (inline, continuous panel) */}
                       {searchFocused && (
                         <div
