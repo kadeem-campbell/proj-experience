@@ -4,6 +4,7 @@ import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { FixedSearchHeader } from "@/components/FixedSearchHeader";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
+import { MobileHomeView } from "@/components/MobileHomeView";
 import { useItineraries } from "@/hooks/useItineraries";
 import { getPopularItineraries, publicItinerariesData } from "@/data/itinerariesData";
 import { useNavigate } from "react-router-dom";
@@ -65,6 +66,11 @@ const SearchPage = () => {
 
     return () => observer.disconnect();
   }, [visibleCount, experiences.length]);
+
+  // On mobile, render the new Airbnb-style home view
+  if (isMobile) {
+    return <MobileHomeView />;
+  }
 
   const handleCitySelect = (city: City | null) => {
     setSelectedCity(city);
