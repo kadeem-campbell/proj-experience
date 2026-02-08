@@ -84,11 +84,8 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container - TikTok square ratio on mobile, 3:2 on desktop */}
-        <div className={cn(
-          "relative overflow-hidden rounded-2xl bg-muted",
-          isMobile ? "aspect-[4/5]" : "aspect-[3/2]"
-        )}>
+        {/* Image container - 3:2 ratio per GetYourGuide reference */}
+        <div className="relative overflow-hidden rounded-2xl bg-muted aspect-[3/2]">
           {allImages.length > 0 ? (
             <img 
               src={isMobile ? allImages[0] : allImages[currentIndex]} 
@@ -171,7 +168,7 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
             {itinerary.name}
           </h3>
           <p className="text-[13px] text-muted-foreground truncate">
-            {itinerary.experiences?.[0]?.location || "Curated itinerary"}
+            {experienceCount} {experienceCount === 1 ? 'activity' : 'activities'}
           </p>
         </div>
       </div>

@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronRight, Heart, Plus, Layers, MapPin } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Search, ChevronRight, Heart, Plus, Layers, MapPin, User } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useItineraries } from "@/hooks/useItineraries";
@@ -12,7 +11,7 @@ import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 
 type TabType = "itineraries" | "experiences";
 
-// Horizontal scroll row component
+// Horizontal scroll row component with left padding, overflow right
 const HorizontalScrollRow = ({ 
   title, 
   onTitleClick,
@@ -26,19 +25,19 @@ const HorizontalScrollRow = ({
 
   return (
     <div className="mb-8">
-      {/* Title with arrow */}
+      {/* Title with arrow - left padded */}
       <button 
         onClick={onTitleClick}
-        className="flex items-center gap-1 mb-4 px-4 group"
+        className="flex items-center gap-1 mb-4 pl-4 group"
       >
         <h2 className="text-xl font-bold text-foreground">{title}</h2>
         <ChevronRight className="w-5 h-5 text-foreground transition-transform group-hover:translate-x-0.5" />
       </button>
       
-      {/* Horizontal scroll container */}
+      {/* Horizontal scroll container - left padded, overflows right */}
       <div 
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2 snap-x snap-mandatory scroll-smooth"
+        className="flex gap-3 overflow-x-auto scrollbar-hide pl-4 pr-4 pb-2 snap-x snap-mandatory scroll-smooth"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none',
@@ -51,7 +50,7 @@ const HorizontalScrollRow = ({
   );
 };
 
-// Itinerary card for horizontal scroll - Airbnb style
+// Itinerary card for horizontal scroll - 3:2 aspect ratio per reference
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -85,11 +84,11 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[45vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[55vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/public-itinerary/${itinerary.id}`)}
     >
-      {/* Image - 4:5 aspect ratio like Airbnb */}
-      <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-muted">
+      {/* Image - 3:2 aspect ratio like GetYourGuide reference */}
+      <div className="relative aspect-[3/2] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
           <img 
             src={coverImage} 
@@ -102,7 +101,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
           </div>
         )}
 
-        {/* Heart button - top right like Airbnb */}
+        {/* Heart button - top right */}
         <button
           onClick={handleLikeClick}
           className={cn(
@@ -129,14 +128,14 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
         <p className="text-xs text-muted-foreground truncate">
-          {itinerary.experiences?.[0]?.location || "Curated collection"}
+          {experienceCount} {experienceCount === 1 ? 'activity' : 'activities'}
         </p>
       </div>
     </div>
   );
 };
 
-// Experience card for horizontal scroll - Airbnb style
+// Experience card for horizontal scroll - 4:3 aspect ratio per Airbnb reference
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -187,11 +186,11 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[45vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[55vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/experience/${experience.id}`)}
     >
-      {/* Image - 4:5 aspect ratio */}
-      <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-muted">
+      {/* Image - 4:3 aspect ratio per Airbnb reference */}
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
           <img 
             src={experience.videoThumbnail} 
@@ -241,7 +240,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         </div>
         {experience.price && (
           <p className="text-xs text-muted-foreground">
-            From ${experience.price}
+            ~{experience.price}
           </p>
         )}
       </div>
@@ -254,6 +253,7 @@ export const MobileHomeView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, userProfile } = useAuth();
 
   const itineraries = getPopularItineraries();
   const experiences = allExperiences;
@@ -279,25 +279,43 @@ export const MobileHomeView = () => {
         }}
       />
 
-      {/* Fixed Header - Airbnb style */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border/50 safe-area-inset-top">
-        {/* Search Bar */}
-        <div className="px-4 pt-3 pb-2">
+      {/* Fixed Header - Premium Airbnb/TikTok style */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/30 safe-area-inset-top">
+        {/* Top row: Logo + Search + Profile */}
+        <div className="flex items-center gap-3 px-4 pt-3 pb-2">
+          {/* Logo */}
+          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+            <MapPin className="w-4 h-4 text-primary-foreground" />
+          </div>
+
+          {/* Search Bar - Uber Eats style trigger */}
           <button
             onClick={() => setMobileSearchOpen(true)}
-            className="w-full flex items-center gap-3 bg-muted rounded-full px-4 py-3 shadow-sm border border-border/30"
+            className="flex-1 flex items-center gap-3 bg-muted/80 hover:bg-muted rounded-full px-4 py-2.5 border border-border/30 transition-colors"
           >
-            <Search className="w-5 h-5 text-muted-foreground" />
-            <span className="text-muted-foreground text-sm">Where to next?</span>
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground text-sm">Where to?</span>
+          </button>
+
+          {/* Profile */}
+          <button 
+            onClick={() => navigate("/profile")}
+            className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0 border border-border/30"
+          >
+            {userProfile?.avatar_url ? (
+              <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <User className="w-4 h-4 text-muted-foreground" />
+            )}
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex px-4 gap-6">
+        {/* Tabs - Centered, premium feel */}
+        <div className="flex justify-center gap-8 px-4">
           <button
             onClick={() => setActiveTab("itineraries")}
             className={cn(
-              "pb-3 text-sm font-medium transition-colors relative",
+              "pb-3 text-sm font-semibold transition-colors relative",
               activeTab === "itineraries" 
                 ? "text-foreground" 
                 : "text-muted-foreground"
@@ -305,13 +323,13 @@ export const MobileHomeView = () => {
           >
             Itineraries
             {activeTab === "itineraries" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-full" />
             )}
           </button>
           <button
             onClick={() => setActiveTab("experiences")}
             className={cn(
-              "pb-3 text-sm font-medium transition-colors relative",
+              "pb-3 text-sm font-semibold transition-colors relative",
               activeTab === "experiences" 
                 ? "text-foreground" 
                 : "text-muted-foreground"
@@ -319,7 +337,7 @@ export const MobileHomeView = () => {
           >
             Experiences
             {activeTab === "experiences" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-full" />
             )}
           </button>
         </div>

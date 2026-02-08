@@ -100,11 +100,8 @@ export const ExperienceCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container - TikTok style 4:5 ratio for more immersive feel */}
-        <div className={cn(
-          "relative overflow-hidden rounded-2xl bg-muted",
-          isMobile ? "aspect-[4/5]" : "aspect-[4/5]"
-        )}>
+        {/* Image container - 4:3 ratio per Airbnb reference */}
+        <div className="relative overflow-hidden rounded-2xl bg-muted aspect-[4/3]">
           {videoUrl ? (
             <video
               ref={videoRef}
