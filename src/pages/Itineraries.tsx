@@ -1,19 +1,48 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
-import { ArrowLeft, Search, Users, Heart, Layers, X, MapPin } from "lucide-react";
+import { ArrowLeft, Search, Users, Heart, Layers } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
-// Grid card matching homepage itinerary card size (3:2 aspect)
-const MobileGridItineraryCard = ({ itinerary }: { itinerary: any }) => {
+const tags = ["All", "Beaches", "Water Sports", "Nightlife", "Wildlife", "Adventure", "Food", "Culture", "Wellness"];
+
+// Horizontal scroll row - identical to homepage
+const HorizontalScrollRow = ({ 
+  title, 
+  children 
+}: { 
+  title: string;
+  children: React.ReactNode;
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  return (
+    <div className="mb-8">
+      <div className="mb-4" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+        <h2 className="text-lg font-bold text-foreground truncate">{title}</h2>
+      </div>
+      <div 
+        ref={scrollRef}
+        className="overflow-x-auto scrollbar-hide pb-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="inline-flex gap-3 snap-x snap-mandatory" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Itinerary card for horizontal scroll - 3:2 aspect, same as homepage
+const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -39,7 +68,7 @@ const MobileGridItineraryCard = ({ itinerary }: { itinerary: any }) => {
 
   return (
     <div 
-      className="cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[55vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/public-itinerary/${itinerary.id}`)}
     >
       <div className="relative aspect-[3/2] rounded-xl overflow-hidden bg-muted">
@@ -71,28 +100,42 @@ const MobileGridItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
+// Map tag names to experience categories for filtering
+const tagToCategoryMap: Record<string, string> = {
+  "Beaches": "Beach",
+  "Water Sports": "Adventure",
+  "Nightlife": "Nightlife",
+  "Wildlife": "Wildlife",
+  "Adventure": "Adventure",
+  "Food": "Food",
+  "Culture": "Culture",
+  "Wellness": "Wellness",
+};
+
+const itineraryMatchesCategory = (itinerary: any, category: string) => {
+  return itinerary.experiences?.some((exp: any) => exp.category === category);
+};
+
 const ItinerariesPage = () => {
   const [searchParams] = useSearchParams();
   const filter = searchParams.get('filter');
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTag, setActiveTag] = useState("All");
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
-  const getItineraries = () => {
+  const getBaseItineraries = () => {
     if (filter === 'popular') return getPopularItineraries();
     if (filter === 'fave') return getFaveItineraries();
     return publicItinerariesData;
   };
 
-  const itineraries = getItineraries();
-  
-  const filteredItineraries = itineraries.filter((itinerary) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      itinerary.name.toLowerCase().includes(q) ||
-      itinerary.creatorName?.toLowerCase().includes(q)
-    );
-  });
+  const allItineraries = getBaseItineraries();
+
+  // Filter by active tag
+  const itineraries = activeTag === "All" 
+    ? allItineraries 
+    : allItineraries.filter(it => itineraryMatchesCategory(it, tagToCategoryMap[activeTag] || activeTag));
 
   const getTitle = () => {
     if (filter === 'popular') return 'Most Popular';
@@ -106,46 +149,79 @@ const ItinerariesPage = () => {
   };
 
   if (isMobile) {
+    const popularItems = itineraries.filter(i => i.tag === 'popular').slice(0, 10);
+    const faveItems = itineraries.filter(i => i.tag === 'fave').slice(0, 10);
+    const recentItems = [...itineraries].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+    const zanzibarItems = itineraries.filter(i => i.name.toLowerCase().includes('zanzibar')).slice(0, 10);
+    const safariItems = itineraries.filter(i => 
+      i.name.toLowerCase().includes('safari') || i.name.toLowerCase().includes('serengeti') || i.name.toLowerCase().includes('maasai')
+    ).slice(0, 10);
+    const beachItems = itineraries.filter(i => 
+      i.name.toLowerCase().includes('beach') || i.name.toLowerCase().includes('island') || i.name.toLowerCase().includes('diani') || i.name.toLowerCase().includes('mombasa')
+    ).slice(0, 10);
+
+    const tagPills = (
+      <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        <div className="inline-flex gap-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+          {tags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => setActiveTag(tag)}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap",
+                activeTag === tag
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-foreground"
+              )}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
     return (
-      <MobileShell
-        headerContent={
-          <h1 className="text-lg font-bold text-foreground">{getTitle()}</h1>
-        }
-      >
-        {/* Search */}
-        <div className="mx-4 mb-4">
-          <div className="flex items-center bg-muted/60 border border-border/50 rounded-xl px-4 py-2.5">
-            <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search itineraries..."
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-foreground/50"
-              style={{ fontSize: '16px' }}
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="ml-2 p-1 hover:bg-muted rounded-full">
-                <X className="w-4 h-4 text-muted-foreground" />
-              </button>
-            )}
-          </div>
+      <MobileShell headerContent={tagPills}>
+        <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+          <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
         </div>
 
-        {/* Grid - same card size as homepage */}
-        <div className="px-4">
-          <div className="grid grid-cols-2 gap-3">
-            {filteredItineraries.map((itinerary) => (
-              <MobileGridItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </div>
+        {popularItems.length > 0 && (
+          <HorizontalScrollRow title="Attractions you can't miss">
+            {popularItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+          </HorizontalScrollRow>
+        )}
 
-          {filteredItineraries.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-sm">No itineraries found matching "{searchQuery}"</p>
-            </div>
-          )}
-        </div>
+        {faveItems.length > 0 && (
+          <HorizontalScrollRow title="Staff picks">
+            {faveItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {zanzibarItems.length > 0 && (
+          <HorizontalScrollRow title="Zanzibar getaways">
+            {zanzibarItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {beachItems.length > 0 && (
+          <HorizontalScrollRow title="Beach & island life">
+            {beachItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {safariItems.length > 0 && (
+          <HorizontalScrollRow title="Safari adventures">
+            {safariItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {recentItems.length > 0 && (
+          <HorizontalScrollRow title="Recently added">
+            {recentItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+          </HorizontalScrollRow>
+        )}
       </MobileShell>
     );
   }
@@ -164,7 +240,7 @@ const ItinerariesPage = () => {
               {getIcon()}
               <h1 className="text-lg md:text-2xl font-bold">{getTitle()}</h1>
             </div>
-            <span className="text-muted-foreground text-sm">({itineraries.length})</span>
+            <span className="text-muted-foreground text-sm">({allItineraries.length})</span>
           </div>
           
           <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 max-w-md">
@@ -181,14 +257,14 @@ const ItinerariesPage = () => {
 
         <div className="flex-1 overflow-y-auto p-3 md:p-6">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
-            {filteredItineraries.map((itinerary) => (
+            {itineraries.map((itinerary) => (
               <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
             ))}
           </div>
 
-          {filteredItineraries.length === 0 && (
+          {itineraries.length === 0 && (
             <div className="text-center py-8 md:py-12">
-              <p className="text-muted-foreground text-sm md:text-base">No itineraries found matching "{searchQuery}"</p>
+              <p className="text-muted-foreground text-sm md:text-base">No itineraries found</p>
             </div>
           )}
         </div>
