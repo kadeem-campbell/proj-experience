@@ -25,22 +25,23 @@ const HorizontalScrollRow = ({
 
   return (
     <div className="mb-8">
-      {/* Title - full clickable, no chevron */}
+      {/* Title - full clickable, no chevron, aligned with cards */}
       <button 
         onClick={onTitleClick}
-        className="mb-4 px-4 block"
+        className="mb-4 pl-4 pr-4 block"
       >
         <h2 className="text-lg font-bold text-foreground text-left truncate">{title}</h2>
       </button>
       
-      {/* Horizontal scroll container - left padded, overflows right */}
+      {/* Horizontal scroll container - left padding matches title exactly */}
       <div 
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide pl-4 pb-2 snap-x snap-mandatory scroll-smooth"
+        className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory scroll-smooth"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          paddingLeft: '16px'
         }}
       >
         {children}
@@ -383,7 +384,7 @@ export const MobileHomeView = () => {
       {/* Content - with space for fixed header + bottom nav */}
       <div className="pt-16 pb-24">
         {/* Greeting - Spotify "Made for X" style */}
-        <div className="px-4 mb-6 pt-2">
+        <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
           <h1 className="text-2xl font-bold text-foreground">
             Made for {displayName}
           </h1>
