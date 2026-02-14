@@ -123,6 +123,7 @@ const ItinerariesPage = () => {
   const [activeTag, setActiveTag] = useState("All");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const tagScrollRef = useRef<HTMLDivElement>(null);
   
   const getBaseItineraries = () => {
     if (filter === 'popular') return getPopularItineraries();
@@ -160,13 +161,29 @@ const ItinerariesPage = () => {
       i.name.toLowerCase().includes('beach') || i.name.toLowerCase().includes('island') || i.name.toLowerCase().includes('diani') || i.name.toLowerCase().includes('mombasa')
     ).slice(0, 10);
 
+    const handleTagClick = (tag: string, index: number) => {
+      setActiveTag(tag);
+      // Scroll the selected tag toward center
+      const container = tagScrollRef.current;
+      if (container) {
+        const buttons = container.querySelectorAll('button');
+        const btn = buttons[index];
+        if (btn) {
+          const containerRect = container.getBoundingClientRect();
+          const btnRect = btn.getBoundingClientRect();
+          const scrollLeft = container.scrollLeft + (btnRect.left - containerRect.left) - (containerRect.width / 2) + (btnRect.width / 2);
+          container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+        }
+      }
+    };
+
     const tagPills = (
-      <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+      <div ref={tagScrollRef} className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         <div className="inline-flex gap-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-          {tags.map(tag => (
+          {tags.map((tag, index) => (
             <button
               key={tag}
-              onClick={() => setActiveTag(tag)}
+              onClick={() => handleTagClick(tag, index)}
               className={cn(
                 "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border",
                 activeTag === tag
