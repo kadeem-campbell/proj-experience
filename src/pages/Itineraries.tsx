@@ -85,15 +85,11 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-background/70 backdrop-blur-xl shadow-sm flex items-center gap-1">
-          <Layers className="w-3 h-3 text-foreground" />
-          <span className="text-xs font-medium text-foreground">{experienceCount}</span>
-        </div>
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
         <p className="text-xs text-muted-foreground truncate">
-          {experienceCount} {experienceCount === 1 ? 'activity' : 'activities'}
+          {itinerary.creatorName || 'Unknown creator'}
         </p>
       </div>
     </div>
@@ -178,22 +174,37 @@ const ItinerariesPage = () => {
     };
 
     const tagPills = (
-      <div ref={tagScrollRef} className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-        <div className="inline-flex gap-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-          {tags.map((tag, index) => (
-            <button
-              key={tag}
-              onClick={() => handleTagClick(tag, index)}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border",
-                activeTag === tag
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-muted/80 text-foreground border-border/50"
-              )}
-            >
-              {tag}
-            </button>
-          ))}
+      <div className="flex items-center">
+        {/* Fixed "All" button */}
+        <button
+          onClick={() => setActiveTag("All")}
+          className={cn(
+            "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border flex-shrink-0 ml-4 mr-2",
+            activeTag === "All"
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-muted/80 text-foreground border-border/50"
+          )}
+        >
+          All
+        </button>
+        {/* Scrollable tags */}
+        <div ref={tagScrollRef} className="overflow-x-auto scrollbar-hide flex-1" style={{ scrollbarWidth: 'none' }}>
+          <div className="inline-flex gap-2" style={{ paddingRight: '16px' }}>
+            {tags.filter(t => t !== "All").map((tag, index) => (
+              <button
+                key={tag}
+                onClick={() => handleTagClick(tag, index)}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border",
+                  activeTag === tag
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/80 text-foreground border-border/50"
+                )}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     );
