@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
+import { MobileShell } from "@/components/MobileShell";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -215,6 +217,7 @@ export default function ExperienceDetail() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
+  const isMobile = useIsMobile();
 
   // Smart back navigation - go to referrer or default to experiences
   const handleGoBack = () => {
@@ -297,6 +300,18 @@ export default function ExperienceDetail() {
   };
 
   if (!experience) {
+    if (isMobile) {
+      return (
+        <MobileShell hideTopBar>
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <h1 className="text-xl font-bold mb-3">Experience not found</h1>
+              <Link to="/"><Button size="sm">Back to Discover</Button></Link>
+            </div>
+          </div>
+        </MobileShell>
+      );
+    }
     return (
       <MainLayout showItineraryPanel={false}>
         <div className="flex items-center justify-center min-h-screen">
@@ -311,6 +326,171 @@ export default function ExperienceDetail() {
 
   const gallery = experience.gallery || [experience.videoThumbnail];
 
+  // Mobile: wrap with MobileShell
+  if (isMobile) {
+    return (
+      <MobileShell hideTopBar>
+        <div className="bg-background overflow-y-auto">
+          {/* Hero Media */}
+          <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+            {experience.videoUrl ? (
+              <video
+                ref={videoRef}
+                poster={experience.videoThumbnail}
+                className="w-full h-full object-cover"
+                muted loop playsInline autoPlay
+              >
+                <source src={experience.videoUrl} type="video/mp4" />
+              </video>
+            ) : (
+              <img src={gallery[selectedImage]} alt={experience.title} className="w-full h-full object-cover" />
+            )}
+            {/* Back button */}
+            <button 
+              onClick={handleGoBack}
+              className="absolute top-4 left-4 p-2 rounded-full bg-background/70 backdrop-blur-xl"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            {/* Share button */}
+            <button 
+              onClick={handleShare}
+              className="absolute top-4 right-4 p-2 rounded-full bg-background/70 backdrop-blur-xl"
+            >
+              <Share2 className="w-5 h-5 text-foreground" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="px-4 py-4">
+            {/* Title & meta */}
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <Badge className="bg-foreground text-background border-0 font-medium">
+                {experience.category}
+              </Badge>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                <span className="font-medium text-foreground">{experience.rating}</span>
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-bold tracking-tight mb-2">{experience.title}</h1>
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-4">
+              <MapPin className="w-4 h-4" />
+              <span>{experience.location}</span>
+            </div>
+
+            {/* Add to Itinerary CTA - moved to top */}
+            <div className="mb-6">
+              <ItinerarySelector
+                experienceId={experience.id}
+                experienceData={{
+                  id: experience.id,
+                  title: experience.title,
+                  creator: experience.creator,
+                  videoThumbnail: experience.videoThumbnail,
+                  category: experience.category,
+                  location: experience.location,
+                  price: "",
+                }}
+                onAdd={() => {
+                  setJustAdded(true);
+                  setTimeout(() => setJustAdded(false), 2000);
+                }}
+              >
+                <Button 
+                  size="lg"
+                  className={cn(
+                    "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
+                    justAdded && "animate-pulse"
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Add to Itinerary
+                  </span>
+                </Button>
+              </ItinerarySelector>
+            </div>
+
+            {/* Quick Info Pills */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="font-medium">{experience.duration}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                <Users className="w-4 h-4 text-primary" />
+                <span className="font-medium">{experience.groupSize}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span className="font-medium">Best: {experience.bestTime}</span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-3">About this experience</h2>
+              <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
+            </div>
+
+            {/* Highlights */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-4">What makes it special</h2>
+              <div className="grid grid-cols-1 gap-3">
+                {experience.highlights?.map((item: string, index: number) => (
+                  <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Meeting Points */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-4">Where to find it</h2>
+              <div className="space-y-2">
+                {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
+                  <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{point.name}</p>
+                      <p className="text-xs text-muted-foreground">{point.type}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Creator */}
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-8">
+              <Avatar className="w-12 h-12">
+                <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                  {experience.creator?.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-medium">@{experience.creator}</p>
+                <p className="text-sm text-muted-foreground">Experience Creator</p>
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                <span className="font-medium">{experience.rating}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </MobileShell>
+    );
+  }
+
+  // Desktop
   return (
     <MainLayout showItineraryPanel={false}>
       <div className="min-h-screen bg-background overflow-y-auto">
@@ -633,55 +813,11 @@ export default function ExperienceDetail() {
                 </div>
               </div>
 
-              {/* Spacer for mobile fixed bottom bar */}
-              <div className="h-24 lg:h-0" />
+              {/* Spacer */}
+              <div className="h-8" />
             </div>
           </div>
         </main>
-
-        {/* Fixed Bottom CTA - Mobile only */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border lg:hidden">
-          <div className="px-4 py-4">
-            <ItinerarySelector
-              experienceId={experience.id}
-              experienceData={{
-                id: experience.id,
-                title: experience.title,
-                creator: experience.creator,
-                videoThumbnail: experience.videoThumbnail,
-                category: experience.category,
-                location: experience.location,
-                price: "",
-              }}
-              onAdd={() => {
-                setJustAdded(true);
-                setTimeout(() => setJustAdded(false), 2000);
-              }}
-            >
-              <Button 
-                size="lg"
-                className={cn(
-                  "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
-                  justAdded && "animate-pulse"
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
-                  Add to Itinerary
-                  {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length > 0 && (
-                    <span className="ml-1 px-2 py-0.5 rounded-full bg-primary-foreground/20 text-xs">
-                      {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length}
-                    </span>
-                  )}
-                </span>
-              </Button>
-            </ItinerarySelector>
-            
-            <p className="text-center text-xs text-muted-foreground mt-2">
-              <span className="text-primary font-medium">{socialProof.added}</span> travelers added this
-            </p>
-          </div>
-        </div>
       </div>
     </MainLayout>
   );
