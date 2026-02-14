@@ -114,10 +114,12 @@ const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
 // Top header bar with avatar (can optionally show tabs or custom content)
 const MobileTopBar = ({ 
   onProfileClick, 
-  headerContent 
+  headerContent,
+  hideAvatar = false,
 }: { 
   onProfileClick: () => void;
   headerContent?: ReactNode;
+  hideAvatar?: boolean;
 }) => {
   const { userProfile } = useAuth();
   const displayName = userProfile?.full_name || userProfile?.username || "G";
@@ -125,19 +127,21 @@ const MobileTopBar = ({
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-[hsl(0,0%,7.1%)] safe-area-inset-top">
       <div className="flex items-center gap-3 px-4 pt-3 pb-3">
-        <button 
-          onClick={onProfileClick}
-          className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden"
-        >
-          {userProfile?.avatar_url ? (
-            <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-          ) : (
-            <span className="text-sm font-bold text-primary">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
-          )}
-        </button>
-        {headerContent}
+        {!hideAvatar && (
+          <button 
+            onClick={onProfileClick}
+            className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden"
+          >
+            {userProfile?.avatar_url ? (
+              <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              <span className="text-sm font-bold text-primary">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </button>
+        )}
+        <div className="flex-1 min-w-0">{headerContent}</div>
       </div>
     </div>
   );
@@ -145,15 +149,13 @@ const MobileTopBar = ({
 
 interface MobileShellProps {
   children: ReactNode;
-  /** Optional content to render in the top bar next to the avatar (e.g. tab pills, page title) */
   headerContent?: ReactNode;
-  /** If true, hides the default top bar (for pages that have their own header) */
   hideTopBar?: boolean;
-  /** Extra class for the content wrapper */
+  hideAvatar?: boolean;
   className?: string;
 }
 
-export const MobileShell = ({ children, headerContent, hideTopBar = false, className }: MobileShellProps) => {
+export const MobileShell = ({ children, headerContent, hideTopBar = false, hideAvatar = false, className }: MobileShellProps) => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -173,6 +175,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, class
         <MobileTopBar 
           onProfileClick={() => setProfileMenuOpen(true)} 
           headerContent={headerContent}
+          hideAvatar={hideAvatar}
         />
       )}
 

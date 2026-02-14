@@ -26,7 +26,7 @@ const HorizontalScrollRow = ({
   return (
     <div className="mb-8">
       <div className="mb-4" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-        <h2 className="text-lg font-bold text-foreground truncate">{title}</h2>
+        <h2 className="text-base font-bold text-foreground truncate">{title}</h2>
       </div>
       <div 
         ref={scrollRef}
@@ -68,7 +68,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[55vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/public-itinerary/${itinerary.id}`)}
     >
       <div className="relative aspect-[3/2] rounded-xl overflow-hidden bg-muted">
@@ -179,7 +179,7 @@ const ItinerariesPage = () => {
         <button
           onClick={() => setActiveTag("All")}
           className={cn(
-            "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border flex-shrink-0 ml-4 mr-2",
+            "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border flex-shrink-0 mr-2",
             activeTag === "All"
               ? "bg-primary text-primary-foreground border-primary"
               : "bg-muted/80 text-foreground border-border/50"
@@ -210,7 +210,7 @@ const ItinerariesPage = () => {
     );
 
     return (
-      <MobileShell headerContent={tagPills}>
+      <MobileShell headerContent={tagPills} hideAvatar>
         <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
           <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
         </div>
