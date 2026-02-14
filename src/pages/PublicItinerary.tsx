@@ -1,8 +1,10 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { MainLayout } from "@/components/layouts/MainLayout";
+import { MobileShell } from "@/components/MobileShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -74,6 +76,7 @@ const PublicItinerary = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,8 +122,9 @@ const PublicItinerary = () => {
   }, [itinerary]);
 
   if (!itinerary) {
+    const Wrapper = isMobile ? MobileShell : MainLayout;
     return (
-      <MainLayout>
+      <Wrapper {...(isMobile ? { hideTopBar: true } : {})}>
         <div className="p-6 max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold mb-4">Itinerary Not Found</h1>
           <p className="text-muted-foreground mb-6">This itinerary doesn't exist or has been removed.</p>
@@ -131,7 +135,7 @@ const PublicItinerary = () => {
             </Button>
           </Link>
         </div>
-      </MainLayout>
+      </Wrapper>
     );
   }
 
@@ -695,8 +699,11 @@ const PublicItinerary = () => {
     );
   };
 
+  const Wrapper = isMobile ? MobileShell : MainLayout;
+  const wrapperProps = isMobile ? { hideTopBar: true } : {};
+
   return (
-    <MainLayout>
+    <Wrapper {...wrapperProps}>
       <div className="flex flex-col h-full">
         {/* Header - TikTok style */}
         <div 
@@ -1044,7 +1051,7 @@ const PublicItinerary = () => {
           </SheetContent>
         </Sheet>
       </div>
-    </MainLayout>
+    </Wrapper>
   );
 };
 

@@ -4,6 +4,7 @@ import { format, parseISO, isSameDay, addDays, setHours, setMinutes } from "date
 import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layouts/MainLayout";
+import { MobileShell } from "@/components/MobileShell";
 import { 
   Palette, MapPin, Users, Calendar, GripVertical, 
   Clock, ChevronRight, Sparkles, Bell, Rocket, ArrowLeft, Share2,
@@ -1071,8 +1072,11 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     ? format(parseISO((itinerary as any).startDate), "MMMM d, yyyy")
     : "Dates TBD";
 
+  const Wrapper = isMobile ? MobileShell : MainLayout;
+  const wrapperProps = isMobile ? { hideTopBar: true } : {};
+
   return (
-    <MainLayout>
+    <Wrapper {...wrapperProps}>
       <div className="flex flex-col h-full">
         {/* Just Spun Up celebration banner */}
         {justSpunUp && (
@@ -1542,6 +1546,6 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           isOwner={isOwner}
         />
       </div>
-    </MainLayout>
+    </Wrapper>
   );
 }

@@ -1,13 +1,13 @@
-import { useState, useRef, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, User, Home, Search, ListMusic, PlusCircle, Settings, HelpCircle, Map, X, ChevronRight } from "lucide-react";
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Heart, Plus, Layers, MapPin } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
+import { MobileShell } from "@/components/MobileShell";
 
 type TabType = "itineraries" | "experiences";
 
@@ -187,128 +187,8 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   );
 };
 
-// Spotify-style left slide-out profile menu
-const ProfileSlideMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const navigate = useNavigate();
-  const { user, userProfile } = useAuth();
-  const displayName = userProfile?.full_name || userProfile?.username || user?.email?.split('@')[0] || "Guest";
-
-  const menuItems = [
-    { icon: User, label: "View Profile", action: () => navigate("/profile") },
-    { icon: Settings, label: "Settings", action: () => navigate("/profile") },
-    { icon: HelpCircle, label: "Contact Support", action: () => navigate("/about") },
-    { icon: Map, label: "Build Itineraries", action: () => navigate("/itineraries") },
-  ];
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className={cn(
-          "fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-300",
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        )}
-        onClick={onClose}
-      />
-      {/* Slide panel */}
-      <div className={cn(
-        "fixed top-0 left-0 bottom-0 z-[61] w-[75vw] max-w-[300px] bg-card border-r border-border transition-transform duration-300 ease-out flex flex-col",
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        {/* Header */}
-        <div className="p-5 pt-[calc(env(safe-area-inset-top,12px)+12px)] border-b border-border">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-              {userProfile?.avatar_url ? (
-                <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-              ) : (
-                <span className="text-xl font-bold text-primary">
-                  {displayName.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-muted transition-colors">
-              <X className="w-5 h-5 text-muted-foreground" />
-            </button>
-          </div>
-          <h3 className="text-lg font-bold text-foreground">{displayName}</h3>
-          {user?.email && (
-            <p className="text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>
-          )}
-        </div>
-
-        {/* Menu items */}
-        <div className="flex-1 py-3">
-          {menuItems.map(({ icon: Icon, label, action }) => (
-            <button
-              key={label}
-              onClick={() => { action(); onClose(); }}
-              className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-muted/50 active:bg-muted transition-colors"
-            >
-              <Icon className="w-5 h-5 text-muted-foreground" />
-              <span className="text-[15px] font-medium text-foreground">{label}</span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
-            </button>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-};
-
-// Fixed bottom navigation bar with gradient
-const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const scrollContainerRef = useRef<HTMLElement | null>(null);
-
-  const handleHomeClick = useCallback(() => {
-    if (location.pathname === "/") {
-      // Scroll to top
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      // Also try scrolling the main content container
-      document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      navigate("/");
-    }
-  }, [location.pathname, navigate]);
-
-  const navItems = [
-    { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" },
-    { icon: Search, label: "Search", action: onSearchClick, isActive: false },
-    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/itineraries"), isActive: location.pathname === "/itineraries" },
-    { icon: PlusCircle, label: "Create", action: () => navigate("/itineraries?create=true"), isActive: false },
-  ];
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      {/* Gradient overlay - dark at bottom, transparent at top */}
-      <div className="absolute inset-0 -top-12 pointer-events-none bg-gradient-to-t from-[hsl(0,0%,7.1%)] via-[hsl(0,0%,7.1%,0.8)] to-transparent" />
-      
-      {/* Nav bar */}
-      <div className="relative flex items-center justify-around px-4 pb-[env(safe-area-inset-bottom,8px)] pt-2">
-        {navItems.map(({ icon: Icon, label, action, isActive }) => (
-          <button
-            key={label}
-            onClick={action}
-            className="flex flex-col items-center gap-1 min-w-[60px] py-1"
-          >
-            <Icon className={cn("w-6 h-6", isActive ? "text-foreground" : "text-muted-foreground")} />
-            <span className={cn("text-[10px]", isActive ? "text-foreground font-medium" : "text-muted-foreground")}>
-              {label}
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 export const MobileHomeView = () => {
   const [activeTab, setActiveTab] = useState<TabType>("itineraries");
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { user, userProfile } = useAuth();
 
@@ -323,211 +203,169 @@ export const MobileHomeView = () => {
 
   const displayName = userProfile?.full_name || userProfile?.username || user?.email?.split('@')[0] || "you";
 
-  return (
-    <div className="min-h-screen bg-[hsl(0,0%,7.1%)]">
-      {/* Mobile Search Overlay */}
-      <MobileSearchOverlay
-        isOpen={mobileSearchOpen}
-        onClose={() => setMobileSearchOpen(false)}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearch={(q) => { setSearchQuery(q); setMobileSearchOpen(false); }}
-      />
-
-      {/* Profile Slide Menu */}
-      <ProfileSlideMenu isOpen={profileMenuOpen} onClose={() => setProfileMenuOpen(false)} />
-
-      {/* Fixed Header - Spotify style */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[hsl(0,0%,7.1%)] safe-area-inset-top">
-        {/* Top row: User avatar + Tab pills */}
-        <div className="flex items-center gap-3 px-4 pt-3 pb-3">
-          {/* Profile avatar - opens slide menu */}
-          <button 
-            onClick={() => setProfileMenuOpen(true)}
-            className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden"
-          >
-            {userProfile?.avatar_url ? (
-              <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-            ) : (
-              <span className="text-sm font-bold text-primary">
-                {displayName.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </button>
-
-          {/* Tab pills - Spotify style */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab("itineraries")}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
-                activeTab === "itineraries" 
-                  ? "bg-foreground text-background" 
-                  : "bg-muted text-foreground"
-              )}
-            >
-              Itineraries
-            </button>
-            <button
-              onClick={() => setActiveTab("experiences")}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
-                activeTab === "experiences" 
-                  ? "bg-foreground text-background" 
-                  : "bg-muted text-foreground"
-              )}
-            >
-              Experiences
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Content - with space for fixed header + bottom nav */}
-      <div className="pt-16 pb-24">
-        {/* Greeting - Spotify "Made for X" style */}
-        <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-          <h1 className="text-2xl font-bold text-foreground">
-            Made for {displayName}
-          </h1>
-        </div>
-
-        {activeTab === "itineraries" ? (
-          <>
-            <HorizontalScrollRow 
-              title="Attractions you can't miss"
-              onTitleClick={() => navigate("/itineraries")}
-            >
-              {itineraries.slice(0, 6).map((itinerary) => (
-                <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-              ))}
-            </HorizontalScrollRow>
-
-            <HorizontalScrollRow 
-              title="Available in Dar Es Salaam next weekend"
-              onTitleClick={() => navigate("/experiences?location=dar")}
-            >
-              {experiences.slice(0, 8).map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-
-            <HorizontalScrollRow 
-              title="Curated by locals"
-              onTitleClick={() => navigate("/itineraries")}
-            >
-              {itineraries.slice(3, 9).map((itinerary) => (
-                <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-              ))}
-            </HorizontalScrollRow>
-
-            {adventureExperiences.length > 0 && (
-              <HorizontalScrollRow 
-                title="Adventure awaits"
-                onTitleClick={() => navigate("/experiences?category=adventure")}
-              >
-                {adventureExperiences.map((experience) => (
-                  <MobileExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </HorizontalScrollRow>
-            )}
-
-            {foodExperiences.length > 0 && (
-              <HorizontalScrollRow 
-                title="Taste the local flavors"
-                onTitleClick={() => navigate("/experiences?category=food")}
-              >
-                {foodExperiences.map((experience) => (
-                  <MobileExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </HorizontalScrollRow>
-            )}
-          </>
-        ) : (
-          <>
-            <HorizontalScrollRow 
-              title="Available in Dar Es Salaam next weekend"
-              onTitleClick={() => navigate("/experiences?location=dar")}
-            >
-              {experiences.slice(0, 8).map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-
-            {adventureExperiences.length > 0 && (
-              <HorizontalScrollRow 
-                title="Adventure awaits"
-                onTitleClick={() => navigate("/experiences?category=adventure")}
-              >
-                {adventureExperiences.map((experience) => (
-                  <MobileExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </HorizontalScrollRow>
-            )}
-
-            {beachExperiences.length > 0 && (
-              <HorizontalScrollRow 
-                title="Beach vibes"
-                onTitleClick={() => navigate("/experiences?category=beach")}
-              >
-                {beachExperiences.map((experience) => (
-                  <MobileExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </HorizontalScrollRow>
-            )}
-
-            {foodExperiences.length > 0 && (
-              <HorizontalScrollRow 
-                title="Taste the local flavors"
-                onTitleClick={() => navigate("/experiences?category=food")}
-              >
-                {foodExperiences.map((experience) => (
-                  <MobileExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </HorizontalScrollRow>
-            )}
-
-            {wildlifeExperiences.length > 0 && (
-              <HorizontalScrollRow 
-                title="Wildlife encounters"
-                onTitleClick={() => navigate("/experiences?category=wildlife")}
-              >
-                {wildlifeExperiences.map((experience) => (
-                  <MobileExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </HorizontalScrollRow>
-            )}
-
-            {partyExperiences.length > 0 && (
-              <HorizontalScrollRow 
-                title="Nightlife & parties"
-                onTitleClick={() => navigate("/experiences?category=party")}
-              >
-                {partyExperiences.map((experience) => (
-                  <MobileExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </HorizontalScrollRow>
-            )}
-
-            <HorizontalScrollRow 
-              title="Curated collections"
-              onTitleClick={() => navigate("/itineraries")}
-            >
-              {itineraries.slice(0, 6).map((itinerary) => (
-                <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-              ))}
-            </HorizontalScrollRow>
-          </>
+  const tabPills = (
+    <div className="flex gap-2">
+      <button
+        onClick={() => setActiveTab("itineraries")}
+        className={cn(
+          "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
+          activeTab === "itineraries" 
+            ? "bg-foreground text-background" 
+            : "bg-muted text-foreground"
         )}
+      >
+        Itineraries
+      </button>
+      <button
+        onClick={() => setActiveTab("experiences")}
+        className={cn(
+          "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
+          activeTab === "experiences" 
+            ? "bg-foreground text-background" 
+            : "bg-muted text-foreground"
+        )}
+      >
+        Experiences
+      </button>
+    </div>
+  );
+
+  return (
+    <MobileShell headerContent={tabPills}>
+      {/* Greeting - Spotify "Made for X" style */}
+      <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+        <h1 className="text-2xl font-bold text-foreground">
+          Made for {displayName}
+        </h1>
       </div>
 
-      {/* Fixed Bottom Navigation */}
-      <MobileBottomNav onSearchClick={() => setMobileSearchOpen(true)} />
+      {activeTab === "itineraries" ? (
+        <>
+          <HorizontalScrollRow 
+            title="Attractions you can't miss"
+            onTitleClick={() => navigate("/itineraries")}
+          >
+            {itineraries.slice(0, 6).map((itinerary) => (
+              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+            ))}
+          </HorizontalScrollRow>
 
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
-    </div>
+          <HorizontalScrollRow 
+            title="Available in Dar Es Salaam next weekend"
+            onTitleClick={() => navigate("/experiences?location=dar")}
+          >
+            {experiences.slice(0, 8).map((experience) => (
+              <MobileExperienceCard key={experience.id} experience={experience} />
+            ))}
+          </HorizontalScrollRow>
+
+          <HorizontalScrollRow 
+            title="Curated by locals"
+            onTitleClick={() => navigate("/itineraries")}
+          >
+            {itineraries.slice(3, 9).map((itinerary) => (
+              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+            ))}
+          </HorizontalScrollRow>
+
+          {adventureExperiences.length > 0 && (
+            <HorizontalScrollRow 
+              title="Adventure awaits"
+              onTitleClick={() => navigate("/experiences?category=adventure")}
+            >
+              {adventureExperiences.map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
+          )}
+
+          {foodExperiences.length > 0 && (
+            <HorizontalScrollRow 
+              title="Taste the local flavors"
+              onTitleClick={() => navigate("/experiences?category=food")}
+            >
+              {foodExperiences.map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
+          )}
+        </>
+      ) : (
+        <>
+          <HorizontalScrollRow 
+            title="Available in Dar Es Salaam next weekend"
+            onTitleClick={() => navigate("/experiences?location=dar")}
+          >
+            {experiences.slice(0, 8).map((experience) => (
+              <MobileExperienceCard key={experience.id} experience={experience} />
+            ))}
+          </HorizontalScrollRow>
+
+          {adventureExperiences.length > 0 && (
+            <HorizontalScrollRow 
+              title="Adventure awaits"
+              onTitleClick={() => navigate("/experiences?category=adventure")}
+            >
+              {adventureExperiences.map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
+          )}
+
+          {beachExperiences.length > 0 && (
+            <HorizontalScrollRow 
+              title="Beach vibes"
+              onTitleClick={() => navigate("/experiences?category=beach")}
+            >
+              {beachExperiences.map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
+          )}
+
+          {foodExperiences.length > 0 && (
+            <HorizontalScrollRow 
+              title="Taste the local flavors"
+              onTitleClick={() => navigate("/experiences?category=food")}
+            >
+              {foodExperiences.map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
+          )}
+
+          {wildlifeExperiences.length > 0 && (
+            <HorizontalScrollRow 
+              title="Wildlife encounters"
+              onTitleClick={() => navigate("/experiences?category=wildlife")}
+            >
+              {wildlifeExperiences.map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
+          )}
+
+          {partyExperiences.length > 0 && (
+            <HorizontalScrollRow 
+              title="Nightlife & parties"
+              onTitleClick={() => navigate("/experiences?category=party")}
+            >
+              {partyExperiences.map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
+          )}
+
+          <HorizontalScrollRow 
+            title="Curated collections"
+            onTitleClick={() => navigate("/itineraries")}
+          >
+            {itineraries.slice(0, 6).map((itinerary) => (
+              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+            ))}
+          </HorizontalScrollRow>
+        </>
+      )}
+    </MobileShell>
   );
 };
