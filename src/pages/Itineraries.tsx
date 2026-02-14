@@ -71,7 +71,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/public-itinerary/${itinerary.id}`)}
     >
-      <div className="relative aspect-[3/2] rounded-xl overflow-hidden bg-muted">
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
@@ -85,6 +85,10 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
+        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-background/70 backdrop-blur-xl shadow-sm flex items-center gap-1">
+          <Layers className="w-3 h-3 text-foreground" />
+          <span className="text-xs font-medium text-foreground">{experienceCount}</span>
+        </div>
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
@@ -159,7 +163,6 @@ const ItinerariesPage = () => {
 
     const handleTagClick = (tag: string, index: number) => {
       setActiveTag(tag);
-      // Scroll the selected tag toward center
       const container = tagScrollRef.current;
       if (container) {
         const buttons = container.querySelectorAll('button');
@@ -167,7 +170,8 @@ const ItinerariesPage = () => {
         if (btn) {
           const containerRect = container.getBoundingClientRect();
           const btnRect = btn.getBoundingClientRect();
-          const scrollLeft = container.scrollLeft + (btnRect.left - containerRect.left) - (containerRect.width / 2) + (btnRect.width / 2);
+          // Scroll selected tag to the start (right next to All)
+          const scrollLeft = container.scrollLeft + (btnRect.left - containerRect.left);
           container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
         }
       }
