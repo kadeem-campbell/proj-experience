@@ -1,13 +1,19 @@
 import { useState } from "react";
-import { Plus, ChevronDown, Check, Minus } from "lucide-react";
+import { Plus, Check, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -37,6 +43,7 @@ export const ItinerarySelector = ({
   const [open, setOpen] = useState(false);
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState("");
+  const isMobile = useIsMobile();
   
   const { 
     itineraries, 
@@ -47,25 +54,25 @@ export const ItinerarySelector = ({
     removeExperienceFromItinerary
   } = useItineraries();
 
+  const isInItinerary = (itineraryId: string) => {
+    const itinerary = itineraries.find(i => i.id === itineraryId);
+    return itinerary?.experiences.some(e => e.id === experienceId) || false;
+  };
+
   const handleToggleItinerary = (itinerary: Itinerary) => {
     const alreadyAdded = isInItinerary(itinerary.id);
+    if ('vibrate' in navigator) navigator.vibrate(10);
     
     if (alreadyAdded) {
-      // Remove from itinerary
       removeExperienceFromItinerary(itinerary.id, experienceId);
       onRemove?.();
       toast.success(`Removed from "${itinerary.name}"`);
     } else {
-      // Add to itinerary
       const result = addExperienceToItinerary(itinerary.id, experienceData);
-      
       if (result.alreadyExists) {
-        toast.error(`Already in "${itinerary.name}"`, {
-          description: "This experience is already in this itinerary"
-        });
+        toast.error(`Already in "${itinerary.name}"`);
         return;
       }
-      
       setActiveItinerary(itinerary.id);
       onAdd?.();
       toast.success(`Added to "${itinerary.name}"`);
@@ -75,19 +82,122 @@ export const ItinerarySelector = ({
 
   const handleCreateAndAdd = async () => {
     if (!newName.trim()) return;
+    if ('vibrate' in navigator) navigator.vibrate(10);
     const newItinerary = await createItinerary(newName.trim());
     await addExperienceToItinerary(newItinerary.id, experienceData);
     onAdd?.();
     setNewName("");
     setShowNewInput(false);
     setOpen(false);
+    toast.success(`Created "${newName.trim()}" and added experience`);
   };
 
-  // Check if this experience is already in an itinerary
-  const isInItinerary = (itineraryId: string) => {
-    const itinerary = itineraries.find(i => i.id === itineraryId);
-    return itinerary?.experiences.some(e => e.id === experienceId) || false;
-  };
+  const selectorContent = (
+    <>
+      <div className="p-4 border-b border-border">
+        <h4 className="font-semibold text-base">Add to itinerary</h4>
+        <p className="text-xs text-muted-foreground mt-1">Tap to add or remove</p>
+      </div>
+      
+      <div className="max-h-[50vh] overflow-y-auto">
+        {itineraries.length === 0 && (
+          <div className="px-4 py-6 text-center">
+            <p className="text-sm text-muted-foreground">No itineraries yet</p>
+          </div>
+        )}
+        {itineraries.map((itinerary) => {
+          const alreadyAdded = isInItinerary(itinerary.id);
+          return (
+            <button
+              key={itinerary.id}
+              onClick={() => handleToggleItinerary(itinerary)}
+              className={cn(
+                "w-full flex items-center justify-between px-4 py-3.5 text-left transition-colors active:bg-muted/80",
+                alreadyAdded && "bg-primary/5"
+              )}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={cn(
+                  "w-2.5 h-2.5 rounded-full flex-shrink-0",
+                  itinerary.id === activeItineraryId ? "bg-primary" : "bg-muted-foreground/30"
+                )} />
+                <span className="text-sm font-medium truncate">{itinerary.name}</span>
+                <span className="text-xs text-muted-foreground flex-shrink-0">
+                  ({itinerary.experiences.length})
+                </span>
+              </div>
+              {alreadyAdded ? (
+                <Minus className="w-5 h-5 text-destructive flex-shrink-0" />
+              ) : (
+                <Plus className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="border-t border-border p-3">
+        {showNewInput ? (
+          <div className="flex gap-2">
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Itinerary name"
+              className="h-10 text-sm"
+              style={{ fontSize: '16px' }}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreateAndAdd();
+                if (e.key === 'Escape') {
+                  setShowNewInput(false);
+                  setNewName("");
+                }
+              }}
+            />
+            <Button 
+              size="sm" 
+              className="h-10 px-4"
+              onClick={handleCreateAndAdd}
+              disabled={!newName.trim()}
+            >
+              Add
+            </Button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowNewInput(true)}
+            className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-primary active:bg-muted rounded-lg transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Create new itinerary
+          </button>
+        )}
+      </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>
+          {children || (
+            <Button 
+              size="icon" 
+              className="rounded-full shadow-lg"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          )}
+        </DrawerTrigger>
+        <DrawerContent className="bg-card border-border" onClick={(e) => e.stopPropagation()}>
+          <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted-foreground/20 my-3" />
+          {selectorContent}
+          <div className="pb-[env(safe-area-inset-bottom,8px)]" />
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -96,93 +206,18 @@ export const ItinerarySelector = ({
           <Button 
             size="icon" 
             className="rounded-full shadow-lg"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
           >
             <Plus className="w-4 h-4" />
           </Button>
         )}
       </PopoverTrigger>
       <PopoverContent 
-        className="w-64 p-0 bg-card border-border shadow-xl z-50"
+        className="w-72 p-0 bg-card border-border shadow-xl z-50"
         align="end"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-3 border-b border-border">
-          <h4 className="font-semibold text-sm">Manage itineraries</h4>
-          <p className="text-xs text-muted-foreground mt-0.5">Tap to add or remove</p>
-        </div>
-        
-        <div className="max-h-60 overflow-y-auto">
-          {itineraries.map((itinerary) => {
-            const alreadyAdded = isInItinerary(itinerary.id);
-            return (
-              <button
-                key={itinerary.id}
-                onClick={() => handleToggleItinerary(itinerary)}
-                className={cn(
-                  "w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors hover:bg-muted",
-                  alreadyAdded && "bg-primary/5"
-                )}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className={cn(
-                    "w-2 h-2 rounded-full flex-shrink-0",
-                    itinerary.id === activeItineraryId ? "bg-primary" : "bg-muted-foreground/30"
-                  )} />
-                  <span className="text-sm truncate">{itinerary.name}</span>
-                  <span className="text-xs text-muted-foreground flex-shrink-0">
-                    ({itinerary.experiences.length})
-                  </span>
-                </div>
-                {alreadyAdded ? (
-                  <Minus className="w-4 h-4 text-destructive flex-shrink-0" />
-                ) : (
-                  <Plus className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="border-t border-border p-2">
-          {showNewInput ? (
-            <div className="flex gap-2">
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Itinerary name"
-                className="h-8 text-sm"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreateAndAdd();
-                  if (e.key === 'Escape') {
-                    setShowNewInput(false);
-                    setNewName("");
-                  }
-                }}
-              />
-              <Button 
-                size="sm" 
-                className="h-8 px-3"
-                onClick={handleCreateAndAdd}
-                disabled={!newName.trim()}
-              >
-                Add
-              </Button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowNewInput(true)}
-              className="w-full flex items-center gap-2 px-2 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Create new itinerary
-            </button>
-          )}
-        </div>
+        {selectorContent}
       </PopoverContent>
     </Popover>
   );
