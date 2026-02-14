@@ -168,10 +168,10 @@ const ItinerariesPage = () => {
               key={tag}
               onClick={() => setActiveTag(tag)}
               className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap",
+                "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border",
                 activeTag === tag
-                  ? "bg-foreground text-background"
-                  : "bg-muted text-foreground"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-muted/80 text-foreground border-border/50"
               )}
             >
               {tag}
