@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search, ChevronRight, Heart, Plus, Layers, MapPin, User } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Heart, Plus, Layers, MapPin, User, Home, Search, ListMusic, PlusCircle } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useItineraries } from "@/hooks/useItineraries";
@@ -25,19 +25,18 @@ const HorizontalScrollRow = ({
 
   return (
     <div className="mb-8">
-      {/* Title with arrow - left padded */}
+      {/* Title - full clickable, no chevron */}
       <button 
         onClick={onTitleClick}
-        className="flex items-center gap-1 mb-4 pl-4 group"
+        className="mb-4 pl-4 pr-4 block"
       >
-        <h2 className="text-xl font-bold text-foreground">{title}</h2>
-        <ChevronRight className="w-5 h-5 text-foreground transition-transform group-hover:translate-x-0.5" />
+        <h2 className="text-lg font-bold text-foreground text-left truncate">{title}</h2>
       </button>
       
       {/* Horizontal scroll container - left padded, overflows right */}
       <div 
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide pl-4 pr-4 pb-2 snap-x snap-mandatory scroll-smooth"
+        className="flex gap-3 overflow-x-auto scrollbar-hide pl-4 pb-2 snap-x snap-mandatory scroll-smooth"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none',
@@ -50,7 +49,7 @@ const HorizontalScrollRow = ({
   );
 };
 
-// Itinerary card for horizontal scroll - 3:2 aspect ratio per reference
+// Itinerary card for horizontal scroll - 3:2 aspect ratio
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -64,18 +63,11 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
-    
+    if ('vibrate' in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
       await toggleDbLike(itinerary.id, 'itinerary', {
-        id: itinerary.id,
-        name: itinerary.name,
-        coverImage: itinerary.coverImage,
-        creatorName: itinerary.creatorName,
-        experiences: itinerary.experiences?.slice(0, 3)
+        id: itinerary.id, name: itinerary.name, coverImage: itinerary.coverImage,
+        creatorName: itinerary.creatorName, experiences: itinerary.experiences?.slice(0, 3)
       });
     } else {
       setLocalLiked(!localLiked);
@@ -87,44 +79,25 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
       className="flex-shrink-0 w-[55vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/public-itinerary/${itinerary.id}`)}
     >
-      {/* Image - 3:2 aspect ratio like GetYourGuide reference */}
       <div className="relative aspect-[3/2] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
-          <img 
-            src={coverImage} 
-            alt={itinerary.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
             <Layers className="w-8 h-8 text-primary/40" />
           </div>
         )}
-
-        {/* Heart button - top right */}
-        <button
-          onClick={handleLikeClick}
-          className={cn(
-            "absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90",
-            liked && "bg-destructive/20"
-          )}
-        >
-          <Heart 
-            className={cn(
-              "w-4 h-4",
-              liked ? "fill-destructive text-destructive" : "text-foreground"
-            )} 
-          />
+        <button onClick={handleLikeClick} className={cn(
+          "absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90",
+          liked && "bg-destructive/20"
+        )}>
+          <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
-
-        {/* Experience count badge */}
         <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-background/70 backdrop-blur-xl shadow-sm flex items-center gap-1">
           <Layers className="w-3 h-3 text-foreground" />
           <span className="text-xs font-medium text-foreground">{experienceCount}</span>
         </div>
       </div>
-
-      {/* Text below */}
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
         <p className="text-xs text-muted-foreground truncate">
@@ -135,7 +108,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Experience card for horizontal scroll - 4:3 aspect ratio per Airbnb reference
+// Experience card for horizontal scroll - 4:3 aspect ratio
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -149,18 +122,11 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
-    
+    if ('vibrate' in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
       await toggleDbLike(experience.id, 'experience', {
-        id: experience.id,
-        title: experience.title,
-        videoThumbnail: experience.videoThumbnail,
-        location: experience.location,
-        category: experience.category
+        id: experience.id, title: experience.title,
+        videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category
       });
     } else {
       setLocalLiked(!localLiked);
@@ -170,11 +136,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const handleAddClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
-
+    if ('vibrate' in navigator) navigator.vibrate(10);
     if (activeItinerary) {
       if (inItinerary) {
         removeExperienceFromItinerary(activeItinerary.id, experience.id);
@@ -189,49 +151,25 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
       className="flex-shrink-0 w-[55vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/experience/${experience.id}`)}
     >
-      {/* Image - 4:3 aspect ratio per Airbnb reference */}
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
-          <img 
-            src={experience.videoThumbnail} 
-            alt={experience.title}
-            className="w-full h-full object-cover"
-          />
+          <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
-
-        {/* Heart button - top right */}
-        <button
-          onClick={handleLikeClick}
-          className={cn(
-            "absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90",
-            liked && "bg-destructive/20"
-          )}
-        >
-          <Heart 
-            className={cn(
-              "w-4 h-4",
-              liked ? "fill-destructive text-destructive" : "text-foreground"
-            )} 
-          />
+        <button onClick={handleLikeClick} className={cn(
+          "absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90",
+          liked && "bg-destructive/20"
+        )}>
+          <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
-
-        {/* Add/Remove button - bottom right */}
-        <button
-          onClick={handleAddClick}
-          className={cn(
-            "absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90",
-            inItinerary 
-              ? "bg-primary text-primary-foreground" 
-              : "bg-background/70 backdrop-blur-xl shadow-sm"
-          )}
-        >
+        <button onClick={handleAddClick} className={cn(
+          "absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90",
+          inItinerary ? "bg-primary text-primary-foreground" : "bg-background/70 backdrop-blur-xl shadow-sm"
+        )}>
           <Plus className={cn("w-4 h-4", inItinerary ? "rotate-45" : "text-foreground")} />
         </button>
       </div>
-
-      {/* Text below */}
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -239,10 +177,47 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <span className="truncate">{experience.location}</span>
         </div>
         {experience.price && (
-          <p className="text-xs text-muted-foreground">
-            ~{experience.price}
-          </p>
+          <p className="text-xs text-muted-foreground">~{experience.price}</p>
         )}
+      </div>
+    </div>
+  );
+};
+
+// Fixed bottom navigation bar with gradient
+const MobileBottomNav = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const navItems = [
+    { icon: Home, label: "Home", path: "/" },
+    { icon: Search, label: "Search", path: "/experiences" },
+    { icon: ListMusic, label: "Your Itinerary", path: "/itinerary" },
+    { icon: PlusCircle, label: "Create", path: "/itineraries" },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      {/* Gradient overlay - dark at bottom, transparent at top */}
+      <div className="absolute inset-0 -top-12 pointer-events-none bg-gradient-to-t from-background via-background/80 to-transparent" />
+      
+      {/* Nav bar */}
+      <div className="relative flex items-center justify-around px-4 pb-[env(safe-area-inset-bottom,8px)] pt-2">
+        {navItems.map(({ icon: Icon, label, path }) => {
+          const isActive = location.pathname === path;
+          return (
+            <button
+              key={path}
+              onClick={() => navigate(path)}
+              className="flex flex-col items-center gap-1 min-w-[60px] py-1"
+            >
+              <Icon className={cn("w-6 h-6", isActive ? "text-foreground" : "text-muted-foreground")} />
+              <span className={cn("text-[10px]", isActive ? "text-foreground font-medium" : "text-muted-foreground")}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -250,20 +225,21 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 
 export const MobileHomeView = () => {
   const [activeTab, setActiveTab] = useState<TabType>("itineraries");
-  const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { user, userProfile } = useAuth();
 
   const itineraries = getPopularItineraries();
   const experiences = allExperiences;
 
-  // Group experiences by categories for different rows
   const adventureExperiences = experiences.filter(e => e.category === "Adventure").slice(0, 10);
   const foodExperiences = experiences.filter(e => e.category === "Food").slice(0, 10);
   const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
   const wildlifeExperiences = experiences.filter(e => e.category === "Wildlife").slice(0, 10);
   const partyExperiences = experiences.filter(e => e.category === "Party").slice(0, 10);
+
+  const displayName = userProfile?.full_name || userProfile?.username || user?.email?.split('@')[0] || "you";
 
   return (
     <div className="min-h-screen bg-background">
@@ -273,81 +249,66 @@ export const MobileHomeView = () => {
         onClose={() => setMobileSearchOpen(false)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onSearch={(q) => {
-          setSearchQuery(q);
-          setMobileSearchOpen(false);
-        }}
+        onSearch={(q) => { setSearchQuery(q); setMobileSearchOpen(false); }}
       />
 
-      {/* Fixed Header - Premium Airbnb/TikTok style */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/30 safe-area-inset-top">
-        {/* Top row: Logo + Search + Profile */}
-        <div className="flex items-center gap-3 px-4 pt-3 pb-2">
-          {/* Logo */}
-          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
-            <MapPin className="w-4 h-4 text-primary-foreground" />
-          </div>
-
-          {/* Search Bar - Uber Eats style trigger */}
-          <button
-            onClick={() => setMobileSearchOpen(true)}
-            className="flex-1 flex items-center gap-3 bg-muted/80 hover:bg-muted rounded-full px-4 py-2.5 border border-border/30 transition-colors"
-          >
-            <Search className="w-4 h-4 text-muted-foreground" />
-            <span className="text-muted-foreground text-sm">Where to?</span>
-          </button>
-
-          {/* Profile */}
+      {/* Fixed Header - Spotify style */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background safe-area-inset-top">
+        {/* Top row: User avatar + Tab pills */}
+        <div className="flex items-center gap-3 px-4 pt-3 pb-3">
+          {/* Profile avatar */}
           <button 
             onClick={() => navigate("/profile")}
-            className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0 border border-border/30"
+            className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden"
           >
             {userProfile?.avatar_url ? (
               <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
             ) : (
-              <User className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-bold text-primary">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
             )}
           </button>
-        </div>
 
-        {/* Tabs - Centered, premium feel */}
-        <div className="flex justify-center gap-8 px-4">
-          <button
-            onClick={() => setActiveTab("itineraries")}
-            className={cn(
-              "pb-3 text-sm font-semibold transition-colors relative",
-              activeTab === "itineraries" 
-                ? "text-foreground" 
-                : "text-muted-foreground"
-            )}
-          >
-            Itineraries
-            {activeTab === "itineraries" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("experiences")}
-            className={cn(
-              "pb-3 text-sm font-semibold transition-colors relative",
-              activeTab === "experiences" 
-                ? "text-foreground" 
-                : "text-muted-foreground"
-            )}
-          >
-            Experiences
-            {activeTab === "experiences" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-full" />
-            )}
-          </button>
+          {/* Tab pills - Spotify style */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab("itineraries")}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
+                activeTab === "itineraries" 
+                  ? "bg-foreground text-background" 
+                  : "bg-muted text-foreground"
+              )}
+            >
+              Itineraries
+            </button>
+            <button
+              onClick={() => setActiveTab("experiences")}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
+                activeTab === "experiences" 
+                  ? "bg-foreground text-background" 
+                  : "bg-muted text-foreground"
+              )}
+            >
+              Experiences
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Content with top padding for fixed header */}
-      <div className="pt-28">
+      {/* Content - with space for fixed header + bottom nav */}
+      <div className="pt-16 pb-24">
+        {/* Greeting - Spotify "Made for X" style */}
+        <div className="pl-4 pr-4 mb-6 pt-2">
+          <h1 className="text-2xl font-bold text-foreground">
+            Made for {displayName}
+          </h1>
+        </div>
+
         {activeTab === "itineraries" ? (
           <>
-            {/* Itineraries Row 1 - Attractions you can't miss */}
             <HorizontalScrollRow 
               title="Attractions you can't miss"
               onTitleClick={() => navigate("/itineraries")}
@@ -357,7 +318,6 @@ export const MobileHomeView = () => {
               ))}
             </HorizontalScrollRow>
 
-            {/* Experience Row 1 - Available in Dar Es Salaam */}
             <HorizontalScrollRow 
               title="Available in Dar Es Salaam next weekend"
               onTitleClick={() => navigate("/experiences?location=dar")}
@@ -367,7 +327,6 @@ export const MobileHomeView = () => {
               ))}
             </HorizontalScrollRow>
 
-            {/* More Itineraries Row */}
             <HorizontalScrollRow 
               title="Curated by locals"
               onTitleClick={() => navigate("/itineraries")}
@@ -377,7 +336,6 @@ export const MobileHomeView = () => {
               ))}
             </HorizontalScrollRow>
 
-            {/* Adventure Experiences */}
             {adventureExperiences.length > 0 && (
               <HorizontalScrollRow 
                 title="Adventure awaits"
@@ -389,7 +347,6 @@ export const MobileHomeView = () => {
               </HorizontalScrollRow>
             )}
 
-            {/* Food Experiences */}
             {foodExperiences.length > 0 && (
               <HorizontalScrollRow 
                 title="Taste the local flavors"
@@ -403,7 +360,6 @@ export const MobileHomeView = () => {
           </>
         ) : (
           <>
-            {/* Experiences Tab - Show different experience rows */}
             <HorizontalScrollRow 
               title="Available in Dar Es Salaam next weekend"
               onTitleClick={() => navigate("/experiences?location=dar")}
@@ -413,7 +369,6 @@ export const MobileHomeView = () => {
               ))}
             </HorizontalScrollRow>
 
-            {/* Adventure Experiences */}
             {adventureExperiences.length > 0 && (
               <HorizontalScrollRow 
                 title="Adventure awaits"
@@ -425,7 +380,6 @@ export const MobileHomeView = () => {
               </HorizontalScrollRow>
             )}
 
-            {/* Beach Experiences */}
             {beachExperiences.length > 0 && (
               <HorizontalScrollRow 
                 title="Beach vibes"
@@ -437,7 +391,6 @@ export const MobileHomeView = () => {
               </HorizontalScrollRow>
             )}
 
-            {/* Food Experiences */}
             {foodExperiences.length > 0 && (
               <HorizontalScrollRow 
                 title="Taste the local flavors"
@@ -449,7 +402,6 @@ export const MobileHomeView = () => {
               </HorizontalScrollRow>
             )}
 
-            {/* Wildlife Experiences */}
             {wildlifeExperiences.length > 0 && (
               <HorizontalScrollRow 
                 title="Wildlife encounters"
@@ -461,7 +413,6 @@ export const MobileHomeView = () => {
               </HorizontalScrollRow>
             )}
 
-            {/* Party Experiences */}
             {partyExperiences.length > 0 && (
               <HorizontalScrollRow 
                 title="Nightlife & parties"
@@ -473,7 +424,6 @@ export const MobileHomeView = () => {
               </HorizontalScrollRow>
             )}
 
-            {/* Show some itinerary rows too */}
             <HorizontalScrollRow 
               title="Curated collections"
               onTitleClick={() => navigate("/itineraries")}
@@ -486,15 +436,12 @@ export const MobileHomeView = () => {
         )}
       </div>
 
-      {/* Add CSS for hiding scrollbar */}
+      {/* Fixed Bottom Navigation */}
+      <MobileBottomNav />
+
       <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
