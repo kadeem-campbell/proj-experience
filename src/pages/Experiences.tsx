@@ -94,25 +94,24 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
-        <ItinerarySelector
-          experienceId={experience.id}
-          experienceData={{
-            id: experience.id,
-            title: experience.title,
-            creator: experience.creator || '',
-            videoThumbnail: experience.videoThumbnail || '',
-            category: experience.category || '',
-            location: experience.location || '',
-            price: experience.price || '',
-          }}
-        >
-          <button 
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90"
+        <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <ItinerarySelector
+            experienceId={experience.id}
+            experienceData={{
+              id: experience.id,
+              title: experience.title,
+              creator: experience.creator || '',
+              videoThumbnail: experience.videoThumbnail || '',
+              category: experience.category || '',
+              location: experience.location || '',
+              price: experience.price || '',
+            }}
           >
-            <Plus className="w-4 h-4 text-foreground" />
-          </button>
-        </ItinerarySelector>
+            <button className="w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90">
+              <Plus className="w-4 h-4 text-foreground" />
+            </button>
+          </ItinerarySelector>
+        </div>
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
