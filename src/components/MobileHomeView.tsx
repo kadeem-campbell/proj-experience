@@ -25,26 +25,28 @@ const HorizontalScrollRow = ({
 
   return (
     <div className="mb-8">
-      {/* Title - full clickable, no chevron, aligned with cards */}
+      {/* Title - aligned with cards at 16px from left */}
       <button 
         onClick={onTitleClick}
-        className="mb-4 pl-4 pr-4 block"
+        className="mb-4 block w-full text-left"
+        style={{ paddingLeft: '16px', paddingRight: '16px' }}
       >
-        <h2 className="text-lg font-bold text-foreground text-left truncate">{title}</h2>
+        <h2 className="text-lg font-bold text-foreground truncate">{title}</h2>
       </button>
       
-      {/* Horizontal scroll container - left padding matches title exactly */}
+      {/* Scrollable wrapper */}
       <div 
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory scroll-smooth"
+        className="overflow-x-auto scrollbar-hide pb-2"
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch',
-          paddingLeft: '16px'
+          WebkitOverflowScrolling: 'touch'
         }}
       >
-        {children}
+        <div className="inline-flex gap-3 snap-x snap-mandatory" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+          {children}
+        </div>
       </div>
     </div>
   );
