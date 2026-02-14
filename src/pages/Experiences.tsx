@@ -11,18 +11,57 @@ import { MobileShell } from "@/components/MobileShell";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
+import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 
-// Grid card matching homepage card size (4:3 aspect, same dimensions)
-const MobileGridExperienceCard = ({ experience }: { experience: any }) => {
+const tags = ["All", "Beaches", "Water Sports", "Nightlife", "Wildlife", "Adventure", "Food", "Culture", "Wellness"];
+
+const tagToCategoryMap: Record<string, string> = {
+  "Beaches": "Beach",
+  "Water Sports": "Adventure",
+  "Nightlife": "Nightlife",
+  "Wildlife": "Wildlife",
+  "Adventure": "Adventure",
+  "Food": "Food",
+  "Culture": "Culture",
+  "Wellness": "Wellness",
+};
+
+// Horizontal scroll row - identical to itineraries/homepage
+const HorizontalScrollRow = ({ 
+  title, 
+  children 
+}: { 
+  title: string;
+  children: React.ReactNode;
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  return (
+    <div className="mb-8">
+      <div className="mb-4" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+        <h2 className="text-base font-bold text-foreground truncate">{title}</h2>
+      </div>
+      <div 
+        ref={scrollRef}
+        className="overflow-x-auto scrollbar-hide pb-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="inline-flex gap-3 snap-x snap-mandatory" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Experience card for horizontal scroll - 4:3 aspect, same as homepage
+const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
-  const { addExperienceToItinerary, activeItinerary, isInItinerary, removeExperienceFromItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
 
   const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked;
-  const inItinerary = isInItinerary(experience.id);
 
   const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -38,22 +77,9 @@ const MobileGridExperienceCard = ({ experience }: { experience: any }) => {
     }
   };
 
-  const handleAddClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    if (activeItinerary) {
-      if (inItinerary) {
-        removeExperienceFromItinerary(activeItinerary.id, experience.id);
-      } else {
-        addExperienceToItinerary(activeItinerary.id, experience);
-      }
-    }
-  };
-
   return (
     <div 
-      className="cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/experience/${experience.id}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
@@ -68,12 +94,25 @@ const MobileGridExperienceCard = ({ experience }: { experience: any }) => {
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
-        <button onClick={handleAddClick} className={cn(
-          "absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90",
-          inItinerary ? "bg-primary text-primary-foreground" : "bg-background/70 backdrop-blur-xl shadow-sm"
-        )}>
-          <Plus className={cn("w-4 h-4", inItinerary ? "rotate-45" : "text-foreground")} />
-        </button>
+        <ItinerarySelector
+          experienceId={experience.id}
+          experienceData={{
+            id: experience.id,
+            title: experience.title,
+            creator: experience.creator || '',
+            videoThumbnail: experience.videoThumbnail || '',
+            category: experience.category || '',
+            location: experience.location || '',
+            price: experience.price || '',
+          }}
+        >
+          <button 
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90"
+          >
+            <Plus className="w-4 h-4 text-foreground" />
+          </button>
+        </ItinerarySelector>
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
@@ -89,12 +128,19 @@ const MobileGridExperienceCard = ({ experience }: { experience: any }) => {
 const ExperiencesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(24);
+  const [activeTag, setActiveTag] = useState("All");
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const tagScrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
   const experiences = allExperiences;
+
+  // Filter by tag
+  const tagFilteredExperiences = activeTag === "All"
+    ? experiences
+    : experiences.filter(e => e.category === (tagToCategoryMap[activeTag] || activeTag));
   
-  const filteredExperiences = experiences.filter((experience) => {
+  const filteredExperiences = tagFilteredExperiences.filter((experience) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -119,52 +165,118 @@ const ExperiencesPage = () => {
   }, [visibleCount, filteredExperiences.length]);
 
   if (isMobile) {
-    return (
-      <MobileShell
-        headerContent={
-          <h1 className="text-lg font-bold text-foreground">All Experiences</h1>
+    const handleTagClick = (tag: string, index: number) => {
+      setActiveTag(tag);
+      const container = tagScrollRef.current;
+      if (container) {
+        const buttons = container.querySelectorAll('button');
+        const btn = buttons[index];
+        if (btn) {
+          const containerRect = container.getBoundingClientRect();
+          const btnRect = btn.getBoundingClientRect();
+          const scrollLeft = container.scrollLeft + (btnRect.left - containerRect.left);
+          container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
         }
-      >
-        {/* Search */}
-        <div className="mx-4 mb-4">
-          <div className="flex items-center bg-muted/60 border border-border/50 rounded-xl px-4 py-2.5">
-            <Search className="w-4 h-4 text-foreground/60 mr-2.5 shrink-0" />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search experiences..."
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-foreground/50"
-              style={{ fontSize: '16px' }}
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="ml-2 p-1 hover:bg-muted rounded-full">
-                <X className="w-4 h-4 text-muted-foreground" />
-              </button>
-            )}
-          </div>
-        </div>
+      }
+    };
 
-        {/* Grid - same card size as homepage */}
-        <div className="px-4">
-          <div className="grid grid-cols-2 gap-3">
-            {filteredExperiences.slice(0, visibleCount).map((experience) => (
-              <MobileGridExperienceCard key={experience.id} experience={experience} />
+    // Group by category for horizontal rows
+    const adventureItems = tagFilteredExperiences.filter(e => e.category === "Adventure").slice(0, 10);
+    const foodItems = tagFilteredExperiences.filter(e => e.category === "Food").slice(0, 10);
+    const beachItems = tagFilteredExperiences.filter(e => e.category === "Beach").slice(0, 10);
+    const wildlifeItems = tagFilteredExperiences.filter(e => e.category === "Wildlife").slice(0, 10);
+    const partyItems = tagFilteredExperiences.filter(e => e.category === "Party" || e.category === "Nightlife").slice(0, 10);
+    const cultureItems = tagFilteredExperiences.filter(e => e.category === "Culture").slice(0, 10);
+    const allItems = tagFilteredExperiences.slice(0, 10);
+    const moreItems = tagFilteredExperiences.slice(10, 20);
+
+    const tagPills = (
+      <div className="flex items-center">
+        <button
+          onClick={() => setActiveTag("All")}
+          className={cn(
+            "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border flex-shrink-0 mr-2",
+            activeTag === "All"
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-muted/80 text-foreground border-border/50"
+          )}
+        >
+          All
+        </button>
+        <div ref={tagScrollRef} className="overflow-x-auto scrollbar-hide flex-1" style={{ scrollbarWidth: 'none' }}>
+          <div className="inline-flex gap-2" style={{ paddingRight: '16px' }}>
+            {tags.filter(t => t !== "All").map((tag, index) => (
+              <button
+                key={tag}
+                onClick={() => handleTagClick(tag, index)}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border",
+                  activeTag === tag
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/80 text-foreground border-border/50"
+                )}
+              >
+                {tag}
+              </button>
             ))}
           </div>
-
-          {visibleCount < filteredExperiences.length && (
-            <div ref={loadMoreRef} className="flex justify-center py-6">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-            </div>
-          )}
-
-          {filteredExperiences.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-sm">No experiences found matching "{searchQuery}"</p>
-            </div>
-          )}
         </div>
+      </div>
+    );
+
+    return (
+      <MobileShell headerContent={tagPills} hideAvatar>
+        <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+          <h1 className="text-2xl font-bold text-foreground">All Experiences</h1>
+        </div>
+
+        {allItems.length > 0 && (
+          <HorizontalScrollRow title="Trending now">
+            {allItems.map(exp => <MobileExperienceCard key={exp.id} experience={exp} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {beachItems.length > 0 && (
+          <HorizontalScrollRow title="Beach vibes">
+            {beachItems.map(exp => <MobileExperienceCard key={exp.id} experience={exp} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {adventureItems.length > 0 && (
+          <HorizontalScrollRow title="Adventure awaits">
+            {adventureItems.map(exp => <MobileExperienceCard key={exp.id} experience={exp} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {foodItems.length > 0 && (
+          <HorizontalScrollRow title="Taste the local flavors">
+            {foodItems.map(exp => <MobileExperienceCard key={exp.id} experience={exp} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {wildlifeItems.length > 0 && (
+          <HorizontalScrollRow title="Wildlife encounters">
+            {wildlifeItems.map(exp => <MobileExperienceCard key={exp.id} experience={exp} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {partyItems.length > 0 && (
+          <HorizontalScrollRow title="Nightlife & parties">
+            {partyItems.map(exp => <MobileExperienceCard key={exp.id} experience={exp} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {cultureItems.length > 0 && (
+          <HorizontalScrollRow title="Culture & heritage">
+            {cultureItems.map(exp => <MobileExperienceCard key={exp.id} experience={exp} />)}
+          </HorizontalScrollRow>
+        )}
+
+        {moreItems.length > 0 && (
+          <HorizontalScrollRow title="More to explore">
+            {moreItems.map(exp => <MobileExperienceCard key={exp.id} experience={exp} />)}
+          </HorizontalScrollRow>
+        )}
       </MobileShell>
     );
   }
@@ -172,7 +284,6 @@ const ExperiencesPage = () => {
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
-        {/* Header */}
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-3 md:px-4 py-3 md:py-4">
           <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
             <Link to="/">
