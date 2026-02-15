@@ -1,18 +1,16 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Search, ArrowRight, Compass, Map } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
-import { useItineraries } from "@/hooks/useItineraries";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { LocationSelector } from "@/components/LocationSelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
 
-type TabType = "itineraries" | "experiences";
-
-// Horizontal scroll row component with left padding, overflow right
+// Horizontal scroll row component
 const HorizontalScrollRow = ({ 
   title, 
   onTitleClick,
@@ -23,7 +21,6 @@ const HorizontalScrollRow = ({
   children: React.ReactNode;
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-
   return (
     <div className="mb-8">
       <button 
@@ -33,15 +30,10 @@ const HorizontalScrollRow = ({
       >
         <h2 className="text-lg font-bold text-foreground truncate">{title}</h2>
       </button>
-      
       <div 
         ref={scrollRef}
         className="overflow-x-auto scrollbar-hide pb-2"
-        style={{ 
-          scrollbarWidth: 'none', 
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch'
-        }}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         <div className="inline-flex gap-3 snap-x snap-mandatory" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
           {children}
@@ -51,7 +43,7 @@ const HorizontalScrollRow = ({
   );
 };
 
-// Itinerary card for horizontal scroll - 3:2 aspect ratio with creator name
+// Itinerary card – same 44vw width as experiences
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -78,10 +70,10 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[55vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/public-itinerary/${itinerary.id}`)}
     >
-      <div className="relative aspect-[3/2] rounded-xl overflow-hidden bg-muted">
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
@@ -110,7 +102,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Experience card with + button using ItinerarySelector drawer
+// Experience card with + button
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -154,13 +146,9 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <ItinerarySelector
             experienceId={experience.id}
             experienceData={{
-              id: experience.id,
-              title: experience.title,
-              creator: experience.creator || '',
-              videoThumbnail: experience.videoThumbnail || '',
-              category: experience.category || '',
-              location: experience.location || '',
-              price: experience.price || '',
+              id: experience.id, title: experience.title, creator: experience.creator || '',
+              videoThumbnail: experience.videoThumbnail || '', category: experience.category || '',
+              location: experience.location || '', price: experience.price || '',
             }}
           >
             <button className="w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90">
@@ -180,10 +168,71 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   );
 };
 
-export const MobileHomeView = () => {
-  const [activeTab, setActiveTab] = useState<TabType>("itineraries");
+// Interactive education hero section (Polarsteps-inspired)
+const InteractiveHero = () => {
   const navigate = useNavigate();
-  const { user, userProfile } = useAuth();
+  const [activeFeature, setActiveFeature] = useState(0);
+  
+  const features = [
+    { icon: Compass, title: "Discover experiences", desc: "Find the best things to do in your city", color: "from-primary/20 to-primary/5" },
+    { icon: Map, title: "Build itineraries", desc: "Plan your perfect trip with local picks", color: "from-accent/20 to-accent/5" },
+    { icon: Heart, title: "Save & share", desc: "Keep your favourites and share with friends", color: "from-destructive/10 to-destructive/5" },
+  ];
+
+  return (
+    <div className="mb-6 px-4">
+      <div className="rounded-2xl bg-muted/40 border border-border/30 p-5 overflow-hidden">
+        <div className="flex gap-2 mb-4">
+          {features.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveFeature(i)}
+              className={cn(
+                "h-1 rounded-full flex-1 transition-all duration-500",
+                i === activeFeature ? "bg-primary" : "bg-muted-foreground/20"
+              )}
+            />
+          ))}
+        </div>
+        
+        <div className="flex items-start gap-4">
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br transition-all duration-500",
+            features[activeFeature].color
+          )}>
+            {(() => {
+              const Icon = features[activeFeature].icon;
+              return <Icon className="w-6 h-6 text-foreground" />;
+            })()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-foreground mb-1">{features[activeFeature].title}</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{features[activeFeature].desc}</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={() => navigate("/itineraries")}
+            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.98] transition-transform"
+          >
+            Explore itineraries
+          </button>
+          <button
+            onClick={() => navigate("/experiences")}
+            className="flex-1 py-2.5 rounded-xl bg-muted border border-border/50 text-foreground text-sm font-semibold active:scale-[0.98] transition-transform"
+          >
+            Browse experiences
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const MobileHomeView = () => {
+  const [selectedCity, setSelectedCity] = useState("Zanzibar");
+  const navigate = useNavigate();
 
   const itineraries = getPopularItineraries();
   const experiences = allExperiences;
@@ -191,229 +240,126 @@ export const MobileHomeView = () => {
   const adventureExperiences = experiences.filter(e => e.category === "Adventure").slice(0, 10);
   const foodExperiences = experiences.filter(e => e.category === "Food").slice(0, 10);
   const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
-  const wildlifeExperiences = experiences.filter(e => e.category === "Wildlife").slice(0, 10);
-  const partyExperiences = experiences.filter(e => e.category === "Party").slice(0, 10);
 
-  const displayName = userProfile?.full_name || userProfile?.username || user?.email?.split('@')[0] || "you";
-
-  const tabPills = (
-    <div className="flex gap-2">
-      <button
-        onClick={() => setActiveTab("itineraries")}
-        className={cn(
-          "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
-          activeTab === "itineraries" 
-            ? "bg-foreground text-background" 
-            : "bg-muted text-foreground"
-        )}
-      >
-        Itineraries
-      </button>
-      <button
-        onClick={() => setActiveTab("experiences")}
-        className={cn(
-          "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
-          activeTab === "experiences" 
-            ? "bg-foreground text-background" 
-            : "bg-muted text-foreground"
-        )}
-      >
-        Experiences
-      </button>
+  // Header: SWAM logo on left, navigation on right
+  const headerContent = (
+    <div className="flex items-center justify-between w-full">
+      <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
+      <div className="flex gap-3">
+        <button
+          onClick={() => navigate("/itineraries")}
+          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Itineraries
+        </button>
+        <button
+          onClick={() => navigate("/experiences")}
+          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Experiences
+        </button>
+      </div>
     </div>
   );
 
   return (
-    <MobileShell headerContent={tabPills}>
-      {/* Greeting */}
-      <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-        <h1 className="text-2xl font-bold text-foreground">
-          Made for {displayName}
-        </h1>
+    <MobileShell headerContent={headerContent} hideAvatar notFixed>
+      {/* Search bar */}
+      <div className="px-4 mb-4 pt-2">
+        <button
+          onClick={() => {/* triggers search overlay from MobileShell */}}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/60 border border-border/40"
+        >
+          <Search className="w-5 h-5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">What do you want to explore?</span>
+        </button>
       </div>
 
-      {activeTab === "itineraries" ? (
-        <>
-          {/* 1. Itineraries */}
-          <HorizontalScrollRow 
-            title="Attractions you can't miss"
-            onTitleClick={() => navigate("/itineraries")}
-          >
-            {itineraries.slice(0, 6).map((itinerary) => (
-              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </HorizontalScrollRow>
+      {/* Location selector */}
+      <div className="px-4 mb-5 overflow-x-auto scrollbar-hide">
+        <LocationSelector selectedCity={selectedCity} onCityChange={setSelectedCity} />
+      </div>
 
-          {/* 2. Experiences */}
-          <HorizontalScrollRow 
-            title="Available in Dar Es Salaam next weekend"
-            onTitleClick={() => navigate("/experiences")}
-          >
-            {experiences.slice(0, 8).map((experience) => (
-              <MobileExperienceCard key={experience.id} experience={experience} />
-            ))}
-          </HorizontalScrollRow>
+      {/* Interactive education hero */}
+      <InteractiveHero />
 
-          {/* 3. Itineraries */}
-          <HorizontalScrollRow 
-            title="Curated by locals"
-            onTitleClick={() => navigate("/itineraries")}
-          >
-            {itineraries.slice(3, 9).map((itinerary) => (
-              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </HorizontalScrollRow>
+      {/* Alternating content: itineraries first, then experiences */}
+      <HorizontalScrollRow 
+        title="Attractions you can't miss"
+        onTitleClick={() => navigate("/itineraries")}
+      >
+        {itineraries.slice(0, 6).map((itinerary) => (
+          <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+        ))}
+      </HorizontalScrollRow>
 
-          {/* 4. Experiences - Adventure */}
-          {adventureExperiences.length > 0 && (
-            <HorizontalScrollRow 
-              title="Adventure awaits"
-              onTitleClick={() => navigate("/experiences?tag=Adventure")}
-            >
-              {adventureExperiences.map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
+      <HorizontalScrollRow 
+        title="Available in Dar Es Salaam next weekend"
+        onTitleClick={() => navigate("/experiences")}
+      >
+        {experiences.slice(0, 8).map((experience) => (
+          <MobileExperienceCard key={experience.id} experience={experience} />
+        ))}
+      </HorizontalScrollRow>
 
-          {/* 5. Itineraries */}
-          <HorizontalScrollRow 
-            title="Weekend getaways"
-            onTitleClick={() => navigate("/itineraries")}
-          >
-            {itineraries.slice(1, 7).map((itinerary) => (
-              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </HorizontalScrollRow>
+      <HorizontalScrollRow 
+        title="Curated by locals"
+        onTitleClick={() => navigate("/itineraries")}
+      >
+        {itineraries.slice(3, 9).map((itinerary) => (
+          <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+        ))}
+      </HorizontalScrollRow>
 
-          {/* 6. Experiences - Food */}
-          {foodExperiences.length > 0 && (
-            <HorizontalScrollRow 
-              title="Taste the local flavors"
-              onTitleClick={() => navigate("/experiences?tag=Food")}
-            >
-              {foodExperiences.map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
+      {adventureExperiences.length > 0 && (
+        <HorizontalScrollRow 
+          title="Adventure awaits"
+          onTitleClick={() => navigate("/experiences?tag=Adventure")}
+        >
+          {adventureExperiences.map((experience) => (
+            <MobileExperienceCard key={experience.id} experience={experience} />
+          ))}
+        </HorizontalScrollRow>
+      )}
 
-          {/* 7. Itineraries */}
-          <HorizontalScrollRow 
-            title="Popular this week"
-            onTitleClick={() => navigate("/itineraries")}
-          >
-            {itineraries.slice(2, 8).map((itinerary) => (
-              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </HorizontalScrollRow>
+      <HorizontalScrollRow 
+        title="Weekend getaways"
+        onTitleClick={() => navigate("/itineraries")}
+      >
+        {itineraries.slice(1, 7).map((itinerary) => (
+          <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+        ))}
+      </HorizontalScrollRow>
 
-          {/* 8. Experiences - Beach */}
-          {beachExperiences.length > 0 && (
-            <HorizontalScrollRow 
-              title="Beach vibes"
-              onTitleClick={() => navigate("/experiences?tag=Beaches")}
-            >
-              {beachExperiences.map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
-        </>
-      ) : (
-        <>
-          {/* Experiences tab - same alternating pattern */}
-          <HorizontalScrollRow 
-            title="Trending now"
-            onTitleClick={() => navigate("/experiences")}
-          >
-            {experiences.slice(0, 8).map((experience) => (
-              <MobileExperienceCard key={experience.id} experience={experience} />
-            ))}
-          </HorizontalScrollRow>
+      {foodExperiences.length > 0 && (
+        <HorizontalScrollRow 
+          title="Taste the local flavors"
+          onTitleClick={() => navigate("/experiences?tag=Food")}
+        >
+          {foodExperiences.map((experience) => (
+            <MobileExperienceCard key={experience.id} experience={experience} />
+          ))}
+        </HorizontalScrollRow>
+      )}
 
-          <HorizontalScrollRow 
-            title="Curated collections"
-            onTitleClick={() => navigate("/itineraries")}
-          >
-            {itineraries.slice(0, 6).map((itinerary) => (
-              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </HorizontalScrollRow>
+      <HorizontalScrollRow 
+        title="Popular this week"
+        onTitleClick={() => navigate("/itineraries")}
+      >
+        {itineraries.slice(2, 8).map((itinerary) => (
+          <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+        ))}
+      </HorizontalScrollRow>
 
-          {adventureExperiences.length > 0 && (
-            <HorizontalScrollRow 
-              title="Adventure awaits"
-              onTitleClick={() => navigate("/experiences?tag=Adventure")}
-            >
-              {adventureExperiences.map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
-
-          <HorizontalScrollRow 
-            title="Attractions you can't miss"
-            onTitleClick={() => navigate("/itineraries")}
-          >
-            {itineraries.slice(2, 8).map((itinerary) => (
-              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </HorizontalScrollRow>
-
-          {beachExperiences.length > 0 && (
-            <HorizontalScrollRow 
-              title="Beach vibes"
-              onTitleClick={() => navigate("/experiences?tag=Beaches")}
-            >
-              {beachExperiences.map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
-
-          <HorizontalScrollRow 
-            title="Weekend getaways"
-            onTitleClick={() => navigate("/itineraries")}
-          >
-            {itineraries.slice(1, 7).map((itinerary) => (
-              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </HorizontalScrollRow>
-
-          {foodExperiences.length > 0 && (
-            <HorizontalScrollRow 
-              title="Taste the local flavors"
-              onTitleClick={() => navigate("/experiences?tag=Food")}
-            >
-              {foodExperiences.map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
-
-          {wildlifeExperiences.length > 0 && (
-            <HorizontalScrollRow 
-              title="Wildlife encounters"
-              onTitleClick={() => navigate("/experiences?tag=Wildlife")}
-            >
-              {wildlifeExperiences.map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
-
-          {partyExperiences.length > 0 && (
-            <HorizontalScrollRow 
-              title="Nightlife & parties"
-              onTitleClick={() => navigate("/experiences?tag=Nightlife")}
-            >
-              {partyExperiences.map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
-        </>
+      {beachExperiences.length > 0 && (
+        <HorizontalScrollRow 
+          title="Beach vibes"
+          onTitleClick={() => navigate("/experiences?tag=Beaches")}
+        >
+          {beachExperiences.map((experience) => (
+            <MobileExperienceCard key={experience.id} experience={experience} />
+          ))}
+        </HorizontalScrollRow>
       )}
     </MobileShell>
   );

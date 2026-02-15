@@ -5,7 +5,7 @@ import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
-import { ArrowLeft, Search, Users, Heart, Layers } from "lucide-react";
+import { ArrowLeft, Search, Users, Heart, Layers, MapPin } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -179,7 +179,11 @@ const ItinerariesPage = () => {
 
     const tagPills = (
       <div className="flex items-center">
-        {/* Fixed "All" button */}
+        {/* Location pill */}
+        <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-accent/20 text-accent border border-accent/30 flex-shrink-0 mr-2">
+          <MapPin className="w-3 h-3" />
+          <span>Zanzibar</span>
+        </div>
         <button
           onClick={() => setActiveTag("All")}
           className={cn(
@@ -191,7 +195,6 @@ const ItinerariesPage = () => {
         >
           All
         </button>
-        {/* Scrollable tags */}
         <div ref={tagScrollRef} className="overflow-x-auto scrollbar-hide flex-1" style={{ scrollbarWidth: 'none' }}>
           <div className="inline-flex gap-2" style={{ paddingRight: '16px' }}>
             {tags.filter(t => t !== "All").map((tag, index) => (
