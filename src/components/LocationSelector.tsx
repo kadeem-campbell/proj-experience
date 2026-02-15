@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { MapPin, X, ChevronRight, Globe } from "lucide-react";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 
 const availableCities = [
-  { id: "zanzibar", name: "Zanzibar", emoji: "🏝️" },
-  { id: "dar-es-salaam", name: "Dar es Salaam", emoji: "🌆" },
-  { id: "nairobi", name: "Nairobi", emoji: "🦁" },
+  { id: "zanzibar", name: "Zanzibar" },
+  { id: "dar-es-salaam", name: "Dar es Salaam" },
+  { id: "nairobi", name: "Nairobi" },
 ];
 
 const comingSoonCities = [
@@ -73,25 +73,24 @@ export const LocationSelector = ({ selectedCity, onCityChange }: LocationSelecto
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-nowrap overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {availableCities.map((city) => (
           <button
             key={city.id}
-            onClick={() => onCityChange(city.name)}
+            onClick={() => onCityChange(selectedCity === city.name ? "" : city.name)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all active:scale-95 border",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all active:scale-95 border whitespace-nowrap flex-shrink-0",
               selectedCity === city.name
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-muted/60 text-foreground border-border/50"
             )}
           >
-            <span>{city.emoji}</span>
             <span>{city.name}</span>
           </button>
         ))}
         <button
           onClick={() => setCityModalOpen(true)}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium bg-muted/40 text-muted-foreground border border-dashed border-border/60 active:scale-95 transition-all"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium bg-muted/40 text-muted-foreground border border-dashed border-border/60 active:scale-95 transition-all whitespace-nowrap flex-shrink-0"
         >
           <MapPin className="w-3.5 h-3.5" />
           <span>More</span>

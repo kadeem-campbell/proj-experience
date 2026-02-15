@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Search, ArrowRight, Compass, Map } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, ArrowRight, Compass, Map } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -231,7 +231,7 @@ const InteractiveHero = () => {
 };
 
 export const MobileHomeView = () => {
-  const [selectedCity, setSelectedCity] = useState("Zanzibar");
+  const [selectedCity, setSelectedCity] = useState("");
   const navigate = useNavigate();
 
   const itineraries = getPopularItineraries();
@@ -264,19 +264,8 @@ export const MobileHomeView = () => {
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
-      {/* Search bar */}
-      <div className="px-4 mb-4 pt-2">
-        <button
-          onClick={() => {/* triggers search overlay from MobileShell */}}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/60 border border-border/40"
-        >
-          <Search className="w-5 h-5 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">What do you want to explore?</span>
-        </button>
-      </div>
-
       {/* Location selector */}
-      <div className="px-4 mb-5 overflow-x-auto scrollbar-hide">
+      <div className="px-4 mb-4 pt-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         <LocationSelector selectedCity={selectedCity} onCityChange={setSelectedCity} />
       </div>
 
