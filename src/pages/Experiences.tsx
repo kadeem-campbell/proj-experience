@@ -195,6 +195,11 @@ const ExperiencesPage = () => {
 
     const tagPills = (
       <div className="flex items-center">
+        {/* Location pill */}
+        <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-accent/20 text-accent border border-accent/30 flex-shrink-0 mr-2">
+          <MapPin className="w-3 h-3" />
+          <span>Zanzibar</span>
+        </div>
         <button
           onClick={() => setActiveTag("All")}
           className={cn(

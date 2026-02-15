@@ -117,16 +117,21 @@ const MobileTopBar = ({
   onProfileClick, 
   headerContent,
   hideAvatar = false,
+  notFixed = false,
 }: { 
   onProfileClick: () => void;
   headerContent?: ReactNode;
   hideAvatar?: boolean;
+  notFixed?: boolean;
 }) => {
   const { userProfile } = useAuth();
   const displayName = userProfile?.full_name || userProfile?.username || "G";
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-[hsl(0,0%,7.1%)] safe-area-inset-top">
+    <div className={cn(
+      "top-0 left-0 right-0 z-50 bg-[hsl(0,0%,7.1%)] safe-area-inset-top",
+      notFixed ? "relative" : "fixed"
+    )}>
       <div className="flex items-center gap-3 px-4 pt-3 pb-3">
         {!hideAvatar && (
           <button 
@@ -153,10 +158,11 @@ interface MobileShellProps {
   headerContent?: ReactNode;
   hideTopBar?: boolean;
   hideAvatar?: boolean;
+  notFixed?: boolean;
   className?: string;
 }
 
-export const MobileShell = ({ children, headerContent, hideTopBar = false, hideAvatar = false, className }: MobileShellProps) => {
+export const MobileShell = ({ children, headerContent, hideTopBar = false, hideAvatar = false, notFixed = false, className }: MobileShellProps) => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -177,11 +183,12 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
           onProfileClick={() => setProfileMenuOpen(true)} 
           headerContent={headerContent}
           hideAvatar={hideAvatar}
+          notFixed={notFixed}
         />
       )}
 
       {/* Content area */}
-      <div className={cn(!hideTopBar && "pt-16", "pb-24")}>
+      <div className={cn(!hideTopBar && !notFixed && "pt-16", "pb-24")}>
         {children}
       </div>
 
