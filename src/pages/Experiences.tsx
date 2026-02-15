@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/button";
@@ -125,9 +125,13 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 };
 
 const ExperiencesPage = () => {
+  const [searchParams] = useSearchParams();
+  const initialTag = searchParams.get("tag");
+  const matchedTag = initialTag ? tags.find(t => t.toLowerCase() === initialTag.toLowerCase()) || "All" : "All";
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(24);
-  const [activeTag, setActiveTag] = useState("All");
+  const [activeTag, setActiveTag] = useState(matchedTag);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const tagScrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();

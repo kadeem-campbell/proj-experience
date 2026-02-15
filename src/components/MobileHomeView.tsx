@@ -6,6 +6,7 @@ import { allExperiences } from "@/hooks/useExperiencesData";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
+import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
 
@@ -25,7 +26,6 @@ const HorizontalScrollRow = ({
 
   return (
     <div className="mb-8">
-      {/* Title - aligned with cards at 16px from left */}
       <button 
         onClick={onTitleClick}
         className="mb-4 block w-full text-left"
@@ -34,7 +34,6 @@ const HorizontalScrollRow = ({
         <h2 className="text-lg font-bold text-foreground truncate">{title}</h2>
       </button>
       
-      {/* Scrollable wrapper */}
       <div 
         ref={scrollRef}
         className="overflow-x-auto scrollbar-hide pb-2"
@@ -52,7 +51,7 @@ const HorizontalScrollRow = ({
   );
 };
 
-// Itinerary card for horizontal scroll - 3:2 aspect ratio
+// Itinerary card for horizontal scroll - 3:2 aspect ratio with creator name
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -104,23 +103,21 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
         <p className="text-xs text-muted-foreground truncate">
-          {experienceCount} {experienceCount === 1 ? 'activity' : 'activities'}
+          {itinerary.creatorName || 'Local Creator'}
         </p>
       </div>
     </div>
   );
 };
 
-// Experience card for horizontal scroll - 4:3 aspect ratio
+// Experience card with + button using ItinerarySelector drawer
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
-  const { addExperienceToItinerary, activeItinerary, isInItinerary, removeExperienceFromItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
 
   const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked;
-  const inItinerary = isInItinerary(experience.id);
 
   const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -136,22 +133,9 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
     }
   };
 
-  const handleAddClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    if (activeItinerary) {
-      if (inItinerary) {
-        removeExperienceFromItinerary(activeItinerary.id, experience.id);
-      } else {
-        addExperienceToItinerary(activeItinerary.id, experience);
-      }
-    }
-  };
-
   return (
     <div 
-      className="flex-shrink-0 w-[55vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/experience/${experience.id}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
@@ -166,12 +150,24 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
-        <button onClick={handleAddClick} className={cn(
-          "absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90",
-          inItinerary ? "bg-primary text-primary-foreground" : "bg-background/70 backdrop-blur-xl shadow-sm"
-        )}>
-          <Plus className={cn("w-4 h-4", inItinerary ? "rotate-45" : "text-foreground")} />
-        </button>
+        <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <ItinerarySelector
+            experienceId={experience.id}
+            experienceData={{
+              id: experience.id,
+              title: experience.title,
+              creator: experience.creator || '',
+              videoThumbnail: experience.videoThumbnail || '',
+              category: experience.category || '',
+              location: experience.location || '',
+              price: experience.price || '',
+            }}
+          >
+            <button className="w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90">
+              <Plus className="w-4 h-4 text-foreground" />
+            </button>
+          </ItinerarySelector>
+        </div>
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
@@ -179,9 +175,6 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <MapPin className="w-3 h-3" />
           <span className="truncate">{experience.location}</span>
         </div>
-        {experience.price && (
-          <p className="text-xs text-muted-foreground">~{experience.price}</p>
-        )}
       </div>
     </div>
   );
@@ -232,7 +225,7 @@ export const MobileHomeView = () => {
 
   return (
     <MobileShell headerContent={tabPills}>
-      {/* Greeting - Spotify "Made for X" style */}
+      {/* Greeting */}
       <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
         <h1 className="text-2xl font-bold text-foreground">
           Made for {displayName}
@@ -241,6 +234,7 @@ export const MobileHomeView = () => {
 
       {activeTab === "itineraries" ? (
         <>
+          {/* 1. Itineraries */}
           <HorizontalScrollRow 
             title="Attractions you can't miss"
             onTitleClick={() => navigate("/itineraries")}
@@ -250,15 +244,17 @@ export const MobileHomeView = () => {
             ))}
           </HorizontalScrollRow>
 
+          {/* 2. Experiences */}
           <HorizontalScrollRow 
             title="Available in Dar Es Salaam next weekend"
-            onTitleClick={() => navigate("/experiences?location=dar")}
+            onTitleClick={() => navigate("/experiences")}
           >
             {experiences.slice(0, 8).map((experience) => (
               <MobileExperienceCard key={experience.id} experience={experience} />
             ))}
           </HorizontalScrollRow>
 
+          {/* 3. Itineraries */}
           <HorizontalScrollRow 
             title="Curated by locals"
             onTitleClick={() => navigate("/itineraries")}
@@ -268,10 +264,11 @@ export const MobileHomeView = () => {
             ))}
           </HorizontalScrollRow>
 
+          {/* 4. Experiences - Adventure */}
           {adventureExperiences.length > 0 && (
             <HorizontalScrollRow 
               title="Adventure awaits"
-              onTitleClick={() => navigate("/experiences?category=adventure")}
+              onTitleClick={() => navigate("/experiences?tag=Adventure")}
             >
               {adventureExperiences.map((experience) => (
                 <MobileExperienceCard key={experience.id} experience={experience} />
@@ -279,12 +276,45 @@ export const MobileHomeView = () => {
             </HorizontalScrollRow>
           )}
 
+          {/* 5. Itineraries */}
+          <HorizontalScrollRow 
+            title="Weekend getaways"
+            onTitleClick={() => navigate("/itineraries")}
+          >
+            {itineraries.slice(1, 7).map((itinerary) => (
+              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+            ))}
+          </HorizontalScrollRow>
+
+          {/* 6. Experiences - Food */}
           {foodExperiences.length > 0 && (
             <HorizontalScrollRow 
               title="Taste the local flavors"
-              onTitleClick={() => navigate("/experiences?category=food")}
+              onTitleClick={() => navigate("/experiences?tag=Food")}
             >
               {foodExperiences.map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
+          )}
+
+          {/* 7. Itineraries */}
+          <HorizontalScrollRow 
+            title="Popular this week"
+            onTitleClick={() => navigate("/itineraries")}
+          >
+            {itineraries.slice(2, 8).map((itinerary) => (
+              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+            ))}
+          </HorizontalScrollRow>
+
+          {/* 8. Experiences - Beach */}
+          {beachExperiences.length > 0 && (
+            <HorizontalScrollRow 
+              title="Beach vibes"
+              onTitleClick={() => navigate("/experiences?tag=Beaches")}
+            >
+              {beachExperiences.map((experience) => (
                 <MobileExperienceCard key={experience.id} experience={experience} />
               ))}
             </HorizontalScrollRow>
@@ -292,19 +322,29 @@ export const MobileHomeView = () => {
         </>
       ) : (
         <>
+          {/* Experiences tab - same alternating pattern */}
           <HorizontalScrollRow 
-            title="Available in Dar Es Salaam next weekend"
-            onTitleClick={() => navigate("/experiences?location=dar")}
+            title="Trending now"
+            onTitleClick={() => navigate("/experiences")}
           >
             {experiences.slice(0, 8).map((experience) => (
               <MobileExperienceCard key={experience.id} experience={experience} />
             ))}
           </HorizontalScrollRow>
 
+          <HorizontalScrollRow 
+            title="Curated collections"
+            onTitleClick={() => navigate("/itineraries")}
+          >
+            {itineraries.slice(0, 6).map((itinerary) => (
+              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+            ))}
+          </HorizontalScrollRow>
+
           {adventureExperiences.length > 0 && (
             <HorizontalScrollRow 
               title="Adventure awaits"
-              onTitleClick={() => navigate("/experiences?category=adventure")}
+              onTitleClick={() => navigate("/experiences?tag=Adventure")}
             >
               {adventureExperiences.map((experience) => (
                 <MobileExperienceCard key={experience.id} experience={experience} />
@@ -312,10 +352,19 @@ export const MobileHomeView = () => {
             </HorizontalScrollRow>
           )}
 
+          <HorizontalScrollRow 
+            title="Attractions you can't miss"
+            onTitleClick={() => navigate("/itineraries")}
+          >
+            {itineraries.slice(2, 8).map((itinerary) => (
+              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+            ))}
+          </HorizontalScrollRow>
+
           {beachExperiences.length > 0 && (
             <HorizontalScrollRow 
               title="Beach vibes"
-              onTitleClick={() => navigate("/experiences?category=beach")}
+              onTitleClick={() => navigate("/experiences?tag=Beaches")}
             >
               {beachExperiences.map((experience) => (
                 <MobileExperienceCard key={experience.id} experience={experience} />
@@ -323,10 +372,19 @@ export const MobileHomeView = () => {
             </HorizontalScrollRow>
           )}
 
+          <HorizontalScrollRow 
+            title="Weekend getaways"
+            onTitleClick={() => navigate("/itineraries")}
+          >
+            {itineraries.slice(1, 7).map((itinerary) => (
+              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+            ))}
+          </HorizontalScrollRow>
+
           {foodExperiences.length > 0 && (
             <HorizontalScrollRow 
               title="Taste the local flavors"
-              onTitleClick={() => navigate("/experiences?category=food")}
+              onTitleClick={() => navigate("/experiences?tag=Food")}
             >
               {foodExperiences.map((experience) => (
                 <MobileExperienceCard key={experience.id} experience={experience} />
@@ -337,7 +395,7 @@ export const MobileHomeView = () => {
           {wildlifeExperiences.length > 0 && (
             <HorizontalScrollRow 
               title="Wildlife encounters"
-              onTitleClick={() => navigate("/experiences?category=wildlife")}
+              onTitleClick={() => navigate("/experiences?tag=Wildlife")}
             >
               {wildlifeExperiences.map((experience) => (
                 <MobileExperienceCard key={experience.id} experience={experience} />
@@ -348,22 +406,13 @@ export const MobileHomeView = () => {
           {partyExperiences.length > 0 && (
             <HorizontalScrollRow 
               title="Nightlife & parties"
-              onTitleClick={() => navigate("/experiences?category=party")}
+              onTitleClick={() => navigate("/experiences?tag=Nightlife")}
             >
               {partyExperiences.map((experience) => (
                 <MobileExperienceCard key={experience.id} experience={experience} />
               ))}
             </HorizontalScrollRow>
           )}
-
-          <HorizontalScrollRow 
-            title="Curated collections"
-            onTitleClick={() => navigate("/itineraries")}
-          >
-            {itineraries.slice(0, 6).map((itinerary) => (
-              <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </HorizontalScrollRow>
         </>
       )}
     </MobileShell>
