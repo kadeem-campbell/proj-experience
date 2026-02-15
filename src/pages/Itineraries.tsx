@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
 import { ArrowLeft, Search, Users, Heart, Layers, MapPin } from "lucide-react";
+import { LocationSelector } from "@/components/LocationSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -177,13 +178,14 @@ const ItinerariesPage = () => {
       }
     };
 
+    const locationRow = (
+      <div className="px-4 py-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        <LocationSelector selectedCity="" onCityChange={() => {}} />
+      </div>
+    );
+
     const tagPills = (
       <div className="flex items-center">
-        {/* Location pill */}
-        <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-accent/20 text-accent border border-accent/30 flex-shrink-0 mr-2">
-          <MapPin className="w-3 h-3" />
-          <span>Zanzibar</span>
-        </div>
         <button
           onClick={() => setActiveTag("All")}
           className={cn(
@@ -217,7 +219,7 @@ const ItinerariesPage = () => {
     );
 
     return (
-      <MobileShell headerContent={tagPills} hideAvatar>
+      <MobileShell headerContent={<div>{locationRow}{tagPills}</div>} hideAvatar>
         <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
           <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
         </div>
