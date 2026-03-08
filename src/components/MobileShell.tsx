@@ -22,18 +22,18 @@ const ProfileSlideMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     <>
       <div 
         className={cn(
-          "fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-300",
+          "fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300",
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
       />
       <div className={cn(
-        "fixed top-0 left-0 bottom-0 z-[61] w-[75vw] max-w-[300px] bg-card border-r border-border transition-transform duration-300 ease-out flex flex-col",
+        "fixed top-0 left-0 bottom-0 z-[61] w-[75vw] max-w-[300px] bg-background border-r border-border shadow-xl transition-transform duration-300 ease-out flex flex-col",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-5 pt-[calc(env(safe-area-inset-top,12px)+12px)] border-b border-border">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
               {userProfile?.avatar_url ? (
                 <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
               ) : (
@@ -69,7 +69,7 @@ const ProfileSlideMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   );
 };
 
-// Fixed bottom navigation bar with gradient
+// Fixed bottom navigation bar - solid white, strong
 const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -92,17 +92,16 @@ const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      <div className="absolute inset-0 -top-12 pointer-events-none bg-gradient-to-t from-[hsl(0,0%,7.1%)] via-[hsl(0,0%,7.1%,0.8)] to-transparent" />
-      <div className="relative flex items-center justify-around px-4 pb-[env(safe-area-inset-bottom,8px)] pt-2">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+      <div className="flex items-center justify-around px-4 pb-[env(safe-area-inset-bottom,8px)] pt-2">
         {navItems.map(({ icon: Icon, label, action, isActive }) => (
           <button
             key={label}
             onClick={action}
-            className="flex flex-col items-center gap-1 min-w-[60px] py-1"
+            className="flex flex-col items-center gap-0.5 min-w-[56px] py-1"
           >
-            <Icon className={cn("w-6 h-6", isActive ? "text-foreground" : "text-muted-foreground")} />
-            <span className={cn("text-[10px]", isActive ? "text-foreground font-medium" : "text-muted-foreground")}>
+            <Icon className={cn("w-[22px] h-[22px]", isActive ? "text-primary" : "text-muted-foreground")} strokeWidth={isActive ? 2.5 : 2} />
+            <span className={cn("text-[10px]", isActive ? "text-primary font-semibold" : "text-muted-foreground")}>
               {label}
             </span>
           </button>
@@ -112,7 +111,7 @@ const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
   );
 };
 
-// Top header bar with avatar (can optionally show tabs or custom content)
+// Top header bar
 const MobileTopBar = ({ 
   onProfileClick, 
   headerContent,
@@ -129,14 +128,14 @@ const MobileTopBar = ({
 
   return (
     <div className={cn(
-      "top-0 left-0 right-0 z-50 bg-[hsl(0,0%,7.1%)] safe-area-inset-top",
+      "top-0 left-0 right-0 z-50 bg-background safe-area-inset-top",
       notFixed ? "relative" : "fixed"
     )}>
       <div className="flex items-center gap-3 px-4 pt-3 pb-3">
         {!hideAvatar && (
           <button 
             onClick={onProfileClick}
-            className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden"
+            className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden"
           >
             {userProfile?.avatar_url ? (
               <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
@@ -168,7 +167,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className={cn("min-h-screen bg-[hsl(0,0%,7.1%)]", className)}>
+    <div className={cn("min-h-screen bg-background", className)}>
       <MobileSearchOverlay
         isOpen={mobileSearchOpen}
         onClose={() => setMobileSearchOpen(false)}
@@ -188,7 +187,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
       )}
 
       {/* Content area */}
-      <div className={cn(!hideTopBar && !notFixed && "pt-16", "pb-24")}>
+      <div className={cn(!hideTopBar && !notFixed && "pt-16", "pb-20")}>
         {children}
       </div>
 

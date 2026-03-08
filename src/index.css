@@ -8,23 +8,23 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 7.1%;
-    --foreground: 0 0% 95%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 8%;
 
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 8%;
 
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
 
     --primary: 346 82% 51%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 85%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
 
-    --muted: 0 0% 8%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 40%;
 
     --accent: 346 82% 60%;
     --accent-foreground: 0 0% 100%;
@@ -32,8 +32,8 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 10%;
+    --border: 0 0% 90%;
+    --input: 0 0% 93%;
     --ring: 346 82% 51%;
 
     /* Custom gradient colors */
@@ -42,30 +42,34 @@ All colors MUST be HSL.
     --gradient-end: 346 70% 65%;
     
     /* Brand colors */
-    --video-card: 0 0% 5%;
+    --video-card: 0 0% 98%;
     --video-overlay: 0 0% 0%;
     --heart-color: 346 82% 51%;
     --cyan-accent: 180 78% 60%;
 
-    /* Social engagement colors - Polymarket style */
-    --success: 142 76% 45%;
+    /* Social engagement colors */
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
-    --activity: 45 93% 58%;
+    --activity: 45 93% 48%;
     --activity-foreground: 0 0% 0%;
-    --live: 142 76% 45%;
+    --live: 142 76% 36%;
     --trending: 346 82% 51%;
-    --social-blue: 217 91% 60%;
+    --social-blue: 217 91% 50%;
+
+    /* Itinerary vs Experience section colors */
+    --itinerary-bg: 210 40% 97%;
+    --experience-bg: 346 30% 97%;
 
     --radius: 0.5rem;
 
-    /* Sidebar - dark theme matching main background */
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 95%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 8%;
     --sidebar-primary: 346 82% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 15%;
+    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent-foreground: 0 0% 8%;
+    --sidebar-border: 0 0% 90%;
     --sidebar-ring: 346 82% 51%;
   }
 

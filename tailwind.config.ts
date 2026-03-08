@@ -72,7 +72,9 @@ export default {
 				},
 				live: 'hsl(var(--live))',
 				trending: 'hsl(var(--trending))',
-				'social-blue': 'hsl(var(--social-blue))'
+				'social-blue': 'hsl(var(--social-blue))',
+				'itinerary-bg': 'hsl(var(--itinerary-bg))',
+				'experience-bg': 'hsl(var(--experience-bg))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
