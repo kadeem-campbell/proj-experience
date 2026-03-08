@@ -157,15 +157,16 @@ const HorizontalScrollRow = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const titleColor = variant === "itinerary" ? "text-itinerary-color" : variant === "experience" ? "text-experience-color" : "text-foreground";
+  const chevronColor = variant === "itinerary" ? "text-itinerary-color" : variant === "experience" ? "text-experience-color" : "text-muted-foreground";
 
   return (
     <div className="py-5">
       <button 
         onClick={onTitleClick}
-        className="mb-3 block w-full text-left px-4"
+        className="mb-3 flex items-center justify-between w-full text-left px-4"
       >
-        <h2 className={cn("text-[17px] font-bold", titleColor)}>{title}</h2>
+        <h2 className="text-[17px] font-bold text-foreground">{title}</h2>
+        <span className={cn("text-lg font-semibold", chevronColor)}>›</span>
       </button>
       <div 
         ref={scrollRef}
