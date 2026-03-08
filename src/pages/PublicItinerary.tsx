@@ -295,6 +295,7 @@ const PublicItinerary = () => {
       }
       return updated;
     });
+    setHasUnsavedChanges(true);
   };
 
   // Move experience to different day
