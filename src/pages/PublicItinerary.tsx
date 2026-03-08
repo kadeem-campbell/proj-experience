@@ -268,6 +268,8 @@ const PublicItinerary = () => {
       setActiveTripMode(true);
       setShowTripSelectorSheet(false);
       setShowNewTripDatePicker(false);
+      setHasUnsavedChanges(true);
+      setActiveTripId(null); // This is a new trip, not an existing one
     }, 500);
   };
 
