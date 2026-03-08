@@ -110,16 +110,25 @@ const PublicItinerary = () => {
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
 
-  // Get related public itineraries (same tag or similar location)
-  // Must be called before early return to satisfy hooks rules
-  const relatedItineraries = useMemo(() => {
-    if (!itinerary) return [];
-    return publicItinerariesData
-      .filter(i => i.id !== itinerary.id)
-      .filter(i => i.tag === itinerary.tag || 
-        i.experiences.some(e => itinerary.experiences.some(ie => ie.location === e.location)))
-      .slice(0, 6);
+  // Get the primary location of this itinerary
+  const itineraryLocation = useMemo(() => {
+    if (!itinerary) return '';
+    const locations = itinerary.experiences.map(e => e.location).filter(Boolean);
+    // Find most common location
+    const freq: Record<string, number> = {};
+    locations.forEach(l => { freq[l] = (freq[l] || 0) + 1; });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
+
+  // Get related experiences from same location (not in this itinerary)
+  const relatedExperiences = useMemo(() => {
+    if (!itinerary || !itineraryLocation) return [];
+    const itineraryExpIds = new Set(itinerary.experiences.map(e => e.id));
+    return allExperiences
+      .filter(e => e.location?.toLowerCase().includes(itineraryLocation.toLowerCase()))
+      .filter(e => !itineraryExpIds.has(e.id))
+      .slice(0, 8);
+  }, [itinerary, itineraryLocation]);
 
   if (!itinerary) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
