@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { UserCircle, User, LogOut, Map, MapPin, Check } from "lucide-react";
+import { UserCircle, User, LogOut, Map, MapPin, Check, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { City } from "@/data/browseData";
 import { useAuth } from "@/hooks/useAuth";
@@ -93,7 +94,7 @@ export const FixedSearchHeader = ({
     <>
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       
-      {/* City selector dialog - desktop version of mobile drawer */}
+      {/* City selector dialog */}
       <Dialog open={cityDialogOpen} onOpenChange={setCityDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -107,7 +108,6 @@ export const FixedSearchHeader = ({
                 disabled={!city.available}
                 onClick={() => {
                   if (city.available) {
-                    // Toggle: if same city selected, clear it
                     if (selectedCity?.name === city.name) {
                       onCitySelect(null);
                     } else {
@@ -158,16 +158,39 @@ export const FixedSearchHeader = ({
           !isVisible && "-translate-y-full"
         )}
       >
-        {/* Header row - left padding accounts for fixed sidebar toggle button */}
         <div className="px-4 md:px-6 md:pl-14 py-3">
-          <div className="flex items-center justify-between md:justify-end">
+          <div className="flex items-center gap-3">
             {/* Left: SWAM logo (mobile only) */}
-            <Link to="/" className="md:hidden">
+            <Link to="/" className="md:hidden shrink-0">
               <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
             </Link>
 
+            {/* Center: Spotify-style search bar - prominent on desktop */}
+            <div className="flex-1 max-w-xl hidden md:block">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="What do you want to explore?"
+                  className="pl-12 pr-10 h-11 text-base bg-muted/60 border-0 rounded-full focus-visible:ring-2 focus-visible:ring-primary/40 placeholder:text-muted-foreground/50 hover:bg-muted transition-colors"
+                  style={{ fontSize: "15px" }}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => onSearchChange("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-background/40 rounded-full transition-colors"
+                  >
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Right: City filter + Map + Profile */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-auto">
               {selectedCity && (
                 <button
                   onClick={() => onCitySelect(null)}
@@ -191,7 +214,7 @@ export const FixedSearchHeader = ({
                   {isAuthenticated ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-2">
+                        <Button variant="ghost" size="sm" className="gap-2 rounded-full">
                           <UserCircle className="w-5 h-5" />
                           <span className="max-w-[120px] truncate">
                             {userProfile?.username || userProfile?.full_name || user?.email?.split('@')[0]}
@@ -215,7 +238,7 @@ export const FixedSearchHeader = ({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-                    <Button size="sm" onClick={() => setAuthModalOpen(true)}>
+                    <Button size="sm" className="rounded-full" onClick={() => setAuthModalOpen(true)}>
                       Sign Up
                     </Button>
                   )}
