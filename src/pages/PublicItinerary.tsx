@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -84,6 +84,12 @@ const PublicItinerary = () => {
   const [copied, setCopied] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('local_likes');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
   const [draggedExperience, setDraggedExperience] = useState<LikedExperience | null>(null);
   const [newItineraryName, setNewItineraryName] = useState("");
   const [showNewItineraryInput, setShowNewItineraryInput] = useState<string | null>(null);
@@ -113,7 +119,27 @@ const PublicItinerary = () => {
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
 
-  // Find the public itinerary
+  // Unified like check and toggle for both auth and guest users
+  const isItemLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' = 'experience') => {
+    if (isAuthenticated) return isDbLiked(itemId, itemType);
+    return localLikes.has(`${itemType}:${itemId}`);
+  }, [isAuthenticated, isDbLiked, localLikes]);
+
+  const handleToggleLike = useCallback(async (itemId: string, itemType: 'experience' | 'itinerary', itemData: Record<string, any>) => {
+    if (isAuthenticated) {
+      await toggleDbLike(itemId, itemType, itemData);
+    } else {
+      setLocalLikes(prev => {
+        const key = `${itemType}:${itemId}`;
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key); else next.add(key);
+        localStorage.setItem('local_likes', JSON.stringify([...next]));
+        return next;
+      });
+    }
+  }, [isAuthenticated, toggleDbLike]);
+
+
   const itinerary = publicItinerariesData.find(i => i.id === id);
 
   // Get the primary location of this itinerary
@@ -490,7 +516,7 @@ const PublicItinerary = () => {
 
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
-    const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : false;
+    const liked = isItemLiked(experience.id, 'experience');
     
     return (
       <Link 
@@ -521,17 +547,15 @@ const PublicItinerary = () => {
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (isAuthenticated) {
-                  await toggleDbLike(experience.id, 'experience', {
-                    id: experience.id,
-                    title: experience.title,
-                    creator: experience.creator,
-                    videoThumbnail: experience.videoThumbnail,
-                    category: experience.category,
-                    location: experience.location,
-                    price: experience.price,
-                  });
-                }
+                await handleToggleLike(experience.id, 'experience', {
+                  id: experience.id,
+                  title: experience.title,
+                  creator: experience.creator,
+                  videoThumbnail: experience.videoThumbnail,
+                  category: experience.category,
+                  location: experience.location,
+                  price: experience.price,
+                });
               }}
               className={cn(
                 "absolute top-2.5 left-2.5 p-2 rounded-full transition-all duration-200 active:scale-90",
@@ -799,23 +823,21 @@ const PublicItinerary = () => {
               {/* Like button (heart) */}
               <button 
                 onClick={async () => {
-                  if (isAuthenticated) {
-                    await toggleDbLike(itinerary.id, 'itinerary', {
-                      id: itinerary.id,
-                      name: itinerary.name,
-                      coverImage: itinerary.coverImage,
-                      creatorName: itinerary.creatorName,
-                    });
-                  }
+                  await handleToggleLike(itinerary.id, 'itinerary', {
+                    id: itinerary.id,
+                    name: itinerary.name,
+                    coverImage: itinerary.coverImage,
+                    creatorName: itinerary.creatorName,
+                  });
                 }}
                 className={cn(
                   "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors",
-                  isAuthenticated && isDbLiked(itinerary.id, 'itinerary') && "bg-primary/15"
+                  isItemLiked(itinerary.id, 'itinerary') && "bg-primary/15"
                 )}
               >
                 <Heart className={cn(
                   "w-5 h-5 transition-all",
-                  isAuthenticated && isDbLiked(itinerary.id, 'itinerary') 
+                  isItemLiked(itinerary.id, 'itinerary') 
                     ? "fill-primary text-primary" 
                     : "text-foreground"
                 )} />
