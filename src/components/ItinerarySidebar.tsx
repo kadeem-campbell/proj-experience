@@ -195,7 +195,10 @@ export const ItinerarySidebar = ({
       )}
     >
       <SidebarHeader className="p-3">
-        <div className="flex items-center justify-between">
+        <div className={cn(
+          "flex items-center",
+          collapsed ? "flex-col gap-2" : "justify-between"
+        )}>
           <Link to="/" className="flex items-center">
             <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
               <MapPin className="w-4 h-4 text-primary-foreground" />
@@ -205,7 +208,7 @@ export const ItinerarySidebar = ({
             )}
           </Link>
           
-          {/* Collapse button inside sidebar - ChatGPT style */}
+          {/* Collapse/Expand button - always visible on desktop */}
           {!isMobile && (
             <Button
               variant="ghost"
