@@ -1,13 +1,13 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo, useCallback } from "react";
-import { allExperiences } from "@/hooks/useExperiencesData";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
@@ -152,15 +152,6 @@ const PublicItinerary = () => {
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
 
-  // Get related experiences from same location (not in this itinerary)
-  const relatedExperiences = useMemo(() => {
-    if (!itinerary || !itineraryLocation) return [];
-    const itineraryExpIds = new Set(itinerary.experiences.map(e => e.id));
-    return allExperiences
-      .filter(e => e.location?.toLowerCase().includes(itineraryLocation.toLowerCase()))
-      .filter(e => !itineraryExpIds.has(e.id))
-      .slice(0, 8);
-  }, [itinerary, itineraryLocation]);
 
   if (!itinerary) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
@@ -523,10 +514,8 @@ const PublicItinerary = () => {
         key={experience.id}
         to={`/experience/${experience.id}`}
       >
-        <Card 
-          className={cn(
-            "group cursor-pointer transition-transform duration-150 border-0 bg-transparent p-0"
-          )}
+        <div 
+          className="group cursor-pointer transition-transform duration-150"
         >
           {/* Cover Image - match ExperienceCard geometry (4:3, rounded-xl) */}
           <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
@@ -660,7 +649,7 @@ const PublicItinerary = () => {
               {experience.location}
             </p>
           </div>
-        </Card>
+        </div>
       </Link>
     );
   };
@@ -1014,68 +1003,6 @@ const PublicItinerary = () => {
                 </div>
               )}
 
-              {/* Related Experiences from same location - simple add button */}
-              {relatedExperiences.length > 0 && !showTripView && (
-                <div className="mt-8 pt-8 border-t border-border">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-primary" />
-                    More experiences in {itineraryLocation}
-                  </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {relatedExperiences.map((exp) => {
-                      const alreadyInItinerary = itinerary.experiences.some(e => e.id === exp.id);
-                      return (
-                        <Link key={exp.id} to={`/experience/${exp.id}`}>
-                          <div className="group cursor-pointer">
-                            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
-                              <img 
-                                src={exp.videoThumbnail} 
-                                alt={exp.title}
-                                loading="lazy"
-                                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                              />
-                              {/* Direct add button */}
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (alreadyInItinerary) return;
-                                  addExperience({
-                                    id: exp.id,
-                                    title: exp.title,
-                                    creator: exp.creator,
-                                    videoThumbnail: exp.videoThumbnail,
-                                    category: exp.category,
-                                    location: exp.location,
-                                    price: exp.price,
-                                  });
-                                }}
-                                className={cn(
-                                  "absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
-                                  "bg-background/60 backdrop-blur-xl border border-border/20 shadow-sm",
-                                  alreadyInItinerary 
-                                    ? "bg-primary/20" 
-                                    : "hover:bg-background/80"
-                                )}
-                              >
-                                {alreadyInItinerary ? (
-                                  <Check className="w-4 h-4 text-primary" />
-                                ) : (
-                                  <Plus className="w-4 h-4 text-foreground/80" />
-                                )}
-                              </button>
-                            </div>
-                            <div className="mt-2.5 space-y-0.5">
-                              <h3 className="font-semibold text-sm line-clamp-1 text-foreground leading-snug">{exp.title}</h3>
-                              <p className="text-[13px] text-muted-foreground truncate leading-relaxed">{exp.location}</p>
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
