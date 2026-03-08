@@ -825,23 +825,21 @@ const PublicItinerary = () => {
               {/* Like button (heart) */}
               <button 
                 onClick={async () => {
-                  if (isAuthenticated) {
-                    await toggleDbLike(itinerary.id, 'itinerary', {
-                      id: itinerary.id,
-                      name: itinerary.name,
-                      coverImage: itinerary.coverImage,
-                      creatorName: itinerary.creatorName,
-                    });
-                  }
+                  await handleToggleLike(itinerary.id, 'itinerary', {
+                    id: itinerary.id,
+                    name: itinerary.name,
+                    coverImage: itinerary.coverImage,
+                    creatorName: itinerary.creatorName,
+                  });
                 }}
                 className={cn(
                   "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors",
-                  isAuthenticated && isDbLiked(itinerary.id, 'itinerary') && "bg-primary/15"
+                  isItemLiked(itinerary.id, 'itinerary') && "bg-primary/15"
                 )}
               >
                 <Heart className={cn(
                   "w-5 h-5 transition-all",
-                  isAuthenticated && isDbLiked(itinerary.id, 'itinerary') 
+                  isItemLiked(itinerary.id, 'itinerary') 
                     ? "fill-primary text-primary" 
                     : "text-foreground"
                 )} />
