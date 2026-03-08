@@ -114,8 +114,8 @@ export const ItinerarySidebar = ({
     if (aPinned && !bPinned) return -1;
     if (!aPinned && bPinned) return 1;
     // Most recent first
-    const aDate = a.created_at ? new Date(a.created_at).getTime() : 0;
-    const bDate = b.created_at ? new Date(b.created_at).getTime() : 0;
+    const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return bDate - aDate;
   });
 
