@@ -841,10 +841,10 @@ const PublicItinerary = () => {
         </div>
 
         {/* Main Content - Split View */}
-        <div className="flex-1 flex flex-col lg:flex-row">
-          {/* Left Side: Experiences (60%) */}
+        <div className="flex flex-col lg:flex-row">
+          {/* Left Side: Experiences */}
           <div className={cn(
-            "flex-1 overflow-y-auto border-r border-border",
+            "flex-1",
             showTripView ? "lg:w-[60%]" : "w-full"
           )}>
             {/* Search Bar */}
