@@ -17,7 +17,9 @@ const cities = [
 
 const CityList = () => {
   const navigate = useNavigate();
-  const [selectedCity, setSelectedCity] = useState("Zanzibar");
+  const [searchParams] = useSearchParams();
+  const currentCity = searchParams.get("city") || "";
+  const [selectedCity, setSelectedCity] = useState(currentCity);
 
   return (
     <div className="px-4 pt-2 pb-8">
