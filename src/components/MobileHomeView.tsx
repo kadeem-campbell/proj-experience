@@ -124,7 +124,6 @@ const DiscoveryCard = () => {
               {cta.label}
             </button>
           ))}
-        </div>
       </div>
     </div>
   );
