@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Compass, Map, Share2 } from "lucide-react";
+import { Heart, Plus, Layers, MapPin } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -192,65 +192,6 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   );
 };
 
-// Uber Rides/Eats style hero — 3 bold pillar cards
-const PillarHero = () => {
-  const navigate = useNavigate();
-
-  const pillars = [
-    { 
-      icon: Compass, 
-      title: "Experiences", 
-      desc: "Discover the best things to do",
-      colorClass: "bg-experience-color",
-      bgClass: "bg-experience-bg",
-      textClass: "text-experience-color",
-      onClick: () => navigate("/experiences"),
-    },
-    { 
-      icon: Map, 
-      title: "Itineraries", 
-      desc: "Build your perfect trip plan",
-      colorClass: "bg-itinerary-color",
-      bgClass: "bg-itinerary-bg",
-      textClass: "text-itinerary-color",
-      onClick: () => navigate("/itineraries"),
-    },
-    { 
-      icon: Share2, 
-      title: "Share", 
-      desc: "Save & share with friends",
-      colorClass: "bg-social-color",
-      bgClass: "bg-social-bg",
-      textClass: "text-social-color",
-      onClick: () => navigate("/experiences"),
-    },
-  ];
-
-  return (
-    <div className="px-4 mb-4">
-      <div className="flex gap-2">
-        {pillars.map((p) => (
-          <button
-            key={p.title}
-            onClick={p.onClick}
-            className={cn(
-              "flex-1 rounded-2xl p-4 flex flex-col items-start gap-3 active:scale-[0.97] transition-all border border-border/40",
-              p.bgClass
-            )}
-          >
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", p.colorClass)}>
-              <p.icon className="w-5 h-5 text-white" />
-            </div>
-            <div className="text-left">
-              <h3 className={cn("text-sm font-bold", p.textClass)}>{p.title}</h3>
-              <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{p.desc}</p>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 export const MobileHomeView = () => {
   const navigate = useNavigate();
@@ -262,17 +203,34 @@ export const MobileHomeView = () => {
   const foodExperiences = experiences.filter(e => e.category === "Food").slice(0, 10);
   const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
 
-  // Header: just SWAM logo
   const headerContent = (
     <div className="flex items-center justify-between w-full">
       <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
+      <div className="flex gap-3">
+        <button
+          onClick={() => navigate("/experiences")}
+          className="text-sm font-semibold text-experience-color hover:opacity-80 transition-colors"
+        >
+          Experiences
+        </button>
+        <button
+          onClick={() => navigate("/itineraries")}
+          className="text-sm font-semibold text-itinerary-color hover:opacity-80 transition-colors"
+        >
+          Itineraries
+        </button>
+        <button
+          onClick={() => {}}
+          className="text-sm font-semibold text-social-color hover:opacity-80 transition-colors"
+        >
+          Share
+        </button>
+      </div>
     </div>
   );
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
-      {/* Uber-style pillar hero */}
-      <PillarHero />
 
       {/* Alternating content */}
       <HorizontalScrollRow 
