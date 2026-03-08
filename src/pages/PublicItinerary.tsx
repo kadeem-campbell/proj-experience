@@ -110,6 +110,8 @@ const PublicItinerary = () => {
     togglePublic,
     createTrip
   } = useItineraries();
+  const { isAuthenticated } = useAuth();
+  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
 
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
