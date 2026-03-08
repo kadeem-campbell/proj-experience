@@ -17,6 +17,29 @@ interface MainLayoutProps {
   onMobileSearchClick?: () => void;
 }
 
+const SidebarToggleButton = () => {
+  const { state, toggleSidebar } = useSidebar();
+  const collapsed = state === "collapsed";
+  const isMobile = useIsMobile();
+
+  if (isMobile) return null;
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleSidebar}
+      className="fixed top-3 left-3 z-50 h-8 w-8 shrink-0"
+    >
+      {collapsed ? (
+        <PanelLeft className="w-4 h-4" />
+      ) : (
+        <PanelLeftClose className="w-4 h-4" />
+      )}
+    </Button>
+  );
+};
+
 export const MainLayout = ({ 
   children, 
   showItineraryPanel = false,
@@ -28,11 +51,7 @@ export const MainLayout = ({
 }: MainLayoutProps) => {
   return (
     <SidebarProvider defaultOpen={true}>
-      {/*
-        IMPORTANT: use a fixed viewport height so the scroll happens inside our <main>
-        (overflow-auto). If the browser window scrolls instead, `position: sticky` inside
-        overflow-hidden ancestors won't work reliably.
-      */}
+      <SidebarToggleButton />
       <div className="h-screen flex w-full bg-background overflow-hidden">
         <ItinerarySidebar
           searchQuery={searchQuery}
@@ -42,15 +61,11 @@ export const MainLayout = ({
           onMobileSearchClick={onMobileSearchClick}
         />
         
-        {/* Add left margin on mobile to account for fixed icon sidebar */}
         <SidebarInset className="flex-1 flex flex-col min-w-0 ml-[3rem] md:ml-0">
-          {/* Main Content Area */}
           <div className="flex flex-1 overflow-hidden">
             <main className="flex-1 overflow-auto min-w-0">
               {children}
             </main>
-
-            {/* Right Itinerary Panel - Desktop Only */}
             {showItineraryPanel && <ItineraryPanel />}
           </div>
         </SidebarInset>
