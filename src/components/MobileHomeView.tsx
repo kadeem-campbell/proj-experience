@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
@@ -317,69 +317,78 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 };
 
 
+// Static alias map - defined once outside component
+const cityAliases: Record<string, string[]> = {
+  "Zanzibar": ["Zanzibar", "Stone Town", "Kendwa", "Nungwi", "Paje", "Jambiani"],
+  "Dar es Salaam": ["Dar es Salaam", "Dar Es Salaam", "Dar"],
+  "Nairobi": ["Nairobi"],
+};
+
+const matchesCity = (location: string, city: string): boolean => {
+  if (!city) return true;
+  const aliases = cityAliases[city] || [city];
+  return aliases.some(a => location.toLowerCase().includes(a.toLowerCase()));
+};
+
+const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
+  if (!city) return true;
+  if (itinerary.name?.toLowerCase().includes(city.toLowerCase())) return true;
+  return itinerary.experiences?.some((e: any) => matchesCity(e.location || "", city)) || false;
+};
+
+// Pre-compute all data once at module level
+const allItinerariesData = getPopularItineraries();
+const allExpsData = allExperiences;
+
 export const MobileHomeView = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const selectedCity = searchParams.get("city") || "";
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialCity = searchParams.get("city") || "";
+  const [selectedCity, setSelectedCity] = useState(initialCity);
 
-  const allItineraries = getPopularItineraries();
-  const allExps = allExperiences;
-
-  // City alias mapping for fuzzy location matching
-  const cityAliases: Record<string, string[]> = {
-    "Zanzibar": ["Zanzibar", "Stone Town", "Kendwa", "Nungwi", "Paje", "Jambiani"],
-    "Dar es Salaam": ["Dar es Salaam", "Dar Es Salaam", "Dar"],
-    "Nairobi": ["Nairobi"],
-  };
-
-  const matchesCity = (location: string, city: string): boolean => {
-    if (!city) return true;
-    const aliases = cityAliases[city] || [city];
-    return aliases.some(a => location.toLowerCase().includes(a.toLowerCase()));
-  };
-
-  const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
-    if (!city) return true;
-    // Check itinerary name
-    if (itinerary.name?.toLowerCase().includes(city.toLowerCase())) return true;
-    // Check if any experience in itinerary matches
-    return itinerary.experiences?.some((e: any) => matchesCity(e.location || "", city)) || false;
-  };
+  const handleCityChange = useCallback((city: string) => {
+    setSelectedCity(city);
+    if (city) {
+      setSearchParams({ city }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [setSearchParams]);
 
   const itineraries = useMemo(() => {
-    if (!selectedCity) return allItineraries;
-    return allItineraries.filter(it => itineraryMatchesCity(it, selectedCity));
-  }, [selectedCity, allItineraries]);
+    if (!selectedCity) return allItinerariesData;
+    return allItinerariesData.filter(it => itineraryMatchesCity(it, selectedCity));
+  }, [selectedCity]);
 
   const experiences = useMemo(() => {
-    if (!selectedCity) return allExps;
-    return allExps.filter(e => matchesCity(e.location || "", selectedCity));
-  }, [selectedCity, allExps]);
+    if (!selectedCity) return allExpsData;
+    return allExpsData.filter(e => matchesCity(e.location || "", selectedCity));
+  }, [selectedCity]);
 
-  const adventureExperiences = experiences.filter(e => e.category === "Adventure").slice(0, 10);
-  const foodExperiences = experiences.filter(e => e.category === "Food").slice(0, 10);
-  const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
+  const adventureExperiences = useMemo(() => experiences.filter(e => e.category === "Adventure").slice(0, 10), [experiences]);
+  const foodExperiences = useMemo(() => experiences.filter(e => e.category === "Food").slice(0, 10), [experiences]);
+  const beachExperiences = useMemo(() => experiences.filter(e => e.category === "Beach").slice(0, 10), [experiences]);
 
   const cityLabel = selectedCity || "your city";
 
   const headerContent = (
     <div className="flex items-center justify-between w-full">
+      <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
       <div className="flex items-center gap-2">
-        <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
         {selectedCity && (
           <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold"
+            onClick={() => handleCityChange("")}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold"
           >
             <MapPin className="w-3 h-3" />
             {selectedCity}
             <span className="ml-0.5 text-primary/60">✕</span>
           </button>
         )}
+        <button onClick={() => navigate(selectedCity ? `/map?city=${encodeURIComponent(selectedCity)}` : "/map")} className="p-2 bg-muted/60 rounded-xl">
+          <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
+        </button>
       </div>
-      <button onClick={() => navigate(selectedCity ? `/map?city=${encodeURIComponent(selectedCity)}` : "/map")} className="p-2 bg-muted/60 rounded-xl">
-        <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
-      </button>
     </div>
   );
 
