@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
@@ -114,6 +114,44 @@ const DesktopDiscoveryCard = () => {
   );
 };
 
+// Reusable horizontal scroll row for desktop - mirrors mobile HorizontalScrollRow
+const DesktopScrollRow = ({ 
+  title, 
+  variant = "default",
+  onViewAll,
+  children 
+}: { 
+  title: string;
+  variant?: "itinerary" | "experience" | "default";
+  onViewAll?: () => void;
+  children: React.ReactNode;
+}) => {
+  const viewAllColor = variant === "itinerary" ? "text-itinerary-color hover:text-itinerary-color/80" 
+    : variant === "experience" ? "text-experience-color hover:text-experience-color/80" 
+    : "text-muted-foreground hover:text-foreground";
+
+  return (
+    <div className="mb-8 md:mb-10">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-bold text-foreground">{title}</h2>
+        {onViewAll && (
+          <button onClick={onViewAll} className={cn("text-base font-semibold transition-colors", viewAllColor)}>
+            View all →
+          </button>
+        )}
+      </div>
+      <div 
+        className="overflow-x-auto pb-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="inline-flex gap-4" style={{ minWidth: '100%' }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SCROLL_STORAGE_KEY = "discover_scroll_position";
 
 const SearchPage = () => {
@@ -129,6 +167,11 @@ const SearchPage = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+
+  // Category-filtered experiences (same as mobile)
+  const adventureExps = useMemo(() => experiences.filter(e => e.category === "Adventure").slice(0, 10), [experiences]);
+  const foodExps = useMemo(() => experiences.filter(e => e.category === "Food").slice(0, 10), [experiences]);
+  const beachExps = useMemo(() => experiences.filter(e => e.category === "Beach").slice(0, 10), [experiences]);
 
   // Restore scroll position on mount
   useEffect(() => {
@@ -745,66 +788,94 @@ const SearchPage = () => {
 
       {/* Content */}
       <div className="p-3 md:p-6">
-        {/* Discovery Card - Same as mobile */}
+        {/* Discovery Card */}
         {!selectedCity && !searchQuery && (
           <DesktopDiscoveryCard />
         )}
 
-        {/* Top Itineraries Section - horizontal scroll like mobile */}
-        {!selectedCity && filteredItineraries.length > 0 && (
-          <div className="mb-8 md:mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-bold">Itineraries</h2>
-              <Button
-                variant="ghost"
-                className="text-itinerary-color hover:text-itinerary-color/80 text-base font-semibold px-4 py-2 h-auto"
-                onClick={() => navigate("/itineraries")}
-              >
-                View all →
-              </Button>
-            </div>
-            <div 
-              className="overflow-x-auto pb-2"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-            >
-              <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
-              <div className="inline-flex gap-4 no-scrollbar" style={{ minWidth: '100%' }}>
-                {filteredItineraries.slice(0, 6).map((itinerary) => (
-                  <div key={itinerary.id} className="flex-shrink-0 w-[40vw] md:w-[30vw] lg:w-[24vw] xl:w-[20vw] min-w-[220px]">
-                    <PublicItineraryCard itinerary={itinerary} />
+        {/* Same alternating rows as mobile */}
+        {!selectedCity && !searchQuery && (
+          <>
+            {filteredItineraries.length > 0 && (
+              <DesktopScrollRow title="Attractions you can't miss" variant="itinerary" onViewAll={() => navigate("/itineraries")}>
+                {filteredItineraries.slice(0, 6).map((it) => (
+                  <div key={it.id} className="flex-shrink-0 w-[40vw] md:w-[30vw] lg:w-[24vw] xl:w-[20vw] min-w-[220px]">
+                    <PublicItineraryCard itinerary={it} />
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-        )}
+              </DesktopScrollRow>
+            )}
 
-        {/* All Experiences Section - horizontal scroll like mobile */}
-        {!selectedCity && filteredExperiences.length > 0 && (
-          <div className="mb-8 md:mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
-              <Button
-                variant="ghost"
-                className="text-experience-color hover:text-experience-color/80 text-base font-semibold px-4 py-2 h-auto"
-                onClick={() => navigate("/experiences")}
-              >
-                View all →
-              </Button>
-            </div>
-            <div 
-              className="overflow-x-auto pb-2"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-            >
-              <div className="inline-flex gap-4 no-scrollbar" style={{ minWidth: '100%' }}>
-                {filteredExperiences.slice(0, 12).map((experience) => (
-                  <div key={experience.id} className="flex-shrink-0 w-[40vw] md:w-[28vw] lg:w-[22vw] xl:w-[18vw] min-w-[200px]">
-                    <ExperienceCard {...experience} compact />
+            {filteredExperiences.length > 0 && (
+              <DesktopScrollRow title="Available next weekend" variant="experience" onViewAll={() => navigate("/experiences")}>
+                {filteredExperiences.slice(0, 8).map((exp) => (
+                  <div key={exp.id} className="flex-shrink-0 w-[40vw] md:w-[28vw] lg:w-[22vw] xl:w-[18vw] min-w-[200px]">
+                    <ExperienceCard {...exp} compact />
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
+              </DesktopScrollRow>
+            )}
+
+            {filteredItineraries.length > 3 && (
+              <DesktopScrollRow title="Curated by locals" variant="itinerary" onViewAll={() => navigate("/itineraries")}>
+                {filteredItineraries.slice(3, 9).map((it) => (
+                  <div key={it.id} className="flex-shrink-0 w-[40vw] md:w-[30vw] lg:w-[24vw] xl:w-[20vw] min-w-[220px]">
+                    <PublicItineraryCard itinerary={it} />
+                  </div>
+                ))}
+              </DesktopScrollRow>
+            )}
+
+            {adventureExps.length > 0 && (
+              <DesktopScrollRow title="Adventure awaits" variant="experience" onViewAll={() => navigate("/experiences?tag=Adventure")}>
+                {adventureExps.map((exp) => (
+                  <div key={exp.id} className="flex-shrink-0 w-[40vw] md:w-[28vw] lg:w-[22vw] xl:w-[18vw] min-w-[200px]">
+                    <ExperienceCard {...exp} compact />
+                  </div>
+                ))}
+              </DesktopScrollRow>
+            )}
+
+            {filteredItineraries.length > 1 && (
+              <DesktopScrollRow title="Weekend getaways" variant="itinerary" onViewAll={() => navigate("/itineraries")}>
+                {filteredItineraries.slice(1, 7).map((it) => (
+                  <div key={it.id} className="flex-shrink-0 w-[40vw] md:w-[30vw] lg:w-[24vw] xl:w-[20vw] min-w-[220px]">
+                    <PublicItineraryCard itinerary={it} />
+                  </div>
+                ))}
+              </DesktopScrollRow>
+            )}
+
+            {foodExps.length > 0 && (
+              <DesktopScrollRow title="Taste the local flavors" variant="experience" onViewAll={() => navigate("/experiences?tag=Food")}>
+                {foodExps.map((exp) => (
+                  <div key={exp.id} className="flex-shrink-0 w-[40vw] md:w-[28vw] lg:w-[22vw] xl:w-[18vw] min-w-[200px]">
+                    <ExperienceCard {...exp} compact />
+                  </div>
+                ))}
+              </DesktopScrollRow>
+            )}
+
+            {filteredItineraries.length > 2 && (
+              <DesktopScrollRow title="Popular this week" variant="itinerary" onViewAll={() => navigate("/itineraries")}>
+                {filteredItineraries.slice(2, 8).map((it) => (
+                  <div key={it.id} className="flex-shrink-0 w-[40vw] md:w-[30vw] lg:w-[24vw] xl:w-[20vw] min-w-[220px]">
+                    <PublicItineraryCard itinerary={it} />
+                  </div>
+                ))}
+              </DesktopScrollRow>
+            )}
+
+            {beachExps.length > 0 && (
+              <DesktopScrollRow title="Beach vibes" variant="experience" onViewAll={() => navigate("/experiences?tag=Beaches")}>
+                {beachExps.map((exp) => (
+                  <div key={exp.id} className="flex-shrink-0 w-[40vw] md:w-[28vw] lg:w-[22vw] xl:w-[18vw] min-w-[200px]">
+                    <ExperienceCard {...exp} compact />
+                  </div>
+                ))}
+              </DesktopScrollRow>
+            )}
+          </>
         )}
 
         {/* City-specific Popular Experiences - When city is selected */}
@@ -842,7 +913,6 @@ const SearchPage = () => {
               ))}
             </div>
 
-            {/* Empty State */}
             {filteredExperiences.length === 0 && (
               <div className="text-center py-8 md:py-12">
                 <p className="text-muted-foreground text-sm md:text-lg">
