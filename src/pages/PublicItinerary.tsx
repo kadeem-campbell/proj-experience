@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays } from "date-fns";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
+import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
