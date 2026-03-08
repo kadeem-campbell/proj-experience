@@ -193,10 +193,10 @@ const DesktopScrollRow = ({
 
         {/* Subtle fade edges */}
         {canScrollLeft && (
-          <div className="absolute left-0 top-0 bottom-0 w-6 pointer-events-none bg-gradient-to-r from-background/60 to-transparent z-[5]" />
+          <div className="absolute left-0 top-0 bottom-0 w-3 pointer-events-none bg-gradient-to-r from-background/30 to-transparent z-[5]" />
         )}
         {canScrollRight && (
-          <div className="absolute right-0 top-0 bottom-0 w-6 pointer-events-none bg-gradient-to-l from-background/60 to-transparent z-[5]" />
+          <div className="absolute right-0 top-0 bottom-0 w-3 pointer-events-none bg-gradient-to-l from-background/30 to-transparent z-[5]" />
         )}
       </div>
     </div>
