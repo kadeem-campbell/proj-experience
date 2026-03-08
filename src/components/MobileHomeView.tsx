@@ -203,10 +203,29 @@ export const MobileHomeView = () => {
   const foodExperiences = experiences.filter(e => e.category === "Food").slice(0, 10);
   const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
 
-  // Header: just SWAM logo
   const headerContent = (
     <div className="flex items-center justify-between w-full">
       <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
+      <div className="flex gap-3">
+        <button
+          onClick={() => navigate("/experiences")}
+          className="text-sm font-semibold text-experience-color hover:opacity-80 transition-colors"
+        >
+          Experiences
+        </button>
+        <button
+          onClick={() => navigate("/itineraries")}
+          className="text-sm font-semibold text-itinerary-color hover:opacity-80 transition-colors"
+        >
+          Itineraries
+        </button>
+        <button
+          onClick={() => {}}
+          className="text-sm font-semibold text-social-color hover:opacity-80 transition-colors"
+        >
+          Share
+        </button>
+      </div>
     </div>
   );
 
