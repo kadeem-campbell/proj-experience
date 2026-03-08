@@ -311,6 +311,38 @@ const PublicItinerary = () => {
       
       return updated;
     });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSaveTrip = async () => {
+    if (!tripStartDate || !isAuthenticated) {
+      toast({ title: "Sign in required", description: "Please sign in to save your trip." });
+      return;
+    }
+
+    const scheduledExperiences = Object.values(generatedTrip).flat().map(exp => ({
+      ...exp,
+      likedAt: new Date().toISOString()
+    }));
+    
+    const parentItineraryName = `${itinerary.name}`;
+    let parentItinerary = itineraries.find(i => i.name === parentItineraryName);
+    
+    if (!parentItinerary) {
+      parentItinerary = await createItinerary(parentItineraryName, itinerary.experiences.map(e => ({
+        ...e,
+        likedAt: new Date().toISOString()
+      })));
+    }
+    
+    const startDateStr = format(tripStartDate, 'yyyy-MM-dd');
+    const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
+    const newTripName = tripName.trim() || `Trip ${(parentItinerary.trips?.length || 0) + 1}`;
+    
+    await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
+    
+    setHasUnsavedChanges(false);
+    toast({ title: "Trip saved! 🎉", description: `Your ${newTripName} has been saved.` });
   };
 
   const handleExitTripMode = () => {
