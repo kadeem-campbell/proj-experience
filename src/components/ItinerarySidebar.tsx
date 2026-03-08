@@ -22,6 +22,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useItineraries } from "@/hooks/useItineraries";
@@ -129,8 +130,13 @@ export const ItinerarySidebar = ({
     >
       <SidebarContent>
         <ScrollArea className="flex-1">
-          {/* Top nav: Liked, Discover, Home */}
-          <SidebarGroup className="py-3">
+          {/* Collapse/Expand toggle */}
+          <div className="px-2 py-2 flex items-center justify-center">
+            <SidebarTrigger className="h-8 w-8" />
+          </div>
+
+          {/* Nav items below toggle */}
+          <SidebarGroup className="py-1">
             <SidebarGroupContent>
               <SidebarMenu>
                 {/* Discover */}
