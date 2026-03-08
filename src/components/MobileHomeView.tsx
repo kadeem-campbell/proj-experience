@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search, Check } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -8,6 +8,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+
+const mapCities = [
+  { name: "Zanzibar", available: true },
+  { name: "Dar es Salaam", available: true },
+  { name: "Entebbe", available: false, launchDate: "18 March" },
+  { name: "Kampala", available: false, launchDate: "20 March" },
+  { name: "Nairobi", available: false, launchDate: "21 March" },
+  { name: "Cape Town", available: false, launchDate: "1 April" },
+];
 
 
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
