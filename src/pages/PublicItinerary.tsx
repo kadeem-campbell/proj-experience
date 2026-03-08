@@ -72,12 +72,12 @@ import {
   Mail
 } from "lucide-react";
 
-// Time slot configurations with time ranges
-const timeSlotConfig: Record<TimeSlot, { label: string; icon: React.ReactNode; hour: number; range: string }> = {
-  morning: { label: "Morning", icon: <Sunrise className="w-3 h-3" />, hour: 9, range: "8 AM – 12 PM" },
-  afternoon: { label: "Afternoon", icon: <Sun className="w-3 h-3" />, hour: 14, range: "12 PM – 5 PM" },
-  evening: { label: "Evening", icon: <Sunset className="w-3 h-3" />, hour: 18, range: "5 PM – 9 PM" },
-  night: { label: "Night", icon: <Moon className="w-3 h-3" />, hour: 21, range: "9 PM – Late" },
+// Time slot configurations — emoji labels only, no fixed times
+const timeSlotConfig: Record<TimeSlot, { label: string; emoji: string; icon: React.ReactNode }> = {
+  morning: { label: "Morning", emoji: "🌅", icon: <Sunrise className="w-3 h-3" /> },
+  afternoon: { label: "Afternoon", emoji: "☀️", icon: <Sun className="w-3 h-3" /> },
+  evening: { label: "Evening", emoji: "🌆", icon: <Sunset className="w-3 h-3" /> },
+  night: { label: "Night", emoji: "🌙", icon: <Moon className="w-3 h-3" /> },
 };
 
 const PublicItinerary = () => {
