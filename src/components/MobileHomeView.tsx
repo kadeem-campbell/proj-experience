@@ -32,8 +32,8 @@ const discoverySlides = [
     textClass: "text-itinerary-color",
     bgClass: "bg-itinerary-color/10",
     ctas: [
-      { label: "Start planning", primary: true, route: "/itineraries" },
-      { label: "View examples", primary: false, route: "/itineraries" },
+      { label: "Itineraries", primary: true, route: "/itineraries" },
+      { label: "Experiences", primary: false, route: "/itineraries" },
     ],
   },
   {
