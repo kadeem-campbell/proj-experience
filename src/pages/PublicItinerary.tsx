@@ -1,5 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
+import { allExperiences } from "@/hooks/useExperiencesData";
+import { ExperienceCard } from "@/components/ExperienceCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
@@ -48,7 +50,7 @@ import {
   Clock,
   MapPin,
   Sparkles,
-  Eye,
+  
   ChevronRight,
   ChevronDown,
   GripVertical,
@@ -110,16 +112,25 @@ const PublicItinerary = () => {
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
 
-  // Get related public itineraries (same tag or similar location)
-  // Must be called before early return to satisfy hooks rules
-  const relatedItineraries = useMemo(() => {
-    if (!itinerary) return [];
-    return publicItinerariesData
-      .filter(i => i.id !== itinerary.id)
-      .filter(i => i.tag === itinerary.tag || 
-        i.experiences.some(e => itinerary.experiences.some(ie => ie.location === e.location)))
-      .slice(0, 6);
+  // Get the primary location of this itinerary
+  const itineraryLocation = useMemo(() => {
+    if (!itinerary) return '';
+    const locations = itinerary.experiences.map(e => e.location).filter(Boolean);
+    // Find most common location
+    const freq: Record<string, number> = {};
+    locations.forEach(l => { freq[l] = (freq[l] || 0) + 1; });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
+
+  // Get related experiences from same location (not in this itinerary)
+  const relatedExperiences = useMemo(() => {
+    if (!itinerary || !itineraryLocation) return [];
+    const itineraryExpIds = new Set(itinerary.experiences.map(e => e.id));
+    return allExperiences
+      .filter(e => e.location?.toLowerCase().includes(itineraryLocation.toLowerCase()))
+      .filter(e => !itineraryExpIds.has(e.id))
+      .slice(0, 8);
+  }, [itinerary, itineraryLocation]);
 
   if (!itinerary) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
@@ -499,8 +510,8 @@ const PublicItinerary = () => {
             draggedExperience?.id === experience.id && 'opacity-50 cursor-grabbing'
           )}
         >
-          {/* Cover Image - match ExperienceCard geometry (4:5, rounded-2xl) */}
-          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
+          {/* Cover Image - match ExperienceCard geometry (4:3, rounded-xl) */}
+          <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
             {experience.videoThumbnail ? (
               <img 
                 src={experience.videoThumbnail} 
@@ -740,16 +751,21 @@ const PublicItinerary = () => {
             {/* Info - TikTok style hierarchy */}
             <div className="flex-1 min-w-0 pt-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-2">
-                Public Itinerary
+                Itinerary
               </p>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-3 md:mb-4 line-clamp-2">
                 {itinerary.name}
               </h1>
               <div className="flex items-center gap-4 text-muted-foreground text-[15px]">
                 <span className="font-medium">{itinerary.experiences.length} experiences</span>
-                {itinerary.creatorName && (
+                {itineraryLocation && (
                   <span className="flex items-center gap-1.5">
-                    <Eye className="w-4 h-4" />
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-foreground font-semibold">{itineraryLocation}</span>
+                  </span>
+                )}
+                {itinerary.creatorName && (
+                  <span>
                     by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span>
                   </span>
                 )}
@@ -860,10 +876,10 @@ const PublicItinerary = () => {
               </div>
             </div>
 
-            {/* Experiences Grid - 3 cols mobile, 6 cols desktop */}
+            {/* Experiences Grid - matching homepage card sizing */}
             <div className="p-3 md:p-6">
-              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
-                {filteredExperiences.map(renderExperienceCard)}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                {filteredExperiences.slice(0, 10).map(renderExperienceCard)}
               </div>
 
               {filteredExperiences.length === 0 && searchQuery && (
@@ -872,49 +888,16 @@ const PublicItinerary = () => {
                 </div>
               )}
 
-              {/* Related Public Itineraries Section */}
-              {relatedItineraries.length > 0 && !showTripView && (
+              {/* Related Experiences from same location */}
+              {relatedExperiences.length > 0 && !showTripView && (
                 <div className="mt-8 pt-8 border-t border-border">
                   <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    Related Itineraries
+                    More experiences in {itineraryLocation}
                   </h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
-                    {relatedItineraries.map((related) => (
-                      <Link 
-                        key={related.id} 
-                        to={`/public-itinerary/${related.id}`}
-                        className="group"
-                      >
-                        <Card className="overflow-hidden border-0 bg-card/60 hover:bg-card transition-colors">
-                          <div className="aspect-video relative overflow-hidden">
-                            {related.coverImage ? (
-                              <img 
-                                src={related.coverImage} 
-                                alt={related.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                                <span className="text-2xl">🗺️</span>
-                              </div>
-                            )}
-                            <Badge className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm text-xs">
-                              {related.experiences.length} exp
-                            </Badge>
-                          </div>
-                          <div className="p-3">
-                            <h4 className="font-medium text-sm truncate group-hover:text-primary transition-colors">
-                              {related.name}
-                            </h4>
-                            {related.creatorName && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                by @{related.creatorName}
-                              </p>
-                            )}
-                          </div>
-                        </Card>
-                      </Link>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                    {relatedExperiences.map((exp) => (
+                      <ExperienceCard key={exp.id} {...exp} compact />
                     ))}
                   </div>
                 </div>
