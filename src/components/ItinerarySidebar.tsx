@@ -130,13 +130,8 @@ export const ItinerarySidebar = ({
     >
       <SidebarContent>
         <ScrollArea className="flex-1">
-          {/* Collapse/Expand toggle */}
-          <div className="px-2 py-2 flex items-center justify-center">
-            <SidebarTrigger className="h-8 w-8" />
-          </div>
-
           {/* Nav items below toggle */}
-          <SidebarGroup className="py-1">
+          <SidebarGroup className="pt-12 py-1">
             <SidebarGroupContent>
               <SidebarMenu>
                 {/* Discover */}
