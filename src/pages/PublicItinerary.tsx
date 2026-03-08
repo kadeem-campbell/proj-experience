@@ -672,23 +672,23 @@ const PublicItinerary = () => {
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-8">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-white text-[11px] font-medium">
-                      {slotInfo.icon}
+                      <span>{slotInfo.emoji}</span>
                       <span>{format(new Date(schedule.day), "EEE d")}</span>
                       <span className="opacity-60">·</span>
-                      <span className="opacity-80">{slotInfo.range}</span>
+                      <span className="opacity-80">{slotInfo.label}</span>
                     </div>
-                    {/* Change time slot */}
+                    {/* Change time slot + move day */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                           className="p-1 rounded bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
                         >
-                          <Clock className="w-3 h-3 text-white" />
+                          <Edit2 className="w-3 h-3 text-white" />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Change time slot</div>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Time of day</div>
                         {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
                           <DropdownMenuItem
                             key={slot}
@@ -698,9 +698,27 @@ const PublicItinerary = () => {
                             }}
                             className={cn("flex items-center gap-2", schedule.slot === slot && "bg-accent")}
                           >
-                            {timeSlotConfig[slot].icon}
+                            <span>{timeSlotConfig[slot].emoji}</span>
                             <span>{timeSlotConfig[slot].label}</span>
-                            <span className="ml-auto text-xs text-muted-foreground">{timeSlotConfig[slot].range}</span>
+                            {schedule.slot === slot && <Check className="w-3 h-3 ml-auto text-primary" />}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Move to day</div>
+                        {Object.keys(generatedTrip).map((dayKey) => (
+                          <DropdownMenuItem
+                            key={dayKey}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (dayKey !== schedule.day) {
+                                handleMoveExperienceToDay(experience.id, schedule.day, dayKey);
+                              }
+                            }}
+                            className={cn("flex items-center gap-2", dayKey === schedule.day && "bg-accent")}
+                          >
+                            <CalendarIcon className="w-3 h-3" />
+                            <span>{format(new Date(dayKey), "EEE, MMM d")}</span>
+                            {dayKey === schedule.day && <Check className="w-3 h-3 ml-auto text-primary" />}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
