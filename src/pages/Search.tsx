@@ -15,6 +15,105 @@ import { allExperiences } from "@/hooks/useExperiencesData";
 import { Compass, Map, MapPinned, MapPin, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const discoverySlides = [
+  {
+    icon: Compass,
+    title: "Discover experiences",
+    subtitle: "Find the best things to do in your city",
+    colorClass: "bg-experience-color",
+    textClass: "text-experience-color",
+    bgClass: "bg-experience-color/10",
+    ctas: [{ label: "Find Experiences", primary: true, route: "/experiences" }],
+  },
+  {
+    icon: Map,
+    title: "Explore itineraries",
+    subtitle: "Plan your perfect trip with local guides",
+    colorClass: "bg-itinerary-color",
+    textClass: "text-itinerary-color",
+    bgClass: "bg-itinerary-color/10",
+    ctas: [{ label: "Explore Itineraries", primary: true, route: "/itineraries" }],
+  },
+  {
+    icon: MapPinned,
+    title: "Create an itinerary",
+    subtitle: "Build and share your own travel plans",
+    colorClass: "bg-social-color",
+    textClass: "text-social-color",
+    bgClass: "bg-social-color/10",
+    ctas: [{ label: "Create Itinerary", primary: true, route: "/itineraries?create=true" }],
+  },
+];
+
+const DesktopDiscoveryCard = () => {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const navigate = useNavigate();
+
+  const slide = discoverySlides[activeSlide];
+  const Icon = slide.icon;
+
+  // Auto-advance every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % discoverySlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div
+      className="mb-8 py-6 px-6 rounded-2xl relative overflow-hidden max-w-2xl cursor-pointer"
+      style={{
+        background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
+      }}
+      onClick={() => navigate(slide.ctas[0].route)}
+    >
+      {/* Progress bars */}
+      <div className="flex gap-1.5 mb-5">
+        {discoverySlides.map((s, i) => (
+          <button
+            key={i}
+            onClick={(e) => { e.stopPropagation(); setActiveSlide(i); }}
+            className={cn(
+              "h-1 flex-1 rounded-full transition-colors",
+              i === activeSlide ? s.colorClass : "bg-foreground/15"
+            )}
+          />
+        ))}
+      </div>
+
+      {/* Content - centered */}
+      <div className="flex flex-col items-center text-center gap-3 mb-4">
+        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", slide.bgClass)}>
+          <Icon className={cn("w-5 h-5", slide.textClass)} />
+        </div>
+        <div>
+          <h3 className="text-[17px] font-bold text-foreground">{slide.title}</h3>
+          <p className="text-sm text-muted-foreground">{slide.subtitle}</p>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="flex gap-2 justify-center">
+        {slide.ctas.map((cta, i) => (
+          <button
+            key={i}
+            onClick={(e) => { e.stopPropagation(); navigate(cta.route); }}
+            className={cn(
+              "px-5 py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90",
+              cta.primary
+                ? cn(slide.colorClass, "text-white")
+                : "bg-muted text-foreground"
+            )}
+          >
+            {cta.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const SCROLL_STORAGE_KEY = "discover_scroll_position";
 
 const SearchPage = () => {
