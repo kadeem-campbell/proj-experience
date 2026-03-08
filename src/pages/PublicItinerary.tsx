@@ -3,8 +3,7 @@ import { useState, useMemo, useCallback } from "react";
 import { allExperiences } from "@/hooks/useExperiencesData";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
-import { DateRange } from "react-day-picker";
+import { format, addDays } from "date-fns";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { Button } from "@/components/ui/button";
