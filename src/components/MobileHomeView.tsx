@@ -390,7 +390,7 @@ export const MobileHomeView = () => {
             <span className="ml-0.5 text-primary/60">✕</span>
           </button>
         )}
-        <button onClick={() => navigate(selectedCity ? `/map?city=${encodeURIComponent(selectedCity)}` : "/map")} className="p-2 bg-muted/60 rounded-xl">
+        <button onClick={() => setCityDrawerOpen(true)} className="p-2 bg-muted/60 rounded-xl">
           <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
         </button>
       </div>
@@ -399,6 +399,54 @@ export const MobileHomeView = () => {
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
+
+      {/* City selector drawer */}
+      <Drawer open={cityDrawerOpen} onOpenChange={setCityDrawerOpen}>
+        <DrawerContent className="bg-card border-border">
+          <div className="px-5 pt-4 pb-8">
+            <h2 className="text-lg font-bold text-foreground mb-1">Choose a city</h2>
+            <p className="text-sm text-muted-foreground mb-5">Select a city to explore experiences</p>
+            <div className="space-y-2.5">
+              {mapCities.map((city) => (
+                <button
+                  key={city.name}
+                  disabled={!city.available}
+                  onClick={() => city.available && handleCityChange(selectedCity === city.name ? "" : city.name)}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-4 rounded-2xl transition-all text-left",
+                    city.available
+                      ? selectedCity === city.name
+                        ? "bg-primary/10 border border-primary/30"
+                        : "bg-background border border-border/60 active:scale-[0.98]"
+                      : "bg-muted/40 border border-border/30 opacity-60"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                    city.available ? "bg-primary/10" : "bg-muted"
+                  )}>
+                    <MapPin className={cn("w-5 h-5", city.available ? "text-primary" : "text-muted-foreground")} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={cn("text-[15px] font-semibold", city.available ? "text-foreground" : "text-muted-foreground")}>
+                      {city.name}
+                    </h3>
+                    {!city.available && city.launchDate && (
+                      <p className="text-xs text-muted-foreground mt-0.5">Coming {city.launchDate}</p>
+                    )}
+                    {city.available && (
+                      <p className="text-xs text-primary mt-0.5">Available now</p>
+                    )}
+                  </div>
+                  {city.available && selectedCity === city.name && (
+                    <Check className="w-5 h-5 text-primary shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {/* Discovery card */}
       <DiscoveryCard />
