@@ -84,6 +84,12 @@ const PublicItinerary = () => {
   const [copied, setCopied] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('local_likes');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
   const [draggedExperience, setDraggedExperience] = useState<LikedExperience | null>(null);
   const [newItineraryName, setNewItineraryName] = useState("");
   const [showNewItineraryInput, setShowNewItineraryInput] = useState<string | null>(null);
