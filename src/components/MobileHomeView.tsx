@@ -330,17 +330,11 @@ export const MobileHomeView = () => {
   const [selectedCity, setSelectedCity] = useState("Zanzibar");
 
   const headerContent = (
-    <div className="flex flex-col gap-2 w-full">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="w-5 h-5 flex items-center justify-center text-foreground font-black text-[15px] leading-none bg-foreground text-background rounded-[5px]">Z</span>
-          <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
-        </div>
-        <button onClick={() => navigate("/map")} className="p-2 bg-muted/60 rounded-xl">
-          <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
-        </button>
-      </div>
-      <LocationSelector selectedCity={selectedCity} onCityChange={setSelectedCity} />
+    <div className="flex items-center justify-between w-full">
+      <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
+      <button onClick={() => navigate("/map")} className="p-2 bg-muted/60 rounded-xl">
+        <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
+      </button>
     </div>
   );
 
