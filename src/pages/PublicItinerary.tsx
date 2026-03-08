@@ -513,6 +513,22 @@ const PublicItinerary = () => {
     );
   });
 
+  // Suggested experiences from the full database (not already in this itinerary)
+  const itineraryExpIds = useMemo(() => new Set(itinerary.experiences.map(e => e.id)), [itinerary.experiences]);
+
+  const suggestedExperiences = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return allExperiences
+      .filter(exp => !itineraryExpIds.has(exp.id))
+      .filter(exp =>
+        exp.title?.toLowerCase().includes(q) ||
+        exp.location?.toLowerCase().includes(q) ||
+        exp.category?.toLowerCase().includes(q)
+      )
+      .slice(0, 10);
+  }, [searchQuery, itineraryExpIds]);
+
 
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
