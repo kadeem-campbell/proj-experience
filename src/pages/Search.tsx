@@ -646,34 +646,9 @@ const SearchPage = () => {
 
       {/* Content */}
       <div className="p-3 md:p-6">
-        {/* Discovery Cards Row - Desktop */}
+        {/* Discovery Card - Same as mobile */}
         {!selectedCity && !searchQuery && (
-          <div className="mb-8">
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { icon: Compass, title: "Discover experiences", subtitle: "Find the best things to do", colorClass: "bg-experience-color", textClass: "text-experience-color", bgClass: "bg-experience-color/10", label: "Find Experiences", route: "/experiences" },
-                { icon: Map, title: "Explore itineraries", subtitle: "Plan with local guides", colorClass: "bg-itinerary-color", textClass: "text-itinerary-color", bgClass: "bg-itinerary-color/10", label: "Explore Itineraries", route: "/itineraries" },
-                { icon: MapPinned, title: "Create an itinerary", subtitle: "Build your own travel plans", colorClass: "bg-social-color", textClass: "text-social-color", bgClass: "bg-social-color/10", label: "Create Itinerary", route: "/itineraries?create=true" },
-              ].map((card, i) => {
-                const Icon = card.icon;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => navigate(card.route)}
-                    className="p-5 rounded-2xl border border-border/50 bg-card hover:bg-muted/50 transition-all text-left flex flex-col gap-3"
-                  >
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", card.bgClass)}>
-                      <Icon className={cn("w-5 h-5", card.textClass)} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-foreground">{card.title}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">{card.subtitle}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <DesktopDiscoveryCard />
         )}
 
         {/* Welcome Intro */}
