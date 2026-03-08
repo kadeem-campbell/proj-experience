@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search, Check } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -8,6 +8,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+
+const mapCities = [
+  { name: "Zanzibar", available: true },
+  { name: "Dar es Salaam", available: true },
+  { name: "Entebbe", available: false, launchDate: "18 March" },
+  { name: "Kampala", available: false, launchDate: "20 March" },
+  { name: "Nairobi", available: false, launchDate: "21 March" },
+  { name: "Cape Town", available: false, launchDate: "1 April" },
+];
 
 
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
@@ -342,18 +352,13 @@ const allExpsData = allExperiences;
 
 export const MobileHomeView = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const initialCity = searchParams.get("city") || "";
-  const [selectedCity, setSelectedCity] = useState(initialCity);
+  const [selectedCity, setSelectedCity] = useState("");
+  const [cityDrawerOpen, setCityDrawerOpen] = useState(false);
 
   const handleCityChange = useCallback((city: string) => {
     setSelectedCity(city);
-    if (city) {
-      setSearchParams({ city }, { replace: true });
-    } else {
-      setSearchParams({}, { replace: true });
-    }
-  }, [setSearchParams]);
+    setCityDrawerOpen(false);
+  }, []);
 
   const itineraries = useMemo(() => {
     if (!selectedCity) return allItinerariesData;
@@ -385,7 +390,7 @@ export const MobileHomeView = () => {
             <span className="ml-0.5 text-primary/60">✕</span>
           </button>
         )}
-        <button onClick={() => navigate(selectedCity ? `/map?city=${encodeURIComponent(selectedCity)}` : "/map")} className="p-2 bg-muted/60 rounded-xl">
+        <button onClick={() => setCityDrawerOpen(true)} className="p-2 bg-muted/60 rounded-xl">
           <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
         </button>
       </div>
@@ -394,6 +399,54 @@ export const MobileHomeView = () => {
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
+
+      {/* City selector drawer */}
+      <Drawer open={cityDrawerOpen} onOpenChange={setCityDrawerOpen}>
+        <DrawerContent className="bg-card border-border">
+          <div className="px-5 pt-4 pb-8">
+            <h2 className="text-lg font-bold text-foreground mb-1">Choose a city</h2>
+            <p className="text-sm text-muted-foreground mb-5">Select a city to explore experiences</p>
+            <div className="space-y-2.5">
+              {mapCities.map((city) => (
+                <button
+                  key={city.name}
+                  disabled={!city.available}
+                  onClick={() => city.available && handleCityChange(selectedCity === city.name ? "" : city.name)}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-4 rounded-2xl transition-all text-left",
+                    city.available
+                      ? selectedCity === city.name
+                        ? "bg-primary/10 border border-primary/30"
+                        : "bg-background border border-border/60 active:scale-[0.98]"
+                      : "bg-muted/40 border border-border/30 opacity-60"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                    city.available ? "bg-primary/10" : "bg-muted"
+                  )}>
+                    <MapPin className={cn("w-5 h-5", city.available ? "text-primary" : "text-muted-foreground")} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={cn("text-[15px] font-semibold", city.available ? "text-foreground" : "text-muted-foreground")}>
+                      {city.name}
+                    </h3>
+                    {!city.available && city.launchDate && (
+                      <p className="text-xs text-muted-foreground mt-0.5">Coming {city.launchDate}</p>
+                    )}
+                    {city.available && (
+                      <p className="text-xs text-primary mt-0.5">Available now</p>
+                    )}
+                  </div>
+                  {city.available && selectedCity === city.name && (
+                    <Check className="w-5 h-5 text-primary shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {/* Discovery card */}
       <DiscoveryCard />
