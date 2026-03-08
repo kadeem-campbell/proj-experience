@@ -539,9 +539,9 @@ export const ItinerarySidebar = ({
             </SidebarMenuItem>
           )}
 
-          {/* Profile / Sign up button */}
-          <SidebarMenuItem>
-            {isAuthenticated ? (
+          {/* Profile button - only when authenticated */}
+          {isAuthenticated && (
+            <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => navigate("/profile")}
                 tooltip="Profile"
@@ -556,17 +556,8 @@ export const ItinerarySidebar = ({
                   </span>
                 )}
               </SidebarMenuButton>
-            ) : (
-              <SidebarMenuButton
-                onClick={() => setAuthModalOpen(true)}
-                tooltip="Sign Up"
-                className={isCollapsedView ? "justify-center" : ""}
-              >
-                <UserCircle className="w-4 h-4" />
-                {!isCollapsedView && <span className="text-sm">Sign Up</span>}
-              </SidebarMenuButton>
-            )}
-          </SidebarMenuItem>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
 
