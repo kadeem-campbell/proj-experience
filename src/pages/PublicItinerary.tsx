@@ -373,7 +373,7 @@ const PublicItinerary = () => {
   const handleShare = async () => {
     // Use production URL for sharing
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    const shareUrl = `${baseUrl}/public-itinerary/${itinerary.id}`;
+    const shareUrl = `${baseUrl}/itineraries/${itinerary.id}`;
     
     if (navigator.share) {
       try {
