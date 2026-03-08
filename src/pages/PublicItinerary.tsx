@@ -516,7 +516,7 @@ const PublicItinerary = () => {
 
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
-    const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : false;
+    const liked = isItemLiked(experience.id, 'experience');
     
     return (
       <Link 
