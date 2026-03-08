@@ -749,8 +749,8 @@ const PublicItinerary = () => {
   return (
     <Wrapper {...wrapperProps}>
       <div className="flex flex-col">
-        {/* Hero Cover Image - Full width, Airbnb-style */}
-        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden bg-muted">
+        {/* Hero Cover Image - Full width with fade into background */}
+        <div className="relative w-full h-[280px] sm:h-[340px] md:h-[400px] lg:h-[440px] overflow-hidden">
           {itinerary.coverImage ? (
             <img 
               src={itinerary.coverImage} 
@@ -763,8 +763,10 @@ const PublicItinerary = () => {
             </div>
           )}
           
-          {/* Dark gradient overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+          {/* Fade to background at bottom */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+          {/* Subtle top darkening for button contrast */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-transparent" />
 
           {/* Top buttons overlay */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
@@ -782,7 +784,7 @@ const PublicItinerary = () => {
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
 
-            {/* Right: Share + Copy */}
+            {/* Right: Share + Like */}
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -802,41 +804,52 @@ const PublicItinerary = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {/* Like button (heart) */}
               <button 
-                onClick={() => setCopyDialogOpen(true)}
-                className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors"
+                onClick={async () => {
+                  if (isAuthenticated) {
+                    await toggleDbLike(itinerary.id, 'itinerary', {
+                      id: itinerary.id,
+                      name: itinerary.name,
+                      coverImage: itinerary.coverImage,
+                      creatorName: itinerary.creatorName,
+                    });
+                  }
+                }}
+                className={cn(
+                  "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors",
+                  isAuthenticated && isDbLiked(itinerary.id, 'itinerary') && "bg-primary/15"
+                )}
               >
-                <Heart className="w-5 h-5 text-foreground" />
+                <Heart className={cn(
+                  "w-5 h-5 transition-all",
+                  isAuthenticated && isDbLiked(itinerary.id, 'itinerary') 
+                    ? "fill-primary text-primary" 
+                    : "text-foreground"
+                )} />
               </button>
             </div>
           </div>
 
-          {/* Photo count badge */}
-          <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-foreground/70 backdrop-blur-sm">
-            <span className="text-xs font-medium text-background">
-              1 / {itinerary.experiences.length}
-            </span>
-          </div>
-        </div>
-
-        {/* Info section below image */}
-        <div className="px-4 md:px-6 lg:px-8 pt-5 pb-4">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2 line-clamp-2">
-            {itinerary.name}
-          </h1>
-          <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-[15px]">
-            <span className="font-medium">{itinerary.experiences.length} experiences</span>
-            {itineraryLocation && (
-              <span className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4" />
-                <span className="text-foreground font-semibold">{itineraryLocation}</span>
-              </span>
-            )}
-            {itinerary.creatorName && (
-              <span>
-                by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span>
-              </span>
-            )}
+          {/* Title text overlaid at bottom of hero, on top of the fade */}
+          <div className="absolute bottom-0 left-0 right-0 px-4 md:px-6 lg:px-8 pb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2 line-clamp-2 text-foreground">
+              {itinerary.name}
+            </h1>
+            <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-[15px]">
+              <span className="font-medium">{itinerary.experiences.length} experiences</span>
+              {itineraryLocation && (
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-foreground font-semibold">{itineraryLocation}</span>
+                </span>
+              )}
+              {itinerary.creatorName && (
+                <span>
+                  by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -861,56 +874,108 @@ const PublicItinerary = () => {
                   />
                 </div>
                 
-                {/* Make it a Trip action with date range */}
-                {!showTripView && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button className="gap-2">
-                        <Rocket className="w-4 h-4" />
-                        Make it a Trip
+                <div className="flex items-center gap-2">
+                  {/* Add all experiences to existing itinerary */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <ListPlus className="w-4 h-4" />
+                        <span className="hidden sm:inline">Add All</span>
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <div className="flex flex-col">
-                        <Calendar
-                          mode="range"
-                          selected={{ from: tripStartDate, to: tripEndDate }}
-                          onSelect={(range) => {
-                            setTripStartDate(range?.from);
-                            setTripEndDate(range?.to);
-                            // Auto-generate when both dates are selected
-                            if (range?.from && range?.to) {
-                              generateTrip(range.from, range.to);
-                            }
-                          }}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                          numberOfMonths={2}
-                        />
-                        {/* Single date confirm button */}
-                        {tripStartDate && !tripEndDate && (
-                          <div className="p-3 pt-0 border-t border-border">
-                            <Button 
-                              onClick={() => generateTrip(tripStartDate, tripStartDate)} 
-                              size="sm" 
-                              className="w-full"
-                            >
-                              Use {format(tripStartDate, "MMM d")} only
-                            </Button>
-                          </div>
-                        )}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 bg-popover border-border">
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                        Add all experiences to...
                       </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-                
-                {showTripView && (
-                  <Button variant="outline" size="sm" onClick={() => setShowTripView(false)} className="gap-2">
-                    <ChevronDown className="w-4 h-4" />
-                    Collapse
-                  </Button>
-                )}
+                      {itineraries.map((itin) => (
+                        <DropdownMenuItem
+                          key={itin.id}
+                          onClick={() => {
+                            const existingIds = new Set(itin.experiences.map(e => e.id));
+                            let added = 0;
+                            itinerary.experiences.forEach(exp => {
+                              if (!existingIds.has(exp.id)) {
+                                addExperienceToItinerary(itin.id, {
+                                  id: exp.id,
+                                  title: exp.title,
+                                  creator: exp.creator,
+                                  videoThumbnail: exp.videoThumbnail,
+                                  category: exp.category,
+                                  location: exp.location,
+                                  price: exp.price,
+                                  timeSlot: exp.timeSlot,
+                                });
+                                added++;
+                              }
+                            });
+                            toast({ 
+                              title: added > 0 ? "Experiences added!" : "No new experiences", 
+                              description: added > 0 
+                                ? `${added} experience${added > 1 ? 's' : ''} added to "${itin.name}" (duplicates skipped).`
+                                : `All experiences already exist in "${itin.name}".`
+                            });
+                          }}
+                        >
+                          <span className="truncate">{itin.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setCopyDialogOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Copy to new itinerary
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Make it a Trip action with date range */}
+                  {!showTripView && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button className="gap-2">
+                          <Rocket className="w-4 h-4" />
+                          <span className="hidden sm:inline">Make it a Trip</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <div className="flex flex-col">
+                          <Calendar
+                            mode="range"
+                            selected={{ from: tripStartDate, to: tripEndDate }}
+                            onSelect={(range) => {
+                              setTripStartDate(range?.from);
+                              setTripEndDate(range?.to);
+                              if (range?.from && range?.to) {
+                                generateTrip(range.from, range.to);
+                              }
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                            numberOfMonths={2}
+                          />
+                          {tripStartDate && !tripEndDate && (
+                            <div className="p-3 pt-0 border-t border-border">
+                              <Button 
+                                onClick={() => generateTrip(tripStartDate, tripStartDate)} 
+                                size="sm" 
+                                className="w-full"
+                              >
+                                Use {format(tripStartDate, "MMM d")} only
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                  
+                  {showTripView && (
+                    <Button variant="outline" size="sm" onClick={() => setShowTripView(false)} className="gap-2">
+                      <ChevronDown className="w-4 h-4" />
+                      Collapse
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
