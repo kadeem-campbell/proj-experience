@@ -7,7 +7,7 @@ import {
   X,
   Compass,
   Heart,
-  Home,
+  
   Sparkles,
   Pin,
 } from "lucide-react";
