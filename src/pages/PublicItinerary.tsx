@@ -874,56 +874,108 @@ const PublicItinerary = () => {
                   />
                 </div>
                 
-                {/* Make it a Trip action with date range */}
-                {!showTripView && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button className="gap-2">
-                        <Rocket className="w-4 h-4" />
-                        Make it a Trip
+                <div className="flex items-center gap-2">
+                  {/* Add all experiences to existing itinerary */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <ListPlus className="w-4 h-4" />
+                        <span className="hidden sm:inline">Add All</span>
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <div className="flex flex-col">
-                        <Calendar
-                          mode="range"
-                          selected={{ from: tripStartDate, to: tripEndDate }}
-                          onSelect={(range) => {
-                            setTripStartDate(range?.from);
-                            setTripEndDate(range?.to);
-                            // Auto-generate when both dates are selected
-                            if (range?.from && range?.to) {
-                              generateTrip(range.from, range.to);
-                            }
-                          }}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                          numberOfMonths={2}
-                        />
-                        {/* Single date confirm button */}
-                        {tripStartDate && !tripEndDate && (
-                          <div className="p-3 pt-0 border-t border-border">
-                            <Button 
-                              onClick={() => generateTrip(tripStartDate, tripStartDate)} 
-                              size="sm" 
-                              className="w-full"
-                            >
-                              Use {format(tripStartDate, "MMM d")} only
-                            </Button>
-                          </div>
-                        )}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 bg-popover border-border">
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                        Add all experiences to...
                       </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-                
-                {showTripView && (
-                  <Button variant="outline" size="sm" onClick={() => setShowTripView(false)} className="gap-2">
-                    <ChevronDown className="w-4 h-4" />
-                    Collapse
-                  </Button>
-                )}
+                      {itineraries.map((itin) => (
+                        <DropdownMenuItem
+                          key={itin.id}
+                          onClick={() => {
+                            const existingIds = new Set(itin.experiences.map(e => e.id));
+                            let added = 0;
+                            itinerary.experiences.forEach(exp => {
+                              if (!existingIds.has(exp.id)) {
+                                addExperienceToItinerary(itin.id, {
+                                  id: exp.id,
+                                  title: exp.title,
+                                  creator: exp.creator,
+                                  videoThumbnail: exp.videoThumbnail,
+                                  category: exp.category,
+                                  location: exp.location,
+                                  price: exp.price,
+                                  timeSlot: exp.timeSlot,
+                                });
+                                added++;
+                              }
+                            });
+                            toast({ 
+                              title: added > 0 ? "Experiences added!" : "No new experiences", 
+                              description: added > 0 
+                                ? `${added} experience${added > 1 ? 's' : ''} added to "${itin.name}" (duplicates skipped).`
+                                : `All experiences already exist in "${itin.name}".`
+                            });
+                          }}
+                        >
+                          <span className="truncate">{itin.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setCopyDialogOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Copy to new itinerary
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Make it a Trip action with date range */}
+                  {!showTripView && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button className="gap-2">
+                          <Rocket className="w-4 h-4" />
+                          <span className="hidden sm:inline">Make it a Trip</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <div className="flex flex-col">
+                          <Calendar
+                            mode="range"
+                            selected={{ from: tripStartDate, to: tripEndDate }}
+                            onSelect={(range) => {
+                              setTripStartDate(range?.from);
+                              setTripEndDate(range?.to);
+                              if (range?.from && range?.to) {
+                                generateTrip(range.from, range.to);
+                              }
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                            numberOfMonths={2}
+                          />
+                          {tripStartDate && !tripEndDate && (
+                            <div className="p-3 pt-0 border-t border-border">
+                              <Button 
+                                onClick={() => generateTrip(tripStartDate, tripStartDate)} 
+                                size="sm" 
+                                className="w-full"
+                              >
+                                Use {format(tripStartDate, "MMM d")} only
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                  
+                  {showTripView && (
+                    <Button variant="outline" size="sm" onClick={() => setShowTripView(false)} className="gap-2">
+                      <ChevronDown className="w-4 h-4" />
+                      Collapse
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
