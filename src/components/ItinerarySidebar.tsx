@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus,
-  MapPin,
   Trash2,
   Check,
   X,
@@ -10,11 +9,10 @@ import {
   ChevronRight,
   Compass,
   Search,
-  UserCircle,
+  Heart,
+  Home,
   Sparkles,
   Clock,
-  PanelLeftClose,
-  PanelLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,23 +22,18 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarHeader,
   SidebarFooter,
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
-import { RotatingStatModule } from "@/components/RotatingStatModule";
-import { SidebarItineraryCTA } from "@/components/SidebarItineraryCTA";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { City, cities } from "@/data/browseData";
@@ -190,33 +183,44 @@ export const ItinerarySidebar = ({
       collapsible="icon" 
       className={cn(
         "border-r border-border/50 bg-card transition-all duration-200",
-        // ChatGPT-style narrow width
         !collapsed && "w-60"
       )}
     >
-      {/* Header removed - toggle button moved to MainLayout for fixed positioning */}
-
+      {/* Spotify-style top nav section */}
       <SidebarContent>
         <ScrollArea className="flex-1">
-          {/* Discover with integrated Search - ChatGPT style compact search */}
-          <SidebarGroup className="py-2">
+          {/* Main nav items */}
+          <SidebarGroup className="py-3">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === "/"}
+                    tooltip="Home"
+                    className={cn(
+                      "h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors",
+                      location.pathname === "/" && "text-foreground"
+                    )}
+                  >
+                    <Link to="/">
+                      <Home className="w-5 h-5 shrink-0" />
+                      {!isCollapsedView && <span>Home</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                <SidebarMenuItem>
                   {isCollapsedView ? (
                     <SidebarMenuButton
-                      tooltip="Discover"
-                      asChild
-                      isActive={location.pathname === "/"}
-                      className="justify-center"
+                      tooltip="Search"
+                      className="h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors justify-center"
+                      onClick={onMobileSearchClick}
                     >
-                      <Link to="/">
-                        <Compass className="w-4 h-4" />
-                      </Link>
+                      <Search className="w-5 h-5 shrink-0" />
                     </SidebarMenuButton>
                   ) : (
-                    <div ref={searchContainerRef} className="w-full px-2">
-                      {/* ChatGPT-style compact search bar */}
+                    <div ref={searchContainerRef} className="w-full px-1 mt-1">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
@@ -251,7 +255,7 @@ export const ItinerarySidebar = ({
                         )}
                       </div>
 
-                      {/* Search mode dropdown */}
+                      {/* Search dropdown */}
                       {searchFocused && (
                         <div
                           className="absolute left-2 right-2 mt-2 rounded-lg bg-popover border border-border shadow-lg overflow-hidden z-50"
@@ -260,16 +264,11 @@ export const ItinerarySidebar = ({
                           <div className="py-2 max-h-[320px] overflow-y-auto">
                             {recentSearches.length > 0 && (
                               <div className="px-3 py-2">
-                                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">
-                                  Recent
-                                </p>
+                                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Recent</p>
                                 {recentSearches.map((search, i) => (
                                   <button
                                     key={i}
-                                    onClick={() => {
-                                      onSearchChange?.(search);
-                                      setSearchFocused(false);
-                                    }}
+                                    onClick={() => { onSearchChange?.(search); setSearchFocused(false); }}
                                     className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-muted transition-colors text-foreground"
                                   >
                                     <Clock className="w-3.5 h-3.5 text-muted-foreground" />
@@ -278,19 +277,13 @@ export const ItinerarySidebar = ({
                                 ))}
                               </div>
                             )}
-
                             <div className="px-3 py-2">
-                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                                Categories
-                              </p>
+                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-2">Categories</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {suggestedTags.map((tag) => (
                                   <button
                                     key={tag}
-                                    onClick={() => {
-                                      onSearchChange?.(tag);
-                                      setSearchFocused(false);
-                                    }}
+                                    onClick={() => { onSearchChange?.(tag); setSearchFocused(false); }}
                                     className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-muted text-foreground hover:bg-muted/80 transition-colors"
                                   >
                                     {tag}
@@ -298,18 +291,12 @@ export const ItinerarySidebar = ({
                                 ))}
                               </div>
                             </div>
-
                             <div className="px-3 py-2">
-                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">
-                                Suggestions
-                              </p>
+                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Suggestions</p>
                               {searchSuggestions.map((suggestion, i) => (
                                 <button
                                   key={i}
-                                  onClick={() => {
-                                    onSearchChange?.(suggestion);
-                                    setSearchFocused(false);
-                                  }}
+                                  onClick={() => { onSearchChange?.(suggestion); setSearchFocused(false); }}
                                   className="w-full flex items-center gap-2.5 text-sm py-2 px-2 -mx-2 rounded-md hover:bg-muted transition-colors text-foreground/80"
                                 >
                                   <Compass className="w-3.5 h-3.5 text-muted-foreground" />
@@ -323,22 +310,33 @@ export const ItinerarySidebar = ({
                     </div>
                   )}
                 </SidebarMenuItem>
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Liked"
+                    className={cn(
+                      "h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors",
+                      location.pathname === "/profile" && "text-foreground"
+                    )}
+                  >
+                    <Link to="/profile">
+                      <Heart className="w-5 h-5 shrink-0" />
+                      {!isCollapsedView && <span>Liked</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {!isCollapsedView && <div className="mx-3 my-3 h-px bg-border/30" />}
+          {!isCollapsedView && <div className="mx-3 h-px bg-border/30" />}
 
-          {/* Itinerary CTA */}
-          <SidebarItineraryCTA collapsed={isCollapsedView} />
-
-          {/* Itineraries - Cleaned up: no public/private toggle, no edit icon */}
-          <SidebarGroup
-            className={cn(
-              "transition-all duration-500",
-              highlightItineraries && "bg-primary/10 rounded-lg ring-2 ring-primary/30"
-            )}
-          >
+          {/* Itineraries section - Spotify playlist style */}
+          <SidebarGroup className={cn(
+            "transition-all duration-500",
+            highlightItineraries && "bg-primary/10 rounded-lg ring-2 ring-primary/30"
+          )}>
             {showOnboardingHint && !isCollapsedView && (
               <AutoDismissHint onDismiss={dismissOnboardingHint} />
             )}
@@ -352,7 +350,7 @@ export const ItinerarySidebar = ({
                       onClick={() => navigate("/itineraries")}
                       className="justify-center"
                     >
-                      <Compass className="w-4 h-4" />
+                      <Compass className="w-5 h-5" />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -361,28 +359,16 @@ export const ItinerarySidebar = ({
               <Collapsible open={itinerariesOpen} onOpenChange={setItinerariesOpen}>
                 <div className="flex items-center justify-between pr-2">
                   <CollapsibleTrigger asChild>
-                    <button
-                      className={cn(
-                        "flex items-center gap-1 text-muted-foreground uppercase text-xs tracking-wider hover:text-foreground transition-colors p-2",
-                        highlightItineraries && "text-primary font-semibold"
-                      )}
-                    >
-                      {itinerariesOpen ? (
-                        <ChevronDown className="w-3 h-3" />
-                      ) : (
-                        <ChevronRight className="w-3 h-3" />
-                      )}
+                    <button className={cn(
+                      "flex items-center gap-1 text-muted-foreground uppercase text-xs tracking-wider hover:text-foreground transition-colors p-2",
+                      highlightItineraries && "text-primary font-semibold"
+                    )}>
+                      {itinerariesOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                       My Itineraries
                     </button>
                   </CollapsibleTrigger>
-
                   {showPlusButton && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => setIsCreating(true)}
-                    >
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsCreating(true)}>
                       <Plus className="w-4 h-4" />
                     </Button>
                   )}
@@ -390,7 +376,6 @@ export const ItinerarySidebar = ({
 
                 <CollapsibleContent>
                   <SidebarGroupContent>
-                    {/* New Itinerary Input */}
                     {isCreating && !isCollapsedView && (
                       <div className="px-2 py-2">
                         <div className="flex items-center gap-2">
@@ -403,19 +388,10 @@ export const ItinerarySidebar = ({
                             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                             autoFocus
                           />
-                          <Button
-                            size="icon"
-                            className="h-9 w-9 shrink-0"
-                            onClick={handleCreate}
-                          >
+                          <Button size="icon" className="h-9 w-9 shrink-0" onClick={handleCreate}>
                             <Check className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-9 w-9 shrink-0"
-                            onClick={() => setIsCreating(false)}
-                          >
+                          <Button size="icon" variant="ghost" className="h-9 w-9 shrink-0" onClick={() => setIsCreating(false)}>
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
@@ -432,63 +408,29 @@ export const ItinerarySidebar = ({
                                 onChange={(e) => setEditName(e.target.value)}
                                 className="h-9 text-sm"
                                 style={{ fontSize: "14px" }}
-                                onKeyDown={(e) =>
-                                  e.key === "Enter" && handleRename(itinerary.id)
-                                }
+                                onKeyDown={(e) => e.key === "Enter" && handleRename(itinerary.id)}
                                 autoFocus
                               />
-                              <Button
-                                size="icon"
-                                className="h-8 w-8 shrink-0"
-                                onClick={() => handleRename(itinerary.id)}
-                              >
+                              <Button size="icon" className="h-8 w-8 shrink-0" onClick={() => handleRename(itinerary.id)}>
                                 <Check className="w-4 h-4" />
                               </Button>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 shrink-0"
-                                onClick={() => setEditingId(null)}
-                              >
+                              <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => setEditingId(null)}>
                                 <X className="w-4 h-4" />
                               </Button>
                             </div>
                           ) : (
                             <SidebarMenuButton
                               isActive={activeItineraryId === itinerary.id}
-                              onClick={() => {
-                                setActiveItinerary(itinerary.id);
-                                navigate(`/trip/${itinerary.id}`);
-                              }}
-                              className="group/item"
+                              onClick={() => { setActiveItinerary(itinerary.id); navigate(`/trip/${itinerary.id}`); }}
+                              className="group/item text-sm text-muted-foreground hover:text-foreground"
                             >
-                              <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <Compass className="w-4 h-4 text-muted-foreground shrink-0" />
-                                {!isCollapsedView && (
-                                  <>
-                                    <span className="truncate text-sm">
-                                      {itinerary.name}
-                                    </span>
-                                    <Badge
-                                      variant="secondary"
-                                      className="ml-auto text-xs shrink-0"
-                                    >
-                                      {itinerary.experiences.length}
-                                    </Badge>
-                                  </>
-                                )}
-                              </div>
-
-                              {/* Only delete button on hover - removed edit and public/private toggle */}
+                              <span className="truncate">{itinerary.name}</span>
                               {!isCollapsedView && itineraries.length > 1 && (
-                                <div className="opacity-0 group-hover/item:opacity-100 flex items-center gap-1 ml-2">
+                                <div className="opacity-0 group-hover/item:opacity-100 flex items-center gap-1 ml-auto">
                                   <span
                                     role="button"
                                     className="h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-accent text-destructive hover:text-destructive cursor-pointer"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      deleteItinerary(itinerary.id);
-                                    }}
+                                    onClick={(e) => { e.stopPropagation(); deleteItinerary(itinerary.id); }}
                                   >
                                     <Trash2 className="w-3 h-3" />
                                   </span>
@@ -506,39 +448,6 @@ export const ItinerarySidebar = ({
           </SidebarGroup>
         </ScrollArea>
       </SidebarContent>
-
-      {!isCollapsedView && <SidebarSeparator />}
-
-      <SidebarFooter className="p-2">
-        <SidebarMenu>
-          {/* Rotating stats module */}
-          {!isCollapsedView && (
-            <SidebarMenuItem>
-              <RotatingStatModule collapsed={isCollapsedView} />
-            </SidebarMenuItem>
-          )}
-
-          {/* Profile button - only when authenticated */}
-          {isAuthenticated && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => navigate("/profile")}
-                tooltip="Profile"
-                className={isCollapsedView ? "justify-center" : ""}
-              >
-                <UserCircle className="w-4 h-4" />
-                {!isCollapsedView && (
-                  <span className="truncate text-sm">
-                    {userProfile?.username ||
-                      userProfile?.full_name ||
-                      user?.email?.split("@")[0]}
-                  </span>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-        </SidebarMenu>
-      </SidebarFooter>
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </Sidebar>
