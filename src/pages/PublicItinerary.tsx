@@ -161,6 +161,21 @@ const PublicItinerary = () => {
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
 
+  // Suggested experiences from the full database (not already in this itinerary)
+  const itineraryExpIds = useMemo(() => new Set(itinerary?.experiences.map(e => e.id) || []), [itinerary]);
+
+  const suggestedExperiences = useMemo(() => {
+    if (!searchQuery.trim() || !itinerary) return [];
+    const q = searchQuery.toLowerCase();
+    return allExperiences
+      .filter(exp => !itineraryExpIds.has(exp.id))
+      .filter(exp =>
+        exp.title?.toLowerCase().includes(q) ||
+        exp.location?.toLowerCase().includes(q) ||
+        exp.category?.toLowerCase().includes(q)
+      )
+      .slice(0, 10);
+  }, [searchQuery, itineraryExpIds, itinerary]);
 
   if (!itinerary) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
