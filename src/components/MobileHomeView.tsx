@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -8,6 +8,101 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
+
+const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
+
+const discoverySlides = [
+  {
+    icon: Compass,
+    title: "Discover experiences",
+    subtitle: "Find the best things to do in your city",
+    colorClass: "bg-experience-color",
+    textClass: "text-experience-color",
+    bgClass: "bg-experience-color/10",
+    ctas: [
+      { label: "Explore itineraries", primary: true, route: "/itineraries" },
+      { label: "Browse experiences", primary: false, route: "/experiences" },
+    ],
+  },
+  {
+    icon: Map,
+    title: "Build itineraries",
+    subtitle: "Plan your perfect trip with local guides",
+    colorClass: "bg-itinerary-color",
+    textClass: "text-itinerary-color",
+    bgClass: "bg-itinerary-color/10",
+    ctas: [
+      { label: "Start planning", primary: true, route: "/itineraries" },
+      { label: "View examples", primary: false, route: "/itineraries" },
+    ],
+  },
+  {
+    icon: Share2,
+    title: "Save & share",
+    subtitle: "Share your adventures with friends",
+    colorClass: "bg-social-color",
+    textClass: "text-social-color",
+    bgClass: "bg-social-color/10",
+    ctas: [
+      { label: "Get started", primary: true, route: "/experiences" },
+      { label: "Learn more", primary: false, route: "/about" },
+    ],
+  },
+];
+
+const DiscoveryCard = () => {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const navigate = useNavigate();
+  const slide = discoverySlides[activeSlide];
+  const Icon = slide.icon;
+
+  return (
+    <div className="mx-4 mt-3 mb-2">
+      {/* Progress bars */}
+      <div className="flex gap-1.5 mb-4">
+        {discoverySlides.map((s, i) => (
+          <button
+            key={i}
+            onClick={() => setActiveSlide(i)}
+            className={cn(
+              "h-[3px] flex-1 rounded-full transition-colors",
+              i === activeSlide ? s.colorClass : "bg-muted"
+            )}
+          />
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="flex items-start gap-3 mb-4">
+        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0", slide.bgClass)}>
+          <Icon className={cn("w-5 h-5", slide.textClass)} />
+        </div>
+        <div>
+          <h3 className="text-[17px] font-bold text-foreground">{slide.title}</h3>
+          <p className="text-sm text-muted-foreground">{slide.subtitle}</p>
+        </div>
+      </div>
+
+      {/* CTAs */}
+      <div className="flex gap-2">
+        {slide.ctas.map((cta, i) => (
+          <button
+            key={i}
+            onClick={() => navigate(cta.route)}
+            className={cn(
+              "px-5 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95",
+              cta.primary
+                ? cn(slide.colorClass, "text-white")
+                : "bg-muted text-foreground"
+            )}
+          >
+            {cta.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 // Horizontal scroll row component
 const HorizontalScrollRow = ({ 
@@ -231,6 +326,24 @@ export const MobileHomeView = () => {
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
+      {/* City pills */}
+      <div className="flex gap-2 px-4 py-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        {cities.map((city) => (
+          <button
+            key={city}
+            onClick={() => navigate(`/experiences?location=${encodeURIComponent(city)}`)}
+            className="flex-shrink-0 px-4 py-2 rounded-full bg-muted text-sm font-medium text-foreground hover:bg-muted/80 transition-colors active:scale-95"
+          >
+            {city}
+          </button>
+        ))}
+        <button className="flex-shrink-0 px-4 py-2 rounded-full bg-muted text-sm font-medium text-muted-foreground flex items-center gap-1">
+          <MapPinned className="w-3.5 h-3.5" /> More
+        </button>
+      </div>
+
+      {/* Discovery card */}
+      <DiscoveryCard />
 
       {/* Alternating content */}
       <HorizontalScrollRow 
