@@ -308,16 +308,8 @@ const PublicItinerary = () => {
       if (!exp) return prev;
       
       updated[fromDay] = updated[fromDay].filter(e => e.id !== expId);
-      
-      const newDate = new Date(toDay);
-      const oldDate = new Date(exp.scheduledTime!);
-      newDate.setHours(oldDate.getHours(), oldDate.getMinutes(), 0, 0);
-      
       if (!updated[toDay]) updated[toDay] = [];
-      updated[toDay].push({ ...exp, scheduledTime: newDate.toISOString() });
-      updated[toDay].sort((a, b) => 
-        new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
-      );
+      updated[toDay].push({ ...exp });
       
       return updated;
     });
