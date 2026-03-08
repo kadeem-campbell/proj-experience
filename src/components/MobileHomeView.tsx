@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
-import { LocationSelector } from "@/components/LocationSelector";
+
 
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
