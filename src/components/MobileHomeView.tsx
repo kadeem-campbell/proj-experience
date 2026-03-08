@@ -79,7 +79,10 @@ const DiscoveryCard = () => {
 
   return (
     <div
-      className="mx-4 mt-3 mb-2 py-5 px-4 rounded-2xl border border-border/60 bg-card"
+      className="mx-4 mt-1 mb-0 py-5 px-4 rounded-2xl relative overflow-hidden"
+      style={{
+        background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
