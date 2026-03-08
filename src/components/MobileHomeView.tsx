@@ -157,7 +157,7 @@ const HorizontalScrollRow = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const dotColor = variant === "itinerary" ? "bg-itinerary-color" : variant === "experience" ? "bg-experience-color" : null;
+  const titleColor = variant === "itinerary" ? "text-itinerary-color" : variant === "experience" ? "text-experience-color" : "text-foreground";
 
   return (
     <div className="py-5">
@@ -165,12 +165,7 @@ const HorizontalScrollRow = ({
         onClick={onTitleClick}
         className="mb-3 block w-full text-left px-4"
       >
-        <div className="flex items-center gap-2">
-          {dotColor && (
-            <span className={cn("w-2 h-2 rounded-full shrink-0", dotColor)} />
-          )}
-          <h2 className="text-[17px] font-bold text-foreground">{title}</h2>
-        </div>
+        <h2 className={cn("text-[17px] font-bold", titleColor)}>{title}</h2>
       </button>
       <div 
         ref={scrollRef}
