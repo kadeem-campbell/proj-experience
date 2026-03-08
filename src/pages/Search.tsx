@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { City } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { allExperiences } from "@/hooks/useExperiencesData";
+import { Compass, Map, MapPinned, MapPin, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const SCROLL_STORAGE_KEY = "discover_scroll_position";
 
