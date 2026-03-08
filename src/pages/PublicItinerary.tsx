@@ -1094,7 +1094,6 @@ const PublicItinerary = () => {
                                 category: exp.category,
                                 location: exp.location,
                                 price: exp.price,
-                                timeSlot: exp.timeSlot,
                               });
                               toast({ title: "Added!", description: `${exp.title} added to this itinerary.` });
                             }}
