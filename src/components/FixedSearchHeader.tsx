@@ -160,8 +160,8 @@ export const FixedSearchHeader = ({
       >
         {/* Header row - left padding accounts for fixed sidebar toggle button */}
         <div className="px-4 md:px-6 md:pl-14 py-3">
-          <div className="flex items-center justify-between">
-            {/* Left: SWAM logo (mobile only, desktop has sidebar toggle in that spot) */}
+          <div className="flex items-center justify-between md:justify-end">
+            {/* Left: SWAM logo (mobile only) */}
             <Link to="/" className="md:hidden">
               <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
             </Link>
