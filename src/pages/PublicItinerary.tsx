@@ -591,6 +591,8 @@ const PublicItinerary = () => {
             {/* Trip mode: date/time badge at bottom of image */}
             {activeTripMode && schedule && (() => {
               const slotInfo = timeSlotConfig[schedule.slot];
+              const originalSlot = experience.timeSlot || 'afternoon';
+              const isMismatch = originalSlot !== schedule.slot;
               return (
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-8">
                   <div className="flex items-center justify-between">
@@ -599,6 +601,11 @@ const PublicItinerary = () => {
                       <span>{format(new Date(schedule.day), "EEE d")}</span>
                       <span className="opacity-60">·</span>
                       <span className="opacity-80">{slotInfo.label}</span>
+                      {isMismatch && (
+                        <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 text-[9px] font-medium">
+                          Usually {timeSlotConfig[originalSlot].emoji} {timeSlotConfig[originalSlot].label}
+                        </span>
+                      )}
                     </div>
                     {/* Change time slot + move day */}
                     <DropdownMenu>
@@ -612,20 +619,24 @@ const PublicItinerary = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
                         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Time of day</div>
-                        {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
-                          <DropdownMenuItem
-                            key={slot}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleChangeTimeSlot(experience.id, slot);
-                            }}
-                            className={cn("flex items-center gap-2", schedule.slot === slot && "bg-accent")}
-                          >
-                            <span>{timeSlotConfig[slot].emoji}</span>
-                            <span>{timeSlotConfig[slot].label}</span>
-                            {schedule.slot === slot && <Check className="w-3 h-3 ml-auto text-primary" />}
-                          </DropdownMenuItem>
-                        ))}
+                        {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => {
+                          const isOriginal = slot === originalSlot;
+                          return (
+                            <DropdownMenuItem
+                              key={slot}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleChangeTimeSlot(experience.id, slot);
+                              }}
+                              className={cn("flex items-center gap-2", schedule.slot === slot && "bg-accent")}
+                            >
+                              <span>{timeSlotConfig[slot].emoji}</span>
+                              <span>{timeSlotConfig[slot].label}</span>
+                              {isOriginal && <span className="text-[9px] text-amber-500 ml-1">recommended</span>}
+                              {schedule.slot === slot && <Check className="w-3 h-3 ml-auto text-primary" />}
+                            </DropdownMenuItem>
+                          );
+                        })}
                         <DropdownMenuSeparator />
                         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Move to day</div>
                         {Object.keys(generatedTrip).map((dayKey) => (
