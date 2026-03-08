@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo, useCallback } from "react";
 import { allExperiences } from "@/hooks/useExperiencesData";
-// ExperienceCard no longer used in related section
+import { allExperiences } from "@/hooks/useExperiencesData";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
