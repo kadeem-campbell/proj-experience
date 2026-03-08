@@ -78,28 +78,24 @@ const DiscoveryCard = () => {
 
   return (
     <div
-      className="mx-4 mt-3 mb-0 pb-6 rounded-2xl relative overflow-hidden"
-      style={{
-        background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
-      }}
+      className="mx-4 mt-3 mb-2 py-5 px-4 rounded-2xl border border-border/60 bg-card"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="px-4 pt-4">
-        {/* Progress bars */}
-        <div className="flex gap-1.5 mb-4">
-          {discoverySlides.map((s, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveSlide(i)}
-              className={cn(
-                "h-[3px] flex-1 rounded-full transition-colors",
-                i === activeSlide ? s.colorClass : "bg-muted"
-              )}
-            />
-          ))}
-        </div>
+      {/* Progress bars */}
+      <div className="flex gap-1.5 mb-5">
+        {discoverySlides.map((s, i) => (
+          <button
+            key={i}
+            onClick={() => setActiveSlide(i)}
+            className={cn(
+              "h-1 flex-1 rounded-full transition-colors",
+              i === activeSlide ? s.colorClass : "bg-foreground/15"
+            )}
+          />
+        ))}
+      </div>
 
         {/* Content - centered */}
         <div className="flex flex-col items-center text-center gap-3 mb-4">
