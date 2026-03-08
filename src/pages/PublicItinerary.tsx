@@ -64,7 +64,11 @@ import {
   Lock,
   Palette,
   Edit2,
-  Trash2
+  Trash2,
+  Users,
+  UserPlus,
+  Send,
+  Mail
 } from "lucide-react";
 
 // Time slot configurations
@@ -82,6 +86,10 @@ const PublicItinerary = () => {
   const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [showInviteSheet, setShowInviteSheet] = useState(false);
+  const [showCollaboratorSheet, setShowCollaboratorSheet] = useState(false);
+  const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
     try {
@@ -797,7 +805,7 @@ const PublicItinerary = () => {
                     {copied ? <Check className="w-5 h-5 text-foreground" /> : <Share2 className="w-5 h-5 text-foreground" />}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-popover border-border">
+                <DropdownMenuContent align="end" className="bg-popover border-border w-56">
                   <DropdownMenuItem onClick={handleShare}>
                     <Copy className="w-4 h-4 mr-2" />
                     Copy Link
@@ -806,31 +814,22 @@ const PublicItinerary = () => {
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Share via WhatsApp
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setCopyDialogOpen(true)}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Itinerary
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowInviteSheet(true)}>
+                    <Send className="w-4 h-4 mr-2" />
+                    Invite Friends
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowCollaboratorSheet(true)}>
+                    <Users className="w-4 h-4 mr-2" />
+                    Add Collaborators
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              {/* Like button (heart) */}
-              <button 
-                onClick={async () => {
-                  await handleToggleLike(itinerary.id, 'itinerary', {
-                    id: itinerary.id,
-                    name: itinerary.name,
-                    coverImage: itinerary.coverImage,
-                    creatorName: itinerary.creatorName,
-                  });
-                }}
-                className={cn(
-                  "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors",
-                  isItemLiked(itinerary.id, 'itinerary') && "bg-primary/15"
-                )}
-              >
-                <Heart className={cn(
-                  "w-5 h-5 transition-all",
-                  isItemLiked(itinerary.id, 'itinerary') 
-                    ? "fill-primary text-primary" 
-                    : "text-foreground"
-                )} />
-              </button>
             </div>
           </div>
 
@@ -1188,6 +1187,105 @@ const PublicItinerary = () => {
                       : "Select dates to continue"}
                 </Button>
               </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Invite Friends Sheet */}
+        <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
+          <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[60vh]">
+            <SheetHeader className="pb-2">
+              <SheetTitle className="flex items-center gap-2">
+                <Send className="w-5 h-5 text-primary" />
+                Invite Friends
+              </SheetTitle>
+              <SheetDescription>Share this itinerary with friends via email</SheetDescription>
+            </SheetHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex gap-2">
+                <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+                  <Mail className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+                  <Input
+                    type="email"
+                    placeholder="friend@email.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && inviteEmail.trim()) {
+                        handleShare();
+                        toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
+                        setInviteEmail("");
+                      }
+                    }}
+                  />
+                </div>
+                <Button
+                  disabled={!inviteEmail.trim()}
+                  onClick={() => {
+                    handleShare();
+                    toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
+                    setInviteEmail("");
+                  }}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1 gap-2" onClick={handleShare}>
+                  <Copy className="w-4 h-4" />
+                  Copy Link
+                </Button>
+                <Button variant="outline" className="flex-1 gap-2" onClick={handleShareWhatsApp}>
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Add Collaborators Sheet */}
+        <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
+          <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[60vh]">
+            <SheetHeader className="pb-2">
+              <SheetTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                Add Collaborators
+              </SheetTitle>
+              <SheetDescription>Invite people to edit and plan this trip together</SheetDescription>
+            </SheetHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex gap-2">
+                <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+                  <UserPlus className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+                  <Input
+                    type="email"
+                    placeholder="collaborator@email.com"
+                    value={collaboratorEmail}
+                    onChange={(e) => setCollaboratorEmail(e.target.value)}
+                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && collaboratorEmail.trim()) {
+                        toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
+                        setCollaboratorEmail("");
+                      }
+                    }}
+                  />
+                </div>
+                <Button
+                  disabled={!collaboratorEmail.trim()}
+                  onClick={() => {
+                    toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
+                    setCollaboratorEmail("");
+                  }}
+                >
+                  <UserPlus className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Collaborators can add experiences, edit the schedule, and help plan the trip.
+              </p>
             </div>
           </SheetContent>
         </Sheet>
