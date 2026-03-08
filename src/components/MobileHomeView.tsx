@@ -319,19 +319,64 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 
 export const MobileHomeView = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedCity = searchParams.get("city") || "";
 
-  const itineraries = getPopularItineraries();
-  const experiences = allExperiences;
+  const allItineraries = getPopularItineraries();
+  const allExps = allExperiences;
+
+  // City alias mapping for fuzzy location matching
+  const cityAliases: Record<string, string[]> = {
+    "Zanzibar": ["Zanzibar", "Stone Town", "Kendwa", "Nungwi", "Paje", "Jambiani"],
+    "Dar es Salaam": ["Dar es Salaam", "Dar Es Salaam", "Dar"],
+    "Nairobi": ["Nairobi"],
+  };
+
+  const matchesCity = (location: string, city: string): boolean => {
+    if (!city) return true;
+    const aliases = cityAliases[city] || [city];
+    return aliases.some(a => location.toLowerCase().includes(a.toLowerCase()));
+  };
+
+  const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
+    if (!city) return true;
+    // Check itinerary name
+    if (itinerary.name?.toLowerCase().includes(city.toLowerCase())) return true;
+    // Check if any experience in itinerary matches
+    return itinerary.experiences?.some((e: any) => matchesCity(e.location || "", city)) || false;
+  };
+
+  const itineraries = useMemo(() => {
+    if (!selectedCity) return allItineraries;
+    return allItineraries.filter(it => itineraryMatchesCity(it, selectedCity));
+  }, [selectedCity, allItineraries]);
+
+  const experiences = useMemo(() => {
+    if (!selectedCity) return allExps;
+    return allExps.filter(e => matchesCity(e.location || "", selectedCity));
+  }, [selectedCity, allExps]);
 
   const adventureExperiences = experiences.filter(e => e.category === "Adventure").slice(0, 10);
   const foodExperiences = experiences.filter(e => e.category === "Food").slice(0, 10);
   const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
 
-  const [selectedCity, setSelectedCity] = useState("Zanzibar");
+  const cityLabel = selectedCity || "your city";
 
   const headerContent = (
     <div className="flex items-center justify-between w-full">
-      <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
+        {selectedCity && (
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold"
+          >
+            <MapPin className="w-3 h-3" />
+            {selectedCity}
+            <span className="ml-0.5 text-primary/60">✕</span>
+          </button>
+        )}
+      </div>
       <button onClick={() => navigate("/map")} className="p-2 bg-muted/60 rounded-xl">
         <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
       </button>
@@ -345,35 +390,41 @@ export const MobileHomeView = () => {
       <DiscoveryCard />
 
       {/* Alternating content */}
-      <HorizontalScrollRow 
-        title="Attractions you can't miss"
-        variant="itinerary"
-        onTitleClick={() => navigate("/itineraries")}
-      >
-        {itineraries.slice(0, 6).map((itinerary) => (
-          <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-        ))}
-      </HorizontalScrollRow>
+      {itineraries.length > 0 && (
+        <HorizontalScrollRow 
+          title={selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss"}
+          variant="itinerary"
+          onTitleClick={() => navigate("/itineraries")}
+        >
+          {itineraries.slice(0, 6).map((itinerary) => (
+            <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+          ))}
+        </HorizontalScrollRow>
+      )}
 
-      <HorizontalScrollRow 
-        title="Available in Dar Es Salaam next weekend"
-        variant="experience"
-        onTitleClick={() => navigate("/experiences")}
-      >
-        {experiences.slice(0, 8).map((experience) => (
-          <MobileExperienceCard key={experience.id} experience={experience} />
-        ))}
-      </HorizontalScrollRow>
+      {experiences.length > 0 && (
+        <HorizontalScrollRow 
+          title={`Available in ${cityLabel} next weekend`}
+          variant="experience"
+          onTitleClick={() => navigate("/experiences")}
+        >
+          {experiences.slice(0, 8).map((experience) => (
+            <MobileExperienceCard key={experience.id} experience={experience} />
+          ))}
+        </HorizontalScrollRow>
+      )}
 
-      <HorizontalScrollRow 
-        title="Curated by locals"
-        variant="itinerary"
-        onTitleClick={() => navigate("/itineraries")}
-      >
-        {itineraries.slice(3, 9).map((itinerary) => (
-          <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-        ))}
-      </HorizontalScrollRow>
+      {itineraries.length > 3 && (
+        <HorizontalScrollRow 
+          title="Curated by locals"
+          variant="itinerary"
+          onTitleClick={() => navigate("/itineraries")}
+        >
+          {itineraries.slice(3, 9).map((itinerary) => (
+            <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+          ))}
+        </HorizontalScrollRow>
+      )}
 
       {adventureExperiences.length > 0 && (
         <HorizontalScrollRow 
@@ -387,15 +438,17 @@ export const MobileHomeView = () => {
         </HorizontalScrollRow>
       )}
 
-      <HorizontalScrollRow 
-        title="Weekend getaways"
-        variant="itinerary"
-        onTitleClick={() => navigate("/itineraries")}
-      >
-        {itineraries.slice(1, 7).map((itinerary) => (
-          <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-        ))}
-      </HorizontalScrollRow>
+      {itineraries.length > 1 && (
+        <HorizontalScrollRow 
+          title="Weekend getaways"
+          variant="itinerary"
+          onTitleClick={() => navigate("/itineraries")}
+        >
+          {itineraries.slice(1, 7).map((itinerary) => (
+            <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+          ))}
+        </HorizontalScrollRow>
+      )}
 
       {foodExperiences.length > 0 && (
         <HorizontalScrollRow 
@@ -409,15 +462,17 @@ export const MobileHomeView = () => {
         </HorizontalScrollRow>
       )}
 
-      <HorizontalScrollRow 
-        title="Popular this week"
-        variant="itinerary"
-        onTitleClick={() => navigate("/itineraries")}
-      >
-        {itineraries.slice(2, 8).map((itinerary) => (
-          <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-        ))}
-      </HorizontalScrollRow>
+      {itineraries.length > 2 && (
+        <HorizontalScrollRow 
+          title="Popular this week"
+          variant="itinerary"
+          onTitleClick={() => navigate("/itineraries")}
+        >
+          {itineraries.slice(2, 8).map((itinerary) => (
+            <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+          ))}
+        </HorizontalScrollRow>
+      )}
 
       {beachExperiences.length > 0 && (
         <HorizontalScrollRow 
