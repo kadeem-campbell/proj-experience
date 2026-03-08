@@ -749,16 +749,21 @@ const PublicItinerary = () => {
             {/* Info - TikTok style hierarchy */}
             <div className="flex-1 min-w-0 pt-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-2">
-                Public Itinerary
+                Itinerary
               </p>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-3 md:mb-4 line-clamp-2">
                 {itinerary.name}
               </h1>
               <div className="flex items-center gap-4 text-muted-foreground text-[15px]">
                 <span className="font-medium">{itinerary.experiences.length} experiences</span>
-                {itinerary.creatorName && (
+                {itineraryLocation && (
                   <span className="flex items-center gap-1.5">
-                    <Eye className="w-4 h-4" />
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-foreground font-semibold">{itineraryLocation}</span>
+                  </span>
+                )}
+                {itinerary.creatorName && (
+                  <span>
                     by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span>
                   </span>
                 )}
