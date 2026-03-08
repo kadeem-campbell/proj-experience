@@ -103,6 +103,7 @@ const PublicItinerary = () => {
   const [showNewItineraryInput, setShowNewItineraryInput] = useState<string | null>(null);
   
   // Trip generation state
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showTripSelectorSheet, setShowTripSelectorSheet] = useState(false);
   const [showNewTripDatePicker, setShowNewTripDatePicker] = useState(false);
   const [tripStartDate, setTripStartDate] = useState<Date | undefined>(undefined);
