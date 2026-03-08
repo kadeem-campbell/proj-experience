@@ -231,8 +231,6 @@ export const MobileHomeView = () => {
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
-      {/* Uber-style pillar hero */}
-      <PillarHero />
 
       {/* Alternating content */}
       <HorizontalScrollRow 
