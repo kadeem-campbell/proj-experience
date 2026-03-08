@@ -168,16 +168,9 @@ export const ExperienceCard = ({
           )}>
             {title}
           </h3>
-          <div className="flex items-center justify-between gap-1">
-            <p className="text-[13px] text-muted-foreground truncate flex-1">
-              {location}
-            </p>
-            {price && (
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                ~{price}
-              </span>
-            )}
-          </div>
+          <p className="text-[13px] text-muted-foreground truncate">
+            {location}
+          </p>
         </div>
       </div>
     </Link>

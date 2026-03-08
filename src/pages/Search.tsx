@@ -689,8 +689,8 @@ const SearchPage = () => {
                 View all →
               </Button>
             </div>
-            {/* TikTok-style grid: 3 columns on mobile, 6 on desktop */}
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+            {/* Grid: max 4 columns on desktop for consistent card sizing */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
               {filteredExperiences.slice(0, visibleCount).map((experience) => (
                 <ExperienceCard key={experience.id} {...experience} compact />
               ))}
