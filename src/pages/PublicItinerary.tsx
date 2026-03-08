@@ -621,6 +621,7 @@ const PublicItinerary = () => {
                         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Time of day</div>
                         {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => {
                           const isOriginal = slot === originalSlot;
+                          const isSelected = schedule.slot === slot;
                           return (
                             <DropdownMenuItem
                               key={slot}
@@ -628,12 +629,14 @@ const PublicItinerary = () => {
                                 e.preventDefault();
                                 handleChangeTimeSlot(experience.id, slot);
                               }}
-                              className={cn("flex items-center gap-2", schedule.slot === slot && "bg-accent")}
+                              className={cn("flex items-center gap-2", isSelected && "bg-accent")}
                             >
                               <span>{timeSlotConfig[slot].emoji}</span>
-                              <span>{timeSlotConfig[slot].label}</span>
-                              {isOriginal && <span className="text-[9px] text-amber-500 ml-1">recommended</span>}
-                              {schedule.slot === slot && <Check className="w-3 h-3 ml-auto text-primary" />}
+                              <span className="flex-1">{timeSlotConfig[slot].label}</span>
+                              {isOriginal && !isSelected && (
+                                <span className="text-[9px] bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded px-1 py-0.5">best</span>
+                              )}
+                              {isSelected && <Check className="w-3 h-3 text-primary" />}
                             </DropdownMenuItem>
                           );
                         })}
