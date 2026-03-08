@@ -385,13 +385,11 @@ const PublicItinerary = () => {
       } catch {
         await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
-        toast({ title: "Link copied!", description: "Share this link with your friends." });
         setTimeout(() => setCopied(false), 2000);
       }
     } else {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      toast({ title: "Link copied!", description: "Share this link with your friends." });
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -426,7 +424,6 @@ const PublicItinerary = () => {
     
     if (isInItinerary(experience.id)) {
       removeExperience(experience.id);
-      toast({ title: "Removed from itinerary", description: `${experience.title} has been removed.` });
     } else {
       addExperience({
         id: experience.id,
@@ -438,14 +435,12 @@ const PublicItinerary = () => {
         price: experience.price,
         timeSlot: experience.timeSlot,
       });
-      toast({ title: "Added to itinerary", description: `${experience.title} has been added.` });
     }
   };
 
   const handleAddToSpecificItinerary = (experience: LikedExperience, itineraryId: string, itineraryName: string) => {
     const targetItinerary = itineraries.find(i => i.id === itineraryId);
     if (targetItinerary?.experiences.some(e => e.id === experience.id)) {
-      toast({ title: "Already in itinerary", description: `${experience.title} is already in ${itineraryName}.` });
       return;
     }
 
@@ -459,8 +454,6 @@ const PublicItinerary = () => {
       price: experience.price,
       timeSlot: experience.timeSlot,
     });
-    
-    toast({ title: "Added to itinerary", description: `${experience.title} added to ${itineraryName}.` });
   };
 
   const handleCreateAndAdd = async (experience: LikedExperience) => {
@@ -570,7 +563,6 @@ const PublicItinerary = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     // Pin functionality - move to top by removing and re-adding at position 0
-                    toast({ title: "Pinned to top", description: `${experience.title} moved to the top.` });
                   }}
                   className="flex items-center gap-2"
                 >
