@@ -194,28 +194,7 @@ export const ItinerarySidebar = ({
         !collapsed && "w-60"
       )}
     >
-      <SidebarHeader className="p-3">
-        <div className={cn(
-          "flex items-center",
-          collapsed ? "justify-center" : "justify-end"
-        )}>
-          {/* Collapse/Expand button - always visible on desktop */}
-          {!isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              className="h-8 w-8 shrink-0"
-            >
-              {collapsed ? (
-                <PanelLeft className="w-4 h-4" />
-              ) : (
-                <PanelLeftClose className="w-4 h-4" />
-              )}
-            </Button>
-          )}
-        </div>
-      </SidebarHeader>
+      {/* Header removed - toggle button moved to MainLayout for fixed positioning */}
 
       <SidebarContent>
         <ScrollArea className="flex-1">

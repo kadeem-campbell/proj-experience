@@ -1,8 +1,11 @@
 import { ReactNode } from "react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, useSidebar } from "@/components/ui/sidebar";
 import { ItinerarySidebar } from "@/components/ItinerarySidebar";
 import { ItineraryPanel } from "@/components/ItineraryPanel";
 import { City } from "@/data/browseData";
+import { Button } from "@/components/ui/button";
+import { PanelLeft, PanelLeftClose } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MainLayoutProps {
   children: ReactNode;
