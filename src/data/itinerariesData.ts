@@ -156,18 +156,25 @@ function generateExperiences(city: string, count: number): LikedExperience[] {
   return experiences;
 }
 
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 function generateItineraries(): PublicItinerary[] {
   const itineraries: PublicItinerary[] = [];
-  let id = 0;
+  const usedSlugs = new Set<string>();
   
   // Generate 100 "Most Popular" itineraries
   for (let i = 0; i < 100; i++) {
     const city = cities[i % cities.length];
     const nameTemplate = nameTemplates[i % nameTemplates.length];
     const name = nameTemplate.replace('{city}', city.name);
+    let slug = slugify(name);
+    if (usedSlugs.has(slug)) slug = `${slug}-${i}`;
+    usedSlugs.add(slug);
     
     itineraries.push({
-      id: `popular-${id++}`,
+      id: slug,
       name,
       experiences: generateExperiences(city.name, 10 + (i % 5)),
       createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
@@ -185,9 +192,12 @@ function generateItineraries(): PublicItinerary[] {
     const city = cities[(i + 5) % cities.length];
     const nameTemplate = nameTemplates[(i + 10) % nameTemplates.length];
     const name = nameTemplate.replace('{city}', city.name);
+    let slug = slugify(name);
+    if (usedSlugs.has(slug)) slug = `${slug}-${i}`;
+    usedSlugs.add(slug);
     
     itineraries.push({
-      id: `fave-${id++}`,
+      id: slug,
       name,
       experiences: generateExperiences(city.name, 10 + (i % 5)),
       createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
