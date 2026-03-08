@@ -313,21 +313,6 @@ export const ItinerarySidebar = ({
                   )}
                 </SidebarMenuItem>
 
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip="Liked"
-                    className={cn(
-                      "h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname === "/profile" && "text-foreground"
-                    )}
-                  >
-                    <Link to="/profile">
-                      <Heart className="w-5 h-5 shrink-0" />
-                      {!isCollapsedView && <span>Liked</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
