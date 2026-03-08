@@ -531,6 +531,40 @@ const PublicItinerary = () => {
     );
   });
 
+  // Build a lookup map: experience ID → { day, time, slot } when in trip mode
+  const tripScheduleMap = useMemo(() => {
+    if (!activeTripMode || Object.keys(generatedTrip).length === 0) return new Map<string, { day: string; time: string; slot: TimeSlot }>();
+    const map = new Map<string, { day: string; time: string; slot: TimeSlot }>();
+    for (const [dayKey, exps] of Object.entries(generatedTrip)) {
+      for (const exp of exps) {
+        const slot = exp.timeSlot || 'afternoon';
+        const timeStr = exp.scheduledTime ? format(new Date(exp.scheduledTime), "h:mm a") : timeSlotConfig[slot].range;
+        map.set(exp.id, { day: dayKey, time: timeStr, slot });
+      }
+    }
+    return map;
+  }, [activeTripMode, generatedTrip]);
+
+  // Handle changing an experience's time slot in trip mode
+  const handleChangeTimeSlot = (expId: string, newSlot: TimeSlot) => {
+    setGeneratedTrip(prev => {
+      const updated = { ...prev };
+      for (const dayKey of Object.keys(updated)) {
+        updated[dayKey] = updated[dayKey].map(exp => {
+          if (exp.id === expId) {
+            const slotHour = timeSlotConfig[newSlot].hour;
+            const scheduledDate = setMinutes(setHours(new Date(dayKey), slotHour), 0);
+            return { ...exp, timeSlot: newSlot, scheduledTime: scheduledDate.toISOString() };
+          }
+          return exp;
+        });
+        updated[dayKey].sort((a, b) =>
+          new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+        );
+      }
+      return updated;
+    });
+  };
 
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
