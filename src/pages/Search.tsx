@@ -62,11 +62,10 @@ const DesktopDiscoveryCard = () => {
 
   return (
     <div
-      className="mb-8 py-6 px-6 rounded-2xl relative overflow-hidden max-w-2xl cursor-pointer"
+      className="mb-8 py-6 px-6 rounded-2xl relative overflow-hidden max-w-2xl"
       style={{
         background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
       }}
-      onClick={() => navigate(slide.ctas[0].route)}
     >
       {/* Progress bars */}
       <div className="flex gap-1.5 mb-5">
