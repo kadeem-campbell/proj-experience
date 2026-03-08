@@ -21,6 +21,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserLikes } from "@/hooks/useUserLikes";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
 import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
