@@ -13,7 +13,9 @@ import {
   Home,
   Sparkles,
   Clock,
+  MapPin,
 } from "lucide-react";
+import { useUserLikes } from "@/hooks/useUserLikes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -311,21 +313,6 @@ export const ItinerarySidebar = ({
                   )}
                 </SidebarMenuItem>
 
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip="Liked"
-                    className={cn(
-                      "h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname === "/profile" && "text-foreground"
-                    )}
-                  >
-                    <Link to="/profile">
-                      <Heart className="w-5 h-5 shrink-0" />
-                      {!isCollapsedView && <span>Liked</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -446,10 +433,134 @@ export const ItinerarySidebar = ({
               </Collapsible>
             )}
           </SidebarGroup>
+
+          {/* Create Itinerary button */}
+          {!isCollapsedView && (
+            <div className="px-3 py-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-3 h-9 text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => setIsCreating(true)}
+              >
+                <Plus className="w-4 h-4" />
+                Create Itinerary
+              </Button>
+            </div>
+          )}
+
+          {!isCollapsedView && <div className="mx-3 h-px bg-border/30" />}
+
+          {/* Liked section */}
+          <LikedSection isCollapsedView={isCollapsedView} navigate={navigate} />
+
         </ScrollArea>
       </SidebarContent>
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </Sidebar>
+  );
+};
+
+// Liked section component
+const LikedSection = ({ isCollapsedView, navigate }: { isCollapsedView: boolean; navigate: (path: string) => void }) => {
+  const { likes } = useUserLikes();
+  const [likesOpen, setLikesOpen] = useState(true);
+  
+  const likedExperiences = likes.filter(l => l.item_type === 'experience');
+  const likedItineraries = likes.filter(l => l.item_type === 'itinerary');
+
+  if (isCollapsedView) {
+    return (
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Liked" onClick={() => navigate("/profile")} className="justify-center">
+                <Heart className="w-5 h-5" />
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
+
+  return (
+    <SidebarGroup>
+      <Collapsible open={likesOpen} onOpenChange={setLikesOpen}>
+        <CollapsibleTrigger asChild>
+          <button className="flex items-center gap-1 text-muted-foreground uppercase text-xs tracking-wider hover:text-foreground transition-colors p-2">
+            {likesOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            Liked
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <SidebarGroupContent>
+            {/* Liked Itineraries */}
+            {likedItineraries.length > 0 && (
+              <div className="px-2 mb-2">
+                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5 px-1">
+                  Itineraries
+                </p>
+                <SidebarMenu>
+                  {likedItineraries.slice(0, 5).map((like) => (
+                    <SidebarMenuItem key={like.id}>
+                      <SidebarMenuButton
+                        onClick={() => navigate(`/itinerary/${like.item_id}`)}
+                        className="text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <Compass className="w-4 h-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{like.item_data?.name || 'Itinerary'}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </div>
+            )}
+
+            {/* Liked Experiences */}
+            {likedExperiences.length > 0 && (
+              <div className="px-2 mb-2">
+                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5 px-1">
+                  Experiences
+                </p>
+                <SidebarMenu>
+                  {likedExperiences.slice(0, 5).map((like) => (
+                    <SidebarMenuItem key={like.id}>
+                      <SidebarMenuButton
+                        onClick={() => navigate(`/experience/${like.item_id}`)}
+                        className="text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{like.item_data?.title || 'Experience'}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </div>
+            )}
+
+            {likes.length === 0 && (
+              <p className="text-xs text-muted-foreground px-3 py-2">No likes yet</p>
+            )}
+
+            {likes.length > 5 && (
+              <div className="px-2 pb-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => navigate("/profile")}
+                >
+                  See all likes →
+                </Button>
+              </div>
+            )}
+          </SidebarGroupContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </SidebarGroup>
   );
 };
