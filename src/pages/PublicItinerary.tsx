@@ -1208,6 +1208,63 @@ const PublicItinerary = () => {
             </div>
           </SheetContent>
         </Sheet>
+
+        {/* Mobile Trip Date Picker Sheet */}
+        <Sheet open={showTripDateSheet} onOpenChange={setShowTripDateSheet}>
+          <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[85vh] overflow-y-auto">
+            <SheetHeader className="pb-2">
+              <SheetTitle className="flex items-center gap-2">
+                <Rocket className="w-5 h-5 text-primary" />
+                Make it a Trip
+              </SheetTitle>
+              <SheetDescription>Select your travel dates to generate a schedule</SheetDescription>
+            </SheetHeader>
+            
+            <div className="flex flex-col items-center py-4">
+              <Calendar
+                mode="range"
+                selected={{ from: tripStartDate, to: tripEndDate }}
+                onSelect={(range) => {
+                  setTripStartDate(range?.from);
+                  setTripEndDate(range?.to);
+                }}
+                disabled={(date) => date < new Date()}
+                className="pointer-events-auto"
+                numberOfMonths={1}
+              />
+              
+              <div className="w-full space-y-2 mt-4 px-2">
+                {tripStartDate && tripEndDate && (
+                  <p className="text-sm text-center text-muted-foreground">
+                    {format(tripStartDate, "MMM d")} – {format(tripEndDate, "MMM d, yyyy")}
+                  </p>
+                )}
+                {tripStartDate && !tripEndDate && (
+                  <p className="text-sm text-center text-muted-foreground">
+                    Select an end date, or use a single day
+                  </p>
+                )}
+                <Button 
+                  className="w-full gap-2"
+                  disabled={!tripStartDate}
+                  onClick={() => {
+                    if (tripStartDate) {
+                      generateTrip(tripStartDate, tripEndDate || tripStartDate);
+                      setShowTripDateSheet(false);
+                    }
+                  }}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {tripStartDate && !tripEndDate 
+                    ? `Generate for ${format(tripStartDate, "MMM d")}` 
+                    : tripStartDate && tripEndDate 
+                      ? "Generate Trip Schedule" 
+                      : "Select dates to continue"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </Wrapper>
   );
