@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, ChevronLeft, Check } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
@@ -17,7 +17,9 @@ const cities = [
 
 const CityList = () => {
   const navigate = useNavigate();
-  const [selectedCity, setSelectedCity] = useState("Zanzibar");
+  const [searchParams] = useSearchParams();
+  const currentCity = searchParams.get("city") || "";
+  const [selectedCity, setSelectedCity] = useState(currentCity);
 
   return (
     <div className="px-4 pt-2 pb-8">
