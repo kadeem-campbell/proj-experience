@@ -568,7 +568,6 @@ const PublicItinerary = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     // Pin functionality - move to top by removing and re-adding at position 0
-                    toast({ title: "Pinned to top", description: `${experience.title} moved to the top.` });
                   }}
                   className="flex items-center gap-2"
                 >
