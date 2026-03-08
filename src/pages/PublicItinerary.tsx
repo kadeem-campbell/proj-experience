@@ -1,5 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
+import { allExperiences } from "@/hooks/useExperiencesData";
+import { ExperienceCard } from "@/components/ExperienceCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
