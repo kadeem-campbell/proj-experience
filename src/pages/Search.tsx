@@ -764,13 +764,10 @@ const SearchPage = () => {
         {!selectedCity && filteredItineraries.length > 0 && (
           <div className="mb-6 md:mb-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-lg md:text-xl font-bold">Itineraries</h2>
-                <span className="text-lg font-semibold text-itinerary-color">›</span>
-              </div>
+              <h2 className="text-lg md:text-xl font-bold">Itineraries</h2>
               <Button
                 variant="ghost"
-                className="text-muted-foreground hover:text-foreground text-sm md:text-base font-medium px-4 py-2 h-auto"
+                className="text-itinerary-color hover:text-itinerary-color/80 text-sm md:text-base font-medium px-4 py-2 h-auto"
                 onClick={() => navigate("/itineraries")}
               >
                 View all →
