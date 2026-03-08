@@ -131,7 +131,7 @@ export const ItinerarySidebar = ({
       <SidebarContent>
         <ScrollArea className="flex-1">
           {/* Nav items below toggle */}
-          <SidebarGroup className="pt-12 py-1">
+          <SidebarGroup className="pt-14 py-1">
             <SidebarGroupContent>
               <SidebarMenu>
                 {/* Discover */}
