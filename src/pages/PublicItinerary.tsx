@@ -105,6 +105,7 @@ const PublicItinerary = () => {
   // Trip generation state
   const [showTripView, setShowTripView] = useState(false);
   const [showTripDateSheet, setShowTripDateSheet] = useState(false);
+  const [showTripSelectorSheet, setShowTripSelectorSheet] = useState(false);
   const [tripStartDate, setTripStartDate] = useState<Date | undefined>(undefined);
   const [tripEndDate, setTripEndDate] = useState<Date | undefined>(undefined);
   const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
@@ -113,6 +114,8 @@ const PublicItinerary = () => {
   const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
   const [savedTripId, setSavedTripId] = useState<string | null>(null);
   const [tripName, setTripName] = useState("");
+  const [activeTripMode, setActiveTripMode] = useState(false);
+  const [activeTripId, setActiveTripId] = useState<string | null>(null);
   
   const { 
     addExperience, 
