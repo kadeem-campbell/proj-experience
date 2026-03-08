@@ -53,11 +53,36 @@ const discoverySlides = [
 const DiscoveryCard = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   const navigate = useNavigate();
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
   const slide = discoverySlides[activeSlide];
   const Icon = slide.icon;
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0 && activeSlide < discoverySlides.length - 1) {
+        setActiveSlide(activeSlide + 1);
+      } else if (diff < 0 && activeSlide > 0) {
+        setActiveSlide(activeSlide - 1);
+      }
+    }
+  };
+
   return (
-    <div className="mx-4 mt-3 mb-2">
+    <div
+      className="mx-4 mt-3 mb-2"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Progress bars */}
       <div className="flex gap-1.5 mb-4">
         {discoverySlides.map((s, i) => (
@@ -72,9 +97,9 @@ const DiscoveryCard = () => {
         ))}
       </div>
 
-      {/* Content */}
-      <div className="flex items-start gap-3 mb-4">
-        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0", slide.bgClass)}>
+      {/* Content - centered */}
+      <div className="flex flex-col items-center text-center gap-3 mb-4">
+        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", slide.bgClass)}>
           <Icon className={cn("w-5 h-5", slide.textClass)} />
         </div>
         <div>
@@ -83,8 +108,8 @@ const DiscoveryCard = () => {
         </div>
       </div>
 
-      {/* CTAs */}
-      <div className="flex gap-2">
+      {/* CTAs - centered */}
+      <div className="flex gap-2 justify-center">
         {slide.ctas.map((cta, i) => (
           <button
             key={i}
