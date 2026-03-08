@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
+import { LocationSelector } from "@/components/LocationSelector";
 
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
