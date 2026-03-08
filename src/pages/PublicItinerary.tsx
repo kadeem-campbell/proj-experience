@@ -1175,9 +1175,8 @@ const PublicItinerary = () => {
                   <div className="flex flex-wrap gap-2 justify-center">
                     {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
                       <div key={slot} className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/50 rounded-full px-2.5 py-1">
-                        {timeSlotConfig[slot].icon}
+                        <span>{timeSlotConfig[slot].emoji}</span>
                         <span>{timeSlotConfig[slot].label}</span>
-                        <span className="opacity-60">{timeSlotConfig[slot].range}</span>
                       </div>
                     ))}
                   </div>
