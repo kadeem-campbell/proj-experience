@@ -1029,6 +1029,7 @@ const PublicItinerary = () => {
                               setTripEndDate(trip.endDate ? new Date(trip.endDate) : undefined);
                               setActiveTripMode(true);
                               setActiveTripId(trip.id);
+                              setHasUnsavedChanges(false);
                               setShowTripSelectorSheet(false);
                             }
                           }}
