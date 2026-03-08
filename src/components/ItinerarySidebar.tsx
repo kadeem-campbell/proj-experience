@@ -197,17 +197,8 @@ export const ItinerarySidebar = ({
       <SidebarHeader className="p-3">
         <div className={cn(
           "flex items-center",
-          collapsed ? "flex-col gap-2" : "justify-between"
+          collapsed ? "justify-center" : "justify-end"
         )}>
-          <Link to="/" className="flex items-center">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-primary-foreground" />
-            </div>
-            {!isCollapsedView && (
-              <span className="ml-2 text-lg font-bold gradient-primary bg-clip-text text-transparent">SWAM</span>
-            )}
-          </Link>
-          
           {/* Collapse/Expand button - always visible on desktop */}
           {!isMobile && (
             <Button
@@ -352,83 +343,6 @@ export const ItinerarySidebar = ({
                       )}
                     </div>
                   )}
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {/* Location filter */}
-          <SidebarGroup className="py-0">
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <Popover open={locationOpen} onOpenChange={setLocationOpen}>
-                    <PopoverTrigger asChild>
-                      <SidebarMenuButton
-                        tooltip="Location"
-                        className={cn(
-                          isCollapsedView && "justify-center",
-                          selectedCity && "text-primary"
-                        )}
-                      >
-                        <MapPin className="w-4 h-4" />
-                        {!isCollapsedView && (
-                          <>
-                            <span className="flex-1 text-left truncate">
-                              {selectedCity?.name || "All Locations"}
-                            </span>
-                            <ChevronDown
-                              className={cn(
-                                "w-3.5 h-3.5 shrink-0 transition-transform duration-200",
-                                locationOpen && "rotate-180"
-                              )}
-                            />
-                          </>
-                        )}
-                      </SidebarMenuButton>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="start"
-                      side={isCollapsedView ? "right" : "bottom"}
-                      className="w-52 p-1.5 bg-popover border border-border shadow-lg"
-                    >
-                      <div className="space-y-0.5">
-                        {selectedCity && (
-                          <button
-                            onClick={() => {
-                              onCitySelect?.(null);
-                              setLocationOpen(false);
-                            }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                            Clear filter
-                          </button>
-                        )}
-                        {cities.map((city) => (
-                          <button
-                            key={city.id}
-                            onClick={() => {
-                              onCitySelect?.(city);
-                              setLocationOpen(false);
-                            }}
-                            className={cn(
-                              "w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-md transition-colors",
-                              selectedCity?.id === city.id
-                                ? "bg-primary/10 text-primary"
-                                : "hover:bg-muted"
-                            )}
-                          >
-                            <div
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: city.color }}
-                            />
-                            <span>{city.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
@@ -625,9 +539,9 @@ export const ItinerarySidebar = ({
             </SidebarMenuItem>
           )}
 
-          {/* Profile / Sign up button */}
-          <SidebarMenuItem>
-            {isAuthenticated ? (
+          {/* Profile button - only when authenticated */}
+          {isAuthenticated && (
+            <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => navigate("/profile")}
                 tooltip="Profile"
@@ -642,17 +556,8 @@ export const ItinerarySidebar = ({
                   </span>
                 )}
               </SidebarMenuButton>
-            ) : (
-              <SidebarMenuButton
-                onClick={() => setAuthModalOpen(true)}
-                tooltip="Sign Up"
-                className={isCollapsedView ? "justify-center" : ""}
-              >
-                <UserCircle className="w-4 h-4" />
-                {!isCollapsedView && <span className="text-sm">Sign Up</span>}
-              </SidebarMenuButton>
-            )}
-          </SidebarMenuItem>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
 
