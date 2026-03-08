@@ -133,24 +133,6 @@ export const ItinerarySidebar = ({
           <SidebarGroup className="py-3">
             <SidebarGroupContent>
               <SidebarMenu>
-                {/* Home */}
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === "/"}
-                    tooltip="Home"
-                    className={cn(
-                      "h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname === "/" && "text-foreground"
-                    )}
-                  >
-                    <Link to="/">
-                      <Home className="w-5 h-5 shrink-0" />
-                      {!isCollapsedView && <span>Home</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
                 {/* Discover */}
                 <SidebarMenuItem>
                   <SidebarMenuButton
