@@ -336,14 +336,9 @@ export const MobileHomeView = () => {
           <span className="w-5 h-5 flex items-center justify-center text-foreground font-black text-[15px] leading-none bg-foreground text-background rounded-[5px]">Z</span>
           <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
         </div>
-        <div className="flex items-center gap-1 bg-muted/60 rounded-xl px-2 py-1.5">
-          <button onClick={() => navigate("/map")} className="p-1">
-            <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
-          </button>
-          <button onClick={() => {}} className="p-1">
-            <Search className="w-5 h-5 text-foreground" strokeWidth={2} />
-          </button>
-        </div>
+        <button onClick={() => navigate("/map")} className="p-2 bg-muted/60 rounded-xl">
+          <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
+        </button>
       </div>
       <LocationSelector selectedCity={selectedCity} onCityChange={setSelectedCity} />
     </div>
