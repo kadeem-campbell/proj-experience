@@ -210,7 +210,7 @@ const PublicItinerary = () => {
     );
   }
 
-  // Auto-generate trip based on experiences and their time slots
+  // Auto-generate trip based on experiences — assign to dates with time-of-day labels only
   const generateTrip = (startDate: Date, endDate?: Date) => {
     setIsGenerating(true);
     
@@ -244,32 +244,27 @@ const PublicItinerary = () => {
       for (const slot of slots) {
         if (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
           const exp = bySlot[slot].shift()!;
-          const slotHour = timeSlotConfig[slot].hour;
-          const scheduledDate = setMinutes(setHours(addDays(startDate, day), slotHour), 0);
-          
-          tripDays[dayKey].push({
-            ...exp,
-            scheduledTime: scheduledDate.toISOString()
-          });
+          tripDays[dayKey].push({ ...exp, timeSlot: slot });
         }
       }
       
+      // Fill remaining from any slot
       for (const slot of slots) {
-        if (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
+        while (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
           const exp = bySlot[slot].shift()!;
-          const slotHour = timeSlotConfig[slot].hour;
-          const scheduledDate = setMinutes(setHours(addDays(startDate, day), slotHour), 0);
-          
-          tripDays[dayKey].push({
-            ...exp,
-            scheduledTime: scheduledDate.toISOString()
-          });
+          tripDays[dayKey].push({ ...exp, timeSlot: slot });
         }
       }
-      
-      tripDays[dayKey].sort((a, b) => 
-        new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
-      );
+    }
+    
+    // Any remaining experiences go to the last day
+    const lastDayKey = format(addDays(startDate, numDays - 1), "yyyy-MM-dd");
+    const slots: TimeSlot[] = ['morning', 'afternoon', 'evening', 'night'];
+    for (const slot of slots) {
+      while (bySlot[slot].length > 0) {
+        const exp = bySlot[slot].shift()!;
+        tripDays[lastDayKey].push({ ...exp, timeSlot: slot });
+      }
     }
     
     setTimeout(() => {
