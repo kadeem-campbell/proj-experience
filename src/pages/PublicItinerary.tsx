@@ -1,7 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo, useCallback } from "react";
 import { allExperiences } from "@/hooks/useExperiencesData";
-import { ExperienceCard } from "@/components/ExperienceCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
@@ -96,6 +95,7 @@ const PublicItinerary = () => {
   
   // Trip generation state
   const [showTripView, setShowTripView] = useState(false);
+  const [showTripDateSheet, setShowTripDateSheet] = useState(false);
   const [tripStartDate, setTripStartDate] = useState<Date | undefined>(undefined);
   const [tripEndDate, setTripEndDate] = useState<Date | undefined>(undefined);
   const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
@@ -847,7 +847,7 @@ const PublicItinerary = () => {
 
           {/* Title text overlaid at bottom of hero, on top of the fade */}
           <div className="absolute bottom-0 left-0 right-0 px-4 md:px-6 lg:px-8 pb-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2 line-clamp-2 text-foreground">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 line-clamp-2 text-foreground drop-shadow-sm">
               {itinerary.name}
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-[15px]">
@@ -941,46 +941,55 @@ const PublicItinerary = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  {/* Make it a Trip action with date range */}
+                  {/* Make it a Trip action */}
                   {!showTripView && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button className="gap-2">
+                    isMobile ? (
+                      <>
+                        <Button className="gap-2" onClick={() => setShowTripDateSheet(true)}>
                           <Rocket className="w-4 h-4" />
-                          <span className="hidden sm:inline">Make it a Trip</span>
+                          Trip
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="end">
-                        <div className="flex flex-col">
-                          <Calendar
-                            mode="range"
-                            selected={{ from: tripStartDate, to: tripEndDate }}
-                            onSelect={(range) => {
-                              setTripStartDate(range?.from);
-                              setTripEndDate(range?.to);
-                              if (range?.from && range?.to) {
-                                generateTrip(range.from, range.to);
-                              }
-                            }}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                            numberOfMonths={2}
-                          />
-                          {tripStartDate && !tripEndDate && (
-                            <div className="p-3 pt-0 border-t border-border">
-                              <Button 
-                                onClick={() => generateTrip(tripStartDate, tripStartDate)} 
-                                size="sm" 
-                                className="w-full"
-                              >
-                                Use {format(tripStartDate, "MMM d")} only
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                      </>
+                    ) : (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button className="gap-2">
+                            <Rocket className="w-4 h-4" />
+                            Make it a Trip
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <div className="flex flex-col">
+                            <Calendar
+                              mode="range"
+                              selected={{ from: tripStartDate, to: tripEndDate }}
+                              onSelect={(range) => {
+                                setTripStartDate(range?.from);
+                                setTripEndDate(range?.to);
+                                if (range?.from && range?.to) {
+                                  generateTrip(range.from, range.to);
+                                }
+                              }}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                              className="p-3 pointer-events-auto"
+                              numberOfMonths={2}
+                            />
+                            {tripStartDate && !tripEndDate && (
+                              <div className="p-3 pt-0 border-t border-border">
+                                <Button 
+                                  onClick={() => generateTrip(tripStartDate, tripStartDate)} 
+                                  size="sm" 
+                                  className="w-full"
+                                >
+                                  Use {format(tripStartDate, "MMM d")} only
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )
                   )}
                   
                   {showTripView && (
@@ -1005,7 +1014,7 @@ const PublicItinerary = () => {
                 </div>
               )}
 
-              {/* Related Experiences from same location */}
+              {/* Related Experiences from same location - simple add button */}
               {relatedExperiences.length > 0 && !showTripView && (
                 <div className="mt-8 pt-8 border-t border-border">
                   <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
@@ -1013,9 +1022,57 @@ const PublicItinerary = () => {
                     More experiences in {itineraryLocation}
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {relatedExperiences.map((exp) => (
-                      <ExperienceCard key={exp.id} {...exp} compact />
-                    ))}
+                    {relatedExperiences.map((exp) => {
+                      const alreadyInItinerary = itinerary.experiences.some(e => e.id === exp.id);
+                      return (
+                        <Link key={exp.id} to={`/experience/${exp.id}`}>
+                          <div className="group cursor-pointer">
+                            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+                              <img 
+                                src={exp.videoThumbnail} 
+                                alt={exp.title}
+                                loading="lazy"
+                                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                              />
+                              {/* Direct add button */}
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (alreadyInItinerary) return;
+                                  addExperience({
+                                    id: exp.id,
+                                    title: exp.title,
+                                    creator: exp.creator,
+                                    videoThumbnail: exp.videoThumbnail,
+                                    category: exp.category,
+                                    location: exp.location,
+                                    price: exp.price,
+                                  });
+                                }}
+                                className={cn(
+                                  "absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
+                                  "bg-background/60 backdrop-blur-xl border border-border/20 shadow-sm",
+                                  alreadyInItinerary 
+                                    ? "bg-primary/20" 
+                                    : "hover:bg-background/80"
+                                )}
+                              >
+                                {alreadyInItinerary ? (
+                                  <Check className="w-4 h-4 text-primary" />
+                                ) : (
+                                  <Plus className="w-4 h-4 text-foreground/80" />
+                                )}
+                              </button>
+                            </div>
+                            <div className="mt-2.5 space-y-0.5">
+                              <h3 className="font-semibold text-sm line-clamp-1 text-foreground leading-snug">{exp.title}</h3>
+                              <p className="text-[13px] text-muted-foreground truncate leading-relaxed">{exp.location}</p>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1147,6 +1204,63 @@ const PublicItinerary = () => {
                 <ChevronRight className="w-4 h-4 mr-2" />
                 Go to My Trip
               </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Mobile Trip Date Picker Sheet */}
+        <Sheet open={showTripDateSheet} onOpenChange={setShowTripDateSheet}>
+          <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[85vh] overflow-y-auto">
+            <SheetHeader className="pb-2">
+              <SheetTitle className="flex items-center gap-2">
+                <Rocket className="w-5 h-5 text-primary" />
+                Make it a Trip
+              </SheetTitle>
+              <SheetDescription>Select your travel dates to generate a schedule</SheetDescription>
+            </SheetHeader>
+            
+            <div className="flex flex-col items-center py-4">
+              <Calendar
+                mode="range"
+                selected={{ from: tripStartDate, to: tripEndDate }}
+                onSelect={(range) => {
+                  setTripStartDate(range?.from);
+                  setTripEndDate(range?.to);
+                }}
+                disabled={(date) => date < new Date()}
+                className="pointer-events-auto"
+                numberOfMonths={1}
+              />
+              
+              <div className="w-full space-y-2 mt-4 px-2">
+                {tripStartDate && tripEndDate && (
+                  <p className="text-sm text-center text-muted-foreground">
+                    {format(tripStartDate, "MMM d")} – {format(tripEndDate, "MMM d, yyyy")}
+                  </p>
+                )}
+                {tripStartDate && !tripEndDate && (
+                  <p className="text-sm text-center text-muted-foreground">
+                    Select an end date, or use a single day
+                  </p>
+                )}
+                <Button 
+                  className="w-full gap-2"
+                  disabled={!tripStartDate}
+                  onClick={() => {
+                    if (tripStartDate) {
+                      generateTrip(tripStartDate, tripEndDate || tripStartDate);
+                      setShowTripDateSheet(false);
+                    }
+                  }}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {tripStartDate && !tripEndDate 
+                    ? `Generate for ${format(tripStartDate, "MMM d")}` 
+                    : tripStartDate && tripEndDate 
+                      ? "Generate Trip Schedule" 
+                      : "Select dates to continue"}
+                </Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
