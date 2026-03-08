@@ -140,7 +140,7 @@ export const FixedSearchHeader = ({
           !isVisible && "-translate-y-full"
         )}
       >
-        <div className="px-4 md:px-8 lg:px-10 md:pl-16 py-3">
+        <div className="px-4 md:px-8 lg:px-10 py-3">
           <div className="flex items-center gap-3">
             {/* Left: SWAM logo (mobile only) */}
             <Link to="/" className="md:hidden shrink-0">
