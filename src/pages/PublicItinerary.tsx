@@ -52,7 +52,7 @@ import {
   Clock,
   MapPin,
   Sparkles,
-  
+  Heart,
   ChevronRight,
   ChevronDown,
   GripVertical,
