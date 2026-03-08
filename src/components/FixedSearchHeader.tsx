@@ -87,20 +87,6 @@ export const FixedSearchHeader = ({
         {/* Header row */}
         <div className="px-3 md:px-4 py-2">
           <div className="flex items-center gap-2">
-            {/* TikTok-style toggle for Experiences/Itineraries */}
-            <div className="flex items-center bg-muted/50 rounded-lg p-1">
-              <Link to="/experiences">
-                <button className="px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground transition-colors">
-                  Experiences
-                </button>
-              </Link>
-              <Link to="/itineraries">
-                <button className="px-3 py-1.5 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground transition-colors">
-                  Itineraries
-                </button>
-              </Link>
-            </div>
-
             {/* Spacer */}
             <div className="flex-1" />
 
