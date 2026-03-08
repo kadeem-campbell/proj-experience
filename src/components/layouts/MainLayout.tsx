@@ -61,7 +61,7 @@ export const MainLayout = ({
           onMobileSearchClick={onMobileSearchClick}
         />
         
-        <SidebarInset className="flex-1 flex flex-col min-w-0 ml-[3rem] md:ml-0">
+        <SidebarInset className="flex-1 flex flex-col min-w-0">
           <div className="flex flex-1 overflow-hidden">
             <main className="flex-1 overflow-auto min-w-0">
               {children}

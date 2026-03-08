@@ -70,7 +70,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   return (
     <div 
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
-      onClick={() => navigate(`/public-itinerary/${itinerary.id}`)}
+      onClick={() => navigate(`/itineraries/${itinerary.id}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (

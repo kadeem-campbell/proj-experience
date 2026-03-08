@@ -60,7 +60,7 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
     setCurrentIndex(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
   };
 
-  const linkPath = `/public-itinerary/${itinerary.id}`;
+  const linkPath = `/itineraries/${itinerary.id}`;
 
   return (
     <Link 
