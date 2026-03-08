@@ -36,13 +36,13 @@ export const ExperienceCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isLiked: isLocalLiked, toggleLike: toggleLocalLike } = useLikedExperiences();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
   const isMobile = useIsMobile();
 
-  // Use database likes for authenticated users, localStorage for guests
   const liked = isAuthenticated ? isDbLiked(id, 'experience') : isLocalLiked(id);
 
   useEffect(() => {
@@ -56,28 +56,15 @@ export const ExperienceCard = ({
   }, [isHovered, videoUrl]);
 
   const experienceData = {
-    id,
-    title,
-    creator,
-    videoThumbnail,
-    category,
-    location,
-    price
+    id, title, creator, videoThumbnail, category, location, price
   };
 
-  const handleAddSuccess = () => {
-    // No toast - optimistic UI update only
-  };
+  const handleAddSuccess = () => {};
 
   const handleLikeClick = useCallback(async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Haptic feedback for mobile
-    if (isMobile && 'vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
-    
+    if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
       await toggleDbLike(id, 'experience', experienceData);
     } else {
@@ -88,28 +75,38 @@ export const ExperienceCard = ({
   return (
     <Link 
       to={`/experience/${id}`}
-      className="touch-manipulation"
+      className="touch-manipulation block"
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}
     >
       <div 
         className={cn(
-          "group cursor-pointer transition-transform duration-150",
+          "group cursor-pointer transition-transform duration-150 ease-out",
           isPressed && isMobile && "scale-[0.98]"
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container - 4:3 ratio per Airbnb reference */}
-        <div className="relative overflow-hidden rounded-2xl bg-muted aspect-[4/3]">
+        {/* Image container */}
+        <div className="relative overflow-hidden rounded-xl bg-muted aspect-[4/3]">
+          {/* Skeleton shimmer while loading */}
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-muted animate-pulse" />
+          )}
+          
           {videoUrl ? (
             <video
               ref={videoRef}
               poster={videoThumbnail}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+              className={cn(
+                "w-full h-full object-cover transition-all duration-300 ease-out",
+                isHovered && "scale-[1.03]",
+                imageLoaded ? "opacity-100" : "opacity-0"
+              )}
               muted
               loop
               playsInline
+              onLoadedData={() => setImageLoaded(true)}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
             >
@@ -119,58 +116,72 @@ export const ExperienceCard = ({
             <img
               src={videoThumbnail}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+              loading="lazy"
+              onLoad={() => setImageLoaded(true)}
+              className={cn(
+                "w-full h-full object-cover transition-all duration-300 ease-out",
+                isHovered && "scale-[1.03]",
+                imageLoaded ? "opacity-100" : "opacity-0"
+              )}
             />
           )}
 
-          {/* Heart button - always visible, Vision Pro style with haptic feedback */}
+          {/* Heart button */}
           <button
             onClick={handleLikeClick}
             onTouchEnd={handleLikeClick}
             className={cn(
-              "absolute top-2 right-2 p-2 rounded-full bg-background/60 backdrop-blur-2xl shadow-sm border border-border/30 transition-all duration-200 active:scale-90",
-              liked && "bg-destructive/20"
+              "absolute top-2.5 right-2.5 p-2 rounded-full transition-all duration-200 active:scale-90",
+              "bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm",
+              "hover:bg-background/70",
+              liked && "bg-primary/15"
             )}
           >
             <Heart 
               className={cn(
                 "w-4 h-4 transition-all duration-200",
-                liked ? "fill-destructive text-destructive scale-110" : "text-foreground/70"
+                liked ? "fill-primary text-primary scale-110" : "text-foreground/80"
               )} 
             />
           </button>
           
-          {/* Add to Itinerary Button - always show + to allow adding to multiple itineraries */}
+          {/* Add to Itinerary */}
           <div
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
-            className="absolute bottom-2 right-2"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+            className="absolute bottom-2.5 right-2.5"
           >
             <ItinerarySelector
               experienceId={id}
               experienceData={experienceData}
               onAdd={handleAddSuccess}
             >
-              <button className="w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-2xl border border-border/30 shadow-sm hover:bg-background/90 transition-colors">
-                <Plus className="w-4 h-4 text-foreground/70" />
+              <button className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
+                "bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm",
+                "hover:bg-background/70"
+              )}>
+                <Plus className="w-4 h-4 text-foreground/80" />
               </button>
             </ItinerarySelector>
           </div>
         </div>
 
-        {/* Text content below image */}
-        <div className="mt-2 space-y-0.5">
+        {/* Text content */}
+        <div className="mt-2.5 space-y-0.5">
           <h3 className={cn(
-            "font-medium line-clamp-1 text-foreground",
+            "font-semibold line-clamp-1 text-foreground leading-snug",
             compact ? "text-sm" : "text-[15px]"
           )}>
             {title}
           </h3>
-          <p className="text-[13px] text-muted-foreground truncate">
+          <p className="text-[13px] text-muted-foreground truncate leading-relaxed">
             {location}
           </p>
+          {price && (
+            <p className="text-[13px] text-muted-foreground/70">
+              <span className="font-medium text-foreground">{price}</span> typical
+            </p>
+          )}
         </div>
       </div>
     </Link>
