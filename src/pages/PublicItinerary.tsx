@@ -82,6 +82,10 @@ const PublicItinerary = () => {
   const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [showInviteSheet, setShowInviteSheet] = useState(false);
+  const [showCollaboratorSheet, setShowCollaboratorSheet] = useState(false);
+  const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
     try {
