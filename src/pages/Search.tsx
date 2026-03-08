@@ -168,6 +168,11 @@ const SearchPage = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
+  // Category-filtered experiences (same as mobile)
+  const adventureExps = useMemo(() => experiences.filter(e => e.category === "Adventure").slice(0, 10), [experiences]);
+  const foodExps = useMemo(() => experiences.filter(e => e.category === "Food").slice(0, 10), [experiences]);
+  const beachExps = useMemo(() => experiences.filter(e => e.category === "Beach").slice(0, 10), [experiences]);
+
   // Restore scroll position on mount
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
