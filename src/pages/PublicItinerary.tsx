@@ -1277,6 +1277,7 @@ const PublicItinerary = () => {
           </SheetContent>
         </Sheet>
       </div>
+      <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </Wrapper>
   );
 };
