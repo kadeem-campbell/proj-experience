@@ -165,9 +165,9 @@ const DesktopScrollRow = ({
         {canScrollLeft && (
           <button
             onClick={() => scroll('left')}
-            className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:scale-105 transition-all duration-200 opacity-0 group-hover/row:opacity-100"
+            className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-foreground/80 flex items-center justify-center hover:bg-foreground transition-all duration-200 opacity-0 group-hover/row:opacity-100"
           >
-            <ChevronLeft className="w-5 h-5 text-foreground" />
+            <ChevronLeft className="w-4 h-4 text-background" />
           </button>
         )}
 
@@ -185,9 +185,9 @@ const DesktopScrollRow = ({
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:scale-105 transition-all duration-200 opacity-0 group-hover/row:opacity-100"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-foreground/80 flex items-center justify-center hover:bg-foreground transition-all duration-200 opacity-0 group-hover/row:opacity-100"
           >
-            <ChevronRight className="w-5 h-5 text-foreground" />
+            <ChevronRight className="w-4 h-4 text-background" />
           </button>
         )}
 
