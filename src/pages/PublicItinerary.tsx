@@ -508,8 +508,8 @@ const PublicItinerary = () => {
             draggedExperience?.id === experience.id && 'opacity-50 cursor-grabbing'
           )}
         >
-          {/* Cover Image - match ExperienceCard geometry (4:5, rounded-2xl) */}
-          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
+          {/* Cover Image - match ExperienceCard geometry (4:3, rounded-xl) */}
+          <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
             {experience.videoThumbnail ? (
               <img 
                 src={experience.videoThumbnail} 
