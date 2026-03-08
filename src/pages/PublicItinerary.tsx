@@ -523,10 +523,8 @@ const PublicItinerary = () => {
         key={experience.id}
         to={`/experience/${experience.id}`}
       >
-        <Card 
-          className={cn(
-            "group cursor-pointer transition-transform duration-150 border-0 bg-transparent p-0"
-          )}
+        <div 
+          className="group cursor-pointer transition-transform duration-150"
         >
           {/* Cover Image - match ExperienceCard geometry (4:3, rounded-xl) */}
           <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
