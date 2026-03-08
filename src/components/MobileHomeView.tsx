@@ -327,9 +327,25 @@ export const MobileHomeView = () => {
   const foodExperiences = experiences.filter(e => e.category === "Food").slice(0, 10);
   const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
 
+  const [selectedCity, setSelectedCity] = useState("Zanzibar");
+
   const headerContent = (
-    <div className="flex items-center w-full">
-      <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
+    <div className="flex flex-col gap-2 w-full">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Sparkles className="w-5 h-5 text-foreground" strokeWidth={2.5} />
+          <h1 className="text-xl font-black tracking-tight text-foreground">Discover</h1>
+        </div>
+        <div className="flex items-center gap-1 bg-muted/60 rounded-xl px-2 py-1.5">
+          <button onClick={() => navigate("/map")} className="p-1">
+            <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
+          </button>
+          <button onClick={() => {}} className="p-1">
+            <Search className="w-5 h-5 text-foreground" strokeWidth={2} />
+          </button>
+        </div>
+      </div>
+      <LocationSelector selectedCity={selectedCity} onCityChange={setSelectedCity} />
     </div>
   );
 
