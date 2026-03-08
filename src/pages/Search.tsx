@@ -60,7 +60,7 @@ const DesktopDiscoveryCard = () => {
 
   return (
     <div
-      className="mb-10 py-8 px-8 rounded-2xl relative overflow-hidden max-w-2xl"
+      className="mb-10 py-8 px-8 rounded-2xl relative overflow-hidden"
       style={{
         background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
       }}
