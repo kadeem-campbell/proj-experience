@@ -317,29 +317,55 @@ const PublicItinerary = () => {
   };
 
   const handleSaveTrip = async () => {
-    if (!tripStartDate || !isAuthenticated) {
-      toast({ title: "Sign in required", description: "Please sign in to save your trip." });
-      return;
-    }
+    if (!tripStartDate) return;
 
     const scheduledExperiences = Object.values(generatedTrip).flat().map(exp => ({
       ...exp,
       likedAt: new Date().toISOString()
     }));
     
-    const parentItineraryName = `${itinerary.name}`;
+    const startDateStr = format(tripStartDate, 'yyyy-MM-dd');
+    const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
+    const newTripName = tripName.trim() || `My Trip`;
+
+    if (!isAuthenticated) {
+      // Save locally
+      const localTripsStr = localStorage.getItem('local_trips') || '[]';
+      let localTrips = [];
+      try { localTrips = JSON.parse(localTripsStr); } catch (e) {}
+      
+      localTrips.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+        name: newTripName,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        experiences: scheduledExperiences,
+        savedAt: new Date().toISOString(),
+      });
+      localStorage.setItem('local_trips', JSON.stringify(localTrips));
+      
+      setHasUnsavedChanges(false);
+      toast({
+        title: "Trip saved locally! 🎉",
+        description: "Sign in to make sure you don't lose it.",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => setShowAuthModal(true)}>
+            Sign in
+          </Button>
+        ),
+      });
+      return;
+    }
+    
+    const parentItineraryName = itinerary?.name || "My Saved Trips";
     let parentItinerary = itineraries.find(i => i.name === parentItineraryName);
     
     if (!parentItinerary) {
-      parentItinerary = await createItinerary(parentItineraryName, itinerary.experiences.map(e => ({
+      parentItinerary = await createItinerary(parentItineraryName, itinerary?.experiences?.map(e => ({
         ...e,
         likedAt: new Date().toISOString()
-      })));
+      })) || []);
     }
-    
-    const startDateStr = format(tripStartDate, 'yyyy-MM-dd');
-    const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
-    const newTripName = tripName.trim() || `Trip ${(parentItinerary.trips?.length || 0) + 1}`;
     
     await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
     
