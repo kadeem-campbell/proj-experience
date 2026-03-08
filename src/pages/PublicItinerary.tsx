@@ -942,46 +942,55 @@ const PublicItinerary = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  {/* Make it a Trip action with date range */}
+                  {/* Make it a Trip action */}
                   {!showTripView && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button className="gap-2">
+                    isMobile ? (
+                      <>
+                        <Button className="gap-2" onClick={() => setShowTripDateSheet(true)}>
                           <Rocket className="w-4 h-4" />
-                          <span className="hidden sm:inline">Make it a Trip</span>
+                          Trip
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="end">
-                        <div className="flex flex-col">
-                          <Calendar
-                            mode="range"
-                            selected={{ from: tripStartDate, to: tripEndDate }}
-                            onSelect={(range) => {
-                              setTripStartDate(range?.from);
-                              setTripEndDate(range?.to);
-                              if (range?.from && range?.to) {
-                                generateTrip(range.from, range.to);
-                              }
-                            }}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                            numberOfMonths={2}
-                          />
-                          {tripStartDate && !tripEndDate && (
-                            <div className="p-3 pt-0 border-t border-border">
-                              <Button 
-                                onClick={() => generateTrip(tripStartDate, tripStartDate)} 
-                                size="sm" 
-                                className="w-full"
-                              >
-                                Use {format(tripStartDate, "MMM d")} only
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                      </>
+                    ) : (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button className="gap-2">
+                            <Rocket className="w-4 h-4" />
+                            Make it a Trip
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <div className="flex flex-col">
+                            <Calendar
+                              mode="range"
+                              selected={{ from: tripStartDate, to: tripEndDate }}
+                              onSelect={(range) => {
+                                setTripStartDate(range?.from);
+                                setTripEndDate(range?.to);
+                                if (range?.from && range?.to) {
+                                  generateTrip(range.from, range.to);
+                                }
+                              }}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                              className="p-3 pointer-events-auto"
+                              numberOfMonths={2}
+                            />
+                            {tripStartDate && !tripEndDate && (
+                              <div className="p-3 pt-0 border-t border-border">
+                                <Button 
+                                  onClick={() => generateTrip(tripStartDate, tripStartDate)} 
+                                  size="sm" 
+                                  className="w-full"
+                                >
+                                  Use {format(tripStartDate, "MMM d")} only
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )
                   )}
                   
                   {showTripView && (
