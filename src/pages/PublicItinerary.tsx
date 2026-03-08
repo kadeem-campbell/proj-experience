@@ -346,12 +346,17 @@ const PublicItinerary = () => {
   };
 
   const handleExitTripMode = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm("You have unsaved changes. Exit without saving?");
+      if (!confirmed) return;
+    }
     setActiveTripMode(false);
     setGeneratedTrip({});
     setTripStartDate(undefined);
     setTripEndDate(undefined);
     setTripName("");
     setActiveTripId(null);
+    setHasUnsavedChanges(false);
   };
 
   const handleShare = async () => {
