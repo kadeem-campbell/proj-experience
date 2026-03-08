@@ -299,48 +299,13 @@ export const MobileHomeView = () => {
   const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
 
   const headerContent = (
-    <div className="flex items-center justify-between w-full">
+    <div className="flex items-center w-full">
       <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
-      <div className="flex gap-3">
-        <button
-          onClick={() => navigate("/experiences")}
-          className="text-sm font-semibold text-experience-color hover:opacity-80 transition-colors"
-        >
-          Experiences
-        </button>
-        <button
-          onClick={() => navigate("/itineraries")}
-          className="text-sm font-semibold text-itinerary-color hover:opacity-80 transition-colors"
-        >
-          Itineraries
-        </button>
-        <button
-          onClick={() => {}}
-          className="text-sm font-semibold text-social-color hover:opacity-80 transition-colors"
-        >
-          Share
-        </button>
-      </div>
     </div>
   );
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
-      {/* City pills */}
-      <div className="flex gap-2 px-4 py-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-        {cities.map((city) => (
-          <button
-            key={city}
-            onClick={() => navigate(`/experiences?location=${encodeURIComponent(city)}`)}
-            className="flex-shrink-0 px-4 py-2 rounded-full bg-muted text-sm font-medium text-foreground hover:bg-muted/80 transition-colors active:scale-95"
-          >
-            {city}
-          </button>
-        ))}
-        <button className="flex-shrink-0 px-4 py-2 rounded-full bg-muted text-sm font-medium text-muted-foreground flex items-center gap-1">
-          <MapPinned className="w-3.5 h-3.5" /> More
-        </button>
-      </div>
 
       {/* Discovery card */}
       <DiscoveryCard />
