@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
