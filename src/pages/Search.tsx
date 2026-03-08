@@ -750,63 +750,60 @@ const SearchPage = () => {
           <DesktopDiscoveryCard />
         )}
 
-        {/* Welcome Intro */}
-        {!selectedCity && !searchQuery && (
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Discover Experiences</h1>
-            <p className="text-muted-foreground text-sm md:text-base max-w-xl">
-              Curated activities and itineraries from local creators. Save your favorites and plan your perfect trip.
-            </p>
-          </div>
-        )}
-
-        {/* Top Itineraries Section */}
+        {/* Top Itineraries Section - horizontal scroll like mobile */}
         {!selectedCity && filteredItineraries.length > 0 && (
-          <div className="mb-6 md:mb-10">
+          <div className="mb-8 md:mb-10">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg md:text-xl font-bold">Itineraries</h2>
               <Button
                 variant="ghost"
-                className="text-itinerary-color hover:text-itinerary-color/80 text-sm md:text-base font-medium px-4 py-2 h-auto"
+                className="text-itinerary-color hover:text-itinerary-color/80 text-base font-semibold px-4 py-2 h-auto"
                 onClick={() => navigate("/itineraries")}
               >
                 View all →
               </Button>
             </div>
-            {/* Itinerary grid: 3 on desktop for larger cards */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
-              {filteredItineraries.slice(0, 3).map((itinerary) => (
-                <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
-              ))}
+            <div 
+              className="overflow-x-auto pb-2"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+            >
+              <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+              <div className="inline-flex gap-4 no-scrollbar" style={{ minWidth: '100%' }}>
+                {filteredItineraries.slice(0, 6).map((itinerary) => (
+                  <div key={itinerary.id} className="flex-shrink-0 w-[40vw] md:w-[30vw] lg:w-[24vw] xl:w-[20vw] min-w-[220px]">
+                    <PublicItineraryCard itinerary={itinerary} />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* All Experiences Section - TikTok-style 6-column grid on desktop */}
+        {/* All Experiences Section - horizontal scroll like mobile */}
         {!selectedCity && filteredExperiences.length > 0 && (
-          <div className="mb-6 md:mb-10">
+          <div className="mb-8 md:mb-10">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
               <Button
                 variant="ghost"
-                className="text-experience-color hover:text-experience-color/80 text-sm md:text-base font-medium px-4 py-2 h-auto"
+                className="text-experience-color hover:text-experience-color/80 text-base font-semibold px-4 py-2 h-auto"
                 onClick={() => navigate("/experiences")}
               >
                 View all →
               </Button>
             </div>
-            {/* Grid: max 4 columns on desktop for consistent card sizing */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-              {filteredExperiences.slice(0, visibleCount).map((experience) => (
-                <ExperienceCard key={experience.id} {...experience} compact />
-              ))}
-            </div>
-            {/* Infinite scroll trigger */}
-            {visibleCount < filteredExperiences.length && (
-              <div ref={loadMoreRef} className="flex justify-center py-6 md:py-8">
-                <div className="animate-spin rounded-full h-5 md:h-6 w-5 md:w-6 border-b-2 border-primary"></div>
+            <div 
+              className="overflow-x-auto pb-2"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+            >
+              <div className="inline-flex gap-4 no-scrollbar" style={{ minWidth: '100%' }}>
+                {filteredExperiences.slice(0, 12).map((experience) => (
+                  <div key={experience.id} className="flex-shrink-0 w-[40vw] md:w-[28vw] lg:w-[22vw] xl:w-[18vw] min-w-[200px]">
+                    <ExperienceCard {...experience} compact />
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
           </div>
         )}
 
