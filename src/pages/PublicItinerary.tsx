@@ -858,16 +858,43 @@ const PublicItinerary = () => {
               </div>
             )}
 
-            {/* Experiences Grid - same size always */}
+            {/* Experiences Grid */}
             <div className={cn("p-3 md:p-6 transition-colors", activeTripMode && "bg-muted/20")}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredExperiences.slice(0, 10).map(renderExperienceCard)}
-              </div>
-
-              {filteredExperiences.length === 0 && searchQuery && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground text-sm">No experiences in this itinerary match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+              {activeTripMode && Object.keys(generatedTrip).length > 0 ? (
+                /* Trip mode: group by day */
+                <div className="space-y-6">
+                  {Object.entries(generatedTrip)
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([dayKey, dayExps]) => (
+                      <div key={dayKey}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <CalendarIcon className="w-4 h-4 text-primary" />
+                          <h3 className="text-sm font-semibold text-foreground">
+                            {format(new Date(dayKey), "EEEE, MMM d")}
+                          </h3>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                            {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                          {dayExps.map(renderExperienceCard)}
+                        </div>
+                      </div>
+                    ))}
                 </div>
+              ) : (
+                /* Normal mode: flat grid */
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {filteredExperiences.slice(0, 10).map(renderExperienceCard)}
+                  </div>
+
+                  {filteredExperiences.length === 0 && searchQuery && (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground text-sm">No experiences in this itinerary match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
