@@ -157,7 +157,7 @@ const HorizontalScrollRow = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const chipLabel = variant === "itinerary" ? "Itineraries" : variant === "experience" ? "Experiences" : null;
+  const dotColor = variant === "itinerary" ? "bg-itinerary-color" : variant === "experience" ? "bg-experience-color" : null;
 
   return (
     <div className="py-5">
@@ -166,12 +166,10 @@ const HorizontalScrollRow = ({
         className="mb-3 block w-full text-left px-4"
       >
         <div className="flex items-center gap-2">
-          <h2 className="text-[17px] font-bold text-foreground">{title}</h2>
-          {chipLabel && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase bg-muted text-muted-foreground">
-              {chipLabel}
-            </span>
+          {dotColor && (
+            <span className={cn("w-2 h-2 rounded-full shrink-0", dotColor)} />
           )}
+          <h2 className="text-[17px] font-bold text-foreground">{title}</h2>
         </div>
       </button>
       <div 
