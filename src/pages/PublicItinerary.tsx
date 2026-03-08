@@ -287,16 +287,13 @@ const PublicItinerary = () => {
     generateTrip(tripStartDate, tripEndDate);
   };
 
-  // Update experience time in generated trip
-  const handleUpdateExperienceTime = (expId: string, newTime: string) => {
+  // Update experience time slot (no fixed times)
+  const handleUpdateExperienceSlot = (expId: string, newSlot: TimeSlot) => {
     setGeneratedTrip(prev => {
       const updated = { ...prev };
       for (const dayKey of Object.keys(updated)) {
         updated[dayKey] = updated[dayKey].map(exp => 
-          exp.id === expId ? { ...exp, scheduledTime: newTime } : exp
-        );
-        updated[dayKey].sort((a, b) => 
-          new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+          exp.id === expId ? { ...exp, timeSlot: newSlot } : exp
         );
       }
       return updated;
