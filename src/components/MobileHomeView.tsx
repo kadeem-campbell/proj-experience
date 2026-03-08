@@ -20,8 +20,8 @@ const discoverySlides = [
     textClass: "text-experience-color",
     bgClass: "bg-experience-color/10",
     ctas: [
-      { label: "Explore itineraries", primary: true, route: "/itineraries" },
-      { label: "Browse experiences", primary: false, route: "/experiences" },
+      { label: "Itineraries", primary: true, route: "/itineraries" },
+      { label: "Experiences", primary: false, route: "/experiences" },
     ],
   },
   {
