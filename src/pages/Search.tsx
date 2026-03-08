@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { City } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { allExperiences } from "@/hooks/useExperiencesData";
+import { Compass, Map, MapPinned, MapPin, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const SCROLL_STORAGE_KEY = "discover_scroll_position";
 
@@ -644,7 +646,37 @@ const SearchPage = () => {
 
       {/* Content */}
       <div className="p-3 md:p-6">
-        {/* Welcome Intro - visible for first-time visitors */}
+        {/* Discovery Cards Row - Desktop */}
+        {!selectedCity && !searchQuery && (
+          <div className="mb-8">
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { icon: Compass, title: "Discover experiences", subtitle: "Find the best things to do", colorClass: "bg-experience-color", textClass: "text-experience-color", bgClass: "bg-experience-color/10", label: "Find Experiences", route: "/experiences" },
+                { icon: Map, title: "Explore itineraries", subtitle: "Plan with local guides", colorClass: "bg-itinerary-color", textClass: "text-itinerary-color", bgClass: "bg-itinerary-color/10", label: "Explore Itineraries", route: "/itineraries" },
+                { icon: MapPinned, title: "Create an itinerary", subtitle: "Build your own travel plans", colorClass: "bg-social-color", textClass: "text-social-color", bgClass: "bg-social-color/10", label: "Create Itinerary", route: "/itineraries?create=true" },
+              ].map((card, i) => {
+                const Icon = card.icon;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => navigate(card.route)}
+                    className="p-5 rounded-2xl border border-border/50 bg-card hover:bg-muted/50 transition-all text-left flex flex-col gap-3"
+                  >
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", card.bgClass)}>
+                      <Icon className={cn("w-5 h-5", card.textClass)} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">{card.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">{card.subtitle}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Welcome Intro */}
         {!selectedCity && !searchQuery && (
           <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">Discover Experiences</h1>
@@ -658,7 +690,10 @@ const SearchPage = () => {
         {!selectedCity && filteredItineraries.length > 0 && (
           <div className="mb-6 md:mb-10">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-bold">Itineraries</h2>
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-lg md:text-xl font-bold">Itineraries</h2>
+                <span className="text-lg font-semibold text-itinerary-color">›</span>
+              </div>
               <Button
                 variant="ghost"
                 className="text-muted-foreground hover:text-foreground text-sm md:text-base font-medium px-4 py-2 h-auto"
@@ -667,7 +702,7 @@ const SearchPage = () => {
                 View all →
               </Button>
             </div>
-            {/* Itinerary grid: 2 on mobile, 3 on desktop for larger cards */}
+            {/* Itinerary grid: 3 on desktop for larger cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
               {filteredItineraries.slice(0, 3).map((itinerary) => (
                 <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -680,7 +715,10 @@ const SearchPage = () => {
         {!selectedCity && filteredExperiences.length > 0 && (
           <div className="mb-6 md:mb-10">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-lg md:text-xl font-bold">All Experiences</h2>
+                <span className="text-lg font-semibold text-experience-color">›</span>
+              </div>
               <Button
                 variant="ghost"
                 className="text-muted-foreground hover:text-foreground text-sm md:text-base font-medium px-4 py-2 h-auto"
@@ -689,8 +727,8 @@ const SearchPage = () => {
                 View all →
               </Button>
             </div>
-            {/* TikTok-style grid: 3 columns on mobile, 6 on desktop */}
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+            {/* Grid: max 4 columns on desktop for consistent card sizing */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
               {filteredExperiences.slice(0, visibleCount).map((experience) => (
                 <ExperienceCard key={experience.id} {...experience} compact />
               ))}
@@ -708,7 +746,7 @@ const SearchPage = () => {
         {selectedCity && !selectedCategory && (
           <div className="mb-6 md:mb-10">
             <h2 className="text-base md:text-xl font-semibold mb-3 md:mb-4">{selectedCity.name} Popular Experiences</h2>
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
               {publicItinerariesData
                 .filter(
                   (it) =>
@@ -733,7 +771,7 @@ const SearchPage = () => {
                   : "Search Results"}
             </h2>
 
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
               {filteredExperiences.map((experience) => (
                 <ExperienceCard key={experience.id} {...experience} compact />
               ))}
