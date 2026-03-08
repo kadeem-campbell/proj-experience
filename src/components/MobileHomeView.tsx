@@ -352,9 +352,8 @@ const allExpsData = allExperiences;
 
 export const MobileHomeView = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const initialCity = searchParams.get("city") || "";
-  const [selectedCity, setSelectedCity] = useState(initialCity);
+  const [selectedCity, setSelectedCity] = useState("");
+  const [cityDrawerOpen, setCityDrawerOpen] = useState(false);
 
   const handleCityChange = useCallback((city: string) => {
     setSelectedCity(city);
