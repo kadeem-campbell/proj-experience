@@ -847,7 +847,7 @@ const PublicItinerary = () => {
 
           {/* Title text overlaid at bottom of hero, on top of the fade */}
           <div className="absolute bottom-0 left-0 right-0 px-4 md:px-6 lg:px-8 pb-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2 line-clamp-2 text-foreground">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 line-clamp-2 text-foreground drop-shadow-sm">
               {itinerary.name}
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-[15px]">
