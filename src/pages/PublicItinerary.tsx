@@ -699,6 +699,52 @@ const PublicItinerary = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Trip mode: date/time badge at bottom of image */}
+            {activeTripMode && tripScheduleMap.has(experience.id) && (() => {
+              const schedule = tripScheduleMap.get(experience.id)!;
+              const slotInfo = timeSlotConfig[schedule.slot];
+              return (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-white text-xs font-medium">
+                      {slotInfo.icon}
+                      <span>{format(new Date(schedule.day), "EEE d")}</span>
+                      <span className="opacity-70">·</span>
+                      <span className="opacity-90">{slotInfo.range}</span>
+                    </div>
+                    {/* Change time slot */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          className="p-1 rounded bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
+                        >
+                          <Clock className="w-3 h-3 text-white" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44" onClick={(e) => e.stopPropagation()}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Change time slot</div>
+                        {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
+                          <DropdownMenuItem
+                            key={slot}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleChangeTimeSlot(experience.id, slot);
+                            }}
+                            className={cn("flex items-center gap-2", schedule.slot === slot && "bg-accent")}
+                          >
+                            {timeSlotConfig[slot].icon}
+                            <span>{timeSlotConfig[slot].label}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">{timeSlotConfig[slot].range}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Text content (match ExperienceCard) */}
