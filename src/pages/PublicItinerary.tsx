@@ -385,13 +385,11 @@ const PublicItinerary = () => {
       } catch {
         await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
-        toast({ title: "Link copied!", description: "Share this link with your friends." });
         setTimeout(() => setCopied(false), 2000);
       }
     } else {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      toast({ title: "Link copied!", description: "Share this link with your friends." });
       setTimeout(() => setCopied(false), 2000);
     }
   };
