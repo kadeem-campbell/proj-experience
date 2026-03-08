@@ -20,8 +20,8 @@ const discoverySlides = [
     textClass: "text-experience-color",
     bgClass: "bg-experience-color/10",
     ctas: [
-      { label: "Explore itineraries", primary: true, route: "/itineraries" },
-      { label: "Browse experiences", primary: false, route: "/experiences" },
+      { label: "Itineraries", primary: true, route: "/itineraries" },
+      { label: "Experiences", primary: false, route: "/experiences" },
     ],
   },
   {
@@ -32,8 +32,8 @@ const discoverySlides = [
     textClass: "text-itinerary-color",
     bgClass: "bg-itinerary-color/10",
     ctas: [
-      { label: "Start planning", primary: true, route: "/itineraries" },
-      { label: "View examples", primary: false, route: "/itineraries" },
+      { label: "Itineraries", primary: true, route: "/itineraries" },
+      { label: "Experiences", primary: false, route: "/itineraries" },
     ],
   },
   {
@@ -80,7 +80,7 @@ const DiscoveryCard = () => {
     <div
       className="mx-4 mt-3 mb-0 pb-6 rounded-2xl relative overflow-hidden"
       style={{
-        background: `linear-gradient(to bottom, hsl(var(--muted) / 0.5), hsl(var(--background)))`,
+        background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
