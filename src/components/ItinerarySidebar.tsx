@@ -197,17 +197,8 @@ export const ItinerarySidebar = ({
       <SidebarHeader className="p-3">
         <div className={cn(
           "flex items-center",
-          collapsed ? "flex-col gap-2" : "justify-between"
+          collapsed ? "justify-center" : "justify-end"
         )}>
-          <Link to="/" className="flex items-center">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-primary-foreground" />
-            </div>
-            {!isCollapsedView && (
-              <span className="ml-2 text-lg font-bold gradient-primary bg-clip-text text-transparent">SWAM</span>
-            )}
-          </Link>
-          
           {/* Collapse/Expand button - always visible on desktop */}
           {!isMobile && (
             <Button
