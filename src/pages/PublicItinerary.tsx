@@ -3,8 +3,7 @@ import { useState, useMemo, useCallback } from "react";
 import { allExperiences } from "@/hooks/useExperiencesData";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { format, addDays, setHours, setMinutes, parseISO } from "date-fns";
-import { DateRange } from "react-day-picker";
+import { format, addDays } from "date-fns";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { Button } from "@/components/ui/button";
@@ -72,12 +71,12 @@ import {
   Mail
 } from "lucide-react";
 
-// Time slot configurations with time ranges
-const timeSlotConfig: Record<TimeSlot, { label: string; icon: React.ReactNode; hour: number; range: string }> = {
-  morning: { label: "Morning", icon: <Sunrise className="w-3 h-3" />, hour: 9, range: "8 AM – 12 PM" },
-  afternoon: { label: "Afternoon", icon: <Sun className="w-3 h-3" />, hour: 14, range: "12 PM – 5 PM" },
-  evening: { label: "Evening", icon: <Sunset className="w-3 h-3" />, hour: 18, range: "5 PM – 9 PM" },
-  night: { label: "Night", icon: <Moon className="w-3 h-3" />, hour: 21, range: "9 PM – Late" },
+// Time slot configurations — emoji labels only, no fixed times
+const timeSlotConfig: Record<TimeSlot, { label: string; emoji: string; icon: React.ReactNode }> = {
+  morning: { label: "Morning", emoji: "🌅", icon: <Sunrise className="w-3 h-3" /> },
+  afternoon: { label: "Afternoon", emoji: "☀️", icon: <Sun className="w-3 h-3" /> },
+  evening: { label: "Evening", emoji: "🌆", icon: <Sunset className="w-3 h-3" /> },
+  night: { label: "Night", emoji: "🌙", icon: <Moon className="w-3 h-3" /> },
 };
 
 const PublicItinerary = () => {
@@ -103,16 +102,12 @@ const PublicItinerary = () => {
   const [showNewItineraryInput, setShowNewItineraryInput] = useState<string | null>(null);
   
   // Trip generation state
-  const [showTripView, setShowTripView] = useState(false);
   const [showTripSelectorSheet, setShowTripSelectorSheet] = useState(false);
   const [showNewTripDatePicker, setShowNewTripDatePicker] = useState(false);
   const [tripStartDate, setTripStartDate] = useState<Date | undefined>(undefined);
   const [tripEndDate, setTripEndDate] = useState<Date | undefined>(undefined);
   const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showCustomizeSheet, setShowCustomizeSheet] = useState(false);
-  const [savedItineraryId, setSavedItineraryId] = useState<string | null>(null);
-  const [savedTripId, setSavedTripId] = useState<string | null>(null);
   const [tripName, setTripName] = useState("");
   const [activeTripMode, setActiveTripMode] = useState(false);
   const [activeTripId, setActiveTripId] = useState<string | null>(null);
@@ -125,8 +120,6 @@ const PublicItinerary = () => {
     itineraries, 
     isInItinerary,
     copyItinerary,
-    togglePublic,
-    createTrip
   } = useItineraries();
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -179,15 +172,14 @@ const PublicItinerary = () => {
       .slice(0, 10);
   }, [searchQuery, itineraryExpIds, itinerary]);
 
-  // Build a lookup map: experience ID → { day, time, slot } when in trip mode
+  // Build a lookup map: experience ID → { day, slot } when in trip mode
   const tripScheduleMap = useMemo(() => {
-    if (!activeTripMode || Object.keys(generatedTrip).length === 0) return new Map<string, { day: string; time: string; slot: TimeSlot }>();
-    const map = new Map<string, { day: string; time: string; slot: TimeSlot }>();
+    if (!activeTripMode || Object.keys(generatedTrip).length === 0) return new Map<string, { day: string; slot: TimeSlot }>();
+    const map = new Map<string, { day: string; slot: TimeSlot }>();
     for (const [dayKey, exps] of Object.entries(generatedTrip)) {
       for (const exp of exps) {
         const slot = exp.timeSlot || 'afternoon';
-        const timeStr = exp.scheduledTime ? format(new Date(exp.scheduledTime), "h:mm a") : timeSlotConfig[slot].range;
-        map.set(exp.id, { day: dayKey, time: timeStr, slot });
+        map.set(exp.id, { day: dayKey, slot });
       }
     }
     return map;
@@ -211,7 +203,7 @@ const PublicItinerary = () => {
     );
   }
 
-  // Auto-generate trip based on experiences and their time slots
+  // Auto-generate trip based on experiences — assign to dates with time-of-day labels only
   const generateTrip = (startDate: Date, endDate?: Date) => {
     setIsGenerating(true);
     
@@ -245,32 +237,27 @@ const PublicItinerary = () => {
       for (const slot of slots) {
         if (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
           const exp = bySlot[slot].shift()!;
-          const slotHour = timeSlotConfig[slot].hour;
-          const scheduledDate = setMinutes(setHours(addDays(startDate, day), slotHour), 0);
-          
-          tripDays[dayKey].push({
-            ...exp,
-            scheduledTime: scheduledDate.toISOString()
-          });
+          tripDays[dayKey].push({ ...exp, timeSlot: slot });
         }
       }
       
+      // Fill remaining from any slot
       for (const slot of slots) {
-        if (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
+        while (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
           const exp = bySlot[slot].shift()!;
-          const slotHour = timeSlotConfig[slot].hour;
-          const scheduledDate = setMinutes(setHours(addDays(startDate, day), slotHour), 0);
-          
-          tripDays[dayKey].push({
-            ...exp,
-            scheduledTime: scheduledDate.toISOString()
-          });
+          tripDays[dayKey].push({ ...exp, timeSlot: slot });
         }
       }
-      
-      tripDays[dayKey].sort((a, b) => 
-        new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
-      );
+    }
+    
+    // Any remaining experiences go to the last day
+    const lastDayKey = format(addDays(startDate, numDays - 1), "yyyy-MM-dd");
+    const slots: TimeSlot[] = ['morning', 'afternoon', 'evening', 'night'];
+    for (const slot of slots) {
+      while (bySlot[slot].length > 0) {
+        const exp = bySlot[slot].shift()!;
+        tripDays[lastDayKey].push({ ...exp, timeSlot: slot });
+      }
     }
     
     setTimeout(() => {
@@ -293,16 +280,13 @@ const PublicItinerary = () => {
     generateTrip(tripStartDate, tripEndDate);
   };
 
-  // Update experience time in generated trip
-  const handleUpdateExperienceTime = (expId: string, newTime: string) => {
+  // Update experience time slot (no fixed times)
+  const handleUpdateExperienceSlot = (expId: string, newSlot: TimeSlot) => {
     setGeneratedTrip(prev => {
       const updated = { ...prev };
       for (const dayKey of Object.keys(updated)) {
         updated[dayKey] = updated[dayKey].map(exp => 
-          exp.id === expId ? { ...exp, scheduledTime: newTime } : exp
-        );
-        updated[dayKey].sort((a, b) => 
-          new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
+          exp.id === expId ? { ...exp, timeSlot: newSlot } : exp
         );
       }
       return updated;
@@ -317,89 +301,11 @@ const PublicItinerary = () => {
       if (!exp) return prev;
       
       updated[fromDay] = updated[fromDay].filter(e => e.id !== expId);
-      
-      const newDate = new Date(toDay);
-      const oldDate = new Date(exp.scheduledTime!);
-      newDate.setHours(oldDate.getHours(), oldDate.getMinutes(), 0, 0);
-      
       if (!updated[toDay]) updated[toDay] = [];
-      updated[toDay].push({ ...exp, scheduledTime: newDate.toISOString() });
-      updated[toDay].sort((a, b) => 
-        new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
-      );
+      updated[toDay].push({ ...exp });
       
       return updated;
     });
-  };
-
-  const handleSaveTrip = async () => {
-    const scheduledExperiences = Object.values(generatedTrip).flat().map(exp => ({
-      ...exp,
-      likedAt: new Date().toISOString()
-    }));
-    
-    const parentItineraryName = `${itinerary.name}`;
-    let parentItinerary = itineraries.find(i => i.name === parentItineraryName);
-    
-    if (!parentItinerary) {
-      parentItinerary = await createItinerary(parentItineraryName, itinerary.experiences.map(e => ({
-        ...e,
-        likedAt: new Date().toISOString()
-      })));
-    }
-    
-    const startDateStr = tripStartDate ? format(tripStartDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-    const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
-    const newTripName = tripName.trim() || `Trip ${(parentItinerary.trips?.length || 0) + 1}`;
-    
-    const newTrip = await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
-    
-    // Fire confetti
-    const duration = 2000;
-    const end = Date.now() + duration;
-    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'];
-    
-    (function frame() {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.7 },
-        colors
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.7 },
-        colors
-      });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    }());
-    
-    setSavedItineraryId(parentItinerary.id);
-    setSavedTripId(newTrip?.id || null);
-    setShowCustomizeSheet(true);
-  };
-
-  const handleFinishCustomization = () => {
-    setShowCustomizeSheet(false);
-    if (savedItineraryId) {
-      toast({
-        title: "Trip created! 🎉",
-        description: "Taking you to your new trip...",
-      });
-      setShowTripView(false);
-      setActiveTripMode(false);
-      setGeneratedTrip({});
-      setTripStartDate(undefined);
-      setTripEndDate(undefined);
-      setTripName("");
-      
-      setTimeout(() => {
-        navigate(`/trip/${savedItineraryId}${savedTripId ? `?trip=${savedTripId}` : ''}`);
-      }, 100);
-    }
   };
 
   const handleExitTripMode = () => {
@@ -534,15 +440,10 @@ const PublicItinerary = () => {
       for (const dayKey of Object.keys(updated)) {
         updated[dayKey] = updated[dayKey].map(exp => {
           if (exp.id === expId) {
-            const slotHour = timeSlotConfig[newSlot].hour;
-            const scheduledDate = setMinutes(setHours(new Date(dayKey), slotHour), 0);
-            return { ...exp, timeSlot: newSlot, scheduledTime: scheduledDate.toISOString() };
+            return { ...exp, timeSlot: newSlot };
           }
           return exp;
         });
-        updated[dayKey].sort((a, b) =>
-          new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
-        );
       }
       return updated;
     });
@@ -694,23 +595,23 @@ const PublicItinerary = () => {
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-8">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-white text-[11px] font-medium">
-                      {slotInfo.icon}
+                      <span>{slotInfo.emoji}</span>
                       <span>{format(new Date(schedule.day), "EEE d")}</span>
                       <span className="opacity-60">·</span>
-                      <span className="opacity-80">{slotInfo.range}</span>
+                      <span className="opacity-80">{slotInfo.label}</span>
                     </div>
-                    {/* Change time slot */}
+                    {/* Change time slot + move day */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                           className="p-1 rounded bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
                         >
-                          <Clock className="w-3 h-3 text-white" />
+                          <Edit2 className="w-3 h-3 text-white" />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Change time slot</div>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Time of day</div>
                         {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
                           <DropdownMenuItem
                             key={slot}
@@ -720,9 +621,27 @@ const PublicItinerary = () => {
                             }}
                             className={cn("flex items-center gap-2", schedule.slot === slot && "bg-accent")}
                           >
-                            {timeSlotConfig[slot].icon}
+                            <span>{timeSlotConfig[slot].emoji}</span>
                             <span>{timeSlotConfig[slot].label}</span>
-                            <span className="ml-auto text-xs text-muted-foreground">{timeSlotConfig[slot].range}</span>
+                            {schedule.slot === slot && <Check className="w-3 h-3 ml-auto text-primary" />}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Move to day</div>
+                        {Object.keys(generatedTrip).map((dayKey) => (
+                          <DropdownMenuItem
+                            key={dayKey}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (dayKey !== schedule.day) {
+                                handleMoveExperienceToDay(experience.id, schedule.day, dayKey);
+                              }
+                            }}
+                            className={cn("flex items-center gap-2", dayKey === schedule.day && "bg-accent")}
+                          >
+                            <CalendarIcon className="w-3 h-3" />
+                            <span>{format(new Date(dayKey), "EEE, MMM d")}</span>
+                            {dayKey === schedule.day && <Check className="w-3 h-3 ml-auto text-primary" />}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
@@ -931,30 +850,48 @@ const PublicItinerary = () => {
               <div className="px-3 md:px-6 py-2 bg-primary/5 border-b border-primary/10 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-primary font-medium">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Trip mode — experiences auto-assigned by time of day</span>
+                  <span>Trip mode — tap ✏️ on cards to change day or time</span>
                 </div>
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  className="h-7 text-xs gap-1.5"
-                  onClick={handleSaveTrip}
-                >
-                  <Check className="w-3 h-3" />
-                  Save Trip
-                </Button>
               </div>
             )}
 
-            {/* Experiences Grid - same size always */}
+            {/* Experiences Grid */}
             <div className={cn("p-3 md:p-6 transition-colors", activeTripMode && "bg-muted/20")}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredExperiences.slice(0, 10).map(renderExperienceCard)}
-              </div>
-
-              {filteredExperiences.length === 0 && searchQuery && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground text-sm">No experiences in this itinerary match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+              {activeTripMode && Object.keys(generatedTrip).length > 0 ? (
+                /* Trip mode: group by day */
+                <div className="space-y-6">
+                  {Object.entries(generatedTrip)
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([dayKey, dayExps]) => (
+                      <div key={dayKey}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <CalendarIcon className="w-4 h-4 text-primary" />
+                          <h3 className="text-sm font-semibold text-foreground">
+                            {format(new Date(dayKey), "EEEE, MMM d")}
+                          </h3>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                            {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                          {dayExps.map(renderExperienceCard)}
+                        </div>
+                      </div>
+                    ))}
                 </div>
+              ) : (
+                /* Normal mode: flat grid */
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {filteredExperiences.slice(0, 10).map(renderExperienceCard)}
+                  </div>
+
+                  {filteredExperiences.length === 0 && searchQuery && (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground text-sm">No experiences in this itinerary match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -968,86 +905,6 @@ const PublicItinerary = () => {
           onCopyComplete={handleCopyComplete}
         />
 
-        {/* Post-save Customization Sheet */}
-        <Sheet open={showCustomizeSheet} onOpenChange={setShowCustomizeSheet}>
-          <SheetContent className="w-full sm:max-w-md bg-card border-border overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                Customize Your Trip
-              </SheetTitle>
-              <SheetDescription>Make it public and personalize your trip page</SheetDescription>
-            </SheetHeader>
-            
-            <div className="space-y-6 py-6">
-              {/* Visibility Toggle */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Globe className="w-4 h-4" />
-                  Visibility
-                </label>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="default"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => savedItineraryId && togglePublic(savedItineraryId)}
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    Make Public
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="flex-1"
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    Keep Private
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Public trips can be discovered and spun up by other travelers
-                </p>
-              </div>
-
-              {/* Theme Selector */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Palette className="w-4 h-4" />
-                  Theme
-                </label>
-                <div className="grid grid-cols-5 gap-3">
-                  {[
-                    { name: "Sunset", color: "#f97316", gradient: "from-orange-500/30 to-pink-500/30" },
-                    { name: "Ocean", color: "#06b6d4", gradient: "from-cyan-500/30 to-blue-500/30" },
-                    { name: "Midnight", color: "#a855f7", gradient: "from-purple-500/30 to-slate-900/30" },
-                    { name: "Forest", color: "#10b981", gradient: "from-emerald-500/30 to-green-700/30" },
-                    { name: "Ember", color: "#ef4444", gradient: "from-red-600/30 to-amber-500/30" },
-                  ].map((theme) => (
-                    <button
-                      key={theme.name}
-                      className={cn(
-                        "aspect-square rounded-xl transition-all flex flex-col items-center justify-center gap-1 p-2 hover:scale-105",
-                        `bg-gradient-to-br ${theme.gradient}`
-                      )}
-                    >
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: theme.color }}
-                      />
-                      <span className="text-[10px] text-foreground/80">{theme.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <Button onClick={handleFinishCustomization} className="w-full">
-                <ChevronRight className="w-4 h-4 mr-2" />
-                Go to My Trip
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
 
         {/* Trip Selector Sheet */}
         <Sheet open={showTripSelectorSheet} onOpenChange={setShowTripSelectorSheet}>
@@ -1179,9 +1036,8 @@ const PublicItinerary = () => {
                   <div className="flex flex-wrap gap-2 justify-center">
                     {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
                       <div key={slot} className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/50 rounded-full px-2.5 py-1">
-                        {timeSlotConfig[slot].icon}
+                        <span>{timeSlotConfig[slot].emoji}</span>
                         <span>{timeSlotConfig[slot].label}</span>
-                        <span className="opacity-60">{timeSlotConfig[slot].range}</span>
                       </div>
                     ))}
                   </div>
