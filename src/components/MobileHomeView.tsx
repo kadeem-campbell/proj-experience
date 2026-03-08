@@ -357,12 +357,8 @@ export const MobileHomeView = () => {
 
   const handleCityChange = useCallback((city: string) => {
     setSelectedCity(city);
-    if (city) {
-      setSearchParams({ city }, { replace: true });
-    } else {
-      setSearchParams({}, { replace: true });
-    }
-  }, [setSearchParams]);
+    setCityDrawerOpen(false);
+  }, []);
 
   const itineraries = useMemo(() => {
     if (!selectedCity) return allItinerariesData;
