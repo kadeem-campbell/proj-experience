@@ -441,7 +441,6 @@ const PublicItinerary = () => {
   const handleAddToSpecificItinerary = (experience: LikedExperience, itineraryId: string, itineraryName: string) => {
     const targetItinerary = itineraries.find(i => i.id === itineraryId);
     if (targetItinerary?.experiences.some(e => e.id === experience.id)) {
-      toast({ title: "Already in itinerary", description: `${experience.title} is already in ${itineraryName}.` });
       return;
     }
 
@@ -455,8 +454,6 @@ const PublicItinerary = () => {
       price: experience.price,
       timeSlot: experience.timeSlot,
     });
-    
-    toast({ title: "Added to itinerary", description: `${experience.title} added to ${itineraryName}.` });
   };
 
   const handleCreateAndAdd = async (experience: LikedExperience) => {
