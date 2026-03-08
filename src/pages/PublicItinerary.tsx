@@ -1015,7 +1015,7 @@ const PublicItinerary = () => {
                 </div>
               )}
 
-              {/* Related Experiences from same location */}
+              {/* Related Experiences from same location - simple add button */}
               {relatedExperiences.length > 0 && !showTripView && (
                 <div className="mt-8 pt-8 border-t border-border">
                   <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
@@ -1023,9 +1023,57 @@ const PublicItinerary = () => {
                     More experiences in {itineraryLocation}
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {relatedExperiences.map((exp) => (
-                      <ExperienceCard key={exp.id} {...exp} compact />
-                    ))}
+                    {relatedExperiences.map((exp) => {
+                      const alreadyInItinerary = itinerary.experiences.some(e => e.id === exp.id);
+                      return (
+                        <Link key={exp.id} to={`/experience/${exp.id}`}>
+                          <div className="group cursor-pointer">
+                            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+                              <img 
+                                src={exp.videoThumbnail} 
+                                alt={exp.title}
+                                loading="lazy"
+                                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                              />
+                              {/* Direct add button */}
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (alreadyInItinerary) return;
+                                  addExperience({
+                                    id: exp.id,
+                                    title: exp.title,
+                                    creator: exp.creator,
+                                    videoThumbnail: exp.videoThumbnail,
+                                    category: exp.category,
+                                    location: exp.location,
+                                    price: exp.price,
+                                  });
+                                }}
+                                className={cn(
+                                  "absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
+                                  "bg-background/60 backdrop-blur-xl border border-border/20 shadow-sm",
+                                  alreadyInItinerary 
+                                    ? "bg-primary/20" 
+                                    : "hover:bg-background/80"
+                                )}
+                              >
+                                {alreadyInItinerary ? (
+                                  <Check className="w-4 h-4 text-primary" />
+                                ) : (
+                                  <Plus className="w-4 h-4 text-foreground/80" />
+                                )}
+                              </button>
+                            </div>
+                            <div className="mt-2.5 space-y-0.5">
+                              <h3 className="font-semibold text-sm line-clamp-1 text-foreground leading-snug">{exp.title}</h3>
+                              <p className="text-[13px] text-muted-foreground truncate leading-relaxed">{exp.location}</p>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               )}
