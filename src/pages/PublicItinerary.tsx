@@ -857,17 +857,8 @@ const PublicItinerary = () => {
               <div className="px-3 md:px-6 py-2 bg-primary/5 border-b border-primary/10 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-primary font-medium">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Trip mode — experiences auto-assigned by time of day</span>
+                  <span>Trip mode — tap ✏️ on cards to change day or time</span>
                 </div>
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  className="h-7 text-xs gap-1.5"
-                  onClick={handleSaveTrip}
-                >
-                  <Check className="w-3 h-3" />
-                  Save Trip
-                </Button>
               </div>
             )}
 
