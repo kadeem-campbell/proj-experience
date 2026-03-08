@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus,
-  MapPin,
   Trash2,
   Check,
   X,
@@ -10,11 +9,10 @@ import {
   ChevronRight,
   Compass,
   Search,
-  UserCircle,
+  Heart,
+  Home,
   Sparkles,
   Clock,
-  PanelLeftClose,
-  PanelLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,23 +22,18 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarHeader,
   SidebarFooter,
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
-import { RotatingStatModule } from "@/components/RotatingStatModule";
-import { SidebarItineraryCTA } from "@/components/SidebarItineraryCTA";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { City, cities } from "@/data/browseData";
