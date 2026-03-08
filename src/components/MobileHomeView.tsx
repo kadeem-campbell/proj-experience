@@ -1,12 +1,11 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Compass, Map } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Compass, Map, Share2 } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-import { LocationSelector } from "@/components/LocationSelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
 
@@ -24,11 +23,16 @@ const HorizontalScrollRow = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Subtle background tint for section differentiation
   const sectionBg = variant === "itinerary" 
-    ? "bg-[hsl(var(--itinerary-bg))]" 
+    ? "bg-itinerary-bg" 
     : variant === "experience" 
-    ? "bg-[hsl(var(--experience-bg))]" 
+    ? "bg-experience-bg" 
+    : "";
+
+  const accentColor = variant === "itinerary" 
+    ? "bg-itinerary-color" 
+    : variant === "experience" 
+    ? "bg-experience-color" 
     : "";
 
   return (
@@ -38,11 +42,8 @@ const HorizontalScrollRow = ({
         className="mb-3 block w-full text-left px-4"
       >
         <div className="flex items-center gap-2">
-          {variant === "itinerary" && (
-            <span className="w-1 h-5 rounded-full bg-social-blue inline-block" />
-          )}
-          {variant === "experience" && (
-            <span className="w-1 h-5 rounded-full bg-primary inline-block" />
+          {accentColor && (
+            <span className={cn("w-1 h-5 rounded-full inline-block", accentColor)} />
           )}
           <h2 className="text-[17px] font-bold text-foreground">{title}</h2>
         </div>
@@ -94,17 +95,20 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-social-blue/20 to-social-blue/5 flex items-center justify-center">
-            <Layers className="w-8 h-8 text-social-blue/40" />
+          <div className="w-full h-full bg-gradient-to-br from-itinerary-color/20 to-itinerary-color/5 flex items-center justify-center">
+            <Layers className="w-8 h-8 text-itinerary-color/40" />
           </div>
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-xl shadow-sm transition-all active:scale-90",
-          liked && "bg-destructive/20"
+          "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90",
+          liked ? "bg-experience-color/20" : "bg-white/80 hover:bg-itinerary-color/10"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
+          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-foreground")} />
         </button>
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-white/80 backdrop-blur-xl shadow-sm flex items-center gap-1">
+        <div className={cn(
+          "absolute top-2 left-2 px-2 py-1 rounded-full backdrop-blur-xl shadow-sm flex items-center gap-1",
+          "bg-white/80 hover:bg-itinerary-color/10 transition-colors"
+        )}>
           <Layers className="w-3 h-3 text-foreground" />
           <span className="text-xs font-medium text-foreground">{experienceCount}</span>
         </div>
@@ -151,13 +155,13 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         {experience.videoThumbnail ? (
           <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+          <div className="w-full h-full bg-gradient-to-br from-experience-color/20 to-experience-color/5" />
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-xl shadow-sm transition-all active:scale-90",
-          liked && "bg-destructive/20"
+          "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90",
+          liked ? "bg-experience-color/20" : "bg-white/80 hover:bg-experience-color/10"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
+          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-foreground")} />
         </button>
         <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
           <ItinerarySelector
@@ -168,7 +172,10 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
               location: experience.location || '', price: experience.price || '',
             }}
           >
-            <button className="w-8 h-8 rounded-full flex items-center justify-center bg-white/80 backdrop-blur-xl shadow-sm transition-all active:scale-90">
+            <button className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm transition-all active:scale-90",
+              "bg-white/80 hover:bg-experience-color/10"
+            )}>
               <Plus className="w-4 h-4 text-foreground" />
             </button>
           </ItinerarySelector>
@@ -185,70 +192,67 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   );
 };
 
-// Interactive education hero section
-const InteractiveHero = () => {
+// Uber Rides/Eats style hero — 3 bold pillar cards
+const PillarHero = () => {
   const navigate = useNavigate();
-  const [activeFeature, setActiveFeature] = useState(0);
-  
-  const features = [
-    { icon: Compass, title: "Discover experiences", desc: "Find the best things to do in your city", color: "from-primary/10 to-primary/5" },
-    { icon: Map, title: "Build itineraries", desc: "Plan your perfect trip with local picks", color: "from-social-blue/10 to-social-blue/5" },
-    { icon: Heart, title: "Save & share", desc: "Keep your favourites and share with friends", color: "from-destructive/10 to-destructive/5" },
+
+  const pillars = [
+    { 
+      icon: Compass, 
+      title: "Experiences", 
+      desc: "Discover the best things to do",
+      colorClass: "bg-experience-color",
+      bgClass: "bg-experience-bg",
+      textClass: "text-experience-color",
+      onClick: () => navigate("/experiences"),
+    },
+    { 
+      icon: Map, 
+      title: "Itineraries", 
+      desc: "Build your perfect trip plan",
+      colorClass: "bg-itinerary-color",
+      bgClass: "bg-itinerary-bg",
+      textClass: "text-itinerary-color",
+      onClick: () => navigate("/itineraries"),
+    },
+    { 
+      icon: Share2, 
+      title: "Share", 
+      desc: "Save & share with friends",
+      colorClass: "bg-social-color",
+      bgClass: "bg-social-bg",
+      textClass: "text-social-color",
+      onClick: () => navigate("/experiences"),
+    },
   ];
 
   return (
-    <div className="mb-2 px-4">
-      <div className="rounded-2xl bg-muted/50 border border-border p-5 overflow-hidden">
-        <div className="flex gap-2 mb-4">
-          {features.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveFeature(i)}
-              className={cn(
-                "h-1 rounded-full flex-1 transition-all duration-500",
-                i === activeFeature ? "bg-primary" : "bg-border"
-              )}
-            />
-          ))}
-        </div>
-        
-        <div className="flex items-start gap-4">
-          <div className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br transition-all duration-500",
-            features[activeFeature].color
-          )}>
-            {(() => {
-              const Icon = features[activeFeature].icon;
-              return <Icon className="w-6 h-6 text-foreground" />;
-            })()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-foreground mb-1">{features[activeFeature].title}</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">{features[activeFeature].desc}</p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 mt-4">
+    <div className="px-4 mb-4">
+      <div className="flex gap-2">
+        {pillars.map((p) => (
           <button
-            onClick={() => navigate("/itineraries")}
-            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.98] transition-transform"
+            key={p.title}
+            onClick={p.onClick}
+            className={cn(
+              "flex-1 rounded-2xl p-4 flex flex-col items-start gap-3 active:scale-[0.97] transition-all border border-border/40",
+              p.bgClass
+            )}
           >
-            Explore itineraries
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", p.colorClass)}>
+              <p.icon className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-left">
+              <h3 className={cn("text-sm font-bold", p.textClass)}>{p.title}</h3>
+              <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{p.desc}</p>
+            </div>
           </button>
-          <button
-            onClick={() => navigate("/experiences")}
-            className="flex-1 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-sm font-semibold active:scale-[0.98] transition-transform"
-          >
-            Browse experiences
-          </button>
-        </div>
+        ))}
       </div>
     </div>
   );
 };
 
 export const MobileHomeView = () => {
-  const [selectedCity, setSelectedCity] = useState("");
   const navigate = useNavigate();
 
   const itineraries = getPopularItineraries();
@@ -258,38 +262,19 @@ export const MobileHomeView = () => {
   const foodExperiences = experiences.filter(e => e.category === "Food").slice(0, 10);
   const beachExperiences = experiences.filter(e => e.category === "Beach").slice(0, 10);
 
-  // Header: SWAM logo on left, navigation on right
+  // Header: just SWAM logo
   const headerContent = (
     <div className="flex items-center justify-between w-full">
       <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
-      <div className="flex gap-3">
-        <button
-          onClick={() => navigate("/itineraries")}
-          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Itineraries
-        </button>
-        <button
-          onClick={() => navigate("/experiences")}
-          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Experiences
-        </button>
-      </div>
     </div>
   );
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
-      {/* Location selector */}
-      <div className="px-4 mb-3 pt-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-        <LocationSelector selectedCity={selectedCity} onCityChange={setSelectedCity} />
-      </div>
+      {/* Uber-style pillar hero */}
+      <PillarHero />
 
-      {/* Interactive education hero */}
-      <InteractiveHero />
-
-      {/* Alternating content with visual differentiation */}
+      {/* Alternating content */}
       <HorizontalScrollRow 
         title="Attractions you can't miss"
         variant="itinerary"
