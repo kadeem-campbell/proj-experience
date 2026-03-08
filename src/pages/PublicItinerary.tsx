@@ -658,7 +658,7 @@ const PublicItinerary = () => {
               {experience.location}
             </p>
           </div>
-        </Card>
+        </div>
       </Link>
     );
   };
