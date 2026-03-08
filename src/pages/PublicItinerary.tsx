@@ -64,7 +64,11 @@ import {
   Lock,
   Palette,
   Edit2,
-  Trash2
+  Trash2,
+  Users,
+  UserPlus,
+  Send,
+  Mail
 } from "lucide-react";
 
 // Time slot configurations
