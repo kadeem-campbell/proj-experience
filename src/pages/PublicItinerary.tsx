@@ -111,6 +111,7 @@ const PublicItinerary = () => {
   const [tripName, setTripName] = useState("");
   const [activeTripMode, setActiveTripMode] = useState(false);
   const [activeTripId, setActiveTripId] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const { 
     addExperience, 
@@ -120,6 +121,7 @@ const PublicItinerary = () => {
     itineraries, 
     isInItinerary,
     copyItinerary,
+    createTrip,
   } = useItineraries();
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -266,6 +268,8 @@ const PublicItinerary = () => {
       setActiveTripMode(true);
       setShowTripSelectorSheet(false);
       setShowNewTripDatePicker(false);
+      setHasUnsavedChanges(true);
+      setActiveTripId(null); // This is a new trip, not an existing one
     }, 500);
   };
 
@@ -291,6 +295,7 @@ const PublicItinerary = () => {
       }
       return updated;
     });
+    setHasUnsavedChanges(true);
   };
 
   // Move experience to different day
@@ -306,15 +311,52 @@ const PublicItinerary = () => {
       
       return updated;
     });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSaveTrip = async () => {
+    if (!tripStartDate || !isAuthenticated) {
+      toast({ title: "Sign in required", description: "Please sign in to save your trip." });
+      return;
+    }
+
+    const scheduledExperiences = Object.values(generatedTrip).flat().map(exp => ({
+      ...exp,
+      likedAt: new Date().toISOString()
+    }));
+    
+    const parentItineraryName = `${itinerary.name}`;
+    let parentItinerary = itineraries.find(i => i.name === parentItineraryName);
+    
+    if (!parentItinerary) {
+      parentItinerary = await createItinerary(parentItineraryName, itinerary.experiences.map(e => ({
+        ...e,
+        likedAt: new Date().toISOString()
+      })));
+    }
+    
+    const startDateStr = format(tripStartDate, 'yyyy-MM-dd');
+    const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
+    const newTripName = tripName.trim() || `Trip ${(parentItinerary.trips?.length || 0) + 1}`;
+    
+    await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
+    
+    setHasUnsavedChanges(false);
+    toast({ title: "Trip saved! 🎉", description: `Your ${newTripName} has been saved.` });
   };
 
   const handleExitTripMode = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm("You have unsaved changes. Exit without saving?");
+      if (!confirmed) return;
+    }
     setActiveTripMode(false);
     setGeneratedTrip({});
     setTripStartDate(undefined);
     setTripEndDate(undefined);
     setTripName("");
     setActiveTripId(null);
+    setHasUnsavedChanges(false);
   };
 
   const handleShare = async () => {
@@ -810,7 +852,7 @@ const PublicItinerary = () => {
             <div className={cn(
               "px-3 md:px-6 py-3 md:py-4 border-b sticky top-0 backdrop-blur-sm z-10 transition-colors",
               activeTripMode 
-                ? "bg-primary/5 border-primary/20" 
+                ? "bg-cyan-500/10 border-cyan-500/30" 
                 : "bg-background/95 border-border"
             )}>
               <div className="flex items-center justify-between gap-3">
@@ -826,32 +868,49 @@ const PublicItinerary = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {/* Trip button */}
+                  {/* Itinerary mode: show "Make it a Trip" button */}
                   {!activeTripMode ? (
                     <Button className="gap-2" onClick={() => setShowTripSelectorSheet(true)}>
                       <Rocket className="w-4 h-4" />
                       <span className="hidden sm:inline">Make it a</span> Trip
                     </Button>
                   ) : (
+                    /* Trip mode: show date range, save, exit */
                     <>
                       <Button 
-                        variant="secondary" 
+                        variant="outline" 
                         size="sm"
-                        className="gap-1.5 bg-primary/10 border border-primary/30 text-primary text-xs"
+                        className="gap-1.5 bg-cyan-500/10 border-cyan-500/40 text-cyan-700 dark:text-cyan-400 text-xs hover:bg-cyan-500/20"
                         onClick={() => setShowTripSelectorSheet(true)}
                       >
                         <CalendarIcon className="w-3.5 h-3.5" />
                         {tripStartDate && tripEndDate 
                           ? `${format(tripStartDate, "MMM d")} – ${format(tripEndDate, "MMM d")}`
-                          : "Trip"}
+                          : tripStartDate 
+                            ? format(tripStartDate, "MMM d")
+                            : "Dates"}
                       </Button>
+                      
+                      {/* Save Trip button */}
+                      <Button 
+                        size="sm"
+                        className="gap-1.5 text-xs bg-cyan-600 hover:bg-cyan-700 text-white"
+                        onClick={handleSaveTrip}
+                        disabled={!hasUnsavedChanges}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        {hasUnsavedChanges ? "Save Trip" : "Saved"}
+                      </Button>
+                      
+                      {/* Exit trip mode */}
                       <Button 
                         variant="ghost" 
-                        size="icon"
-                        className="h-8 w-8"
+                        size="sm"
+                        className="h-8 px-2 text-muted-foreground hover:text-destructive text-xs"
                         onClick={handleExitTripMode}
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-4 h-4 mr-1" />
+                        <span className="hidden sm:inline">Exit</span>
                       </Button>
                     </>
                   )}
@@ -861,11 +920,14 @@ const PublicItinerary = () => {
 
             {/* Trip mode active bar */}
             {activeTripMode && (
-              <div className="px-3 md:px-6 py-2 bg-primary/5 border-b border-primary/10 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-primary font-medium">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Trip mode — tap ✏️ on cards to change day or time</span>
+              <div className="px-3 md:px-6 py-2 bg-cyan-500/5 border-b border-cyan-500/20 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-cyan-700 dark:text-cyan-400 font-medium">
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                  <span>Trip Planning Mode — tap ✏️ on cards to change day or time</span>
                 </div>
+                {hasUnsavedChanges && (
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400">Unsaved changes</span>
+                )}
               </div>
             )}
 
@@ -967,6 +1029,7 @@ const PublicItinerary = () => {
                               setTripEndDate(trip.endDate ? new Date(trip.endDate) : undefined);
                               setActiveTripMode(true);
                               setActiveTripId(trip.id);
+                              setHasUnsavedChanges(false);
                               setShowTripSelectorSheet(false);
                             }
                           }}
