@@ -54,11 +54,16 @@ All colors MUST be HSL.
     --activity-foreground: 0 0% 0%;
     --live: 142 76% 36%;
     --trending: 346 82% 51%;
-    --social-blue: 217 91% 50%;
 
-    /* Itinerary vs Experience section colors */
-    --itinerary-bg: 210 40% 97%;
+    /* Three pillar colors */
+    --experience-color: 346 82% 51%;
+    --itinerary-color: 0 0% 12%;
+    --social-color: 162 73% 46%;
+
+    /* Section backgrounds */
+    --itinerary-bg: 0 0% 97%;
     --experience-bg: 346 30% 97%;
+    --social-bg: 162 30% 97%;
 
     --radius: 0.5rem;
 

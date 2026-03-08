@@ -72,9 +72,12 @@ export default {
 				},
 				live: 'hsl(var(--live))',
 				trending: 'hsl(var(--trending))',
-				'social-blue': 'hsl(var(--social-blue))',
+				'experience-color': 'hsl(var(--experience-color))',
+				'itinerary-color': 'hsl(var(--itinerary-color))',
+				'social-color': 'hsl(var(--social-color))',
 				'itinerary-bg': 'hsl(var(--itinerary-bg))',
-				'experience-bg': 'hsl(var(--experience-bg))'
+				'experience-bg': 'hsl(var(--experience-bg))',
+				'social-bg': 'hsl(var(--social-bg))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
