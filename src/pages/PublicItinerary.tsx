@@ -119,7 +119,27 @@ const PublicItinerary = () => {
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
 
-  // Find the public itinerary
+  // Unified like check and toggle for both auth and guest users
+  const isItemLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' = 'experience') => {
+    if (isAuthenticated) return isDbLiked(itemId, itemType);
+    return localLikes.has(`${itemType}:${itemId}`);
+  }, [isAuthenticated, isDbLiked, localLikes]);
+
+  const handleToggleLike = useCallback(async (itemId: string, itemType: 'experience' | 'itinerary', itemData: Record<string, any>) => {
+    if (isAuthenticated) {
+      await toggleDbLike(itemId, itemType, itemData);
+    } else {
+      setLocalLikes(prev => {
+        const key = `${itemType}:${itemId}`;
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key); else next.add(key);
+        localStorage.setItem('local_likes', JSON.stringify([...next]));
+        return next;
+      });
+    }
+  }, [isAuthenticated, toggleDbLike]);
+
+
   const itinerary = publicItinerariesData.find(i => i.id === id);
 
   // Get the primary location of this itinerary
