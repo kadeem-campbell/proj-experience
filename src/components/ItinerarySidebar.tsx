@@ -130,8 +130,11 @@ export const ItinerarySidebar = ({
     >
       <SidebarContent>
         <ScrollArea className="flex-1">
+          {/* Spacer reserved for fixed collapse/expand button */}
+          <div className="h-12" aria-hidden="true" />
+
           {/* Nav items below toggle */}
-          <SidebarGroup className="pt-14 py-1">
+          <SidebarGroup className="py-1">
             <SidebarGroupContent>
               <SidebarMenu>
                 {/* Discover */}
