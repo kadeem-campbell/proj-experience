@@ -805,7 +805,7 @@ const PublicItinerary = () => {
                     {copied ? <Check className="w-5 h-5 text-foreground" /> : <Share2 className="w-5 h-5 text-foreground" />}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-popover border-border">
+                <DropdownMenuContent align="end" className="bg-popover border-border w-56">
                   <DropdownMenuItem onClick={handleShare}>
                     <Copy className="w-4 h-4 mr-2" />
                     Copy Link
@@ -814,31 +814,22 @@ const PublicItinerary = () => {
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Share via WhatsApp
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setCopyDialogOpen(true)}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Itinerary
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowInviteSheet(true)}>
+                    <Send className="w-4 h-4 mr-2" />
+                    Invite Friends
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowCollaboratorSheet(true)}>
+                    <Users className="w-4 h-4 mr-2" />
+                    Add Collaborators
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              {/* Like button (heart) */}
-              <button 
-                onClick={async () => {
-                  await handleToggleLike(itinerary.id, 'itinerary', {
-                    id: itinerary.id,
-                    name: itinerary.name,
-                    coverImage: itinerary.coverImage,
-                    creatorName: itinerary.creatorName,
-                  });
-                }}
-                className={cn(
-                  "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors",
-                  isItemLiked(itinerary.id, 'itinerary') && "bg-primary/15"
-                )}
-              >
-                <Heart className={cn(
-                  "w-5 h-5 transition-all",
-                  isItemLiked(itinerary.id, 'itinerary') 
-                    ? "fill-primary text-primary" 
-                    : "text-foreground"
-                )} />
-              </button>
             </div>
           </div>
 
