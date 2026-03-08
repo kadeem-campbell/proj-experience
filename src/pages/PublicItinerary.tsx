@@ -547,17 +547,15 @@ const PublicItinerary = () => {
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (isAuthenticated) {
-                  await toggleDbLike(experience.id, 'experience', {
-                    id: experience.id,
-                    title: experience.title,
-                    creator: experience.creator,
-                    videoThumbnail: experience.videoThumbnail,
-                    category: experience.category,
-                    location: experience.location,
-                    price: experience.price,
-                  });
-                }
+                await handleToggleLike(experience.id, 'experience', {
+                  id: experience.id,
+                  title: experience.title,
+                  creator: experience.creator,
+                  videoThumbnail: experience.videoThumbnail,
+                  category: experience.category,
+                  location: experience.location,
+                  price: experience.price,
+                });
               }}
               className={cn(
                 "absolute top-2.5 left-2.5 p-2 rounded-full transition-all duration-200 active:scale-90",
