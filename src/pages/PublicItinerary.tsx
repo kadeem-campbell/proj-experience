@@ -748,7 +748,7 @@ const PublicItinerary = () => {
 
   return (
     <Wrapper {...wrapperProps}>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col">
         {/* Hero Cover Image - Full width, Airbnb-style */}
         <div className="relative w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden bg-muted">
           {itinerary.coverImage ? (
