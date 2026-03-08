@@ -852,7 +852,7 @@ const PublicItinerary = () => {
             <div className={cn(
               "px-3 md:px-6 py-3 md:py-4 border-b sticky top-0 backdrop-blur-sm z-10 transition-colors",
               activeTripMode 
-                ? "bg-primary/5 border-primary/20" 
+                ? "bg-cyan-500/10 border-cyan-500/30" 
                 : "bg-background/95 border-border"
             )}>
               <div className="flex items-center justify-between gap-3">
@@ -868,32 +868,49 @@ const PublicItinerary = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {/* Trip button */}
+                  {/* Itinerary mode: show "Make it a Trip" button */}
                   {!activeTripMode ? (
                     <Button className="gap-2" onClick={() => setShowTripSelectorSheet(true)}>
                       <Rocket className="w-4 h-4" />
                       <span className="hidden sm:inline">Make it a</span> Trip
                     </Button>
                   ) : (
+                    /* Trip mode: show date range, save, exit */
                     <>
                       <Button 
-                        variant="secondary" 
+                        variant="outline" 
                         size="sm"
-                        className="gap-1.5 bg-primary/10 border border-primary/30 text-primary text-xs"
+                        className="gap-1.5 bg-cyan-500/10 border-cyan-500/40 text-cyan-700 dark:text-cyan-400 text-xs hover:bg-cyan-500/20"
                         onClick={() => setShowTripSelectorSheet(true)}
                       >
                         <CalendarIcon className="w-3.5 h-3.5" />
                         {tripStartDate && tripEndDate 
                           ? `${format(tripStartDate, "MMM d")} – ${format(tripEndDate, "MMM d")}`
-                          : "Trip"}
+                          : tripStartDate 
+                            ? format(tripStartDate, "MMM d")
+                            : "Dates"}
                       </Button>
+                      
+                      {/* Save Trip button */}
+                      <Button 
+                        size="sm"
+                        className="gap-1.5 text-xs bg-cyan-600 hover:bg-cyan-700 text-white"
+                        onClick={handleSaveTrip}
+                        disabled={!hasUnsavedChanges}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        {hasUnsavedChanges ? "Save Trip" : "Saved"}
+                      </Button>
+                      
+                      {/* Exit trip mode */}
                       <Button 
                         variant="ghost" 
-                        size="icon"
-                        className="h-8 w-8"
+                        size="sm"
+                        className="h-8 px-2 text-muted-foreground hover:text-destructive text-xs"
                         onClick={handleExitTripMode}
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-4 h-4 mr-1" />
+                        <span className="hidden sm:inline">Exit</span>
                       </Button>
                     </>
                   )}
@@ -903,11 +920,14 @@ const PublicItinerary = () => {
 
             {/* Trip mode active bar */}
             {activeTripMode && (
-              <div className="px-3 md:px-6 py-2 bg-primary/5 border-b border-primary/10 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-primary font-medium">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Trip mode — tap ✏️ on cards to change day or time</span>
+              <div className="px-3 md:px-6 py-2 bg-cyan-500/5 border-b border-cyan-500/20 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-cyan-700 dark:text-cyan-400 font-medium">
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                  <span>Trip Planning Mode — tap ✏️ on cards to change day or time</span>
                 </div>
+                {hasUnsavedChanges && (
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400">Unsaved changes</span>
+                )}
               </div>
             )}
 
