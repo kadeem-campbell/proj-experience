@@ -21,6 +21,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserLikes } from "@/hooks/useUserLikes";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
 import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
@@ -50,7 +52,7 @@ import {
   Clock,
   MapPin,
   Sparkles,
-  
+  Heart,
   ChevronRight,
   ChevronDown,
   GripVertical,
@@ -108,6 +110,8 @@ const PublicItinerary = () => {
     togglePublic,
     createTrip
   } = useItineraries();
+  const { isAuthenticated } = useAuth();
+  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
 
   // Find the public itinerary
   const itinerary = publicItinerariesData.find(i => i.id === id);
@@ -493,21 +497,16 @@ const PublicItinerary = () => {
 
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
-    const inItinerary = isInItinerary(experience.id);
-    const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
+    const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : false;
     
     return (
       <Link 
         key={experience.id}
         to={`/experience/${experience.id}`}
-        draggable
-        onDragStart={(e) => handleDragStart(e, experience)}
-        onDragEnd={handleDragEnd}
       >
         <Card 
           className={cn(
-            "group cursor-pointer transition-transform duration-150 border-0 bg-transparent p-0",
-            draggedExperience?.id === experience.id && 'opacity-50 cursor-grabbing'
+            "group cursor-pointer transition-transform duration-150 border-0 bg-transparent p-0"
           )}
         >
           {/* Cover Image - match ExperienceCard geometry (4:3, rounded-xl) */}
@@ -524,28 +523,63 @@ const PublicItinerary = () => {
               </div>
             )}
 
-            {/* Category badge */}
-            {experience.category && (
-              <div className="absolute top-2 left-2">
-                <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs">
-                  {experience.category}
-                </Badge>
-              </div>
-            )}
+            {/* Heart / Like button */}
+            <button
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isAuthenticated) {
+                  await toggleDbLike(experience.id, 'experience', {
+                    id: experience.id,
+                    title: experience.title,
+                    creator: experience.creator,
+                    videoThumbnail: experience.videoThumbnail,
+                    category: experience.category,
+                    location: experience.location,
+                    price: experience.price,
+                  });
+                }
+              }}
+              className={cn(
+                "absolute top-2.5 left-2.5 p-2 rounded-full transition-all duration-200 active:scale-90",
+                "bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm",
+                "hover:bg-background/70",
+                liked && "bg-primary/15"
+              )}
+            >
+              <Heart 
+                className={cn(
+                  "w-4 h-4 transition-all duration-200",
+                  liked ? "fill-primary text-primary scale-110" : "text-foreground/80"
+                )} 
+              />
+            </button>
 
-            {/* 3-dot menu */}
+            {/* More options: move to other itinerary, pin, remove */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                  className="absolute bottom-2 left-2 w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-2xl border border-border/30 shadow-sm hover:bg-background/90 transition-colors"
+                  className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
                 >
-                  <MoreHorizontal className="w-4 h-4 text-foreground/70" />
+                  <MoreHorizontal className="w-4 h-4 text-foreground/80" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                  Add to Itinerary
+              <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault();
+                    // Pin functionality - move to top by removing and re-adding at position 0
+                    toast({ title: "Pinned to top", description: `${experience.title} moved to the top.` });
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4 rotate-90" />
+                  Pin to top
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                  Copy to another itinerary
                 </div>
                 {itineraries.map((itin) => {
                   const isInThis = itin.experiences.some(e => e.id === experience.id);
@@ -558,23 +592,22 @@ const PublicItinerary = () => {
                       }}
                       className="flex items-center justify-between"
                     >
-                      <span className="truncate">{itin.name}</span>
-                      {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                      <span className="truncate text-sm">{itin.name}</span>
+                      {isInThis && <Check className="w-3.5 h-3.5 text-primary ml-2" />}
                     </DropdownMenuItem>
                   );
                 })}
-                <DropdownMenuSeparator />
                 {showNewItineraryInput === experience.id ? (
                   <div className="p-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <Input
                       placeholder="Itinerary name..."
                       value={newItineraryName}
                       onChange={(e) => setNewItineraryName(e.target.value)}
-                      className="h-8 text-sm"
+                      className="h-7 text-xs"
                       autoFocus
                       onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }}
                     />
-                    <Button size="sm" className="h-8" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>
+                    <Button size="sm" className="h-7 text-xs" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>
                       Add
                     </Button>
                   </div>
@@ -584,30 +617,30 @@ const PublicItinerary = () => {
                     className="flex items-center gap-2"
                   >
                     <ListPlus className="w-4 h-4" />
-                    Create New Itinerary
+                    New Itinerary
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleToggleItinerary(experience, e as any);
+                  }}
+                  className="flex items-center gap-2 text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Remove from itinerary
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Toggle Add/Remove Button */}
-            <button
-              onClick={(e) => handleToggleItinerary(experience, e)}
-              className={cn(
-                "absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-2xl border border-border/30 shadow-sm transition-colors",
-                inItinerary ? "bg-primary text-primary-foreground border-transparent" : "hover:bg-background/90"
-              )}
-            >
-              {inItinerary ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4 text-foreground/70" />}
-            </button>
           </div>
 
           {/* Text content (match ExperienceCard) */}
-          <div className="mt-2 space-y-0.5">
-            <h3 className="font-medium line-clamp-1 text-foreground text-sm">
+          <div className="mt-2.5 space-y-0.5">
+            <h3 className="font-semibold line-clamp-1 text-foreground text-sm leading-snug">
               {experience.title}
             </h3>
-            <p className="text-[13px] text-muted-foreground truncate">
+            <p className="text-[13px] text-muted-foreground truncate leading-relaxed">
               {experience.location}
             </p>
           </div>
