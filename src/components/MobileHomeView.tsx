@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, ArrowRight, Compass, Map } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Compass, Map } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -14,28 +14,45 @@ import { MobileShell } from "@/components/MobileShell";
 const HorizontalScrollRow = ({ 
   title, 
   onTitleClick,
+  variant = "default",
   children 
 }: { 
   title: string;
   onTitleClick?: () => void;
+  variant?: "itinerary" | "experience" | "default";
   children: React.ReactNode;
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Subtle background tint for section differentiation
+  const sectionBg = variant === "itinerary" 
+    ? "bg-[hsl(var(--itinerary-bg))]" 
+    : variant === "experience" 
+    ? "bg-[hsl(var(--experience-bg))]" 
+    : "";
+
   return (
-    <div className="mb-8">
+    <div className={cn("py-5", sectionBg)}>
       <button 
         onClick={onTitleClick}
-        className="mb-4 block w-full text-left"
-        style={{ paddingLeft: '16px', paddingRight: '16px' }}
+        className="mb-3 block w-full text-left px-4"
       >
-        <h2 className="text-lg font-bold text-foreground truncate">{title}</h2>
+        <div className="flex items-center gap-2">
+          {variant === "itinerary" && (
+            <span className="w-1 h-5 rounded-full bg-social-blue inline-block" />
+          )}
+          {variant === "experience" && (
+            <span className="w-1 h-5 rounded-full bg-primary inline-block" />
+          )}
+          <h2 className="text-[17px] font-bold text-foreground">{title}</h2>
+        </div>
       </button>
       <div 
         ref={scrollRef}
-        className="overflow-x-auto scrollbar-hide pb-2"
+        className="overflow-x-auto scrollbar-hide pb-1"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
-        <div className="inline-flex gap-3 snap-x snap-mandatory" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+        <div className="inline-flex gap-3 snap-x snap-mandatory px-4">
           {children}
         </div>
       </div>
@@ -43,7 +60,7 @@ const HorizontalScrollRow = ({
   );
 };
 
-// Itinerary card – same 44vw width as experiences
+// Itinerary card
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -77,17 +94,17 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <Layers className="w-8 h-8 text-primary/40" />
+          <div className="w-full h-full bg-gradient-to-br from-social-blue/20 to-social-blue/5 flex items-center justify-center">
+            <Layers className="w-8 h-8 text-social-blue/40" />
           </div>
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90",
+          "absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-xl shadow-sm transition-all active:scale-90",
           liked && "bg-destructive/20"
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-background/70 backdrop-blur-xl shadow-sm flex items-center gap-1">
+        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-white/80 backdrop-blur-xl shadow-sm flex items-center gap-1">
           <Layers className="w-3 h-3 text-foreground" />
           <span className="text-xs font-medium text-foreground">{experienceCount}</span>
         </div>
@@ -137,7 +154,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90",
+          "absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-xl shadow-sm transition-all active:scale-90",
           liked && "bg-destructive/20"
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
@@ -151,7 +168,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
               location: experience.location || '', price: experience.price || '',
             }}
           >
-            <button className="w-8 h-8 rounded-full flex items-center justify-center bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90">
+            <button className="w-8 h-8 rounded-full flex items-center justify-center bg-white/80 backdrop-blur-xl shadow-sm transition-all active:scale-90">
               <Plus className="w-4 h-4 text-foreground" />
             </button>
           </ItinerarySelector>
@@ -168,20 +185,20 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   );
 };
 
-// Interactive education hero section (Polarsteps-inspired)
+// Interactive education hero section
 const InteractiveHero = () => {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
   
   const features = [
-    { icon: Compass, title: "Discover experiences", desc: "Find the best things to do in your city", color: "from-primary/20 to-primary/5" },
-    { icon: Map, title: "Build itineraries", desc: "Plan your perfect trip with local picks", color: "from-accent/20 to-accent/5" },
+    { icon: Compass, title: "Discover experiences", desc: "Find the best things to do in your city", color: "from-primary/10 to-primary/5" },
+    { icon: Map, title: "Build itineraries", desc: "Plan your perfect trip with local picks", color: "from-social-blue/10 to-social-blue/5" },
     { icon: Heart, title: "Save & share", desc: "Keep your favourites and share with friends", color: "from-destructive/10 to-destructive/5" },
   ];
 
   return (
-    <div className="mb-6 px-4">
-      <div className="rounded-2xl bg-muted/40 border border-border/30 p-5 overflow-hidden">
+    <div className="mb-2 px-4">
+      <div className="rounded-2xl bg-muted/50 border border-border p-5 overflow-hidden">
         <div className="flex gap-2 mb-4">
           {features.map((_, i) => (
             <button
@@ -189,7 +206,7 @@ const InteractiveHero = () => {
               onClick={() => setActiveFeature(i)}
               className={cn(
                 "h-1 rounded-full flex-1 transition-all duration-500",
-                i === activeFeature ? "bg-primary" : "bg-muted-foreground/20"
+                i === activeFeature ? "bg-primary" : "bg-border"
               )}
             />
           ))}
@@ -220,7 +237,7 @@ const InteractiveHero = () => {
           </button>
           <button
             onClick={() => navigate("/experiences")}
-            className="flex-1 py-2.5 rounded-xl bg-muted border border-border/50 text-foreground text-sm font-semibold active:scale-[0.98] transition-transform"
+            className="flex-1 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-sm font-semibold active:scale-[0.98] transition-transform"
           >
             Browse experiences
           </button>
@@ -265,16 +282,17 @@ export const MobileHomeView = () => {
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
       {/* Location selector */}
-      <div className="px-4 mb-4 pt-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+      <div className="px-4 mb-3 pt-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         <LocationSelector selectedCity={selectedCity} onCityChange={setSelectedCity} />
       </div>
 
       {/* Interactive education hero */}
       <InteractiveHero />
 
-      {/* Alternating content: itineraries first, then experiences */}
+      {/* Alternating content with visual differentiation */}
       <HorizontalScrollRow 
         title="Attractions you can't miss"
+        variant="itinerary"
         onTitleClick={() => navigate("/itineraries")}
       >
         {itineraries.slice(0, 6).map((itinerary) => (
@@ -284,6 +302,7 @@ export const MobileHomeView = () => {
 
       <HorizontalScrollRow 
         title="Available in Dar Es Salaam next weekend"
+        variant="experience"
         onTitleClick={() => navigate("/experiences")}
       >
         {experiences.slice(0, 8).map((experience) => (
@@ -293,6 +312,7 @@ export const MobileHomeView = () => {
 
       <HorizontalScrollRow 
         title="Curated by locals"
+        variant="itinerary"
         onTitleClick={() => navigate("/itineraries")}
       >
         {itineraries.slice(3, 9).map((itinerary) => (
@@ -303,6 +323,7 @@ export const MobileHomeView = () => {
       {adventureExperiences.length > 0 && (
         <HorizontalScrollRow 
           title="Adventure awaits"
+          variant="experience"
           onTitleClick={() => navigate("/experiences?tag=Adventure")}
         >
           {adventureExperiences.map((experience) => (
@@ -313,6 +334,7 @@ export const MobileHomeView = () => {
 
       <HorizontalScrollRow 
         title="Weekend getaways"
+        variant="itinerary"
         onTitleClick={() => navigate("/itineraries")}
       >
         {itineraries.slice(1, 7).map((itinerary) => (
@@ -323,6 +345,7 @@ export const MobileHomeView = () => {
       {foodExperiences.length > 0 && (
         <HorizontalScrollRow 
           title="Taste the local flavors"
+          variant="experience"
           onTitleClick={() => navigate("/experiences?tag=Food")}
         >
           {foodExperiences.map((experience) => (
@@ -333,6 +356,7 @@ export const MobileHomeView = () => {
 
       <HorizontalScrollRow 
         title="Popular this week"
+        variant="itinerary"
         onTitleClick={() => navigate("/itineraries")}
       >
         {itineraries.slice(2, 8).map((itinerary) => (
@@ -343,6 +367,7 @@ export const MobileHomeView = () => {
       {beachExperiences.length > 0 && (
         <HorizontalScrollRow 
           title="Beach vibes"
+          variant="experience"
           onTitleClick={() => navigate("/experiences?tag=Beaches")}
         >
           {beachExperiences.map((experience) => (
