@@ -377,7 +377,7 @@ export const MobileHomeView = () => {
           </button>
         )}
       </div>
-      <button onClick={() => navigate("/map")} className="p-2 bg-muted/60 rounded-xl">
+      <button onClick={() => navigate(selectedCity ? `/map?city=${encodeURIComponent(selectedCity)}` : "/map")} className="p-2 bg-muted/60 rounded-xl">
         <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
       </button>
     </div>
