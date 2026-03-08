@@ -180,6 +180,20 @@ const PublicItinerary = () => {
       .slice(0, 10);
   }, [searchQuery, itineraryExpIds, itinerary]);
 
+  // Build a lookup map: experience ID → { day, time, slot } when in trip mode
+  const tripScheduleMap = useMemo(() => {
+    if (!activeTripMode || Object.keys(generatedTrip).length === 0) return new Map<string, { day: string; time: string; slot: TimeSlot }>();
+    const map = new Map<string, { day: string; time: string; slot: TimeSlot }>();
+    for (const [dayKey, exps] of Object.entries(generatedTrip)) {
+      for (const exp of exps) {
+        const slot = exp.timeSlot || 'afternoon';
+        const timeStr = exp.scheduledTime ? format(new Date(exp.scheduledTime), "h:mm a") : timeSlotConfig[slot].range;
+        map.set(exp.id, { day: dayKey, time: timeStr, slot });
+      }
+    }
+    return map;
+  }, [activeTripMode, generatedTrip]);
+
   if (!itinerary) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
     return (
