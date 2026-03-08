@@ -398,7 +398,7 @@ const PublicItinerary = () => {
 
   const handleShareWhatsApp = () => {
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    const shareUrl = `${baseUrl}/public-itinerary/${itinerary.id}`;
+    const shareUrl = `${baseUrl}/itineraries/${itinerary.id}`;
     const text = `Check out this itinerary: ${itinerary.name}\n${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
