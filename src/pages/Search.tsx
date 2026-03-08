@@ -114,6 +114,44 @@ const DesktopDiscoveryCard = () => {
   );
 };
 
+// Reusable horizontal scroll row for desktop - mirrors mobile HorizontalScrollRow
+const DesktopScrollRow = ({ 
+  title, 
+  variant = "default",
+  onViewAll,
+  children 
+}: { 
+  title: string;
+  variant?: "itinerary" | "experience" | "default";
+  onViewAll?: () => void;
+  children: React.ReactNode;
+}) => {
+  const viewAllColor = variant === "itinerary" ? "text-itinerary-color hover:text-itinerary-color/80" 
+    : variant === "experience" ? "text-experience-color hover:text-experience-color/80" 
+    : "text-muted-foreground hover:text-foreground";
+
+  return (
+    <div className="mb-8 md:mb-10">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-bold text-foreground">{title}</h2>
+        {onViewAll && (
+          <button onClick={onViewAll} className={cn("text-base font-semibold transition-colors", viewAllColor)}>
+            View all →
+          </button>
+        )}
+      </div>
+      <div 
+        className="overflow-x-auto pb-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="inline-flex gap-4" style={{ minWidth: '100%' }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SCROLL_STORAGE_KEY = "discover_scroll_position";
 
 const SearchPage = () => {
