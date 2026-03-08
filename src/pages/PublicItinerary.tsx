@@ -424,7 +424,6 @@ const PublicItinerary = () => {
     
     if (isInItinerary(experience.id)) {
       removeExperience(experience.id);
-      toast({ title: "Removed from itinerary", description: `${experience.title} has been removed.` });
     } else {
       addExperience({
         id: experience.id,
@@ -436,7 +435,6 @@ const PublicItinerary = () => {
         price: experience.price,
         timeSlot: experience.timeSlot,
       });
-      toast({ title: "Added to itinerary", description: `${experience.title} has been added.` });
     }
   };
 
