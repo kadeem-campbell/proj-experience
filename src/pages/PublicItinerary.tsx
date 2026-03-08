@@ -886,49 +886,16 @@ const PublicItinerary = () => {
                 </div>
               )}
 
-              {/* Related Public Itineraries Section */}
-              {relatedItineraries.length > 0 && !showTripView && (
+              {/* Related Experiences from same location */}
+              {relatedExperiences.length > 0 && !showTripView && (
                 <div className="mt-8 pt-8 border-t border-border">
                   <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    Related Itineraries
+                    More experiences in {itineraryLocation}
                   </h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
-                    {relatedItineraries.map((related) => (
-                      <Link 
-                        key={related.id} 
-                        to={`/public-itinerary/${related.id}`}
-                        className="group"
-                      >
-                        <Card className="overflow-hidden border-0 bg-card/60 hover:bg-card transition-colors">
-                          <div className="aspect-video relative overflow-hidden">
-                            {related.coverImage ? (
-                              <img 
-                                src={related.coverImage} 
-                                alt={related.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                                <span className="text-2xl">🗺️</span>
-                              </div>
-                            )}
-                            <Badge className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm text-xs">
-                              {related.experiences.length} exp
-                            </Badge>
-                          </div>
-                          <div className="p-3">
-                            <h4 className="font-medium text-sm truncate group-hover:text-primary transition-colors">
-                              {related.name}
-                            </h4>
-                            {related.creatorName && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                by @{related.creatorName}
-                              </p>
-                            )}
-                          </div>
-                        </Card>
-                      </Link>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                    {relatedExperiences.map((exp) => (
+                      <ExperienceCard key={exp.id} {...exp} compact />
                     ))}
                   </div>
                 </div>
