@@ -517,15 +517,10 @@ const PublicItinerary = () => {
       for (const dayKey of Object.keys(updated)) {
         updated[dayKey] = updated[dayKey].map(exp => {
           if (exp.id === expId) {
-            const slotHour = timeSlotConfig[newSlot].hour;
-            const scheduledDate = setMinutes(setHours(new Date(dayKey), slotHour), 0);
-            return { ...exp, timeSlot: newSlot, scheduledTime: scheduledDate.toISOString() };
+            return { ...exp, timeSlot: newSlot };
           }
           return exp;
         });
-        updated[dayKey].sort((a, b) =>
-          new Date(a.scheduledTime!).getTime() - new Date(b.scheduledTime!).getTime()
-        );
       }
       return updated;
     });
