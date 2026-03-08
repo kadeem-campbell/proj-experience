@@ -152,15 +152,6 @@ const PublicItinerary = () => {
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
 
-  // Get related experiences from same location (not in this itinerary)
-  const relatedExperiences = useMemo(() => {
-    if (!itinerary || !itineraryLocation) return [];
-    const itineraryExpIds = new Set(itinerary.experiences.map(e => e.id));
-    return allExperiences
-      .filter(e => e.location?.toLowerCase().includes(itineraryLocation.toLowerCase()))
-      .filter(e => !itineraryExpIds.has(e.id))
-      .slice(0, 8);
-  }, [itinerary, itineraryLocation]);
 
   if (!itinerary) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
