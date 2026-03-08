@@ -749,89 +749,94 @@ const PublicItinerary = () => {
   return (
     <Wrapper {...wrapperProps}>
       <div className="flex flex-col h-full">
-        {/* Header - TikTok style */}
-        <div 
-          className="relative p-4 md:p-6 lg:p-8 pb-6 md:pb-8"
-          style={{ background: `linear-gradient(180deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--background)) 100%)` }}
-        >
-          {/* Back Button */}
-          <button 
-            onClick={() => {
-              if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.origin)) {
-                navigate(-1);
-              } else {
-                navigate('/experiences');
-              }
-            }}
-            className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 md:mb-8 transition-colors text-sm font-medium"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </button>
-
-          <div className="flex flex-col sm:flex-row sm:items-start gap-5 md:gap-8">
-            {/* Cover Image - Slightly rounded, TikTok profile style */}
-            <div className="w-40 h-52 sm:w-44 sm:h-56 md:w-52 md:h-64 flex-shrink-0 rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-              {itinerary.coverImage ? (
-                <img src={itinerary.coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
-                  <span className="text-3xl md:text-4xl">🗺️</span>
-                </div>
-              )}
+        {/* Hero Cover Image - Full width, Airbnb-style */}
+        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden bg-muted">
+          {itinerary.coverImage ? (
+            <img 
+              src={itinerary.coverImage} 
+              alt={itinerary.name} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
+              <span className="text-5xl">🗺️</span>
             </div>
+          )}
+          
+          {/* Dark gradient overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
 
-            {/* Info - TikTok style hierarchy */}
-            <div className="flex-1 min-w-0 pt-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-2">
-                Itinerary
-              </p>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-3 md:mb-4 line-clamp-2">
-                {itinerary.name}
-              </h1>
-              <div className="flex items-center gap-4 text-muted-foreground text-[15px]">
-                <span className="font-medium">{itinerary.experiences.length} experiences</span>
-                {itineraryLocation && (
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4" />
-                    <span className="text-foreground font-semibold">{itineraryLocation}</span>
-                  </span>
-                )}
-                {itinerary.creatorName && (
-                  <span>
-                    by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span>
-                  </span>
-                )}
-              </div>
+          {/* Top buttons overlay */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+            {/* Back button */}
+            <button 
+              onClick={() => {
+                if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.origin)) {
+                  navigate(-1);
+                } else {
+                  navigate('/itineraries');
+                }
+              }}
+              className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
 
-              {/* Action Buttons - Inline with info */}
-              <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-8">
-                {/* Copy Itinerary */}
-                <Button onClick={() => setCopyDialogOpen(true)} variant="secondary" className="gap-2 rounded-full px-5 h-11 font-semibold">
-                  <Copy className="w-4 h-4" />
-                  Copy Itinerary
-                </Button>
-                
-                {/* Share */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-full w-11 h-11 border-border/50">
-                      {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="bg-popover border-border">
-                    <DropdownMenuItem onClick={handleShare}>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy Link
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleShareWhatsApp}>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Share via WhatsApp
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+            {/* Right: Share + Copy */}
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors">
+                    {copied ? <Check className="w-5 h-5 text-foreground" /> : <Share2 className="w-5 h-5 text-foreground" />}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover border-border">
+                  <DropdownMenuItem onClick={handleShare}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShareWhatsApp}>
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Share via WhatsApp
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <button 
+                onClick={() => setCopyDialogOpen(true)}
+                className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors"
+              >
+                <Heart className="w-5 h-5 text-foreground" />
+              </button>
             </div>
+          </div>
+
+          {/* Photo count badge */}
+          <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-foreground/70 backdrop-blur-sm">
+            <span className="text-xs font-medium text-background">
+              1 / {itinerary.experiences.length}
+            </span>
+          </div>
+        </div>
+
+        {/* Info section below image */}
+        <div className="px-4 md:px-6 lg:px-8 pt-5 pb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2 line-clamp-2">
+            {itinerary.name}
+          </h1>
+          <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-[15px]">
+            <span className="font-medium">{itinerary.experiences.length} experiences</span>
+            {itineraryLocation && (
+              <span className="flex items-center gap-1.5">
+                <MapPin className="w-4 h-4" />
+                <span className="text-foreground font-semibold">{itineraryLocation}</span>
+              </span>
+            )}
+            {itinerary.creatorName && (
+              <span>
+                by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span>
+              </span>
+            )}
           </div>
         </div>
 
