@@ -50,7 +50,7 @@ import {
   Clock,
   MapPin,
   Sparkles,
-  Eye,
+  
   ChevronRight,
   ChevronDown,
   GripVertical,
