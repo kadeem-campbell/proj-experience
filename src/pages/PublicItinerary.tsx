@@ -1036,8 +1036,86 @@ const PublicItinerary = () => {
               </div>
 
               {filteredExperiences.length === 0 && searchQuery && (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No experiences found matching "{searchQuery}"</p>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground text-sm">No experiences in this itinerary match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+                </div>
+              )}
+
+              {/* Suggested experiences from full database */}
+              {searchQuery.trim() && suggestedExperiences.length > 0 && (
+                <div className="mt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                      Not in this itinerary — add them?
+                    </span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {suggestedExperiences.map((exp) => {
+                      const alreadyAdded = itinerary.experiences.some(e => e.id === exp.id);
+                      return (
+                        <div key={exp.id} className="group relative">
+                          <Link to={`/experience/${exp.id}`}>
+                            <div className="cursor-pointer transition-transform duration-150 opacity-75 group-hover:opacity-100">
+                              <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted ring-1 ring-dashed ring-border">
+                                {exp.videoThumbnail ? (
+                                  <img 
+                                    src={exp.videoThumbnail} 
+                                    alt={exp.title}
+                                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                                    <MapPin className="w-6 h-6 text-muted-foreground" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="mt-2.5 space-y-0.5">
+                                <h3 className="font-semibold line-clamp-1 text-foreground text-sm leading-snug">
+                                  {exp.title}
+                                </h3>
+                                <p className="text-[13px] text-muted-foreground truncate leading-relaxed">
+                                  {exp.location}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                          {/* Add button overlay */}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              addExperience({
+                                id: exp.id,
+                                title: exp.title,
+                                creator: exp.creator,
+                                videoThumbnail: exp.videoThumbnail,
+                                category: exp.category,
+                                location: exp.location,
+                                price: exp.price,
+                                timeSlot: exp.timeSlot,
+                              });
+                              toast({ title: "Added!", description: `${exp.title} added to this itinerary.` });
+                            }}
+                            className={cn(
+                              "absolute top-2.5 right-2.5 p-2 rounded-full transition-all duration-200 active:scale-90",
+                              "bg-primary text-primary-foreground shadow-lg hover:bg-primary/90",
+                              alreadyAdded && "bg-primary/20 text-primary pointer-events-none"
+                            )}
+                          >
+                            {alreadyAdded ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {searchQuery.trim() && filteredExperiences.length === 0 && suggestedExperiences.length === 0 && (
+                <div className="text-center py-4">
+                  <p className="text-xs text-muted-foreground">No experiences found anywhere matching "{searchQuery}"</p>
                 </div>
               )}
 
