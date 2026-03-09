@@ -613,42 +613,55 @@ export default function ExperienceDetail() {
         {/* Main Content - Desktop: Centered Single Column */}
         <main className="max-w-5xl mx-auto px-4 py-6">
 
-          {/* Content Section */}
-          <div className="lg:px-0">
-              {/* Mobile-only title section */}
-              <div className="lg:hidden mb-4">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <Badge className="bg-foreground text-background border-0 font-medium">
-                    {experience.category}
-                  </Badge>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                    <span className="font-medium text-foreground">{experience.rating}</span>
-                  </div>
-                  <span className="text-muted-foreground text-sm">•</span>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    <span>{socialProof.added} added this</span>
-                  </div>
-                </div>
-
-                <h1 className="text-2xl font-bold tracking-tight mb-2">
-                  {experience.title}
-                </h1>
-
-                <div className="flex items-center gap-1.5 text-muted-foreground mb-4">
-                  <MapPin className="w-4 h-4" />
-                  <span>{experience.location}</span>
-                </div>
+          {/* Desktop Title Section - below hero image */}
+          <div className="hidden lg:block mb-6">
+            <div className="flex items-center gap-3 mb-3">
+              <Badge className="bg-foreground text-background border-0 font-medium text-sm">
+                {experience.category}
+              </Badge>
+              <div className="flex items-center gap-1 text-sm">
+                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                <span className="font-medium">{experience.rating}</span>
               </div>
-
-              {/* Social proof header - Desktop */}
-              <div className="hidden lg:flex items-center gap-3 mb-6 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4" />
-                  <span><strong className="text-foreground">{socialProof.added}</strong> travelers added this</span>
-                </div>
+              <span className="text-muted-foreground text-sm">•</span>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <TrendingUp className="w-4 h-4" />
+                <span><strong className="text-foreground">{socialProof.added}</strong> added this</span>
               </div>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">{experience.title}</h1>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MapPin className="w-4 h-4" />
+              <span className="text-base">{experience.location}</span>
+            </div>
+          </div>
+
+          {/* Mobile-only title section */}
+          <div className="lg:hidden mb-4">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <Badge className="bg-foreground text-background border-0 font-medium">
+                {experience.category}
+              </Badge>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                <span className="font-medium text-foreground">{experience.rating}</span>
+              </div>
+              <span className="text-muted-foreground text-sm">•</span>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>{socialProof.added} added this</span>
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-bold tracking-tight mb-2">
+              {experience.title}
+            </h1>
+
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-4">
+              <MapPin className="w-4 h-4" />
+              <span>{experience.location}</span>
+            </div>
+          </div>
 
               {/* Live Planning Indicator */}
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10 mb-6">
