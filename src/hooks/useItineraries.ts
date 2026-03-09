@@ -112,11 +112,30 @@ export const useItineraries = () => {
 
   // Load itineraries from database or localStorage
   const loadItineraries = useCallback(async (uid: string | null) => {
-    setIsLoading(true);
-    
     if (uid) {
-      // First sync any local itineraries
-      await syncLocalToDatabase(uid);
+      // Show cached data immediately while fetching
+      const cacheKey = `itineraries_cache_${uid}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed: Itinerary[] = JSON.parse(cached);
+          if (parsed.length > 0) {
+            setItineraries(parsed);
+            setIsLoading(false);
+            const storedActiveId = localStorage.getItem(ACTIVE_ITINERARY_KEY);
+            if (storedActiveId && parsed.find(i => i.id === storedActiveId)) {
+              setActiveItineraryIdState(storedActiveId);
+            } else {
+              setActiveItineraryIdState(parsed[0].id);
+            }
+          }
+        } catch {}
+      } else {
+        setIsLoading(true);
+      }
+
+      // Sync any local itineraries (fire-and-forget for speed)
+      syncLocalToDatabase(uid);
 
       // Load from database
       const { data, error } = await supabase
@@ -134,6 +153,7 @@ export const useItineraries = () => {
       if (data && data.length > 0) {
         const loaded = data.map(dbToItinerary);
         setItineraries(loaded);
+        localStorage.setItem(cacheKey, JSON.stringify(loaded));
         
         const storedActiveId = localStorage.getItem(ACTIVE_ITINERARY_KEY);
         if (storedActiveId && loaded.find(i => i.id === storedActiveId)) {
@@ -159,6 +179,7 @@ export const useItineraries = () => {
         setItineraries([defaultItinerary]);
         setActiveItineraryIdState(newId);
         localStorage.setItem(ACTIVE_ITINERARY_KEY, newId);
+        localStorage.setItem(cacheKey, JSON.stringify([defaultItinerary]));
       }
     } else {
       // Load from localStorage for unauthenticated users
@@ -194,25 +215,40 @@ export const useItineraries = () => {
     setIsLoading(false);
   }, [syncLocalToDatabase]);
 
-  // Listen for auth state changes
+  // Listen for auth state changes - use ref to prevent double loading
   useEffect(() => {
+    let initialLoaded = false;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const newUserId = session?.user?.id || null;
       setUserId(newUserId);
       
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+      if (event === 'INITIAL_SESSION') {
+        if (!initialLoaded) {
+          initialLoaded = true;
+          loadItineraries(newUserId);
+        }
+      } else if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
         loadItineraries(newUserId);
       }
     });
 
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const uid = session?.user?.id || null;
-      setUserId(uid);
-      loadItineraries(uid);
-    });
+    // Fallback: if INITIAL_SESSION doesn't fire quickly
+    const timeout = setTimeout(() => {
+      if (!initialLoaded) {
+        initialLoaded = true;
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          const uid = session?.user?.id || null;
+          setUserId(uid);
+          loadItineraries(uid);
+        });
+      }
+    }, 500);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [loadItineraries]);
 
   // Listen for cross-component updates (for BOTH authenticated and unauthenticated users)
@@ -251,6 +287,9 @@ export const useItineraries = () => {
     window.dispatchEvent(new CustomEvent('itinerariesChanged', { detail: newItineraries }));
 
     if (userId) {
+      // Update localStorage cache for instant loading next time
+      localStorage.setItem(`itineraries_cache_${userId}`, JSON.stringify(newItineraries));
+      
       // Save to database in background - don't await
       Promise.all(
         newItineraries.map(itinerary => {
