@@ -165,10 +165,10 @@ export const ItinerarySidebar = ({
                     tooltip="Liked"
                     className={cn(
                       "h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname === "/profile" && "text-foreground"
+                      location.pathname === "/liked" && "text-foreground"
                     )}
                   >
-                    <Link to="/profile">
+                    <Link to="/liked">
                       <Heart className="w-5 h-5 shrink-0" />
                       {!isCollapsedView && <span>Liked</span>}
                     </Link>
