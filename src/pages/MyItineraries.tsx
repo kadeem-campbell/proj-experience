@@ -4,12 +4,14 @@ import { Plus, Layers, Calendar, MapPin, MoreHorizontal, Trash2, Edit2, Loader2 
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { MobileShell } from "@/components/MobileShell";
+import { MainLayout } from "@/components/layouts/MainLayout";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-// Spotify-style itinerary card — like a playlist
+// Spotify-style itinerary card — like a playlist (mobile)
 const ItineraryPlaylistCard = ({ 
   itinerary, 
   onTap, 
@@ -68,6 +70,57 @@ const ItineraryPlaylistCard = ({
   );
 };
 
+// Desktop itinerary card - grid view with 4:3 aspect ratio
+const DesktopItineraryCard = ({ 
+  itinerary, 
+  onTap, 
+  onOptions 
+}: { 
+  itinerary: any; 
+  onTap: () => void;
+  onOptions: (e: React.MouseEvent) => void;
+}) => {
+  const experienceCount = itinerary.experiences?.length || 0;
+  const coverImage = itinerary.coverImage || itinerary.experiences?.[0]?.videoThumbnail;
+  const location = itinerary.experiences?.[0]?.location || "";
+
+  return (
+    <div 
+      onClick={onTap}
+      className="group cursor-pointer transition-transform hover:scale-[1.02]"
+    >
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+        {coverImage ? (
+          <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <Layers className="w-8 h-8 text-primary/40" />
+          </div>
+        )}
+        <button
+          onClick={onOptions}
+          className="absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <MoreHorizontal className="w-4 h-4 text-foreground" />
+        </button>
+        <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-background/70 backdrop-blur-xl shadow-sm flex items-center gap-1">
+          <Layers className="w-3 h-3 text-foreground" />
+          <span className="text-xs font-medium text-foreground">{experienceCount}</span>
+        </div>
+      </div>
+      <div className="mt-2 space-y-0.5">
+        <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
+        {location && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="w-3 h-3" />
+            <span className="truncate">{location}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const MyItinerariesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -79,6 +132,7 @@ const MyItinerariesPage = () => {
   const [optionsItinerary, setOptionsItinerary] = useState<any>(null);
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
+  const isMobile = useIsMobile();
 
   // Auto-open create drawer from ?create=true
   useEffect(() => {
@@ -117,33 +171,169 @@ const MyItinerariesPage = () => {
   };
 
   if (!isAuthenticated) {
+    const Wrapper = isMobile ? MobileShell : MainLayout;
     return (
-      <MobileShell>
+      <Wrapper>
         <div className="flex flex-col items-center justify-center px-6 pt-20">
           <Layers className="w-16 h-16 text-muted-foreground/30 mb-4" />
           <h2 className="text-xl font-bold mb-2">Your Itineraries</h2>
           <p className="text-sm text-muted-foreground text-center mb-6">Sign in to create and manage your travel itineraries</p>
           <Button onClick={() => navigate('/auth')} className="rounded-full px-8">Sign In</Button>
         </div>
+      </Wrapper>
+    );
+  }
+
+  // Mobile view
+  if (isMobile) {
+    return (
+      <MobileShell hideAvatar>
+        <div className="px-4 pt-2">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
+            </div>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+            >
+              <Plus className="w-5 h-5 text-primary-foreground" />
+            </button>
+          </div>
+
+          {/* Loading */}
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : itineraries.length === 0 ? (
+            <div className="text-center py-16">
+              <Layers className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-muted-foreground mb-4">No itineraries yet</p>
+              <Button onClick={() => setShowCreate(true)} variant="outline" className="rounded-full">
+                <Plus className="w-4 h-4 mr-2" /> Create your first
+              </Button>
+            </div>
+          ) : (
+            /* Playlist list */
+            <div className="space-y-1">
+              {itineraries.map(itinerary => (
+                <ItineraryPlaylistCard
+                  key={itinerary.id}
+                  itinerary={itinerary}
+                  onTap={() => handleTap(itinerary)}
+                  onOptions={(e) => {
+                    e.stopPropagation();
+                    setOptionsItinerary(itinerary);
+                    setRenameValue(itinerary.name);
+                    if ('vibrate' in navigator) navigator.vibrate(10);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Create drawer */}
+        <Drawer open={showCreate} onOpenChange={setShowCreate}>
+          <DrawerContent className="overflow-hidden">
+            <div className="px-6 py-5">
+              <h3 className="text-lg font-bold mb-4">New Itinerary</h3>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="e.g. Zanzibar Weekend"
+                className="h-12 rounded-xl mb-4"
+                style={{ fontSize: '16px' }}
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              />
+              <Button 
+                onClick={handleCreate} 
+                disabled={!newName.trim() || creating}
+                className="w-full h-12 rounded-xl"
+              >
+                {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+                Create & Add Experiences
+              </Button>
+            </div>
+          </DrawerContent>
+        </Drawer>
+
+        {/* Options drawer */}
+        <Drawer open={!!optionsItinerary && !renaming} onOpenChange={(open) => !open && setOptionsItinerary(null)}>
+          <DrawerContent className="overflow-hidden">
+            <div className="px-6 py-5 space-y-2">
+              <h3 className="text-lg font-bold mb-3 truncate">{optionsItinerary?.name}</h3>
+              <button
+                onClick={() => setRenaming(true)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors"
+              >
+                <Edit2 className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium">Rename</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (optionsItinerary) {
+                    navigate(`/experiences?addTo=${optionsItinerary.id}`);
+                    setOptionsItinerary(null);
+                  }
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors"
+              >
+                <Plus className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium">Add Experiences</span>
+              </button>
+              <button
+                onClick={handleDelete}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-destructive/10 transition-colors text-destructive"
+              >
+                <Trash2 className="w-5 h-5" />
+                <span className="font-medium">Delete</span>
+              </button>
+            </div>
+          </DrawerContent>
+        </Drawer>
+
+        {/* Rename drawer */}
+        <Drawer open={renaming} onOpenChange={(open) => { if (!open) setRenaming(false); }}>
+          <DrawerContent className="overflow-hidden">
+            <div className="px-6 py-5">
+              <h3 className="text-lg font-bold mb-4">Rename Itinerary</h3>
+              <Input
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                className="h-12 rounded-xl mb-4"
+                style={{ fontSize: '16px' }}
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+              />
+              <Button onClick={handleRename} disabled={!renameValue.trim()} className="w-full h-12 rounded-xl">
+                Save
+              </Button>
+            </div>
+          </DrawerContent>
+        </Drawer>
       </MobileShell>
     );
   }
 
+  // Desktop view with sidebar
   return (
-    <MobileShell hideAvatar>
-      <div className="px-4 pt-2">
+    <MainLayout>
+      <div className="p-6 lg:p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
+            <h1 className="text-3xl font-bold text-foreground">Your Itineraries</h1>
+            <p className="text-muted-foreground mt-1">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-          >
-            <Plus className="w-5 h-5 text-primary-foreground" />
-          </button>
+          <Button onClick={() => setShowCreate(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            New Itinerary
+          </Button>
         </div>
 
         {/* Loading */}
@@ -153,17 +343,18 @@ const MyItinerariesPage = () => {
           </div>
         ) : itineraries.length === 0 ? (
           <div className="text-center py-16">
-            <Layers className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground mb-4">No itineraries yet</p>
-            <Button onClick={() => setShowCreate(true)} variant="outline" className="rounded-full">
+            <Layers className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">No itineraries yet</h2>
+            <p className="text-muted-foreground mb-6">Start planning your next adventure</p>
+            <Button onClick={() => setShowCreate(true)}>
               <Plus className="w-4 h-4 mr-2" /> Create your first
             </Button>
           </div>
         ) : (
-          /* Playlist list */
-          <div className="space-y-1">
+          /* Grid layout matching public itineraries */
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {itineraries.map(itinerary => (
-              <ItineraryPlaylistCard
+              <DesktopItineraryCard
                 key={itinerary.id}
                 itinerary={itinerary}
                 onTap={() => handleTap(itinerary)}
@@ -171,7 +362,6 @@ const MyItinerariesPage = () => {
                   e.stopPropagation();
                   setOptionsItinerary(itinerary);
                   setRenameValue(itinerary.name);
-                  if ('vibrate' in navigator) navigator.vibrate(10);
                 }}
               />
             ))}
@@ -179,17 +369,16 @@ const MyItinerariesPage = () => {
         )}
       </div>
 
-      {/* Create drawer */}
+      {/* Create drawer (also works on desktop) */}
       <Drawer open={showCreate} onOpenChange={setShowCreate}>
         <DrawerContent className="overflow-hidden">
-          <div className="px-6 py-5">
+          <div className="px-6 py-5 max-w-md mx-auto">
             <h3 className="text-lg font-bold mb-4">New Itinerary</h3>
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="e.g. Zanzibar Weekend"
               className="h-12 rounded-xl mb-4"
-              style={{ fontSize: '16px' }}
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
@@ -208,7 +397,7 @@ const MyItinerariesPage = () => {
       {/* Options drawer */}
       <Drawer open={!!optionsItinerary && !renaming} onOpenChange={(open) => !open && setOptionsItinerary(null)}>
         <DrawerContent className="overflow-hidden">
-          <div className="px-6 py-5 space-y-2">
+          <div className="px-6 py-5 max-w-md mx-auto space-y-2">
             <h3 className="text-lg font-bold mb-3 truncate">{optionsItinerary?.name}</h3>
             <button
               onClick={() => setRenaming(true)}
@@ -243,13 +432,12 @@ const MyItinerariesPage = () => {
       {/* Rename drawer */}
       <Drawer open={renaming} onOpenChange={(open) => { if (!open) setRenaming(false); }}>
         <DrawerContent className="overflow-hidden">
-          <div className="px-6 py-5">
+          <div className="px-6 py-5 max-w-md mx-auto">
             <h3 className="text-lg font-bold mb-4">Rename Itinerary</h3>
             <Input
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               className="h-12 rounded-xl mb-4"
-              style={{ fontSize: '16px' }}
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleRename()}
             />
@@ -259,7 +447,7 @@ const MyItinerariesPage = () => {
           </div>
         </DrawerContent>
       </Drawer>
-    </MobileShell>
+    </MainLayout>
   );
 };
 
