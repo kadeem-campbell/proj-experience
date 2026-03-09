@@ -75,7 +75,7 @@ export const ExperienceCard = ({
 
   return (
     <Link 
-      to={`/experience/${id}`}
+      to={generateExperienceUrl(location, title)}
       className="touch-manipulation block"
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}
