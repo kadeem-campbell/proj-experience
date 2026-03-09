@@ -91,7 +91,7 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+    <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
       <div className="flex items-center justify-around px-4 pb-[env(safe-area-inset-bottom,8px)] pt-2">
         {navItems.map(({ icon: Icon, label, action, isActive }) => (
           <button
