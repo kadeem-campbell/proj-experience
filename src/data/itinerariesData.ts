@@ -131,8 +131,21 @@ const creators = [
 
 const prices = ['$0', '$10', '$15', '$20', '$25', '$30', '$40', '$50', '$60', '$80', '$100', '$150'];
 
+// The Zanzibar Sea Walk experience - always first in every itinerary
+const seaWalkExperience: LikedExperience = {
+  id: '7',
+  title: 'Zanzibar Sea Walk',
+  creator: 'ChristineNampeera',
+  videoThumbnail: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400',
+  category: 'Adventure',
+  location: 'Zanzibar',
+  price: '$45',
+  likedAt: new Date().toISOString(),
+  timeSlot: 'morning'
+};
+
 function generateExperiences(city: string, count: number): LikedExperience[] {
-  const experiences: LikedExperience[] = [];
+  const experiences: LikedExperience[] = [seaWalkExperience];
   const categories = Object.keys(experienceTemplates) as (keyof typeof experienceTemplates)[];
   
   for (let i = 0; i < count; i++) {
