@@ -46,63 +46,33 @@ const discoverySlides = [
   },
 ];
 
-const DesktopDiscoveryCard = () => {
-  const [activeSlide, setActiveSlide] = useState(0);
+const DesktopQuickNav = () => {
   const navigate = useNavigate();
-  const slide = discoverySlides[activeSlide];
-  const Icon = slide.icon;
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % discoverySlides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+  const items = [
+    { icon: Compass, label: "Experiences", route: "/experiences", color: "text-experience-color", bg: "bg-experience-color/8 hover:bg-experience-color/15" },
+    { icon: Map, label: "Itineraries", route: "/itineraries", color: "text-itinerary-color", bg: "bg-itinerary-color/8 hover:bg-itinerary-color/15" },
+    { icon: MapPinned, label: "Create", route: "/itineraries?create=true", color: "text-social-color", bg: "bg-social-color/8 hover:bg-social-color/15" },
+  ];
 
   return (
-    <div
-      className="mb-6 py-3 px-5 rounded-xl relative overflow-hidden"
-      style={{
-        background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
-      }}
-    >
-      {/* Progress bars */}
-      <div className="flex gap-1 mb-3">
-        {discoverySlides.map((s, i) => (
+    <div className="flex gap-2 mb-6">
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
           <button
-            key={i}
-            onClick={(e) => { e.stopPropagation(); setActiveSlide(i); }}
+            key={item.label}
+            onClick={() => navigate(item.route)}
             className={cn(
-              "h-0.5 flex-1 rounded-full transition-all duration-500",
-              i === activeSlide ? s.colorClass : "bg-foreground/10"
-            )}
-          />
-        ))}
-      </div>
-
-      <div className="flex items-center gap-3 mb-3">
-        <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", slide.bgClass)}>
-          <Icon className={cn("w-4 h-4", slide.textClass)} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-bold text-foreground">{slide.title}</h3>
-          <p className="text-xs text-muted-foreground">{slide.subtitle}</p>
-        </div>
-        {slide.ctas.map((cta, i) => (
-          <button
-            key={i}
-            onClick={(e) => { e.stopPropagation(); navigate(cta.route); }}
-            className={cn(
-              "px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.97] shrink-0",
-              cta.primary
-                ? cn(slide.colorClass, "text-primary-foreground")
-                : "bg-muted text-foreground"
+              "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-150 active:scale-[0.97]",
+              item.bg, item.color
             )}
           >
-            {cta.label}
+            <Icon className="w-4 h-4" />
+            {item.label}
           </button>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 };
