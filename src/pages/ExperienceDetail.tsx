@@ -643,8 +643,8 @@ export default function ExperienceDetail() {
           {/* Content Section */}
           <div className="lg:px-0">
               {/* Mobile-only title section */}
-              <div className="lg:hidden">
-                <div className="flex flex-wrap items-center gap-2 mb-4">
+              <div className="lg:hidden mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
                   <Badge className="bg-foreground text-background border-0 font-medium">
                     {experience.category}
                   </Badge>
@@ -663,13 +663,13 @@ export default function ExperienceDetail() {
                   {experience.title}
                 </h1>
 
-                <div className="flex items-center gap-1.5 text-muted-foreground mb-6">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-4">
                   <MapPin className="w-4 h-4" />
                   <span>{experience.location}</span>
                 </div>
               </div>
 
-              {/* Desktop social proof header */}
+              {/* Social proof header - Desktop */}
               <div className="hidden lg:flex items-center gap-3 mb-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <TrendingUp className="w-4 h-4" />
