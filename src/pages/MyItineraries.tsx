@@ -29,7 +29,7 @@ const ItineraryPlaylistCard = ({
   return (
     <button
       onClick={onTap}
-      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 active:scale-[0.98] transition-all text-left group"
+      className="w-full flex items-center gap-3 py-2.5 hover:bg-muted/50 active:scale-[0.98] transition-transform duration-150 text-left group"
     >
       {/* Album art / cover */}
       <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted shadow-sm">
