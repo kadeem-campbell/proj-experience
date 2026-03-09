@@ -581,7 +581,12 @@ const PublicItinerary = () => {
         key={experience.id}
         role="link"
         tabIndex={0}
-        onClick={() => navigate(`/experience/${experience.id}`)}
+        onClick={(e) => {
+          // Guard: don't navigate when tapping action buttons (mobile tap precision)
+          const target = e.target as HTMLElement;
+          if (target.closest('button,[data-card-action="true"]')) return;
+          navigate(`/experience/${experience.id}`);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
