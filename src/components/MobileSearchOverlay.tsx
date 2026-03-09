@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, X, ArrowLeft, TrendingUp } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -92,39 +90,39 @@ export const MobileSearchOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in fade-in duration-150">
-      {/* Header */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="flex items-center gap-3 mb-3">
-          <button onClick={onClose} className="shrink-0 -ml-1">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <h1 className="text-lg font-bold text-foreground">Search</h1>
-        </div>
-
+    <div className="fixed inset-0 z-[70] bg-background flex flex-col animate-in fade-in duration-150">
+      {/* Search input - prominent */}
+      <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3">
         <form onSubmit={handleSubmit}>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
+            <input
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Find experiences, food, or places"
               autoFocus
-              className="pl-12 pr-10 py-3.5 text-base bg-background border border-border rounded-xl focus-visible:ring-1 focus-visible:ring-primary/30 placeholder:text-muted-foreground/50"
+              className="w-full pl-12 pr-20 py-4 text-base bg-muted/30 border border-border rounded-2xl outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 placeholder:text-muted-foreground/50 text-foreground"
               style={{ fontSize: '16px' }}
             />
-            {searchQuery && (
-              <Button
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => onSearchChange("")}
+                  className="p-2 rounded-full hover:bg-muted"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+              <button
                 type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => onSearchChange("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+                onClick={onClose}
+                className="text-sm font-medium text-primary px-2 py-1"
               >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
+                Cancel
+              </button>
+            </div>
           </div>
         </form>
       </div>
