@@ -1072,18 +1072,24 @@ const PublicItinerary = () => {
             
             {!showNewTripDatePicker ? (
               <div className="space-y-3 py-3">
-                {/* Existing trips from saved itineraries */}
-                {itineraries.filter(i => i.trips && i.trips.length > 0).length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your saved trips</p>
-                    {itineraries.flatMap(itin => 
-                      (itin.trips || []).map((trip: any, idx: number) => (
+                {/* Existing trips from THIS itinerary only */}
+                {(() => {
+                  const parentItineraryName = itinerary?.name || "My Saved Trips";
+                  const currentSavedItinerary = itineraries.find(i => i.name === parentItineraryName);
+                  const trips = currentSavedItinerary?.trips || [];
+
+                  if (trips.length === 0) return null;
+
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your saved trips</p>
+                      {trips.map((trip: any, idx: number) => (
                         <button
                           key={trip.id || idx}
                           className={cn(
                             "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
-                            activeTripId === trip.id 
-                              ? "bg-primary/10 border-primary/30" 
+                            activeTripId === trip.id
+                              ? "bg-primary/10 border-primary/30"
                               : "bg-muted/30 border-border hover:bg-muted/50"
                           )}
                           onClick={() => {
@@ -1122,10 +1128,10 @@ const PublicItinerary = () => {
                             <Check className="w-4 h-4 text-primary shrink-0" />
                           )}
                         </button>
-                      ))
-                    )}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 {/* New trip button */}
                 <button
