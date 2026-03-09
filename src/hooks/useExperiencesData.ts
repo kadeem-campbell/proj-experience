@@ -23,6 +23,16 @@ export interface Experience {
 
 const mockExperiences: Experience[] = [
   {
+    id: "7",
+    title: "Zanzibar Sea Walk",
+    creator: "ChristineNampeera",
+    views: "25K",
+    videoThumbnail: beachImage,
+    category: "Adventure",
+    location: "Zanzibar",
+    price: "$45"
+  },
+  {
     id: "1",
     title: "Jet Ski Adventure",
     creator: "JohnDoe",

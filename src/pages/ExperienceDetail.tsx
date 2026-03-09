@@ -34,7 +34,7 @@ import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { publicItinerariesData } from "@/data/itinerariesData";
 import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
-import { SocialVideoEmbed } from "@/components/SocialVideoEmbed";
+import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
 import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 
@@ -47,6 +47,32 @@ import jetskiImage from "@/assets/jetski-experience.jpg";
 import adventureImage from "@/assets/adventure-experience.jpg";
 
 const mockExperiences = [
+  {
+    id: "7",
+    title: "Zanzibar Sea Walk",
+    creator: "ChristineNampeera",
+    videoThumbnail: beachImage,
+    category: "Adventure",
+    location: "Zanzibar",
+    description: "Walk on the ocean floor with a special helmet that lets you breathe underwater. An unforgettable experience exploring marine life up close in the crystal-clear waters of Zanzibar.",
+    duration: "1.5 hours",
+    groupSize: "2-8 people",
+    rating: 4.9,
+    highlights: ["Walk on the ocean floor", "No diving experience needed", "See tropical fish up close", "Professional guides & equipment"],
+    gallery: [beachImage, jetskiImage, adventureImage],
+    bestTime: "Morning",
+    meetingPoints: [
+      { name: "Nungwi Beach", type: "Main Location" },
+      { name: "Kendwa Pier", type: "Alternative" }
+    ],
+    tiktokVideos: [
+      {
+        videoId: "7571903191340666123",
+        url: "https://www.tiktok.com/@christinenampeera/video/7571903191340666123",
+        author: "@christinenampeera"
+      }
+    ] as TikTokVideo[]
+  },
   {
     id: "1",
     title: "Jet Ski Adventure",
@@ -466,6 +492,7 @@ export default function ExperienceDetail() {
             <SocialVideoEmbed 
               experienceTitle={experience.title}
               location={experience.location}
+              tiktokVideos={experience.tiktokVideos || []}
               className="mb-6"
             />
 
@@ -749,6 +776,7 @@ export default function ExperienceDetail() {
               <SocialVideoEmbed 
                 experienceTitle={experience.title}
                 location={experience.location}
+                tiktokVideos={experience.tiktokVideos || []}
                 className="mb-8"
               />
 
