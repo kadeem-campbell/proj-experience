@@ -62,6 +62,8 @@ const App = () => (
           <Route path="/trip/:id" element={<Trip />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/my-itineraries" element={<MyItineraries />} />
+          <Route path="/liked" element={<Liked />} />
+          <Route path="/saved" element={<Liked />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
