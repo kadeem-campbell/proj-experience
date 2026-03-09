@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { generateExperienceUrl } from "@/utils/slugUtils";
 
 interface ExperienceCardProps {
   id: string;
