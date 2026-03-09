@@ -215,8 +215,15 @@ const synonyms: Record<string, string[]> = {
 };
 
 const SearchPage = () => {
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [selectedCity, setSelectedCity] = useState<City | null>(() => {
+    const cityParam = searchParams.get("city");
+    if (cityParam) {
+      return browseDataCities.find(c => c.name.toLowerCase() === cityParam.toLowerCase()) || null;
+    }
+    return null;
+  });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const experiences = allExperiences;
   const [loading, setLoading] = useState(false);
