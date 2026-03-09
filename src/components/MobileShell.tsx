@@ -70,7 +70,7 @@ const ProfileSlideMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 };
 
 // Fixed bottom navigation bar - solid white, strong
-const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
+const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () => void; isSearchOpen: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -84,10 +84,10 @@ const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
   }, [location.pathname, location.search, navigate]);
 
   const navItems = [
-    { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" },
-    { icon: Search, label: "Search", action: onSearchClick, isActive: false },
-    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" },
-    { icon: User, label: "Profile", action: () => navigate("/profile"), isActive: location.pathname === "/profile" },
+    { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" && !isSearchOpen },
+    { icon: Search, label: "Search", action: onSearchClick, isActive: isSearchOpen },
+    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" && !isSearchOpen },
+    { icon: User, label: "Profile", action: () => navigate("/profile"), isActive: location.pathname === "/profile" && !isSearchOpen },
   ];
 
   return (
@@ -189,7 +189,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
         {children}
       </div>
 
-      <MobileBottomNav onSearchClick={() => setMobileSearchOpen(true)} />
+      <MobileBottomNav onSearchClick={() => setMobileSearchOpen(prev => !prev)} isSearchOpen={mobileSearchOpen} />
 
       <style>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
