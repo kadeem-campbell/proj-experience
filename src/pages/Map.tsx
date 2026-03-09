@@ -90,14 +90,14 @@ export default function Map() {
 
   if (isMobile) {
     const headerContent = (
-      <div className="flex items-center gap-3 w-full">
+      <div className="flex items-center gap-3 w-full px-4">
         <button onClick={() => {
           if (window.history.state && window.history.state.idx > 0) {
             navigate(-1);
           } else {
             navigate('/');
           }
-        }} className="p-1 -ml-1">
+        }} className="p-1">
           <ChevronLeft className="w-6 h-6 text-foreground" />
         </button>
         <h1 className="text-lg font-bold text-foreground">Choose a city</h1>
