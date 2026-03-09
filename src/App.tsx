@@ -35,6 +35,9 @@ const App = () => (
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Search />} />
+          {/* SEO-friendly URL: /experience/location/slug */}
+          <Route path="/experience/:location/:slug" element={<ExperienceDetail />} />
+          {/* Legacy URL support */}
           <Route path="/experience/:id" element={<ExperienceDetail />} />
           <Route path="/creators" element={<Creators />} />
           <Route path="/create-experience" element={<CreateExperience />} />
