@@ -105,10 +105,8 @@ const ItinerariesPage = () => {
   const [searchParams] = useSearchParams();
   const filter = searchParams.get('filter');
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTag, setActiveTag] = useState("All");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const tagScrollRef = useRef<HTMLDivElement>(null);
   
   const getBaseItineraries = () => {
     if (filter === 'popular') return getPopularItineraries();
