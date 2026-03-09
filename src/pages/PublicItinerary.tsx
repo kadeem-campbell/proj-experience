@@ -809,7 +809,7 @@ const PublicItinerary = () => {
             </p>
           </div>
         </div>
-      </Link>
+      </div>
     );
   };
 
