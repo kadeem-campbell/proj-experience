@@ -581,7 +581,12 @@ const PublicItinerary = () => {
         key={experience.id}
         role="link"
         tabIndex={0}
-        onClick={() => navigate(`/experience/${experience.id}`)}
+        onClick={(e) => {
+          // Guard: don't navigate when tapping action buttons (mobile tap precision)
+          const target = e.target as HTMLElement;
+          if (target.closest('button,[data-card-action="true"]')) return;
+          navigate(`/experience/${experience.id}`);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -609,6 +614,7 @@ const PublicItinerary = () => {
 
             {/* Heart / Like button */}
             <button
+              data-card-action="true"
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -642,12 +648,19 @@ const PublicItinerary = () => {
               <Drawer>
                 <DrawerTrigger asChild>
                   <button
+                    type="button"
+                    data-card-action="true"
+                    onPointerDown={(e) => {
+                      // Stop the card navigation from stealing the tap on mobile
+                      e.stopPropagation();
+                    }}
                     onClick={(e) => {
                       // IMPORTANT: don't call preventDefault() here — Radix/Vaul won't open the drawer
                       // when the event is defaultPrevented.
                       e.stopPropagation();
                     }}
                     className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
+                    aria-label="Open actions"
                   >
                     <MoreHorizontal className="w-4 h-4 text-foreground/80" />
                   </button>
