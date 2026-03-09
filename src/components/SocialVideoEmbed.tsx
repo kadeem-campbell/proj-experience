@@ -21,27 +21,47 @@ interface SocialVideoEmbedProps {
   className?: string;
 }
 
-const TikTokEmbed = ({ videoId, url }: TikTokVideo) => {
+const TikTokEmbed = ({ videoId, url, author }: TikTokVideo) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Set the blockquote HTML
+    containerRef.current.innerHTML = `
+      <blockquote class="tiktok-embed" cite="${url}" data-video-id="${videoId}" style="max-width:200px;min-width:200px;">
+        <section></section>
+      </blockquote>
+    `;
+
+    // Load TikTok embed script
+    const existingScript = document.querySelector('script[src="https://www.tiktok.com/embed.js"]');
+    if (existingScript) {
+      // Re-trigger embed processing
+      (window as any).tiktokEmbed?.lib?.render();
+      setLoaded(true);
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://www.tiktok.com/embed.js';
+      script.async = true;
+      script.onload = () => setLoaded(true);
+      document.body.appendChild(script);
+    }
+  }, [videoId, url]);
+
   return (
     <div className="flex-shrink-0 w-[200px] snap-start">
-      <div className="relative rounded-xl overflow-hidden bg-muted aspect-[9/16]">
-        <iframe
-          src={`https://www.tiktok.com/embed/v2/${videoId}`}
-          className="w-full h-full border-0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          onLoad={() => setLoaded(true)}
-        />
-        {!loaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
-            <Play className="w-8 h-8 text-muted-foreground" />
-          </div>
-        )}
-      </div>
-      {/* Open in TikTok link */}
+      <div 
+        ref={containerRef} 
+        className="relative rounded-xl overflow-hidden"
+        style={{ minHeight: '350px' }}
+      />
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse rounded-xl" style={{ width: 200, height: 350 }}>
+          <Play className="w-8 h-8 text-muted-foreground" />
+        </div>
+      )}
       <a 
         href={url} 
         target="_blank" 
@@ -49,7 +69,7 @@ const TikTokEmbed = ({ videoId, url }: TikTokVideo) => {
         className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
         <ExternalLink className="w-3 h-3" />
-        <span>Open in TikTok</span>
+        <span>{author || 'Open in TikTok'}</span>
       </a>
     </div>
   );
@@ -63,7 +83,6 @@ export const SocialVideoEmbed = ({
   className 
 }: SocialVideoEmbedProps) => {
   const hasTikTok = tiktokVideos.length > 0;
-  const hasInstagram = instagramVideos.length > 0;
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -81,7 +100,7 @@ export const SocialVideoEmbed = ({
           <TikTokEmbed key={video.videoId} {...video} />
         ))}
 
-        {/* TikTok search card (always show as "find more") */}
+        {/* TikTok search card */}
         <button
           onClick={() => window.open(
             `https://www.tiktok.com/search?q=${encodeURIComponent(`${experienceTitle} ${location}`)}`, 
