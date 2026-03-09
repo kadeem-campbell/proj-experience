@@ -23,6 +23,7 @@ import Experiences from "./pages/Experiences";
 import Trip from "./pages/Trip";
 import Profile from "./pages/Profile";
 import MyItineraries from "./pages/MyItineraries";
+import Liked from "./pages/Liked";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,8 @@ const App = () => (
           <Route path="/trip/:id" element={<Trip />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/my-itineraries" element={<MyItineraries />} />
+          <Route path="/liked" element={<Liked />} />
+          <Route path="/saved" element={<Liked />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
