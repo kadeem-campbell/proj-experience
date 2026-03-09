@@ -633,6 +633,8 @@ export const MobileHomeView = () => {
           ))}
         </HorizontalScrollRow>
       )}
+      </>
+      )}
     </MobileShell>
   );
 };
