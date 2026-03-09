@@ -356,16 +356,25 @@ export const MobileHomeView = () => {
     return allExpsData.filter(e => matchesCity(e.location || "", selectedCity));
   }, [selectedCity]);
 
-  // Search filtering
-  const normalizeText = (text: string) => text.toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ").trim();
+  // Search filtering - flexible matching
+  const normalizeText = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
+  const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");
   
+  const termMatches = (term: string, field: string) => {
+    if (field.includes(term)) return true;
+    const stemmed = stem(term);
+    if (stemmed.length > 2 && field.includes(stemmed)) return true;
+    return field.split(" ").some(w => w.startsWith(term) || w.startsWith(stemmed));
+  };
+
   const filteredExperiences = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
+    if (terms.length === 0) return [];
     return experiences.filter(e => {
-      const fields = [e.title, e.location, e.category, e.creator].map(f => normalizeText(f || ""));
-      return terms.every(term => fields.some(field => field.includes(term) || field.split(" ").some(w => w.startsWith(term))));
+      const fields = [e.title, e.location, e.category, e.creator].map(f => normalizeText(f || "")).join(" ");
+      return terms.some(term => termMatches(term, fields));
     });
   }, [searchQuery, experiences]);
 
@@ -373,13 +382,14 @@ export const MobileHomeView = () => {
     if (!searchQuery.trim()) return [];
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
+    if (terms.length === 0) return [];
     return itineraries.filter(it => {
-      const fields = [it.name, it.creatorName].map(f => normalizeText(f || ""));
-      const expFields = it.experiences?.some((exp: any) => {
-        const ef = [exp.title, exp.location, exp.category].map((f: string) => normalizeText(f || ""));
-        return terms.some(term => ef.some(field => field.includes(term)));
+      const fields = [it.name, it.creatorName].map(f => normalizeText(f || "")).join(" ");
+      const expMatch = it.experiences?.some((exp: any) => {
+        const ef = [exp.title, exp.location, exp.category].map((f: string) => normalizeText(f || "")).join(" ");
+        return terms.some(term => termMatches(term, ef));
       });
-      return terms.every(term => fields.some(field => field.includes(term))) || expFields;
+      return terms.some(term => termMatches(term, fields)) || expMatch;
     });
   }, [searchQuery, itineraries]);
 
