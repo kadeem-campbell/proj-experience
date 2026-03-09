@@ -124,6 +124,7 @@ const PublicItinerary = () => {
   const [activeTripMode, setActiveTripMode] = useState(false);
   const [activeTripId, setActiveTripId] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [orderedExperiences, setOrderedExperiences] = useState<LikedExperience[] | null>(null);
   
   const { 
     addExperience, 
