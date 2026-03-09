@@ -837,7 +837,6 @@ export default function ExperienceDetail() {
                 </div>
               </div>
             </div>
-          </div>
         </main>
       </div>
   );
