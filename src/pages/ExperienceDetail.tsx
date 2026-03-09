@@ -613,7 +613,7 @@ export default function ExperienceDetail() {
           {/* Media Section - Compact 4:3 Aspect Ratio */}
           <div className="mb-8">
             {gallery.length > 1 ? (
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+              <div className="aspect-[16/9] rounded-2xl overflow-hidden">
                 <PhotoGallery images={gallery} title={experience.title} />
               </div>
             ) : experience.videoUrl ? (
