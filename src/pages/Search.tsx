@@ -244,7 +244,18 @@ const SearchPage = () => {
   const foodExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Food").slice(0, 10), [cityFilteredExperiences]);
   const beachExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Beach").slice(0, 10), [cityFilteredExperiences]);
 
+  // Sync city from URL params
   useEffect(() => {
+    const cityParam = searchParams.get("city");
+    if (cityParam) {
+      const found = browseDataCities.find(c => c.name.toLowerCase() === cityParam.toLowerCase());
+      if (found) setSelectedCity(found);
+    } else {
+      setSelectedCity(null);
+    }
+  }, [searchParams]);
+
+
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
     if (savedPosition && scrollContainerRef.current) {
       const position = parseInt(savedPosition, 10);
