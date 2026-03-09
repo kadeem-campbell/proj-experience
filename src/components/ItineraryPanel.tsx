@@ -277,7 +277,7 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
               <p className="text-sm text-muted-foreground mb-4">
                 Add experiences to build your perfect trip
               </p>
-              <Link to="/">
+              <Link to="/experiences">
                 <Button variant="outline" size="sm">
                   Discover Experiences
                 </Button>
