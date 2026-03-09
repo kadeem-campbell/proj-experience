@@ -1051,10 +1051,6 @@ const PublicItinerary = () => {
                     <Copy className="w-4 h-4 mr-2" />
                     Export as XLSX
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportPDF}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Export as PDF
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
