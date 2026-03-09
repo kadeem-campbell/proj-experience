@@ -541,8 +541,11 @@ const PublicItinerary = () => {
     setShowNewItineraryInput(null);
   };
 
+  // Use ordered state if available, otherwise original
+  const currentExperiences = orderedExperiences || itinerary.experiences;
+
   // Filter experiences by search query
-  const filteredExperiences = itinerary.experiences.filter((experience) => {
+  const filteredExperiences = currentExperiences.filter((experience) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
