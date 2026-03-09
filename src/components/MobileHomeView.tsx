@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
+import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 const mapCities = [
