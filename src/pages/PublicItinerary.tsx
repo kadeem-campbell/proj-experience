@@ -909,7 +909,10 @@ const PublicItinerary = () => {
                         variant="outline" 
                         size="sm"
                         className="gap-1.5 bg-cyan-500/10 border-cyan-500/40 text-cyan-700 dark:text-cyan-400 text-xs hover:bg-cyan-500/20"
-                        onClick={() => setShowTripSelectorSheet(true)}
+                        onClick={() => {
+                          setShowNewTripDatePicker(true);
+                          setShowTripSelectorSheet(true);
+                        }}
                       >
                         <CalendarIcon className="w-3.5 h-3.5" />
                         {tripStartDate && tripEndDate 
