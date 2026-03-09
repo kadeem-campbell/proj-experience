@@ -2,6 +2,7 @@ import { useState, useCallback, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Search, ListMusic, User, Settings, HelpCircle, Map, X, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useItineraries } from "@/hooks/useItineraries";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { cn } from "@/lib/utils";
 
