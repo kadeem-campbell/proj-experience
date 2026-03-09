@@ -60,13 +60,13 @@ const DesktopDiscoveryCard = () => {
 
   return (
     <div
-      className="mb-10 py-8 px-8 rounded-2xl relative overflow-hidden"
+      className="mb-8 py-5 px-6 rounded-2xl relative overflow-hidden"
       style={{
         background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
       }}
     >
       {/* Progress bars */}
-      <div className="flex gap-1.5 mb-6">
+      <div className="flex gap-1.5 mb-4">
         {discoverySlides.map((s, i) => (
           <button
             key={i}
@@ -79,13 +79,13 @@ const DesktopDiscoveryCard = () => {
         ))}
       </div>
 
-      <div className="flex flex-col items-center text-center gap-4 mb-5">
-        <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center", slide.bgClass)}>
-          <Icon className={cn("w-6 h-6", slide.textClass)} />
+      <div className="flex flex-col items-center text-center gap-3 mb-4">
+        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", slide.bgClass)}>
+          <Icon className={cn("w-5 h-5", slide.textClass)} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground">{slide.title}</h3>
-          <p className="text-sm text-muted-foreground mt-1">{slide.subtitle}</p>
+          <h3 className="text-base font-bold text-foreground">{slide.title}</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">{slide.subtitle}</p>
         </div>
       </div>
 
