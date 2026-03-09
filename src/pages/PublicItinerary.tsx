@@ -124,6 +124,7 @@ const PublicItinerary = () => {
     isInItinerary,
     copyItinerary,
     createTrip,
+    updateTrip,
   } = useItineraries();
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -271,7 +272,8 @@ const PublicItinerary = () => {
       setShowTripSelectorSheet(false);
       setShowNewTripDatePicker(false);
       setHasUnsavedChanges(true);
-      setActiveTripId(null); // This is a new trip, not an existing one
+      // NOTE: don't clear activeTripId here — if a user is editing an existing trip,
+      // we want Save to update that trip rather than creating a new one.
     }, 500);
   };
 
@@ -319,34 +321,53 @@ const PublicItinerary = () => {
   const handleSaveTrip = async () => {
     if (!tripStartDate) return;
 
-    const scheduledExperiences = Object.values(generatedTrip).flat().map(exp => ({
-      ...exp,
-      likedAt: new Date().toISOString()
-    }));
-    
+    const nowIso = new Date().toISOString();
+    const scheduledExperiences = Object.entries(generatedTrip).flatMap(([dayKey, exps]) =>
+      exps.map(exp => ({
+        ...exp,
+        // Persist day association so trips re-load correctly
+        scheduledTime: exp.scheduledTime ?? new Date(dayKey).toISOString(),
+        likedAt: nowIso
+      }))
+    );
+
     const startDateStr = format(tripStartDate, 'yyyy-MM-dd');
     const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
     const newTripName = tripName.trim() || `My Trip`;
 
+    // Guest users: save/update locally
     if (!isAuthenticated) {
-      // Save locally
       const localTripsStr = localStorage.getItem('local_trips') || '[]';
-      let localTrips = [];
-      try { localTrips = JSON.parse(localTripsStr); } catch (e) {}
-      
-      localTrips.push({
-        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+      let localTrips: any[] = [];
+      try {
+        localTrips = JSON.parse(localTripsStr);
+      } catch {
+        localTrips = [];
+      }
+
+      const existingIdx = activeTripId ? localTrips.findIndex(t => t.id === activeTripId) : -1;
+      const nextId = existingIdx >= 0
+        ? localTrips[existingIdx].id
+        : (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7));
+
+      const nextTrip = {
+        id: nextId,
         name: newTripName,
         startDate: startDateStr,
         endDate: endDateStr,
         experiences: scheduledExperiences,
-        savedAt: new Date().toISOString(),
-      });
+        savedAt: nowIso,
+      };
+
+      if (existingIdx >= 0) localTrips[existingIdx] = nextTrip;
+      else localTrips.push(nextTrip);
+
       localStorage.setItem('local_trips', JSON.stringify(localTrips));
-      
+      setActiveTripId(nextId);
       setHasUnsavedChanges(false);
+
       toast({
-        title: "Trip saved locally! 🎉",
+        title: existingIdx >= 0 ? "Trip updated locally" : "Trip saved locally! 🎉",
         description: "Sign in to make sure you don't lose it.",
         action: (
           <Button variant="outline" size="sm" onClick={() => setShowAuthModal(true)}>
@@ -356,21 +377,38 @@ const PublicItinerary = () => {
       });
       return;
     }
-    
+
+    // Auth users: ensure this trip is stored on THIS itinerary only
     const parentItineraryName = itinerary?.name || "My Saved Trips";
     let parentItinerary = itineraries.find(i => i.name === parentItineraryName);
-    
+
     if (!parentItinerary) {
-      parentItinerary = await createItinerary(parentItineraryName, itinerary?.experiences?.map(e => ({
-        ...e,
-        likedAt: new Date().toISOString()
-      })) || []);
+      parentItinerary = await createItinerary(
+        parentItineraryName,
+        itinerary?.experiences?.map(e => ({
+          ...e,
+          likedAt: nowIso
+        })) || []
+      );
     }
-    
-    await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
-    
+
+    const tripExists = !!(activeTripId && (parentItinerary.trips || []).some(t => t.id === activeTripId));
+
+    if (tripExists && activeTripId) {
+      await updateTrip(parentItinerary.id, activeTripId, {
+        name: newTripName,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        experiences: scheduledExperiences,
+      });
+      toast({ title: "Trip updated", description: `Updated ${newTripName}.` });
+    } else {
+      const created = await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
+      setActiveTripId(created?.id || null);
+      toast({ title: "Trip saved! 🎉", description: `Your ${newTripName} has been saved.` });
+    }
+
     setHasUnsavedChanges(false);
-    toast({ title: "Trip saved! 🎉", description: `Your ${newTripName} has been saved.` });
   };
 
   const handleExitTripMode = () => {
@@ -1034,18 +1072,24 @@ const PublicItinerary = () => {
             
             {!showNewTripDatePicker ? (
               <div className="space-y-3 py-3">
-                {/* Existing trips from saved itineraries */}
-                {itineraries.filter(i => i.trips && i.trips.length > 0).length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your saved trips</p>
-                    {itineraries.flatMap(itin => 
-                      (itin.trips || []).map((trip: any, idx: number) => (
+                {/* Existing trips from THIS itinerary only */}
+                {(() => {
+                  const parentItineraryName = itinerary?.name || "My Saved Trips";
+                  const currentSavedItinerary = itineraries.find(i => i.name === parentItineraryName);
+                  const trips = currentSavedItinerary?.trips || [];
+
+                  if (trips.length === 0) return null;
+
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your saved trips</p>
+                      {trips.map((trip: any, idx: number) => (
                         <button
                           key={trip.id || idx}
                           className={cn(
                             "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
-                            activeTripId === trip.id 
-                              ? "bg-primary/10 border-primary/30" 
+                            activeTripId === trip.id
+                              ? "bg-primary/10 border-primary/30"
                               : "bg-muted/30 border-border hover:bg-muted/50"
                           )}
                           onClick={() => {
@@ -1084,15 +1128,19 @@ const PublicItinerary = () => {
                             <Check className="w-4 h-4 text-primary shrink-0" />
                           )}
                         </button>
-                      ))
-                    )}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 {/* New trip button */}
                 <button
                   className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
-                  onClick={() => setShowNewTripDatePicker(true)}
+                  onClick={() => {
+                    setActiveTripId(null);
+                    setTripName("");
+                    setShowNewTripDatePicker(true);
+                  }}
                 >
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <Plus className="w-4 h-4 text-primary" />

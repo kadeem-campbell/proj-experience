@@ -630,12 +630,56 @@ export const useItineraries = () => {
       if (i.id !== itineraryId) return i;
       return {
         ...i,
-        trips: (i.trips || []).map(t => t.id === tripId ? { ...t, name: newName } : t),
+        trips: (i.trips || []).map(t => (t.id === tripId ? { ...t, name: newName } : t)),
         updatedAt: new Date().toISOString()
       };
     });
     await saveItineraries(updated);
   }, [itineraries, saveItineraries]);
+
+  const updateTrip = useCallback(
+    async (
+      itineraryId: string,
+      tripId: string,
+      patch: Partial<Pick<Trip, "name" | "startDate" | "endDate" | "experiences">>
+    ): Promise<Trip | null> => {
+      let updatedTrip: Trip | null = null;
+
+      const hasName = Object.prototype.hasOwnProperty.call(patch, "name");
+      const hasStartDate = Object.prototype.hasOwnProperty.call(patch, "startDate");
+      const hasEndDate = Object.prototype.hasOwnProperty.call(patch, "endDate");
+      const hasExperiences = Object.prototype.hasOwnProperty.call(patch, "experiences");
+
+      const updated = itineraries.map(i => {
+        if (i.id !== itineraryId) return i;
+
+        const nextTrips = (i.trips || []).map(t => {
+          if (t.id !== tripId) return t;
+
+          updatedTrip = {
+            ...t,
+            ...(hasName ? { name: patch.name ?? t.name } : {}),
+            ...(hasStartDate ? { startDate: patch.startDate ?? t.startDate } : {}),
+            ...(hasEndDate ? { endDate: patch.endDate } : {}),
+            ...(hasExperiences ? { experiences: patch.experiences ?? t.experiences } : {})
+          };
+
+          return updatedTrip;
+        });
+
+        return {
+          ...i,
+          trips: nextTrips,
+          activeTripId: tripId,
+          updatedAt: new Date().toISOString()
+        };
+      });
+
+      await saveItineraries(updated);
+      return updatedTrip;
+    },
+    [itineraries, saveItineraries]
+  );
 
   const setActiveTrip = useCallback(async (itineraryId: string, tripId: string) => {
     const updated = itineraries.map(i => {
@@ -684,6 +728,7 @@ export const useItineraries = () => {
     createTrip,
     deleteTrip,
     renameTrip,
+    updateTrip,
     setActiveTrip,
     updateTripExperiences
   };
