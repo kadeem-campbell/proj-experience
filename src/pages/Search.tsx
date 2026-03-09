@@ -227,9 +227,14 @@ const SearchPage = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
-  const adventureExps = useMemo(() => experiences.filter(e => e.category === "Adventure").slice(0, 10), [experiences]);
-  const foodExps = useMemo(() => experiences.filter(e => e.category === "Food").slice(0, 10), [experiences]);
-  const beachExps = useMemo(() => experiences.filter(e => e.category === "Beach").slice(0, 10), [experiences]);
+  const cityFilteredExperiences = useMemo(() => {
+    if (!selectedCity) return experiences;
+    return experiences.filter(e => e.location?.toLowerCase().includes(selectedCity.name.toLowerCase()));
+  }, [experiences, selectedCity]);
+
+  const adventureExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Adventure").slice(0, 10), [cityFilteredExperiences]);
+  const foodExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Food").slice(0, 10), [cityFilteredExperiences]);
+  const beachExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Beach").slice(0, 10), [cityFilteredExperiences]);
 
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
@@ -319,6 +324,12 @@ const SearchPage = () => {
   });
 
   const filteredItineraries = getPopularItineraries().filter((itinerary) => {
+    if (selectedCity) {
+      const cityName = selectedCity.name.toLowerCase();
+      const nameMatch = itinerary.name.toLowerCase().includes(cityName);
+      const expMatch = itinerary.experiences?.some((exp: any) => exp.location?.toLowerCase().includes(cityName));
+      if (!nameMatch && !expMatch) return false;
+    }
     const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
     if (itinerary.name.toLowerCase().includes(q)) return true;
@@ -351,7 +362,7 @@ const SearchPage = () => {
 
       {/* Content - generous padding for breathing room */}
       <div className="px-4 md:px-8 lg:px-10 py-6">
-        {!selectedCity && !searchQuery && (
+        {!searchQuery && (
           <DesktopDiscoveryCard />
         )}
 
@@ -367,9 +378,9 @@ const SearchPage = () => {
               </DesktopScrollRow>
             )}
 
-            {filteredExperiences.length > 0 && (
-              <DesktopScrollRow title="Available next weekend" variant="experience" onViewAll={() => navigate("/experiences")}>
-                {filteredExperiences.slice(0, 8).map((exp) => (
+            {cityFilteredExperiences.length > 0 && (
+              <DesktopScrollRow title={selectedCity ? `${selectedCity.name} — Available next weekend` : "Available next weekend"} variant="experience" onViewAll={() => navigate("/experiences")}>
+                {cityFilteredExperiences.slice(0, 8).map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
                     <ExperienceCard {...exp} compact />
                   </div>
@@ -439,25 +450,11 @@ const SearchPage = () => {
           </>
         )}
 
-        {/* City-specific */}
-        {selectedCity && !selectedCategory && (
-          <div className="mb-8">
-            <h2 className="text-lg md:text-xl font-bold mb-4">{selectedCity.name} Popular Experiences</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6">
-              {publicItinerariesData
-                .filter((it) =>
-                  it.name.toLowerCase().includes(selectedCity.name.toLowerCase()) ||
-                  it.experiences.some((exp) => exp.location?.toLowerCase().includes(selectedCity.name.toLowerCase())),
-                )
-                .map((itinerary) => (
-                  <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
-                ))}
-            </div>
-          </div>
-        )}
+
+
 
         {/* Filtered results */}
-        {(selectedCity || selectedCategory || searchQuery) && (
+        {(selectedCategory || searchQuery) && (
           <div>
             <h2 className="text-lg md:text-xl font-bold mb-4">
               {selectedCategory
