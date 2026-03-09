@@ -362,7 +362,7 @@ const SearchPage = () => {
 
       {/* Content - generous padding for breathing room */}
       <div className="px-4 md:px-8 lg:px-10 py-6">
-        {!selectedCity && !searchQuery && (
+        {!searchQuery && (
           <DesktopDiscoveryCard />
         )}
 
