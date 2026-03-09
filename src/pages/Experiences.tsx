@@ -114,16 +114,12 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 const ExperiencesPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const initialTag = searchParams.get("tag");
   const addToId = searchParams.get("addTo");
-  const matchedTag = initialTag ? tags.find(t => t.toLowerCase() === initialTag.toLowerCase()) || "All" : "All";
   
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(24);
-  const [activeTag, setActiveTag] = useState(matchedTag);
   const [addedCount, setAddedCount] = useState(0);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const tagScrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { addExperienceToItinerary, itineraries } = useItineraries();
   
