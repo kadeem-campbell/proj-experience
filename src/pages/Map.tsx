@@ -22,6 +22,17 @@ const CityList = () => {
   const currentCity = searchParams.get("city") || "";
   const [selectedCity, setSelectedCity] = useState(currentCity);
 
+  const handleCityClick = (cityName: string) => {
+    if (selectedCity === cityName) {
+      // Deselect
+      setSelectedCity("");
+      navigate("/");
+    } else {
+      setSelectedCity(cityName);
+      navigate(`/?city=${encodeURIComponent(cityName)}`);
+    }
+  };
+
   return (
     <div className="px-4 pt-2 pb-8">
       <p className="text-sm text-muted-foreground mb-5">Select a city to explore experiences</p>
@@ -31,12 +42,7 @@ const CityList = () => {
           <button
             key={city.name}
             disabled={!city.available}
-            onClick={() => {
-              if (city.available) {
-                setSelectedCity(city.name);
-                navigate(`/?city=${encodeURIComponent(city.name)}`);
-              }
-            }}
+            onClick={() => city.available && handleCityClick(city.name)}
             className={cn(
               "w-full flex items-center gap-3 p-4 rounded-2xl transition-all text-left",
               city.available
