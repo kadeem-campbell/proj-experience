@@ -364,7 +364,7 @@ export const MobileHomeView = () => {
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
     return experiences.filter(e => {
-      const fields = [e.title, e.location, e.category, e.description, e.creator, ...(e.tags || [])].map(f => normalizeText(f || ""));
+      const fields = [e.title, e.location, e.category, e.creator].map(f => normalizeText(f || ""));
       return terms.every(term => fields.some(field => field.includes(term) || field.split(" ").some(w => w.startsWith(term))));
     });
   }, [searchQuery, experiences]);
