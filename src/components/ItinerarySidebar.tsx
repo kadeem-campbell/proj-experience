@@ -150,7 +150,7 @@ export const ItinerarySidebar = ({
                   >
                     <Link to="/experiences">
                       <Compass className="w-5 h-5 shrink-0" />
-                      {!isCollapsedView && <span>Discover</span>}
+                      {!isCollapsedView && <span>Discover Experiences</span>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
