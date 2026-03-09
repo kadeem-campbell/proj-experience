@@ -33,6 +33,10 @@ import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { publicItinerariesData } from "@/data/itinerariesData";
 import { cn } from "@/lib/utils";
+import { PhotoGallery } from "@/components/PhotoGallery";
+import { SocialVideoEmbed } from "@/components/SocialVideoEmbed";
+import { ShareDrawer } from "@/components/ShareDrawer";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 
 // Mock data
 import partyImage from "@/assets/party-experience.jpg";
@@ -172,18 +176,23 @@ const getDefaultImage = (category: string) => {
   return imageMap[category] || jetskiImage;
 };
 
-// Pre-compute all experiences for instant lookup
+// Pre-compute all experiences for instant lookup by ID and by slug
 const buildExperienceMap = () => {
-  const map = new Map<string, any>();
+  const byId = new Map<string, any>();
+  const bySlug = new Map<string, any>();
   
   // Add mock experiences with full details
-  mockExperiences.forEach(exp => map.set(exp.id, exp));
+  mockExperiences.forEach(exp => {
+    byId.set(exp.id, exp);
+    const slugKey = `${slugify(exp.location)}/${slugify(exp.title)}`;
+    bySlug.set(slugKey, exp);
+  });
   
   // Add experiences from public itineraries
   publicItinerariesData.forEach(itinerary => {
     itinerary.experiences.forEach(exp => {
-      if (!map.has(exp.id)) {
-        map.set(exp.id, {
+      if (!byId.has(exp.id)) {
+        const fullExp = {
           id: exp.id,
           title: exp.title,
           creator: exp.creator,
@@ -198,19 +207,23 @@ const buildExperienceMap = () => {
           gallery: [exp.videoThumbnail || getDefaultImage(exp.category)],
           bestTime: "Flexible",
           meetingPoints: [{ name: exp.location, type: "Main Location" }]
-        });
+        };
+        byId.set(exp.id, fullExp);
+        const slugKey = `${slugify(exp.location)}/${slugify(exp.title)}`;
+        bySlug.set(slugKey, fullExp);
       }
     });
   });
   
-  return map;
+  return { byId, bySlug };
 };
 
 // Build once at module load
-const experienceMap = buildExperienceMap();
+const { byId: experienceMapById, bySlug: experienceMapBySlug } = buildExperienceMap();
 
 export default function ExperienceDetail() {
-  const { id } = useParams();
+  // Support both old /experience/:id and new /experience/:location/:slug URLs
+  const { id, location: locationParam, slug } = useParams();
   const navigate = useNavigate();
   const { itineraries, removeExperience, isInItinerary } = useItineraries();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -228,66 +241,79 @@ export default function ExperienceDetail() {
     }
   };
 
-  // Check if experience is in active itinerary
-  const inItinerary = isInItinerary(id || '');
-
   // Instant lookup - no loading state needed for cached data
   const experience = useMemo(() => {
-    if (!id) return null;
-    
-    // Check pre-computed map first (instant)
-    if (experienceMap.has(id)) {
-      return experienceMap.get(id);
+    // New SEO-friendly URL format: /experience/:location/:slug
+    if (locationParam && slug) {
+      const slugKey = `${locationParam}/${slug}`;
+      if (experienceMapBySlug.has(slugKey)) {
+        return experienceMapBySlug.get(slugKey);
+      }
     }
     
-    // Fallback: check user's itineraries
-    for (const userItinerary of itineraries) {
-      const userExp = userItinerary.experiences.find(exp => exp.id === id);
-      if (userExp) {
-        return {
-          id: userExp.id,
-          title: userExp.title,
-          creator: userExp.creator,
-          videoThumbnail: userExp.videoThumbnail || getDefaultImage(userExp.category),
-          category: userExp.category,
-          location: userExp.location,
-          description: `Experience the best of ${userExp.location} with this amazing ${userExp.category?.toLowerCase() || 'local'} experience.`,
-          duration: "3 hours",
-          groupSize: "2-10 people",
-          rating: 4.7,
-          highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
-          gallery: [userExp.videoThumbnail || getDefaultImage(userExp.category)],
-          bestTime: "Flexible",
-          meetingPoints: [{ name: userExp.location, type: "Main Location" }]
-        };
+    // Legacy URL format: /experience/:id
+    if (id) {
+      // Check pre-computed map first (instant)
+      if (experienceMapById.has(id)) {
+        return experienceMapById.get(id);
+      }
+      
+      // Fallback: check user's itineraries
+      for (const userItinerary of itineraries) {
+        const userExp = userItinerary.experiences.find(exp => exp.id === id);
+        if (userExp) {
+          return {
+            id: userExp.id,
+            title: userExp.title,
+            creator: userExp.creator,
+            videoThumbnail: userExp.videoThumbnail || getDefaultImage(userExp.category),
+            category: userExp.category,
+            location: userExp.location,
+            description: `Experience the best of ${userExp.location} with this amazing ${userExp.category?.toLowerCase() || 'local'} experience.`,
+            duration: "3 hours",
+            groupSize: "2-10 people",
+            rating: 4.7,
+            highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
+            gallery: [userExp.videoThumbnail || getDefaultImage(userExp.category)],
+            bestTime: "Flexible",
+            meetingPoints: [{ name: userExp.location, type: "Main Location" }]
+          };
+        }
       }
     }
     
     return null;
-  }, [id, itineraries]);
+  }, [id, locationParam, slug, itineraries]);
+
+  // Check if experience is in active itinerary
+  const inItinerary = isInItinerary(experience?.id || '');
 
   // Generate consistent social proof numbers based on id
   const socialProof = useMemo(() => {
-    if (!id) return { added: 0, planning: 0, trending: false };
-    const hash = id.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
+    const expId = experience?.id || id || '';
+    if (!expId) return { added: 0, planning: 0, trending: false };
+    const hash = expId.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
     const added = Math.abs(hash % 800) + 150;
     const planning = Math.abs((hash * 7) % 50) + 5;
     const trending = added > 500;
     return { added, planning, trending };
-  }, [id]);
+  }, [experience?.id, id]);
 
+  // Generate SEO-friendly share URL
+  const shareUrl = useMemo(() => {
+    if (!experience) return window.location.href;
+    const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
+    return `${baseUrl}${generateExperienceUrl(experience.location, experience.title)}`;
+  }, [experience]);
 
   useEffect(() => {
     if (experience) {
-      document.title = `${experience.title} | Add to Your Itinerary`;
+      document.title = `${experience.title} in ${experience.location} | Add to Your Itinerary`;
     }
     return () => { document.title = 'Experience East Africa'; };
   }, [experience]);
 
   const handleShare = async () => {
-    const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    const shareUrl = `${baseUrl}/experience/${id}`;
-    
     if (navigator.share) {
       try {
         await navigator.share({ title: experience?.title, url: shareUrl });
@@ -331,34 +357,41 @@ export default function ExperienceDetail() {
     return (
       <MobileShell hideTopBar>
         <div className="bg-background overflow-y-auto">
-          {/* Hero Media */}
-          <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-            {experience.videoUrl ? (
-              <video
-                ref={videoRef}
-                poster={experience.videoThumbnail}
-                className="w-full h-full object-cover"
-                muted loop playsInline autoPlay
-              >
-                <source src={experience.videoUrl} type="video/mp4" />
-              </video>
+          {/* Photo Gallery at Top */}
+          <div className="relative">
+            {gallery.length > 1 ? (
+              <PhotoGallery images={gallery} title={experience.title} />
+            ) : experience.videoUrl ? (
+              <div className="aspect-[4/3] overflow-hidden bg-muted">
+                <video
+                  ref={videoRef}
+                  poster={experience.videoThumbnail}
+                  className="w-full h-full object-cover"
+                  muted loop playsInline autoPlay
+                >
+                  <source src={experience.videoUrl} type="video/mp4" />
+                </video>
+              </div>
             ) : (
-              <img src={gallery[selectedImage]} alt={experience.title} className="w-full h-full object-cover" />
+              <div className="aspect-[4/3] overflow-hidden bg-muted">
+                <img src={gallery[0]} alt={experience.title} className="w-full h-full object-cover" />
+              </div>
             )}
             {/* Back button */}
             <button 
               onClick={handleGoBack}
-              className="absolute top-4 left-4 p-2 rounded-full bg-background/70 backdrop-blur-xl"
+              className="absolute top-4 left-4 p-2 rounded-full bg-background/70 backdrop-blur-xl z-10"
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            {/* Share button */}
-            <button 
-              onClick={handleShare}
-              className="absolute top-4 right-4 p-2 rounded-full bg-background/70 backdrop-blur-xl"
-            >
-              <Share2 className="w-5 h-5 text-foreground" />
-            </button>
+            {/* Share button - uses ShareDrawer */}
+            <ShareDrawer title={experience.title} url={shareUrl}>
+              <button 
+                className="absolute top-4 right-4 p-2 rounded-full bg-background/70 backdrop-blur-xl z-10"
+              >
+                <Share2 className="w-5 h-5 text-foreground" />
+              </button>
+            </ShareDrawer>
           </div>
 
           {/* Content */}
@@ -428,6 +461,13 @@ export default function ExperienceDetail() {
                 <span className="font-medium">Best: {experience.bestTime}</span>
               </div>
             </div>
+
+            {/* Social Video Embeds */}
+            <SocialVideoEmbed 
+              experienceTitle={experience.title}
+              location={experience.location}
+              className="mb-6"
+            />
 
             {/* Description */}
             <div className="mb-6">
@@ -512,26 +552,11 @@ export default function ExperienceDetail() {
                   Trending
                 </Badge>
               )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9">
-                    <Share2 className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleShare}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Link
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    const text = `Check out: ${experience.title}\n${window.location.href}`;
-                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                  }}>
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ShareDrawer title={experience.title} url={shareUrl}>
+                <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              </ShareDrawer>
             </div>
           </div>
         </header>
@@ -542,29 +567,37 @@ export default function ExperienceDetail() {
             
             {/* Left Column - Media */}
             <div className="lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] lg:overflow-hidden">
-              {/* Hero Media */}
-              <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden bg-muted">
-                {experience.videoUrl ? (
-                  <video
-                    ref={videoRef}
-                    poster={experience.videoThumbnail}
-                    className="w-full h-full object-cover"
-                    muted loop playsInline autoPlay
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                  >
-                    <source src={experience.videoUrl} type="video/mp4" />
-                  </video>
+              {/* Photo Gallery */}
+              <div className="relative h-full">
+                {gallery.length > 1 ? (
+                  <div className="lg:h-full">
+                    <PhotoGallery images={gallery} title={experience.title} className="lg:h-full" />
+                  </div>
+                ) : experience.videoUrl ? (
+                  <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden bg-muted">
+                    <video
+                      ref={videoRef}
+                      poster={experience.videoThumbnail}
+                      className="w-full h-full object-cover"
+                      muted loop playsInline autoPlay
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                    >
+                      <source src={experience.videoUrl} type="video/mp4" />
+                    </video>
+                  </div>
                 ) : (
-                  <img 
-                    src={gallery[selectedImage]} 
-                    alt={experience.title} 
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden bg-muted">
+                    <img 
+                      src={gallery[0]} 
+                      alt={experience.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 )}
                 
                 {/* Gradient overlay for desktop */}
-                <div className="hidden lg:block absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="hidden lg:block absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                 
                 {/* Desktop overlay content */}
                 <div className="hidden lg:flex absolute bottom-0 left-0 right-0 p-8 flex-col gap-4">
@@ -585,42 +618,6 @@ export default function ExperienceDetail() {
                     <span>{experience.location}</span>
                   </div>
                 </div>
-
-                {/* Gallery dots - Mobile only */}
-                {!experience.videoUrl && gallery.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 lg:hidden">
-                    {gallery.map((_: string, index: number) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        className={cn(
-                          "w-2 h-2 rounded-full transition-all",
-                          selectedImage === index ? "bg-white w-5" : "bg-white/50"
-                        )}
-                      />
-                    ))}
-                  </div>
-                )}
-                
-                {/* Desktop gallery thumbnails */}
-                {gallery.length > 1 && (
-                  <div className="hidden lg:flex absolute bottom-8 right-8 gap-2">
-                    {gallery.slice(0, 4).map((img: string, index: number) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        className={cn(
-                          "w-16 h-16 rounded-lg overflow-hidden border-2 transition-all",
-                          selectedImage === index 
-                            ? "border-white ring-2 ring-white/50" 
-                            : "border-white/30 opacity-70 hover:opacity-100"
-                        )}
-                      >
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -747,6 +744,13 @@ export default function ExperienceDetail() {
                   <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this to their trip
                 </p>
               </div>
+
+              {/* Social Video Embeds */}
+              <SocialVideoEmbed 
+                experienceTitle={experience.title}
+                location={experience.location}
+                className="mb-8"
+              />
 
               {/* Description */}
               <div className="mb-8">
