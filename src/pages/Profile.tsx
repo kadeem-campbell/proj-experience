@@ -185,27 +185,25 @@ const ProfilePage = () => {
             </Button>
           )}
 
-          {/* Stats row */}
+          {/* Stats row — tappable */}
           <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="text-center p-3 rounded-xl bg-muted/30 border border-border">
+            <button onClick={() => navigate('/my-itineraries')} className="text-center p-3 rounded-xl bg-muted/30 border border-border active:scale-[0.97] transition-transform">
               <p className="text-lg font-bold text-foreground">{itineraries.length}</p>
               <p className="text-[10px] text-muted-foreground">Itineraries</p>
-            </div>
-            <div className="text-center p-3 rounded-xl bg-muted/30 border border-border">
-              <p className="text-lg font-bold text-foreground">{likedExperiences.length}</p>
-              <p className="text-[10px] text-muted-foreground">Liked</p>
-            </div>
-            <div className="text-center p-3 rounded-xl bg-muted/30 border border-border">
-              <p className="text-lg font-bold text-foreground">{likedItineraries.length}</p>
+            </button>
+            <button onClick={() => navigate('/saved')} className="text-center p-3 rounded-xl bg-muted/30 border border-border active:scale-[0.97] transition-transform">
+              <p className="text-lg font-bold text-foreground">{likedExperiences.length + likedItineraries.length}</p>
               <p className="text-[10px] text-muted-foreground">Saved</p>
-            </div>
+            </button>
+            <button className="text-center p-3 rounded-xl bg-muted/30 border border-border">
+              <p className="text-lg font-bold text-foreground">0</p>
+              <p className="text-[10px] text-muted-foreground">Trips</p>
+            </button>
           </div>
 
           {/* Quick links */}
           <div className="space-y-1 mb-6">
             {[
-              { icon: ListMusic, label: "Your Itineraries", action: () => navigate('/my-itineraries') },
-              { icon: Heart, label: "Liked Experiences", action: () => navigate('/experiences') },
               { icon: Settings, label: "Settings", action: () => {} },
             ].map(({ icon: Icon, label, action }) => (
               <button
