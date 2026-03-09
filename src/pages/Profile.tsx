@@ -14,7 +14,7 @@ import { ExperienceCard } from "@/components/ExperienceCard";
 import { MobileShell } from "@/components/MobileShell";
 import { 
   Camera, Check, Heart, MapPin, Loader2, User, Mail, AtSign, 
-  Layers, Settings, LogOut, ChevronRight, ListMusic
+  Layers, Settings, LogOut, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
