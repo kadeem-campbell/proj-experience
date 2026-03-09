@@ -272,7 +272,8 @@ const PublicItinerary = () => {
       setShowTripSelectorSheet(false);
       setShowNewTripDatePicker(false);
       setHasUnsavedChanges(true);
-      setActiveTripId(null); // This is a new trip, not an existing one
+      // NOTE: don't clear activeTripId here — if a user is editing an existing trip,
+      // we want Save to update that trip rather than creating a new one.
     }, 500);
   };
 
