@@ -822,8 +822,9 @@ export default function ExperienceDetail() {
                   <span className="font-medium">{experience.rating}</span>
                 </div>
               </div>
-            </div>
         </main>
+      </div>
+  );
       </div>
   );
 }
