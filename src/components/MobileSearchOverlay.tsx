@@ -145,7 +145,7 @@ export const MobileSearchOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150 overflow-hidden touch-none">
       {/* Search input */}
       <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3">
         <form onSubmit={handleSubmit}>
@@ -183,7 +183,7 @@ export const MobileSearchOverlay = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4">
+      <div className="flex-1 overflow-hidden px-4">
         {hasQuery ? (
           <>
             {/* Live experience results */}
