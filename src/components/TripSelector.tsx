@@ -97,16 +97,18 @@ export function TripSelector({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="center">
-          <div className="flex flex-col">
-            <CalendarComponent
-              mode="range"
-              selected={{ from: tempStartDate, to: tempEndDate }}
-              onSelect={handleDateSelect}
-              disabled={(date) => date < new Date()}
-              initialFocus
-              className="p-3 pointer-events-auto"
-              numberOfMonths={2}
-            />
+          <div className="flex flex-col max-w-[100vw]">
+            <div className="overflow-x-auto pb-2">
+              <CalendarComponent
+                mode="range"
+                selected={{ from: tempStartDate, to: tempEndDate }}
+                onSelect={handleDateSelect}
+                disabled={(date) => date < new Date()}
+                initialFocus
+                className="p-3 pointer-events-auto"
+                numberOfMonths={typeof window !== "undefined" && window.innerWidth < 768 ? 1 : 2}
+              />
+            </div>
             {/* Show confirm button when only start date is selected */}
             {tempStartDate && !tempEndDate && (
               <div className="p-3 pt-0 border-t border-border">

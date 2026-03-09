@@ -1112,18 +1112,20 @@ const PublicItinerary = () => {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center py-3">
-                <Calendar
-                  mode="range"
-                  selected={{ from: tripStartDate, to: tripEndDate }}
-                  onSelect={(range) => {
-                    setTripStartDate(range?.from);
-                    setTripEndDate(range?.to);
-                  }}
-                  disabled={(date) => date < new Date()}
-                  className="pointer-events-auto"
-                  numberOfMonths={isMobile ? 1 : 2}
-                />
+              <div className="flex flex-col items-center py-3 w-full">
+                <div className="w-full overflow-x-auto flex justify-center pb-2">
+                  <Calendar
+                    mode="range"
+                    selected={{ from: tripStartDate, to: tripEndDate }}
+                    onSelect={(range) => {
+                      setTripStartDate(range?.from);
+                      setTripEndDate(range?.to);
+                    }}
+                    disabled={(date) => date < new Date()}
+                    className="pointer-events-auto"
+                    numberOfMonths={isMobile ? 1 : 2}
+                  />
+                </div>
                 
                 <div className="w-full space-y-3 mt-4 px-2">
                   {tripStartDate && tripEndDate && (
