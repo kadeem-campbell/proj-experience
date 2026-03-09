@@ -215,25 +215,40 @@ export const useItineraries = () => {
     setIsLoading(false);
   }, [syncLocalToDatabase]);
 
-  // Listen for auth state changes
+  // Listen for auth state changes - use ref to prevent double loading
   useEffect(() => {
+    let initialLoaded = false;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const newUserId = session?.user?.id || null;
       setUserId(newUserId);
       
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+      if (event === 'INITIAL_SESSION') {
+        if (!initialLoaded) {
+          initialLoaded = true;
+          loadItineraries(newUserId);
+        }
+      } else if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
         loadItineraries(newUserId);
       }
     });
 
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const uid = session?.user?.id || null;
-      setUserId(uid);
-      loadItineraries(uid);
-    });
+    // Fallback: if INITIAL_SESSION doesn't fire quickly
+    const timeout = setTimeout(() => {
+      if (!initialLoaded) {
+        initialLoaded = true;
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          const uid = session?.user?.id || null;
+          setUserId(uid);
+          loadItineraries(uid);
+        });
+      }
+    }, 500);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [loadItineraries]);
 
   // Listen for cross-component updates (for BOTH authenticated and unauthenticated users)
