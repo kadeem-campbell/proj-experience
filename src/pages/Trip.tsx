@@ -766,53 +766,40 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
   const locations = [...new Set(itinerary?.experiences.map(e => e.location) || [])].filter(Boolean).slice(0, 3);
   const shareUrl = itinerary ? getShareUrl(itinerary.id) : '';
 
-  // Render experience card - TikTok-style 3:4 aspect ratio
+  // Render experience card - match PublicItinerary exactly
   const renderExperienceCard = (experience: LikedExperience) => {
     return (
       <Link 
         key={experience.id}
         to={`/experience/${experience.id}`}
       >
-        <Card 
-          className={cn(
-            "group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 cursor-pointer rounded-lg p-2"
-          )}
-        >
-          {/* Cover Image - 4:3 aspect ratio (same as PublicItinerary) */}
-          <div className="relative aspect-[4/3] overflow-hidden rounded-md mb-2">
+        <div className="group cursor-pointer transition-transform duration-150">
+          {/* Cover Image - match PublicItinerary geometry (4:3, rounded-xl) */}
+          <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
             {experience.videoThumbnail ? (
               <img 
                 src={experience.videoThumbnail} 
                 alt={experience.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-150"
+                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                <span className="text-2xl">📍</span>
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <MapPin className="w-6 h-6 text-muted-foreground" />
               </div>
             )}
             
-            {/* Category badge */}
-            {experience.category && (
-              <div className="absolute top-2 left-2">
-                <Badge variant="secondary" className="bg-foreground text-background text-xs">
-                  {experience.category}
-                </Badge>
-              </div>
-            )}
-            
-            {/* Owner controls - 3-dot menu - always visible on mobile */}
+            {/* Owner controls - 3-dot menu */}
             {isOwner && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                     className={cn(
-                      "absolute bottom-2 left-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-background/90 hover:bg-background text-foreground transition-all duration-300",
-                      isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+                      "absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200",
+                      isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     )}
                   >
-                    <MoreHorizontal className="w-4 h-4" />
+                    <MoreHorizontal className="w-4 h-4 text-foreground/80" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-popover border-border z-50" onClick={(e) => e.stopPropagation()}>
@@ -841,20 +828,16 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
             )}
           </div>
           
-          {/* Title and metadata */}
-          <h3 className="font-semibold text-sm mb-1 truncate group-hover:text-primary transition-colors">
-            {experience.title}
-          </h3>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {experience.location && (
-              <span className="flex items-center gap-1 truncate">
-                <MapPin className="w-3 h-3 shrink-0" />
-                {experience.location}
-              </span>
-            )}
-            {experience.price && <span className="shrink-0">{experience.price}</span>}
+          {/* Text content - match PublicItinerary */}
+          <div className="mt-2.5 space-y-0.5">
+            <h3 className="font-semibold line-clamp-1 text-foreground text-sm leading-snug">
+              {experience.title}
+            </h3>
+            <p className="text-[13px] text-muted-foreground truncate leading-relaxed">
+              {experience.location}
+            </p>
           </div>
-        </Card>
+        </div>
       </Link>
     );
   };
