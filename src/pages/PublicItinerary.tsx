@@ -741,18 +741,19 @@ const PublicItinerary = () => {
                       {itineraries.map((itin) => {
                         const isInThis = itin.experiences.some(e => e.id === experience.id);
                         return (
-                          <Button
-                            key={itin.id}
-                            variant="ghost"
-                            className="w-full justify-between font-normal h-12"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleAddToSpecificItinerary(experience, itin.id, itin.name);
-                            }}
-                          >
-                            <span className="truncate">{itin.name}</span>
-                            {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
-                          </Button>
+                          <DrawerClose asChild key={itin.id}>
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-between font-normal h-12"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleAddToSpecificItinerary(experience, itin.id, itin.name);
+                              }}
+                            >
+                              <span className="truncate">{itin.name}</span>
+                              {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                            </Button>
+                          </DrawerClose>
                         );
                       })}
                       {showNewItineraryInput === experience.id ? (
