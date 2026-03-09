@@ -34,7 +34,7 @@ import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { publicItinerariesData } from "@/data/itinerariesData";
 import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
-import { SocialVideoEmbed } from "@/components/SocialVideoEmbed";
+import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
 import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 
