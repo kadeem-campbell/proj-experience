@@ -823,8 +823,6 @@ export default function ExperienceDetail() {
                 </div>
               </div>
         </main>
-      </div>
-  );
-      </div>
+    </div>
   );
 }
