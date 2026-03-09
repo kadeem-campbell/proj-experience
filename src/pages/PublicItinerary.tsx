@@ -124,6 +124,7 @@ const PublicItinerary = () => {
   const [activeTripMode, setActiveTripMode] = useState(false);
   const [activeTripId, setActiveTripId] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [orderedExperiences, setOrderedExperiences] = useState<LikedExperience[] | null>(null);
   
   const { 
     addExperience, 
@@ -540,8 +541,11 @@ const PublicItinerary = () => {
     setShowNewItineraryInput(null);
   };
 
+  // Use ordered state if available, otherwise original
+  const currentExperiences = orderedExperiences || itinerary.experiences;
+
   // Filter experiences by search query
-  const filteredExperiences = itinerary.experiences.filter((experience) => {
+  const filteredExperiences = currentExperiences.filter((experience) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -655,26 +659,27 @@ const PublicItinerary = () => {
                   <div className="flex flex-col h-[50vh]">
                     {/* Fixed top action */}
                     <div className="px-4 pt-2">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start font-normal h-12"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // Pin to top: move this experience to position 0 in the rendered list
-                          // Since this is a public/static itinerary we reorder visually via state
-                          const idx = itinerary.experiences.findIndex(ex => ex.id === experience.id);
-                          if (idx > 0) {
-                            const reordered = [...itinerary.experiences];
-                            const [item] = reordered.splice(idx, 1);
-                            reordered.unshift(item);
-                            itinerary.experiences = reordered;
-                            toast({ title: `"${experience.title}" pinned to top` });
-                          }
-                        }}
-                      >
-                        <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
-                        Pin to top
-                      </Button>
+                      <DrawerClose asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start font-normal h-12"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const src = orderedExperiences || [...itinerary.experiences];
+                            const idx = src.findIndex(ex => ex.id === experience.id);
+                            if (idx > 0) {
+                              const reordered = [...src];
+                              const [item] = reordered.splice(idx, 1);
+                              reordered.unshift(item);
+                              setOrderedExperiences(reordered);
+                              toast({ title: `"${experience.title}" pinned to top` });
+                            }
+                          }}
+                        >
+                          <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
+                          Pin to top
+                        </Button>
+                      </DrawerClose>
                     </div>
 
                     {/* Scrollable itinerary list */}
