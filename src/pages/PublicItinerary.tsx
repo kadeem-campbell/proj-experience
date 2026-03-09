@@ -125,6 +125,7 @@ const PublicItinerary = () => {
   const [activeTripId, setActiveTripId] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [orderedExperiences, setOrderedExperiences] = useState<LikedExperience[] | null>(null);
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   
   const { 
     addExperience, 
