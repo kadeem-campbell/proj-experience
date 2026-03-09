@@ -1504,7 +1504,10 @@ const PublicItinerary = () => {
           </Sheet>
         ) : (
           <Dialog open={showTripSelectorSheet} onOpenChange={setShowTripSelectorSheet}>
-            <DialogContent className="sm:max-w-lg bg-card border-border">
+            <DialogContent className={cn(
+              "bg-card border-border",
+              showNewTripDatePicker ? "sm:max-w-4xl" : "sm:max-w-lg"
+            )}>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Rocket className="w-5 h-5 text-primary" />
