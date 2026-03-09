@@ -767,7 +767,7 @@ const PublicItinerary = () => {
               setTripEndDate(range?.to);
             }}
             disabled={(date) => date < new Date()}
-            className="pointer-events-auto"
+            className="p-3 pointer-events-auto"
             numberOfMonths={isMobile ? 1 : 2}
           />
         </div>
