@@ -119,7 +119,7 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   );
 };
 
-// Top header bar - white rounded pill style
+// Top header bar
 const MobileTopBar = ({ 
   onProfileClick, 
   headerContent,
@@ -143,16 +143,16 @@ const MobileTopBar = ({
           <button onClick={onProfileClick} className="text-xl font-black tracking-tight text-[#121212]">
             SWAM
           </button>
-          <button 
-            onClick={() => navigate("/map")} 
-            className="w-9 h-9 rounded-full bg-[#f5f5f5] flex items-center justify-center"
-          >
-            <Map className="w-5 h-5 text-[#121212]" strokeWidth={2.2} />
-          </button>
+          <div className="flex items-center gap-2">
+            {headerContent}
+            <button 
+              onClick={() => navigate("/map")} 
+              className="w-9 h-9 rounded-full bg-[#f5f5f5] flex items-center justify-center"
+            >
+              <Map className="w-5 h-5 text-[#121212]" strokeWidth={2.2} />
+            </button>
+          </div>
         </div>
-        {headerContent && (
-          <div className="mt-2">{headerContent}</div>
-        )}
       </div>
     </div>
   );
