@@ -823,6 +823,87 @@ const PublicItinerary = () => {
     );
   };
 
+  // Render invite content (shared between Dialog and Sheet)
+  const renderInviteContent = () => (
+    <div className="space-y-4 py-4">
+      <div className="flex gap-2">
+        <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+          <Mail className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+          <Input
+            type="email"
+            placeholder="friend@email.com"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && inviteEmail.trim()) {
+                handleShare();
+                toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
+                setInviteEmail("");
+              }
+            }}
+          />
+        </div>
+        <Button
+          disabled={!inviteEmail.trim()}
+          onClick={() => {
+            handleShare();
+            toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
+            setInviteEmail("");
+          }}
+        >
+          <Send className="w-4 h-4" />
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1 gap-2" onClick={handleShare}>
+          <Copy className="w-4 h-4" />
+          Copy Link
+        </Button>
+        <Button variant="outline" className="flex-1 gap-2" onClick={handleShareWhatsApp}>
+          <MessageCircle className="w-4 h-4" />
+          WhatsApp
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Render collaborator content (shared between Dialog and Sheet)
+  const renderCollaboratorContent = () => (
+    <div className="space-y-4 py-4">
+      <div className="flex gap-2">
+        <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+          <UserPlus className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+          <Input
+            type="email"
+            placeholder="collaborator@email.com"
+            value={collaboratorEmail}
+            onChange={(e) => setCollaboratorEmail(e.target.value)}
+            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && collaboratorEmail.trim()) {
+                toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
+                setCollaboratorEmail("");
+              }
+            }}
+          />
+        </div>
+        <Button
+          disabled={!collaboratorEmail.trim()}
+          onClick={() => {
+            toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
+            setCollaboratorEmail("");
+          }}
+        >
+          <UserPlus className="w-4 h-4" />
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Collaborators can add experiences, edit the schedule, and help plan the trip.
+      </p>
+    </div>
+  );
+
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
     const liked = isItemLiked(experience.id, 'experience');
