@@ -183,7 +183,7 @@ export const MobileSearchOverlay = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4">
+      <div className="flex-1 overflow-hidden px-4">
         {hasQuery ? (
           <>
             {/* Live experience results */}
