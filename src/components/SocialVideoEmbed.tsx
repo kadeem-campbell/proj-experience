@@ -120,7 +120,7 @@ export const SocialVideoEmbed = ({
 
       {/* Bottom sheet drawer for full TikTok video playback */}
       <Drawer open={!!activeVideo} onOpenChange={(open) => !open && setActiveVideo(null)}>
-        <DrawerContent className="max-h-[85vh]">
+        <DrawerContent className="max-h-[85vh] overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-2 pb-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-foreground flex items-center justify-center">
