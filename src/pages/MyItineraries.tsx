@@ -100,6 +100,7 @@ const MyItinerariesPage = () => {
     }
   }, [searchParams]);
 
+  const handleCreate = async () => {
     if (!newName.trim()) return;
     setCreating(true);
     const created = await createItinerary(newName.trim());
