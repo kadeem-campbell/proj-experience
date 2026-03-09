@@ -345,7 +345,7 @@ export const MobileHomeView = () => {
   // Sync search query from URL params
   useEffect(() => {
     const q = searchParams.get("q");
-    if (q) setSearchQuery(q);
+    setSearchQuery(q || "");
   }, [searchParams]);
 
   const handleCityChange = useCallback((city: string) => {
