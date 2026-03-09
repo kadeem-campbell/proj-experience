@@ -560,11 +560,11 @@ export default function ExperienceDetail() {
         {/* Media Section at Top with overlaid buttons - like mobile */}
         <div className="relative">
           {gallery.length > 1 ? (
-            <div className="aspect-[21/9] overflow-hidden">
+            <div className="aspect-[3/1] overflow-hidden">
               <PhotoGallery images={gallery} title={experience.title} />
             </div>
           ) : experience.videoUrl ? (
-            <div className="relative aspect-[21/9] overflow-hidden bg-muted">
+            <div className="relative aspect-[3/1] overflow-hidden bg-muted">
               <video
                 ref={videoRef}
                 poster={experience.videoThumbnail}
@@ -577,7 +577,7 @@ export default function ExperienceDetail() {
               </video>
             </div>
           ) : (
-            <div className="relative aspect-[21/9] overflow-hidden bg-muted">
+            <div className="relative aspect-[3/1] overflow-hidden bg-muted">
               <img 
                 src={gallery[0]} 
                 alt={experience.title} 
