@@ -185,7 +185,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
       )}
 
       {/* Content area */}
-      <div className={cn(!hideTopBar && !notFixed && "pt-16", "pb-20")}>
+      <div className={cn(!hideTopBar && !notFixed && "pt-[72px]", "pb-20")}>
         {children}
       </div>
 
