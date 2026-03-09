@@ -7,9 +7,12 @@ import {
   X,
   Compass,
   Heart,
-  
   Sparkles,
   Pin,
+  Gift,
+  Zap,
+  User,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
