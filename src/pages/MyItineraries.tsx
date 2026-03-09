@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Plus, Layers, Calendar, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, ChevronRight } from "lucide-react";
+import { Plus, Layers, Calendar, MapPin, MoreHorizontal, Trash2, Edit2, Loader2 } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { MobileShell } from "@/components/MobileShell";
@@ -29,7 +29,7 @@ const ItineraryPlaylistCard = ({
   return (
     <button
       onClick={onTap}
-      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 active:scale-[0.98] transition-all text-left group"
+      className="w-full flex items-center gap-3 py-2.5 hover:bg-muted/50 active:scale-[0.98] transition-transform duration-150 text-left group"
     >
       {/* Album art / cover */}
       <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted shadow-sm">
@@ -58,15 +58,12 @@ const ItineraryPlaylistCard = ({
       </div>
 
       {/* Options only */}
-      <div className="flex items-center gap-1">
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-        <button
-          onClick={onOptions}
-          className="p-2 rounded-full hover:bg-muted transition-colors"
-        >
-          <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-        </button>
-      </div>
+      <button
+        onClick={onOptions}
+        className="p-2 rounded-full hover:bg-muted transition-colors duration-150"
+      >
+        <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+      </button>
     </button>
   );
 };
