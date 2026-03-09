@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { allExperiences } from "@/hooks/useExperiencesData";
 
 import { useIsMobile } from "@/hooks/use-mobile";
