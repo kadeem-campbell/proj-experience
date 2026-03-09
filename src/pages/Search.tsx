@@ -255,7 +255,7 @@ const SearchPage = () => {
     }
   }, [searchParams]);
 
-
+  useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
     if (savedPosition && scrollContainerRef.current) {
       const position = parseInt(savedPosition, 10);
