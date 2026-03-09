@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface MainLayoutProps {
   children: ReactNode;
   showItineraryPanel?: boolean;
+  showSidebar?: boolean;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
   selectedCity?: City | null;
@@ -43,12 +44,23 @@ const SidebarToggleButton = () => {
 export const MainLayout = ({ 
   children, 
   showItineraryPanel = false,
+  showSidebar = true,
   searchQuery,
   onSearchChange,
   selectedCity,
   onCitySelect,
   onMobileSearchClick,
 }: MainLayoutProps) => {
+  if (!showSidebar) {
+    return (
+      <div className="h-screen flex flex-col w-full bg-background overflow-hidden">
+        <main className="flex-1 overflow-auto min-w-0">
+          {children}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider defaultOpen={true}>
       <SidebarToggleButton />
