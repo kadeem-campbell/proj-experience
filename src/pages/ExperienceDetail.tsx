@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -365,14 +364,12 @@ export default function ExperienceDetail() {
       );
     }
     return (
-      <MainLayout showItineraryPanel={false}>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <h1 className="text-xl font-bold mb-3">Experience not found</h1>
-            <Link to="/"><Button size="sm">Back to Discover</Button></Link>
-          </div>
+      <div className="flex items-center justify-center min-h-screen bg-background w-full">
+        <div className="text-center">
+          <h1 className="text-xl font-bold mb-3">Experience not found</h1>
+          <Link to="/"><Button size="sm">Back to Discover</Button></Link>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
@@ -559,8 +556,7 @@ export default function ExperienceDetail() {
 
   // Desktop
   return (
-    <MainLayout showItineraryPanel={false}>
-      <div className="min-h-screen bg-background overflow-y-auto">
+    <div className="min-h-screen bg-background overflow-y-auto w-full">
         {/* Header Nav */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
           <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
@@ -850,7 +846,6 @@ export default function ExperienceDetail() {
             </div>
           </div>
         </main>
-      </div>
-    </MainLayout>
+    </div>
   );
 }
