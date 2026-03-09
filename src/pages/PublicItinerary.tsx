@@ -662,6 +662,167 @@ const PublicItinerary = () => {
     });
   };
 
+  // Render trip selector content (shared between Dialog and Sheet)
+  const renderTripSelectorContent = () => {
+    if (!showNewTripDatePicker) {
+      const parentItineraryName = itinerary?.name || "My Saved Trips";
+      const currentSavedItinerary = itineraries.find(i => i.name === parentItineraryName);
+      const trips = currentSavedItinerary?.trips || [];
+
+      return (
+        <div className="space-y-3 py-3">
+          {trips.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your saved trips</p>
+              {trips.map((trip: any, idx: number) => (
+                <button
+                  key={trip.id || idx}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                    activeTripId === trip.id
+                      ? "bg-primary/10 border-primary/30"
+                      : "bg-muted/30 border-border hover:bg-muted/50"
+                  )}
+                  onClick={() => {
+                    if (trip.experiences && trip.startDate) {
+                      const tripDays: Record<string, LikedExperience[]> = {};
+                      trip.experiences.forEach((exp: LikedExperience) => {
+                        if (exp.scheduledTime) {
+                          const dayKey = format(new Date(exp.scheduledTime), "yyyy-MM-dd");
+                          if (!tripDays[dayKey]) tripDays[dayKey] = [];
+                          tripDays[dayKey].push(exp);
+                        }
+                      });
+                      setGeneratedTrip(tripDays);
+                      setTripStartDate(new Date(trip.startDate));
+                      setTripEndDate(trip.endDate ? new Date(trip.endDate) : undefined);
+                      setActiveTripMode(true);
+                      setActiveTripId(trip.id);
+                      setHasUnsavedChanges(false);
+                      setShowTripSelectorSheet(false);
+                    }
+                  }}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <CalendarIcon className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{trip.name || `Trip ${idx + 1}`}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {trip.startDate && format(new Date(trip.startDate), "MMM d")}
+                      {trip.endDate && ` – ${format(new Date(trip.endDate), "MMM d")}`}
+                      {trip.experiences && ` · ${trip.experiences.length} experiences`}
+                    </p>
+                  </div>
+                  {activeTripId === trip.id && (
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
+            onClick={() => {
+              setActiveTripId(null);
+              setTripName("");
+              setShowNewTripDatePicker(true);
+            }}
+          >
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Plus className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-sm text-primary">New Trip</p>
+              <p className="text-xs text-muted-foreground">Auto-assign experiences to dates</p>
+            </div>
+          </button>
+
+          {activeTripMode && (
+            <Button 
+              variant="outline" 
+              className="w-full mt-2"
+              onClick={() => {
+                handleExitTripMode();
+                setShowTripSelectorSheet(false);
+              }}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Exit Trip Mode
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center py-3 w-full">
+        <div className="w-full overflow-x-auto flex justify-center pb-2">
+          <Calendar
+            mode="range"
+            selected={{ from: tripStartDate, to: tripEndDate }}
+            onSelect={(range) => {
+              setTripStartDate(range?.from);
+              setTripEndDate(range?.to);
+            }}
+            disabled={(date) => date < new Date()}
+            className="pointer-events-auto"
+            numberOfMonths={isMobile ? 1 : 2}
+          />
+        </div>
+        
+        <div className="w-full space-y-3 mt-4 px-2">
+          {tripStartDate && tripEndDate && (
+            <p className="text-sm text-center text-muted-foreground">
+              {format(tripStartDate, "MMM d")} – {format(tripEndDate, "MMM d, yyyy")}
+            </p>
+          )}
+          {tripStartDate && !tripEndDate && (
+            <p className="text-sm text-center text-muted-foreground">
+              Select an end date, or use a single day
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2 justify-center">
+            {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
+              <div key={slot} className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/50 rounded-full px-2.5 py-1">
+                <span>{timeSlotConfig[slot].emoji}</span>
+                <span>{timeSlotConfig[slot].label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowNewTripDatePicker(false)}
+            >
+              Back
+            </Button>
+            <Button 
+              className="flex-1 gap-2"
+              disabled={!tripStartDate}
+              onClick={() => {
+                if (tripStartDate) {
+                  generateTrip(tripStartDate, tripEndDate || tripStartDate);
+                }
+              }}
+            >
+              <Sparkles className="w-4 h-4" />
+              {tripStartDate && !tripEndDate 
+                ? `Generate for ${format(tripStartDate, "MMM d")}` 
+                : tripStartDate && tripEndDate 
+                  ? "Generate Trip" 
+                  : "Select dates"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
     const liked = isItemLiked(experience.id, 'experience');
