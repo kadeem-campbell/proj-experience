@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Plus, Layers, Calendar, MapPin, Play, MoreHorizontal, Trash2, Edit2, Loader2 } from "lucide-react";
+import { Plus, Layers, Calendar, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, ChevronRight } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { MobileShell } from "@/components/MobileShell";
