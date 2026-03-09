@@ -321,34 +321,53 @@ const PublicItinerary = () => {
   const handleSaveTrip = async () => {
     if (!tripStartDate) return;
 
-    const scheduledExperiences = Object.values(generatedTrip).flat().map(exp => ({
-      ...exp,
-      likedAt: new Date().toISOString()
-    }));
-    
+    const nowIso = new Date().toISOString();
+    const scheduledExperiences = Object.entries(generatedTrip).flatMap(([dayKey, exps]) =>
+      exps.map(exp => ({
+        ...exp,
+        // Persist day association so trips re-load correctly
+        scheduledTime: exp.scheduledTime ?? new Date(dayKey).toISOString(),
+        likedAt: nowIso
+      }))
+    );
+
     const startDateStr = format(tripStartDate, 'yyyy-MM-dd');
     const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
     const newTripName = tripName.trim() || `My Trip`;
 
+    // Guest users: save/update locally
     if (!isAuthenticated) {
-      // Save locally
       const localTripsStr = localStorage.getItem('local_trips') || '[]';
-      let localTrips = [];
-      try { localTrips = JSON.parse(localTripsStr); } catch (e) {}
-      
-      localTrips.push({
-        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7),
+      let localTrips: any[] = [];
+      try {
+        localTrips = JSON.parse(localTripsStr);
+      } catch {
+        localTrips = [];
+      }
+
+      const existingIdx = activeTripId ? localTrips.findIndex(t => t.id === activeTripId) : -1;
+      const nextId = existingIdx >= 0
+        ? localTrips[existingIdx].id
+        : (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7));
+
+      const nextTrip = {
+        id: nextId,
         name: newTripName,
         startDate: startDateStr,
         endDate: endDateStr,
         experiences: scheduledExperiences,
-        savedAt: new Date().toISOString(),
-      });
+        savedAt: nowIso,
+      };
+
+      if (existingIdx >= 0) localTrips[existingIdx] = nextTrip;
+      else localTrips.push(nextTrip);
+
       localStorage.setItem('local_trips', JSON.stringify(localTrips));
-      
+      setActiveTripId(nextId);
       setHasUnsavedChanges(false);
+
       toast({
-        title: "Trip saved locally! 🎉",
+        title: existingIdx >= 0 ? "Trip updated locally" : "Trip saved locally! 🎉",
         description: "Sign in to make sure you don't lose it.",
         action: (
           <Button variant="outline" size="sm" onClick={() => setShowAuthModal(true)}>
@@ -358,21 +377,38 @@ const PublicItinerary = () => {
       });
       return;
     }
-    
+
+    // Auth users: ensure this trip is stored on THIS itinerary only
     const parentItineraryName = itinerary?.name || "My Saved Trips";
     let parentItinerary = itineraries.find(i => i.name === parentItineraryName);
-    
+
     if (!parentItinerary) {
-      parentItinerary = await createItinerary(parentItineraryName, itinerary?.experiences?.map(e => ({
-        ...e,
-        likedAt: new Date().toISOString()
-      })) || []);
+      parentItinerary = await createItinerary(
+        parentItineraryName,
+        itinerary?.experiences?.map(e => ({
+          ...e,
+          likedAt: nowIso
+        })) || []
+      );
     }
-    
-    await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
-    
+
+    const tripExists = !!(activeTripId && (parentItinerary.trips || []).some(t => t.id === activeTripId));
+
+    if (tripExists && activeTripId) {
+      await updateTrip(parentItinerary.id, activeTripId, {
+        name: newTripName,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        experiences: scheduledExperiences,
+      });
+      toast({ title: "Trip updated", description: `Updated ${newTripName}.` });
+    } else {
+      const created = await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
+      setActiveTripId(created?.id || null);
+      toast({ title: "Trip saved! 🎉", description: `Your ${newTripName} has been saved.` });
+    }
+
     setHasUnsavedChanges(false);
-    toast({ title: "Trip saved! 🎉", description: `Your ${newTripName} has been saved.` });
   };
 
   const handleExitTripMode = () => {
