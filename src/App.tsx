@@ -23,6 +23,7 @@ import Experiences from "./pages/Experiences";
 import Trip from "./pages/Trip";
 import Profile from "./pages/Profile";
 import MyItineraries from "./pages/MyItineraries";
+import Liked from "./pages/Liked";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
