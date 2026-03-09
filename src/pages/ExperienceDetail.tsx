@@ -577,7 +577,7 @@ export default function ExperienceDetail() {
               </video>
             </div>
           ) : (
-            <div className="relative aspect-[21/9] overflow-hidden bg-muted">
+            <div className="relative aspect-[3/1] overflow-hidden bg-muted">
               <img 
                 src={gallery[0]} 
                 alt={experience.title} 
