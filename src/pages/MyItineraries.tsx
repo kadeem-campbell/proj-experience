@@ -83,6 +83,7 @@ const ItineraryPlaylistCard = ({
 
 const MyItinerariesPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
   const { itineraries, isLoading, createItinerary, deleteItinerary, renameItinerary, setActiveItinerary } = useItineraries();
   const [showCreate, setShowCreate] = useState(false);
