@@ -564,7 +564,7 @@ export default function ExperienceDetail() {
               <PhotoGallery images={gallery} title={experience.title} />
             </div>
           ) : experience.videoUrl ? (
-            <div className="relative aspect-[21/9] overflow-hidden bg-muted">
+            <div className="relative aspect-[3/1] overflow-hidden bg-muted">
               <video
                 ref={videoRef}
                 poster={experience.videoThumbnail}
