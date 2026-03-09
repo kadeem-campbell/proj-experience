@@ -324,6 +324,12 @@ const SearchPage = () => {
   });
 
   const filteredItineraries = getPopularItineraries().filter((itinerary) => {
+    if (selectedCity) {
+      const cityName = selectedCity.name.toLowerCase();
+      const nameMatch = itinerary.name.toLowerCase().includes(cityName);
+      const expMatch = itinerary.experiences?.some((exp: any) => exp.location?.toLowerCase().includes(cityName));
+      if (!nameMatch && !expMatch) return false;
+    }
     const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
     if (itinerary.name.toLowerCase().includes(q)) return true;
