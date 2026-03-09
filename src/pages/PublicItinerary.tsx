@@ -976,155 +976,144 @@ const PublicItinerary = () => {
               />
             </button>
 
-            {/* More options: move to other itinerary, pin, remove */}
+            {/* More options: Dropdown on desktop, Drawer on mobile */}
             {!activeTripMode && (
-              <Drawer>
-                <DrawerTrigger asChild>
-                  <button
-                    type="button"
-                    data-card-action="true"
-                    onPointerDown={(e) => {
-                      // Stop the card navigation from stealing the tap on mobile
-                      e.stopPropagation();
-                    }}
-                    onClick={(e) => {
-                      // IMPORTANT: don't call preventDefault() here — Radix/Vaul won't open the drawer
-                      // when the event is defaultPrevented.
-                      e.stopPropagation();
-                    }}
-                    className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
-                    aria-label="Open actions"
-                  >
-                    <MoreHorizontal className="w-4 h-4 text-foreground/80" />
-                  </button>
-                </DrawerTrigger>
-                <DrawerContent onClick={(e) => e.stopPropagation()}>
-                  <DrawerHeader className="sr-only">
-                    <DrawerTitle>Experience actions</DrawerTitle>
-                  </DrawerHeader>
-                  <div className="flex flex-col h-[50vh]">
-                    {/* Fixed top action */}
-                    <div className="px-4 pt-2">
-                      {(() => {
-                        const isPinned = pinnedIds.has(experience.id);
-                        const pinnedCount = pinnedIds.size;
-                        return (
-                          <DrawerClose asChild>
-                            <Button
-                              variant="ghost"
-                              className={cn(
-                                "w-full justify-start font-normal h-12",
-                                isPinned && "text-primary"
-                              )}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (isPinned) {
-                                  // Already pinned, do nothing (or could unpin)
-                                  return;
-                                }
-                                const src = orderedExperiences || itinerary.experiences;
-                                const idx = src.findIndex(ex => ex.id === experience.id);
-
-                                if (idx === -1) {
-                                  toast({ title: "Couldn't pin this item", description: "Please try again." });
-                                  return;
-                                }
-
-                                if (idx === 0) {
-                                  // Mark as pinned even if already at top
-                                  setPinnedIds(prev => new Set(prev).add(experience.id));
-                                  toast({ title: "Pinned to top" });
-                                  return;
-                                }
-
-                                const reordered = [...src];
-                                const [item] = reordered.splice(idx, 1);
-                                reordered.unshift(item);
-                                setOrderedExperiences(reordered);
-                                setPinnedIds(prev => new Set(prev).add(experience.id));
-                                toast({ title: `"${experience.title}" pinned to top` });
-                              }}
-                            >
-                              <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
-                              {isPinned ? (
-                                <span>Pinned ({pinnedCount})</span>
-                              ) : (
-                                <span>Pin to top</span>
-                              )}
-                            </Button>
-                          </DrawerClose>
-                        );
-                      })()}
-                    </div>
-
-                    {/* Scrollable itinerary list */}
-                    <div className="px-4 py-3 text-sm font-semibold text-muted-foreground border-t mt-1">
-                      Copy to another itinerary
-                    </div>
-                    <div className="flex-1 overflow-y-auto px-4 min-h-0">
-                      {itineraries.map((itin) => {
-                        const isInThis = itin.experiences.some(e => e.id === experience.id);
-                        return (
-                          <DrawerClose asChild key={itin.id}>
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-between font-normal h-12"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleAddToSpecificItinerary(experience, itin.id, itin.name);
-                              }}
-                            >
-                              <span className="truncate">{itin.name}</span>
-                              {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
-                            </Button>
-                          </DrawerClose>
-                        );
-                      })}
-                      {showNewItineraryInput === experience.id ? (
-                        <div className="py-3 flex gap-2 w-full mt-1" onClick={(e) => e.stopPropagation()}>
-                          <Input
-                            placeholder="Itinerary name..."
-                            value={newItineraryName}
-                            onChange={(e) => setNewItineraryName(e.target.value)}
-                            className="h-11 text-sm flex-1"
-                            autoFocus
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }}
-                          />
-                          <Button className="h-11 px-6" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>
-                            Add
+              isMobile ? (
+                <Drawer>
+                  <DrawerTrigger asChild>
+                    <button
+                      type="button"
+                      data-card-action="true"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
+                      aria-label="Open actions"
+                    >
+                      <MoreHorizontal className="w-4 h-4 text-foreground/80" />
+                    </button>
+                  </DrawerTrigger>
+                  <DrawerContent onClick={(e) => e.stopPropagation()}>
+                    <DrawerHeader className="sr-only">
+                      <DrawerTitle>Experience actions</DrawerTitle>
+                    </DrawerHeader>
+                    <div className="flex flex-col h-[50vh]">
+                      <div className="px-4 pt-2">
+                        {(() => {
+                          const isPinned = pinnedIds.has(experience.id);
+                          const pinnedCount = pinnedIds.size;
+                          return (
+                            <DrawerClose asChild>
+                              <Button
+                                variant="ghost"
+                                className={cn("w-full justify-start font-normal h-12", isPinned && "text-primary")}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (isPinned) return;
+                                  const src = orderedExperiences || itinerary.experiences;
+                                  const idx = src.findIndex(ex => ex.id === experience.id);
+                                  if (idx === -1) { toast({ title: "Couldn't pin this item" }); return; }
+                                  if (idx === 0) { setPinnedIds(prev => new Set(prev).add(experience.id)); toast({ title: "Pinned to top" }); return; }
+                                  const reordered = [...src]; const [item] = reordered.splice(idx, 1); reordered.unshift(item);
+                                  setOrderedExperiences(reordered); setPinnedIds(prev => new Set(prev).add(experience.id));
+                                  toast({ title: `"${experience.title}" pinned to top` });
+                                }}
+                              >
+                                <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
+                                {isPinned ? <span>Pinned ({pinnedCount})</span> : <span>Pin to top</span>}
+                              </Button>
+                            </DrawerClose>
+                          );
+                        })()}
+                      </div>
+                      <div className="px-4 py-3 text-sm font-semibold text-muted-foreground border-t mt-1">Copy to another itinerary</div>
+                      <div className="flex-1 overflow-y-auto px-4 min-h-0">
+                        {itineraries.map((itin) => {
+                          const isInThis = itin.experiences.some(e => e.id === experience.id);
+                          return (
+                            <DrawerClose asChild key={itin.id}>
+                              <Button variant="ghost" className="w-full justify-between font-normal h-12" onClick={(e) => { e.preventDefault(); handleAddToSpecificItinerary(experience, itin.id, itin.name); }}>
+                                <span className="truncate">{itin.name}</span>
+                                {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                              </Button>
+                            </DrawerClose>
+                          );
+                        })}
+                        {showNewItineraryInput === experience.id ? (
+                          <div className="py-3 flex gap-2 w-full mt-1" onClick={(e) => e.stopPropagation()}>
+                            <Input placeholder="Itinerary name..." value={newItineraryName} onChange={(e) => setNewItineraryName(e.target.value)} className="h-11 text-sm flex-1" autoFocus onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }} />
+                            <Button className="h-11 px-6" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>Add</Button>
+                          </div>
+                        ) : (
+                          <Button variant="ghost" className="w-full justify-start font-normal h-12 mt-1" onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}>
+                            <ListPlus className="w-4 h-4 mr-3" />New Itinerary
                           </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start font-normal h-12 mt-1"
-                          onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}
-                        >
-                          <ListPlus className="w-4 h-4 mr-3" />
-                          New Itinerary
-                        </Button>
-                      )}
+                        )}
+                      </div>
+                      <div className="px-4 pb-4 pt-2 border-t">
+                        <DrawerClose asChild>
+                          <Button variant="ghost" className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={(e) => { e.preventDefault(); handleToggleItinerary(experience, e as any); }}>
+                            <Trash2 className="w-4 h-4 mr-3" />Remove from itinerary
+                          </Button>
+                        </DrawerClose>
+                      </div>
                     </div>
-
-                    {/* Fixed bottom action */}
-                    <div className="px-4 pb-4 pt-2 border-t">
-                      <DrawerClose asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  </DrawerContent>
+                </Drawer>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      data-card-action="true"
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200"
+                      aria-label="Open actions"
+                    >
+                      <MoreHorizontal className="w-4 h-4 text-foreground/80" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
+                    {(() => {
+                      const isPinned = pinnedIds.has(experience.id);
+                      return (
+                        <DropdownMenuItem
                           onClick={(e) => {
                             e.preventDefault();
-                            handleToggleItinerary(experience, e as any);
+                            if (isPinned) return;
+                            const src = orderedExperiences || itinerary.experiences;
+                            const idx = src.findIndex(ex => ex.id === experience.id);
+                            if (idx === -1) { toast({ title: "Couldn't pin this item" }); return; }
+                            if (idx === 0) { setPinnedIds(prev => new Set(prev).add(experience.id)); toast({ title: "Pinned to top" }); return; }
+                            const reordered = [...src]; const [item] = reordered.splice(idx, 1); reordered.unshift(item);
+                            setOrderedExperiences(reordered); setPinnedIds(prev => new Set(prev).add(experience.id));
+                            toast({ title: `"${experience.title}" pinned to top` });
                           }}
+                          className={cn(isPinned && "text-primary")}
                         >
-                          <Trash2 className="w-4 h-4 mr-3" />
-                          Remove from itinerary
-                        </Button>
-                      </DrawerClose>
-                    </div>
-                  </div>
-                </DrawerContent>
-              </Drawer>
+                          <ArrowLeft className="w-4 h-4 rotate-90 mr-2" />
+                          {isPinned ? "Pinned" : "Pin to top"}
+                        </DropdownMenuItem>
+                      );
+                    })()}
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Copy to itinerary</div>
+                    {itineraries.slice(0, 5).map((itin) => {
+                      const isInThis = itin.experiences.some(e => e.id === experience.id);
+                      return (
+                        <DropdownMenuItem key={itin.id} onClick={(e) => { e.preventDefault(); handleAddToSpecificItinerary(experience, itin.id, itin.name); }}>
+                          <span className="truncate flex-1">{itin.name}</span>
+                          {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.preventDefault(); handleToggleItinerary(experience, e as any); }}>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )
             )}
 
             {/* Trip mode: date/time badge at bottom of image */}
