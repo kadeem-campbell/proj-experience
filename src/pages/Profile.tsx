@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
+import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -280,8 +281,8 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Liked content */}
-          <div>
+          {/* Liked Experiences */}
+          <div className="mb-8">
             <h3 className="text-lg font-bold mb-4">Liked Experiences ({likedExperiences.length})</h3>
             {likesLoading ? (
               <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
@@ -292,7 +293,7 @@ const ProfilePage = () => {
                 <Button variant="link" asChild className="mt-2"><Link to="/">Discover experiences</Link></Button>
               </div>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {likedExperiences.map((like) => (
                   <ExperienceCard 
                     key={like.id}
@@ -302,6 +303,39 @@ const ProfilePage = () => {
                     views="" videoThumbnail={like.item_data.videoThumbnail || ""}
                     category={like.item_data.category || ""} location={like.item_data.location || ""}
                     price={like.item_data.price || ""} compact
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Liked Itineraries */}
+          <div>
+            <h3 className="text-lg font-bold mb-4">Liked Itineraries ({likedItineraries.length})</h3>
+            {likesLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+            ) : likedItineraries.length === 0 ? (
+              <div className="text-center py-8">
+                <Heart className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-muted-foreground">No liked itineraries yet</p>
+                <Button variant="link" asChild className="mt-2"><Link to="/itineraries">Browse itineraries</Link></Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {likedItineraries.map((like) => (
+                  <PublicItineraryCard 
+                    key={like.id}
+                    itinerary={{
+                      id: like.item_data.id || like.item_id,
+                      name: like.item_data.name || "Itinerary",
+                      experiences: like.item_data.experiences || [],
+                      createdAt: like.created_at,
+                      updatedAt: like.created_at,
+                      isPublic: true,
+                      collaborators: [],
+                      coverImage: like.item_data.coverImage,
+                      creatorName: like.item_data.creatorName,
+                    } as any}
                   />
                 ))}
               </div>
