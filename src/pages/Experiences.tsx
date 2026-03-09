@@ -127,6 +127,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 
 const ExperiencesPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const initialTag = searchParams.get("tag");
   const addToId = searchParams.get("addTo");
   const matchedTag = initialTag ? tags.find(t => t.toLowerCase() === initialTag.toLowerCase()) || "All" : "All";
