@@ -723,6 +723,7 @@ export const useItineraries = () => {
     createTrip,
     deleteTrip,
     renameTrip,
+    updateTrip,
     setActiveTrip,
     updateTripExperiences
   };

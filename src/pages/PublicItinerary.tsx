@@ -1136,7 +1136,11 @@ const PublicItinerary = () => {
                 {/* New trip button */}
                 <button
                   className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
-                  onClick={() => setShowNewTripDatePicker(true)}
+                  onClick={() => {
+                    setActiveTripId(null);
+                    setTripName("");
+                    setShowNewTripDatePicker(true);
+                  }}
                 >
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <Plus className="w-4 h-4 text-primary" />
