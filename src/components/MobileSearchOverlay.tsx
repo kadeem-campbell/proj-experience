@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { Search, X, Clock, ArrowLeft, MapPin, Compass, Sparkles, TrendingUp } from "lucide-react";
+import { Search, X, ArrowLeft, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -15,6 +14,21 @@ interface MobileSearchOverlayProps {
 const RECENT_SEARCHES_KEY = "guiduuid_recent_searches";
 const MAX_RECENT_SEARCHES = 8;
 
+const categories = [
+  { emoji: "🏖️", label: "Beaches" },
+  { emoji: "📍", label: "Excursions" },
+  { emoji: "🍽️", label: "Food & Drink" },
+  { emoji: "🎉", label: "Nightlife" },
+  { emoji: "🦁", label: "Wildlife" },
+  { emoji: "🏄", label: "Water Sports" },
+];
+
+const trendingSearches = [
+  "sunset cruise", "zanzibar beaches", "safari tour",
+  "local food", "snorkeling", "nightlife",
+  "spice tour", "jozani forest",
+];
+
 export const MobileSearchOverlay = ({
   isOpen,
   onClose,
@@ -24,38 +38,28 @@ export const MobileSearchOverlay = ({
 }: MobileSearchOverlayProps) => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
-  // Lock body scroll when overlay is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  // Load recent searches from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
     if (stored) {
-      try {
-        setRecentSearches(JSON.parse(stored));
-      } catch {
-        setRecentSearches([]);
-      }
+      try { setRecentSearches(JSON.parse(stored)); } catch { setRecentSearches([]); }
     }
   }, [isOpen]);
 
   const addToRecentSearches = (query: string) => {
     if (!query.trim()) return;
-    
     const updated = [
       query.trim(),
       ...recentSearches.filter(s => s.toLowerCase() !== query.trim().toLowerCase())
     ].slice(0, MAX_RECENT_SEARCHES);
-    
     setRecentSearches(updated);
     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
   };
@@ -71,7 +75,7 @@ export const MobileSearchOverlay = ({
     }
   };
 
-  const handleRecentClick = (query: string) => {
+  const handleQuickSearch = (query: string) => {
     onSearchChange(query);
     addToRecentSearches(query);
     onSearch(query);
@@ -87,37 +91,27 @@ export const MobileSearchOverlay = ({
 
   if (!isOpen) return null;
 
-  // Recommended experiences/destinations
-  const recommendations = [
-    { icon: "🏝️", title: "Zanzibar Beaches", subtitle: "Crystal clear waters" },
-    { icon: "🦁", title: "Safari Adventures", subtitle: "Wildlife encounters" },
-    { icon: "🍽️", title: "Food Tours", subtitle: "Local cuisine" },
-    { icon: "🌅", title: "Sunset Experiences", subtitle: "Golden hour magic" },
-  ];
-
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in fade-in duration-200">
-      {/* Search Header - Premium feel */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 bg-background">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="shrink-0 -ml-2 h-10 w-10"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        
-        <form onSubmit={handleSubmit} className="flex-1">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in fade-in duration-150">
+      {/* Header */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center gap-3 mb-3">
+          <button onClick={onClose} className="shrink-0 -ml-1">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <h1 className="text-lg font-bold text-foreground">Search</h1>
+        </div>
+
+        <form onSubmit={handleSubmit}>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="What do you want to explore?"
+              placeholder="Find experiences, food, or places"
               autoFocus
-              className="pl-12 pr-10 py-3.5 text-base bg-muted/50 border-0 rounded-2xl focus-visible:ring-1 focus-visible:ring-primary/30 placeholder:text-muted-foreground/60"
+              className="pl-12 pr-10 py-3.5 text-base bg-background border border-border rounded-xl focus-visible:ring-1 focus-visible:ring-primary/30 placeholder:text-muted-foreground/50"
               style={{ fontSize: '16px' }}
             />
             {searchQuery && (
@@ -136,99 +130,61 @@ export const MobileSearchOverlay = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-8">
-        {/* Recent Searches */}
+      <div className="flex-1 overflow-y-auto" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+        {/* Your history */}
         {recentSearches.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold text-foreground">Recent searches</h3>
+          <div className="mt-5 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-foreground">Your history</h3>
               <button
                 onClick={clearRecentSearches}
-                className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                Clear all
+                Clear
               </button>
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-wrap gap-2">
               {recentSearches.map((search, index) => (
                 <button
                   key={index}
-                  onClick={() => handleRecentClick(search)}
-                  className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors"
+                  onClick={() => handleQuickSearch(search)}
+                  className="px-3.5 py-2 rounded-full bg-muted/40 border border-border/40 text-sm text-foreground hover:bg-muted transition-colors duration-150"
                 >
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                    <Clock className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <span className="text-sm text-foreground font-medium">{search}</span>
+                  {search}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Recommended - Premium cards */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <h3 className="text-base font-semibold text-foreground">Recommended</h3>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {recommendations.map((rec, index) => (
+        {/* Search by category */}
+        <div className="mb-6">
+          <h3 className="text-base font-bold text-foreground mb-3">Search by category</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {categories.map((cat) => (
               <button
-                key={index}
-                onClick={() => handleRecentClick(rec.title)}
-                className="flex flex-col items-start p-4 rounded-2xl bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors text-left"
+                key={cat.label}
+                onClick={() => handleQuickSearch(cat.label)}
+                className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-background border border-border hover:bg-muted/40 transition-colors duration-150 text-left"
               >
-                <span className="text-2xl mb-2">{rec.icon}</span>
-                <span className="text-sm font-semibold text-foreground">{rec.title}</span>
-                <span className="text-xs text-muted-foreground">{rec.subtitle}</span>
+                <span className="text-lg">{cat.emoji}</span>
+                <span className="text-xs font-medium text-foreground truncate">{cat.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Quick Categories */}
+        {/* Trending searches */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Compass className="w-4 h-4 text-primary" />
-            <h3 className="text-base font-semibold text-foreground">Categories</h3>
-          </div>
+          <h3 className="text-base font-bold text-foreground mb-3">Trending searches</h3>
           <div className="flex flex-wrap gap-2">
-            {["Beach", "Party", "Food", "Wildlife", "Adventure", "Culture", "Water Sports", "Nightlife"].map((category) => (
+            {trendingSearches.map((term) => (
               <button
-                key={category}
-                onClick={() => handleRecentClick(category)}
-                className="px-4 py-2.5 bg-muted/50 hover:bg-muted text-foreground rounded-full text-sm font-medium transition-colors border border-border/20"
+                key={term}
+                onClick={() => handleQuickSearch(term)}
+                className="px-3.5 py-2 rounded-full bg-muted/40 border border-border/40 text-sm text-foreground hover:bg-muted transition-colors duration-150"
               >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Trending Searches */}
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-4 h-4 text-primary" />
-            <h3 className="text-base font-semibold text-foreground">Trending now</h3>
-          </div>
-          <div className="space-y-1">
-            {[
-              "Sunset beach experience",
-              "Local food tour",
-              "Safari adventure",
-              "Water sports near me",
-              "Nightlife in Zanzibar"
-            ].map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => handleRecentClick(suggestion)}
-                className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-muted/50 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <MapPin className="w-5 h-5 text-primary" />
-                </div>
-                <span className="text-sm text-foreground">{suggestion}</span>
+                {term}
               </button>
             ))}
           </div>
