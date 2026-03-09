@@ -163,6 +163,14 @@ const PublicItinerary = () => {
 
   const itinerary = publicItinerariesData.find(i => i.id === id);
 
+  // Keep ordering as local state so UI updates immediately (pin-to-top)
+  useEffect(() => {
+    if (!itinerary) {
+      setOrderedExperiences(null);
+      return;
+    }
+    setOrderedExperiences([...itinerary.experiences]);
+  }, [id]);
   // Get the primary location of this itinerary
   const itineraryLocation = useMemo(() => {
     if (!itinerary) return '';
