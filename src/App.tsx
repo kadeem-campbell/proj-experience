@@ -22,6 +22,7 @@ import Itineraries from "./pages/Itineraries";
 import Experiences from "./pages/Experiences";
 import Trip from "./pages/Trip";
 import Profile from "./pages/Profile";
+import MyItineraries from "./pages/MyItineraries";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
