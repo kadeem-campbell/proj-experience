@@ -237,7 +237,7 @@ const ExperiencesPage = () => {
   const restExperiences = filteredExperiences.slice(10);
 
   return (
-    <MainLayout showSidebar={false}>
+    <MainLayout>
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 lg:px-10 py-4">
