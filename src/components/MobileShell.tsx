@@ -88,7 +88,6 @@ const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
     { icon: Search, label: "Search", action: onSearchClick, isActive: false },
     { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" },
     { icon: User, label: "Profile", action: () => navigate("/profile"), isActive: location.pathname === "/profile" },
-    { icon: PlusCircle, label: "Create", action: () => navigate("/my-itineraries?create=true"), isActive: false },
   ];
 
   return (
