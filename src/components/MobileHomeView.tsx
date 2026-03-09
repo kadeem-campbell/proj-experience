@@ -391,26 +391,18 @@ export const MobileHomeView = () => {
 
   const cityLabel = selectedCity || "your city";
 
-  const headerContent = (
-    <div className="flex items-center justify-between w-full">
-      <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
-      <div className="flex items-center gap-2">
-        {selectedCity && (
-          <button
-            onClick={() => handleCityChange("")}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold"
-          >
-            <MapPin className="w-3 h-3" />
-            {selectedCity}
-            <span className="ml-0.5 text-primary/60">✕</span>
-          </button>
-        )}
-        <button onClick={() => setCityDrawerOpen(true)} className="p-2 bg-muted/60 rounded-xl">
-          <Map className="w-5 h-5 text-foreground" strokeWidth={2} />
-        </button>
-      </div>
+  const headerContent = selectedCity ? (
+    <div className="flex items-center gap-2 px-1">
+      <button
+        onClick={() => handleCityChange("")}
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold"
+      >
+        <MapPin className="w-3 h-3" />
+        {selectedCity}
+        <span className="ml-0.5 text-primary/60">✕</span>
+      </button>
     </div>
-  );
+  ) : undefined;
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
