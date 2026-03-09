@@ -75,13 +75,13 @@ const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
   const location = useLocation();
 
   const handleHomeClick = useCallback(() => {
-    if (location.pathname === "/") {
+    if (location.pathname === "/" && !location.search) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       navigate("/");
     }
-  }, [location.pathname, navigate]);
+  }, [location.pathname, location.search, navigate]);
 
   const navItems = [
     { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" },
