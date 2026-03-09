@@ -165,10 +165,10 @@ export const ItinerarySidebar = ({
                     tooltip="Liked"
                     className={cn(
                       "h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname === "/profile" && "text-foreground"
+                      location.pathname === "/liked" && "text-foreground"
                     )}
                   >
-                    <Link to="/profile">
+                    <Link to="/liked">
                       <Heart className="w-5 h-5 shrink-0" />
                       {!isCollapsedView && <span>Liked</span>}
                     </Link>
@@ -322,27 +322,13 @@ export const ItinerarySidebar = ({
         </ScrollArea>
       </SidebarContent>
 
-      {/* Bottom section - Invite, Upgrade, Profile */}
+      {/* Bottom section - Invite Friends & Profile */}
       {!collapsed && (
         <div className="mt-auto border-t border-border p-3 space-y-1">
           {/* Invite Friends */}
           <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-left">
-            <div>
-              <p className="text-sm font-medium text-foreground">Invite friends</p>
-              <p className="text-xs text-muted-foreground">Get 10 credits each</p>
-            </div>
+            <p className="text-sm font-medium text-foreground">Invite friends</p>
             <Gift className="w-5 h-5 text-muted-foreground" />
-          </button>
-
-          {/* Upgrade to Pro */}
-          <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-left">
-            <div>
-              <p className="text-sm font-medium text-foreground">Upgrade to Pro</p>
-              <p className="text-xs text-muted-foreground">Unlock more benefits</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-foreground flex items-center justify-center">
-              <Zap className="w-4 h-4 text-background" />
-            </div>
           </button>
 
           {/* Profile row */}
