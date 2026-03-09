@@ -189,7 +189,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
         {children}
       </div>
 
-      <MobileBottomNav onSearchClick={() => setMobileSearchOpen(true)} />
+      <MobileBottomNav onSearchClick={() => setMobileSearchOpen(prev => !prev)} isSearchOpen={mobileSearchOpen} />
 
       <style>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
