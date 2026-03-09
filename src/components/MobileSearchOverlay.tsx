@@ -236,7 +236,15 @@ export const MobileSearchOverlay = ({
             {/* Press enter hint */}
             {(liveExperiences.length > 0 || liveItineraries.length > 0) && (
               <button
-                onClick={handleSubmit as any}
+                onClick={() => {
+                  if (searchQuery.trim()) {
+                    addToRecentSearches(searchQuery);
+                    onSearch(searchQuery);
+                    window.scrollTo({ top: 0 });
+                    document.querySelector('main')?.scrollTo({ top: 0 });
+                    onClose();
+                  }
+                }}
                 className="w-full py-3 text-center text-sm font-medium text-primary"
               >
                 See all results for "{searchQuery}"
