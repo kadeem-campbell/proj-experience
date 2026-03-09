@@ -12,7 +12,7 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
-const tags = ["All", "Beaches", "Water Sports", "Nightlife", "Wildlife", "Adventure", "Food", "Culture", "Wellness"];
+
 
 // Horizontal scroll row - identical to homepage
 const HorizontalScrollRow = ({ 
