@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, X, ArrowLeft, TrendingUp } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
