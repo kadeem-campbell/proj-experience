@@ -14,10 +14,11 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 const mapCities = [
   { name: "Zanzibar", available: true },
   { name: "Dar es Salaam", available: true },
-  { name: "Entebbe", available: false, launchDate: "18 March" },
-  { name: "Kampala", available: false, launchDate: "20 March" },
-  { name: "Nairobi", available: false, launchDate: "21 March" },
-  { name: "Cape Town", available: false, launchDate: "1 April" },
+  { name: "Nairobi", available: false, launchDate: "April 2026" },
+  { name: "Kigali", available: false, launchDate: "May 2026" },
+  { name: "Kampala", available: false, launchDate: "May 2026" },
+  { name: "Entebbe", available: false, launchDate: "June 2026" },
+  { name: "Addis Ababa", available: false, launchDate: "June 2026" },
 ];
 
 

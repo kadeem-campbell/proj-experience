@@ -22,6 +22,17 @@ const CityList = () => {
   const currentCity = searchParams.get("city") || "";
   const [selectedCity, setSelectedCity] = useState(currentCity);
 
+  const handleCityClick = (cityName: string) => {
+    if (selectedCity === cityName) {
+      // Deselect
+      setSelectedCity("");
+      navigate("/");
+    } else {
+      setSelectedCity(cityName);
+      navigate(`/?city=${encodeURIComponent(cityName)}`);
+    }
+  };
+
   return (
     <div className="px-4 pt-2 pb-8">
       <p className="text-sm text-muted-foreground mb-5">Select a city to explore experiences</p>
@@ -31,12 +42,7 @@ const CityList = () => {
           <button
             key={city.name}
             disabled={!city.available}
-            onClick={() => {
-              if (city.available) {
-                setSelectedCity(city.name);
-                navigate(`/?city=${encodeURIComponent(city.name)}`);
-              }
-            }}
+            onClick={() => city.available && handleCityClick(city.name)}
             className={cn(
               "w-full flex items-center gap-3 p-4 rounded-2xl transition-all text-left",
               city.available
@@ -83,23 +89,20 @@ export default function Map() {
   const navigate = useNavigate();
 
   if (isMobile) {
-    const headerContent = (
-      <div className="flex items-center gap-3 w-full">
-        <button onClick={() => {
-          if (window.history.state && window.history.state.idx > 0) {
-            navigate(-1);
-          } else {
-            navigate('/');
-          }
-        }} className="p-1 -ml-1">
-          <ChevronLeft className="w-6 h-6 text-foreground" />
-        </button>
-        <h1 className="text-lg font-bold text-foreground">Choose a city</h1>
-      </div>
-    );
-
     return (
-      <MobileShell headerContent={headerContent} hideAvatar notFixed>
+      <MobileShell hideTopBar notFixed>
+        <div className="flex items-center gap-3 w-full px-4 py-3">
+          <button onClick={() => {
+            if (window.history.state && window.history.state.idx > 0) {
+              navigate(-1);
+            } else {
+              navigate('/');
+            }
+          }} className="p-1">
+            <ChevronLeft className="w-6 h-6 text-foreground" />
+          </button>
+          <h1 className="text-lg font-bold text-foreground">Choose a city</h1>
+        </div>
         <CityList />
       </MobileShell>
     );
