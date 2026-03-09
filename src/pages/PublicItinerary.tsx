@@ -36,6 +36,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { 
   ArrowLeft, 
   Copy, 
@@ -619,81 +629,86 @@ const PublicItinerary = () => {
 
             {/* More options: move to other itinerary, pin, remove */}
             {!activeTripMode && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <Drawer>
+                <DrawerTrigger asChild>
                   <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onClick={(e) => { e.stopPropagation(); }}
                     className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
                   >
                     <MoreHorizontal className="w-4 h-4 text-foreground/80" />
                   </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.preventDefault();
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="w-4 h-4 rotate-90" />
-                    Pin to top
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                    Copy to another itinerary
-                  </div>
-                  {itineraries.map((itin) => {
-                    const isInThis = itin.experiences.some(e => e.id === experience.id);
-                    return (
-                      <DropdownMenuItem
-                        key={itin.id}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleAddToSpecificItinerary(experience, itin.id, itin.name);
-                        }}
-                        className="flex items-center justify-between"
-                      >
-                        <span className="truncate text-sm">{itin.name}</span>
-                        {isInThis && <Check className="w-3.5 h-3.5 text-primary ml-2" />}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                  {showNewItineraryInput === experience.id ? (
-                    <div className="p-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <Input
-                        placeholder="Itinerary name..."
-                        value={newItineraryName}
-                        onChange={(e) => setNewItineraryName(e.target.value)}
-                        className="h-7 text-xs"
-                        autoFocus
-                        onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }}
-                      />
-                      <Button size="sm" className="h-7 text-xs" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>
-                        Add
-                      </Button>
-                    </div>
-                  ) : (
-                    <DropdownMenuItem
-                      onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}
-                      className="flex items-center gap-2"
+                </DrawerTrigger>
+                <DrawerContent onClick={(e) => e.stopPropagation()}>
+                  <div className="p-4 flex flex-col gap-1 max-h-[80vh] overflow-y-auto">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start font-normal h-12"
+                      onClick={(e) => {
+                        e.preventDefault();
+                      }}
                     >
-                      <ListPlus className="w-4 h-4" />
-                      New Itinerary
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleToggleItinerary(experience, e as any);
-                    }}
-                    className="flex items-center gap-2 text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Remove from itinerary
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                      <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
+                      Pin to top
+                    </Button>
+                    <div className="px-4 py-3 text-sm font-semibold text-muted-foreground border-t mt-1">
+                      Copy to another itinerary
+                    </div>
+                    {itineraries.map((itin) => {
+                      const isInThis = itin.experiences.some(e => e.id === experience.id);
+                      return (
+                        <Button
+                          key={itin.id}
+                          variant="ghost"
+                          className="w-full justify-between font-normal h-12"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAddToSpecificItinerary(experience, itin.id, itin.name);
+                          }}
+                        >
+                          <span className="truncate">{itin.name}</span>
+                          {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                        </Button>
+                      );
+                    })}
+                    {showNewItineraryInput === experience.id ? (
+                      <div className="px-2 py-3 flex gap-2 w-full mt-1" onClick={(e) => e.stopPropagation()}>
+                        <Input
+                          placeholder="Itinerary name..."
+                          value={newItineraryName}
+                          onChange={(e) => setNewItineraryName(e.target.value)}
+                          className="h-11 text-sm flex-1"
+                          autoFocus
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }}
+                        />
+                        <Button className="h-11 px-6" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>
+                          Add
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start font-normal h-12 mt-1"
+                        onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}
+                      >
+                        <ListPlus className="w-4 h-4 mr-3" />
+                        New Itinerary
+                      </Button>
+                    )}
+                    <div className="border-t my-2"></div>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleToggleItinerary(experience, e as any);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-3" />
+                      Remove from itinerary
+                    </Button>
+                  </div>
+                </DrawerContent>
+              </Drawer>
             )}
 
             {/* Trip mode: date/time badge at bottom of image */}
