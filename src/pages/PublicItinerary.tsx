@@ -489,7 +489,7 @@ const PublicItinerary = () => {
   };
 
   const exportExperiences = () => itinerary.experiences.map((exp: LikedExperience) => ({
-    name: exp.title || exp.name || '',
+    name: exp.title || '',
     location: exp.location || '',
     category: exp.category || '',
     timeSlot: exp.timeSlot || '',
