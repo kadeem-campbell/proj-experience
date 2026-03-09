@@ -111,7 +111,7 @@ const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
   );
 };
 
-// Top header bar
+// Top header bar - white rounded pill style
 const MobileTopBar = ({ 
   onProfileClick, 
   headerContent,
@@ -123,30 +123,28 @@ const MobileTopBar = ({
   hideAvatar?: boolean;
   notFixed?: boolean;
 }) => {
-  const { userProfile } = useAuth();
-  const displayName = userProfile?.full_name || userProfile?.username || "G";
+  const navigate = useNavigate();
 
   return (
     <div className={cn(
       "top-0 left-0 right-0 z-50 bg-background safe-area-inset-top",
       notFixed ? "relative" : "fixed"
     )}>
-      <div className="flex items-center gap-3 px-4 pt-3 pb-3">
-        {!hideAvatar && (
-          <button 
-            onClick={onProfileClick}
-            className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden"
-          >
-            {userProfile?.avatar_url ? (
-              <img src={userProfile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-            ) : (
-              <span className="text-sm font-bold text-primary">
-                {displayName.charAt(0).toUpperCase()}
-              </span>
-            )}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 shadow-sm">
+          <button onClick={onProfileClick} className="text-xl font-black tracking-tight text-[#121212]">
+            SWAM
           </button>
+          <button 
+            onClick={() => navigate("/")} 
+            className="w-9 h-9 rounded-full bg-[#f5f5f5] flex items-center justify-center"
+          >
+            <Map className="w-5 h-5 text-[#121212]" strokeWidth={2.2} />
+          </button>
+        </div>
+        {headerContent && (
+          <div className="mt-2">{headerContent}</div>
         )}
-        <div className="flex-1 min-w-0">{headerContent}</div>
       </div>
     </div>
   );
