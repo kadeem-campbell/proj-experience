@@ -649,73 +649,96 @@ const PublicItinerary = () => {
                   </button>
                 </DrawerTrigger>
                 <DrawerContent onClick={(e) => e.stopPropagation()}>
-                  <div className="p-4 flex flex-col gap-1 max-h-[80vh] overflow-y-auto">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start font-normal h-12"
-                      onClick={(e) => {
-                        e.preventDefault();
-                      }}
-                    >
-                      <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
-                      Pin to top
-                    </Button>
+                  <DrawerHeader className="sr-only">
+                    <DrawerTitle>Experience actions</DrawerTitle>
+                  </DrawerHeader>
+                  <div className="flex flex-col h-[50vh]">
+                    {/* Fixed top action */}
+                    <div className="px-4 pt-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start font-normal h-12"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // Pin to top: move this experience to position 0 in the rendered list
+                          // Since this is a public/static itinerary we reorder visually via state
+                          const idx = itinerary.experiences.findIndex(ex => ex.id === experience.id);
+                          if (idx > 0) {
+                            const reordered = [...itinerary.experiences];
+                            const [item] = reordered.splice(idx, 1);
+                            reordered.unshift(item);
+                            itinerary.experiences = reordered;
+                            toast({ title: `"${experience.title}" pinned to top` });
+                          }
+                        }}
+                      >
+                        <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
+                        Pin to top
+                      </Button>
+                    </div>
+
+                    {/* Scrollable itinerary list */}
                     <div className="px-4 py-3 text-sm font-semibold text-muted-foreground border-t mt-1">
                       Copy to another itinerary
                     </div>
-                    {itineraries.map((itin) => {
-                      const isInThis = itin.experiences.some(e => e.id === experience.id);
-                      return (
+                    <div className="flex-1 overflow-y-auto px-4 min-h-0">
+                      {itineraries.map((itin) => {
+                        const isInThis = itin.experiences.some(e => e.id === experience.id);
+                        return (
+                          <Button
+                            key={itin.id}
+                            variant="ghost"
+                            className="w-full justify-between font-normal h-12"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleAddToSpecificItinerary(experience, itin.id, itin.name);
+                            }}
+                          >
+                            <span className="truncate">{itin.name}</span>
+                            {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                          </Button>
+                        );
+                      })}
+                      {showNewItineraryInput === experience.id ? (
+                        <div className="py-3 flex gap-2 w-full mt-1" onClick={(e) => e.stopPropagation()}>
+                          <Input
+                            placeholder="Itinerary name..."
+                            value={newItineraryName}
+                            onChange={(e) => setNewItineraryName(e.target.value)}
+                            className="h-11 text-sm flex-1"
+                            autoFocus
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }}
+                          />
+                          <Button className="h-11 px-6" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>
+                            Add
+                          </Button>
+                        </div>
+                      ) : (
                         <Button
-                          key={itin.id}
                           variant="ghost"
-                          className="w-full justify-between font-normal h-12"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleAddToSpecificItinerary(experience, itin.id, itin.name);
-                          }}
+                          className="w-full justify-start font-normal h-12 mt-1"
+                          onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}
                         >
-                          <span className="truncate">{itin.name}</span>
-                          {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                          <ListPlus className="w-4 h-4 mr-3" />
+                          New Itinerary
                         </Button>
-                      );
-                    })}
-                    {showNewItineraryInput === experience.id ? (
-                      <div className="px-2 py-3 flex gap-2 w-full mt-1" onClick={(e) => e.stopPropagation()}>
-                        <Input
-                          placeholder="Itinerary name..."
-                          value={newItineraryName}
-                          onChange={(e) => setNewItineraryName(e.target.value)}
-                          className="h-11 text-sm flex-1"
-                          autoFocus
-                          onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }}
-                        />
-                        <Button className="h-11 px-6" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>
-                          Add
-                        </Button>
-                      </div>
-                    ) : (
+                      )}
+                    </div>
+
+                    {/* Fixed bottom action */}
+                    <div className="px-4 pb-4 pt-2 border-t">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start font-normal h-12 mt-1"
-                        onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}
+                        className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleToggleItinerary(experience, e as any);
+                        }}
                       >
-                        <ListPlus className="w-4 h-4 mr-3" />
-                        New Itinerary
+                        <Trash2 className="w-4 h-4 mr-3" />
+                        Remove from itinerary
                       </Button>
-                    )}
-                    <div className="border-t my-2"></div>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleToggleItinerary(experience, e as any);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 mr-3" />
-                      Remove from itinerary
-                    </Button>
+                    </div>
                   </div>
                 </DrawerContent>
               </Drawer>
