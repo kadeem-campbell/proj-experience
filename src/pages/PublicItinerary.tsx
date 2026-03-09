@@ -884,16 +884,20 @@ const PublicItinerary = () => {
                 : "bg-background/95 border-border"
             )}>
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 flex-1 max-w-md">
-                  <Search className="w-4 h-4 text-muted-foreground mr-2 md:mr-3" />
-                  <Input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search experiences..."
-                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
-                  />
-                </div>
+                {!activeTripMode ? (
+                  <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 flex-1 max-w-md">
+                    <Search className="w-4 h-4 text-muted-foreground mr-2 md:mr-3" />
+                    <Input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search experiences..."
+                      className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1" />
+                )}
                 
                 <div className="flex items-center gap-2">
                   {/* Itinerary mode: show "Make it a Trip" button */}
