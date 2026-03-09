@@ -686,15 +686,24 @@ const PublicItinerary = () => {
                           className="w-full justify-start font-normal h-12"
                           onClick={(e) => {
                             e.preventDefault();
-                            const src = orderedExperiences || [...itinerary.experiences];
+                            const src = orderedExperiences || itinerary.experiences;
                             const idx = src.findIndex(ex => ex.id === experience.id);
-                            if (idx > 0) {
-                              const reordered = [...src];
-                              const [item] = reordered.splice(idx, 1);
-                              reordered.unshift(item);
-                              setOrderedExperiences(reordered);
-                              toast({ title: `"${experience.title}" pinned to top` });
+
+                            if (idx === -1) {
+                              toast({ title: "Couldn't pin this item", description: "Please try again." });
+                              return;
                             }
+
+                            if (idx === 0) {
+                              toast({ title: "Already pinned", description: "This experience is already at the top." });
+                              return;
+                            }
+
+                            const reordered = [...src];
+                            const [item] = reordered.splice(idx, 1);
+                            reordered.unshift(item);
+                            setOrderedExperiences(reordered);
+                            toast({ title: `"${experience.title}" pinned to top` });
                           }}
                         >
                           <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
