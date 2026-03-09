@@ -450,22 +450,8 @@ const SearchPage = () => {
           </>
         )}
 
-        {/* City-specific */}
-        {selectedCity && !selectedCategory && (
-          <div className="mb-8">
-            <h2 className="text-lg md:text-xl font-bold mb-4">{selectedCity.name} Popular Experiences</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6">
-              {publicItinerariesData
-                .filter((it) =>
-                  it.name.toLowerCase().includes(selectedCity.name.toLowerCase()) ||
-                  it.experiences.some((exp) => exp.location?.toLowerCase().includes(selectedCity.name.toLowerCase())),
-                )
-                .map((itinerary) => (
-                  <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
-                ))}
-            </div>
-          </div>
-        )}
+
+
 
         {/* Filtered results */}
         {(selectedCity || selectedCategory || searchQuery) && (
