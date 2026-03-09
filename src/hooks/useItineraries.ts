@@ -658,10 +658,10 @@ export const useItineraries = () => {
 
           updatedTrip = {
             ...t,
-            ...(hasName ? { name: patch.name as string } : {}),
-            ...(hasStartDate ? { startDate: patch.startDate as string } : {}),
-            ...(hasEndDate ? { endDate: patch.endDate as string | undefined } : {}),
-            ...(hasExperiences ? { experiences: patch.experiences as LikedExperience[] } : {})
+            ...(hasName ? { name: patch.name ?? t.name } : {}),
+            ...(hasStartDate ? { startDate: patch.startDate ?? t.startDate } : {}),
+            ...(hasEndDate ? { endDate: patch.endDate } : {}),
+            ...(hasExperiences ? { experiences: patch.experiences ?? t.experiences } : {})
           };
 
           return updatedTrip;
