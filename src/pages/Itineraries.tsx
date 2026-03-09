@@ -115,11 +115,7 @@ const ItinerariesPage = () => {
   };
 
   const allItineraries = getBaseItineraries();
-
-  // Filter by active tag
-  const itineraries = activeTag === "All" 
-    ? allItineraries 
-    : allItineraries.filter(it => itineraryMatchesCategory(it, tagToCategoryMap[activeTag] || activeTag));
+  const itineraries = allItineraries;
 
   const getTitle = () => {
     if (filter === 'popular') return 'Most Popular';
