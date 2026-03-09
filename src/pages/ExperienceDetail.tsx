@@ -559,8 +559,7 @@ export default function ExperienceDetail() {
 
   // Desktop
   return (
-    <MainLayout showItineraryPanel={false}>
-      <div className="min-h-screen bg-background overflow-y-auto">
+    <div className="min-h-screen bg-background overflow-y-auto w-full">
         {/* Header Nav */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
           <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
