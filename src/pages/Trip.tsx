@@ -778,8 +778,8 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
             "group overflow-hidden border-0 bg-card hover:bg-accent/10 transition-colors duration-150 cursor-pointer rounded-lg p-2"
           )}
         >
-          {/* Cover Image - 3:4 aspect ratio */}
-          <div className="relative aspect-[3/4] overflow-hidden rounded-md mb-2">
+          {/* Cover Image - 4:3 aspect ratio (same as PublicItinerary) */}
+          <div className="relative aspect-[4/3] overflow-hidden rounded-md mb-2">
             {experience.videoThumbnail ? (
               <img 
                 src={experience.videoThumbnail} 
