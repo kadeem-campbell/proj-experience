@@ -324,15 +324,15 @@ export const ItinerarySidebar = ({
 
       {/* Bottom section - Invite Friends & Profile */}
       {!collapsed && (
-        <div className="mt-auto border-t border-border p-3 space-y-1">
+        <div className="mt-auto border-t border-border px-2 py-3 space-y-1">
           {/* Invite Friends */}
-          <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-left">
-            <p className="text-sm font-medium text-foreground">Invite friends</p>
-            <Gift className="w-5 h-5 text-muted-foreground" />
+          <button className="w-full flex items-center gap-4 h-10 px-3 rounded-lg hover:bg-muted/50 transition-colors text-left">
+            <Gift className="w-5 h-5 text-muted-foreground shrink-0" />
+            <span className="text-[15px] font-semibold text-muted-foreground">Invite friends</span>
           </button>
 
           {/* Profile row */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between px-3 pt-2">
             <button 
               onClick={() => navigate("/profile")}
               className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden hover:bg-primary/20 transition-colors"
