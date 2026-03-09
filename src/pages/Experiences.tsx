@@ -125,14 +125,7 @@ const ExperiencesPage = () => {
   
   const addToItinerary = addToId ? itineraries.find(i => i.id === addToId) : null;
   
-  const experiences = allExperiences;
-
-  // Filter by tag
-  const tagFilteredExperiences = activeTag === "All"
-    ? experiences
-    : experiences.filter(e => e.category === (tagToCategoryMap[activeTag] || activeTag));
-  
-  const filteredExperiences = tagFilteredExperiences.filter((experience) => {
+  const filteredExperiences = experiences.filter((experience) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
