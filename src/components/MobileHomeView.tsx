@@ -338,8 +338,11 @@ export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [selectedCity, setSelectedCity] = useState("");
   const [cityDrawerOpen, setCityDrawerOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // Read query param for search
+  const urlParams = new URLSearchParams(window.location.search);
+  const [searchQuery, setSearchQuery] = useState(urlParams.get("q") || "");
 
   const handleCityChange = useCallback((city: string) => {
     setSelectedCity(city);
