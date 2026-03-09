@@ -776,6 +776,7 @@ export default function ExperienceDetail() {
               <SocialVideoEmbed 
                 experienceTitle={experience.title}
                 location={experience.location}
+                tiktokVideos={experience.tiktokVideos || []}
                 className="mb-8"
               />
 
