@@ -1,5 +1,5 @@
-import { useState, useRef, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search, Check } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
