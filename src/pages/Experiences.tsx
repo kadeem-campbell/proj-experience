@@ -241,8 +241,22 @@ const ExperiencesPage = () => {
 
     return (
       <MobileShell headerContent={<div>{locationRow}{tagPills}</div>} hideAvatar>
+        {/* Add-to banner when coming from Create flow */}
+        {addToItinerary && (
+          <div className="mx-4 mb-4 mt-2 p-3 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Adding to</p>
+              <p className="text-sm font-bold text-foreground truncate">{addToItinerary.name}</p>
+              {addedCount > 0 && <p className="text-xs text-primary font-medium">{addedCount} added</p>}
+            </div>
+            <Button size="sm" variant="outline" className="rounded-full text-xs" onClick={() => navigate(`/itineraries/${addToId}`)}>
+              Done
+            </Button>
+          </div>
+        )}
+
         <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-          <h1 className="text-2xl font-bold text-foreground">All Experiences</h1>
+          <h1 className="text-2xl font-bold text-foreground">{addToItinerary ? 'Add Experiences' : 'All Experiences'}</h1>
         </div>
 
         {allItems.length > 0 && (
