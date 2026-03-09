@@ -454,7 +454,7 @@ const SearchPage = () => {
 
 
         {/* Filtered results */}
-        {(selectedCity || selectedCategory || searchQuery) && (
+        {(selectedCategory || searchQuery) && (
           <div>
             <h2 className="text-lg md:text-xl font-bold mb-4">
               {selectedCategory
