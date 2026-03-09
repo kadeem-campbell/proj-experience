@@ -632,7 +632,11 @@ const PublicItinerary = () => {
               <Drawer>
                 <DrawerTrigger asChild>
                   <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onClick={(e) => {
+                      // IMPORTANT: don't call preventDefault() here — Radix/Vaul won't open the drawer
+                      // when the event is defaultPrevented.
+                      e.stopPropagation();
+                    }}
                     className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
                   >
                     <MoreHorizontal className="w-4 h-4 text-foreground/80" />
