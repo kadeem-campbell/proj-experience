@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from "react";
 import { ExternalLink, Play, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -6,11 +5,13 @@ export interface TikTokVideo {
   videoId: string;
   url: string;
   author?: string;
+  thumbnailUrl?: string;
 }
 
 export interface InstagramVideo {
   url: string;
   author?: string;
+  thumbnailUrl?: string;
 }
 
 interface SocialVideoEmbedProps {
@@ -21,48 +22,8 @@ interface SocialVideoEmbedProps {
   className?: string;
 }
 
-const TikTokEmbed = ({ videoId, url, author }: TikTokVideo) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    containerRef.current.innerHTML = `
-      <blockquote class="tiktok-embed" cite="${url}" data-video-id="${videoId}" style="max-width:200px;min-width:160px;">
-        <section></section>
-      </blockquote>
-    `;
-
-    const existingScript = document.querySelector('script[src="https://www.tiktok.com/embed.js"]');
-    if (existingScript) {
-      (window as any).tiktokEmbed?.lib?.render();
-    } else {
-      const script = document.createElement('script');
-      script.src = 'https://www.tiktok.com/embed.js';
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, [videoId, url]);
-
-  return (
-    <div className="flex-shrink-0 w-[180px] snap-start overflow-hidden">
-      <div 
-        ref={containerRef} 
-        className="relative rounded-xl overflow-hidden w-[180px] max-w-[180px]"
-        style={{ maxHeight: '320px', overflow: 'hidden' }}
-      />
-      <a 
-        href={url} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors truncate"
-      >
-        <ExternalLink className="w-3 h-3 flex-shrink-0" />
-        <span className="truncate">{author || 'Open in TikTok'}</span>
-      </a>
-    </div>
-  );
-};
+const CARD_WIDTH = "w-32";
+const CARD_HEIGHT = "h-48";
 
 export const SocialVideoEmbed = ({ 
   experienceTitle, 
@@ -71,7 +32,6 @@ export const SocialVideoEmbed = ({
   instagramVideos = [],
   className 
 }: SocialVideoEmbedProps) => {
-  const hasTikTok = tiktokVideos.length > 0;
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -84,34 +44,60 @@ export const SocialVideoEmbed = ({
       </p>
       
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
-        {/* Real TikTok embeds */}
+        {/* TikTok video cards — each opens that specific video URL only */}
         {tiktokVideos.map((video) => (
-          <TikTokEmbed key={video.videoId} {...video} />
+          <button
+            key={video.videoId}
+            onClick={() => window.open(video.url, '_blank')}
+            className="flex-shrink-0 relative group cursor-pointer snap-start"
+          >
+            <div className={cn(CARD_WIDTH, CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-foreground/90 to-foreground/70 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative")}>
+              {/* TikTok branding gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+              
+              {/* Play button */}
+              <div className="relative z-10 w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground ml-0.5" />
+              </div>
+              
+              <div className="relative z-10 text-center px-2">
+                <p className="text-background font-semibold text-xs">TikTok</p>
+                <p className="text-background/70 text-[10px] truncate max-w-[100px]">
+                  {video.author || 'Watch Video'}
+                </p>
+              </div>
+            </div>
+            <div className="absolute top-2 right-2 p-1 rounded-full bg-black/40 backdrop-blur z-10">
+              <ExternalLink className="w-2.5 h-2.5 text-background" />
+            </div>
+          </button>
         ))}
 
-        {/* TikTok search card */}
-        <button
-          onClick={() => window.open(
-            `https://www.tiktok.com/search?q=${encodeURIComponent(`${experienceTitle} ${location}`)}`, 
-            '_blank'
-          )}
-          className="flex-shrink-0 relative group cursor-pointer snap-start"
-        >
-          <div className="w-32 h-48 rounded-xl bg-gradient-to-br from-[hsl(var(--primary)/0.8)] via-[hsl(var(--accent)/0.6)] to-[hsl(var(--primary))] flex flex-col items-center justify-center gap-3 transition-transform group-hover:scale-[1.02]">
-            <div className="w-12 h-12 rounded-full bg-background/20 backdrop-blur flex items-center justify-center">
-              <Play className="w-6 h-6 text-primary-foreground fill-primary-foreground" />
+        {/* Only show TikTok search if NO specific videos exist */}
+        {tiktokVideos.length === 0 && (
+          <button
+            onClick={() => window.open(
+              `https://www.tiktok.com/search?q=${encodeURIComponent(`${experienceTitle} ${location}`)}`, 
+              '_blank'
+            )}
+            className="flex-shrink-0 relative group cursor-pointer snap-start"
+          >
+            <div className={cn(CARD_WIDTH, CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-[hsl(var(--primary)/0.8)] via-[hsl(var(--accent)/0.6)] to-[hsl(var(--primary))] flex flex-col items-center justify-center gap-3 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98]")}>
+              <div className="w-10 h-10 rounded-full bg-background/20 backdrop-blur flex items-center justify-center">
+                <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground" />
+              </div>
+              <div className="text-center px-2">
+                <p className="text-primary-foreground font-semibold text-xs">TikTok</p>
+                <p className="text-primary-foreground/80 text-[10px]">Search Videos</p>
+              </div>
             </div>
-            <div className="text-center px-2">
-              <p className="text-primary-foreground font-semibold text-sm">TikTok</p>
-              <p className="text-primary-foreground/80 text-xs">{hasTikTok ? 'Find More' : 'Search Videos'}</p>
+            <div className="absolute top-2 right-2 p-1 rounded-full bg-foreground/20 backdrop-blur">
+              <ExternalLink className="w-2.5 h-2.5 text-primary-foreground" />
             </div>
-          </div>
-          <div className="absolute top-2 right-2 p-1 rounded-full bg-foreground/20 backdrop-blur">
-            <ExternalLink className="w-3 h-3 text-primary-foreground" />
-          </div>
-        </button>
+          </button>
+        )}
 
-        {/* Instagram placeholder card */}
+        {/* Instagram placeholder card — always show */}
         <button
           onClick={() => window.open(
             `https://www.instagram.com/explore/tags/${encodeURIComponent(experienceTitle.replace(/\s+/g, '').toLowerCase())}`, 
@@ -119,17 +105,17 @@ export const SocialVideoEmbed = ({
           )}
           className="flex-shrink-0 relative group cursor-pointer snap-start"
         >
-          <div className="w-32 h-48 rounded-xl bg-gradient-to-br from-[hsl(var(--accent))] via-[hsl(var(--primary)/0.7)] to-[hsl(var(--secondary))] flex flex-col items-center justify-center gap-3 transition-transform group-hover:scale-[1.02]">
-            <div className="w-12 h-12 rounded-full bg-background/20 backdrop-blur flex items-center justify-center">
-              <Play className="w-6 h-6 text-primary-foreground fill-primary-foreground" />
+          <div className={cn(CARD_WIDTH, CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-[hsl(var(--accent))] via-[hsl(var(--primary)/0.7)] to-[hsl(var(--secondary))] flex flex-col items-center justify-center gap-3 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98]")}>
+            <div className="w-10 h-10 rounded-full bg-background/20 backdrop-blur flex items-center justify-center">
+              <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground" />
             </div>
             <div className="text-center px-2">
-              <p className="text-primary-foreground font-semibold text-sm">Instagram</p>
-              <p className="text-primary-foreground/80 text-xs">Explore Reels</p>
+              <p className="text-primary-foreground font-semibold text-xs">Instagram</p>
+              <p className="text-primary-foreground/80 text-[10px]">Explore Reels</p>
             </div>
           </div>
           <div className="absolute top-2 right-2 p-1 rounded-full bg-foreground/20 backdrop-blur">
-            <ExternalLink className="w-3 h-3 text-primary-foreground" />
+            <ExternalLink className="w-2.5 h-2.5 text-primary-foreground" />
           </div>
         </button>
       </div>
