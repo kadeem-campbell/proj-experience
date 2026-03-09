@@ -573,13 +573,19 @@ const PublicItinerary = () => {
     const schedule = tripScheduleMap.get(experience.id);
     
     return (
-      <Link 
+      <div
         key={experience.id}
-        to={`/experience/${experience.id}`}
+        role="link"
+        tabIndex={0}
+        onClick={() => navigate(`/experience/${experience.id}`)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            navigate(`/experience/${experience.id}`);
+          }
+        }}
       >
-        <div 
-          className="group cursor-pointer transition-transform duration-150"
-        >
+        <div className="group cursor-pointer transition-transform duration-150">
           {/* Cover Image - match ExperienceCard geometry (4:3, rounded-xl) */}
           <div className={cn(
             "relative aspect-[4/3] overflow-hidden rounded-xl bg-muted",
