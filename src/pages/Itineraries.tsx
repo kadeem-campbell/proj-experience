@@ -5,15 +5,14 @@ import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
-import { ArrowLeft, Search, Users, Heart, Layers, MapPin } from "lucide-react";
-import { LocationSelector } from "@/components/LocationSelector";
+import { ArrowLeft, Search, Users, Heart, Layers } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
-const tags = ["All", "Beaches", "Water Sports", "Nightlife", "Wildlife", "Adventure", "Food", "Culture", "Wellness"];
+
 
 // Horizontal scroll row - identical to homepage
 const HorizontalScrollRow = ({ 
@@ -101,30 +100,13 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Map tag names to experience categories for filtering
-const tagToCategoryMap: Record<string, string> = {
-  "Beaches": "Beach",
-  "Water Sports": "Adventure",
-  "Nightlife": "Nightlife",
-  "Wildlife": "Wildlife",
-  "Adventure": "Adventure",
-  "Food": "Food",
-  "Culture": "Culture",
-  "Wellness": "Wellness",
-};
-
-const itineraryMatchesCategory = (itinerary: any, category: string) => {
-  return itinerary.experiences?.some((exp: any) => exp.category === category);
-};
 
 const ItinerariesPage = () => {
   const [searchParams] = useSearchParams();
   const filter = searchParams.get('filter');
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTag, setActiveTag] = useState("All");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const tagScrollRef = useRef<HTMLDivElement>(null);
   
   const getBaseItineraries = () => {
     if (filter === 'popular') return getPopularItineraries();
@@ -133,11 +115,7 @@ const ItinerariesPage = () => {
   };
 
   const allItineraries = getBaseItineraries();
-
-  // Filter by active tag
-  const itineraries = activeTag === "All" 
-    ? allItineraries 
-    : allItineraries.filter(it => itineraryMatchesCategory(it, tagToCategoryMap[activeTag] || activeTag));
+  const itineraries = allItineraries;
 
   const getTitle = () => {
     if (filter === 'popular') return 'Most Popular';
@@ -162,64 +140,8 @@ const ItinerariesPage = () => {
       i.name.toLowerCase().includes('beach') || i.name.toLowerCase().includes('island') || i.name.toLowerCase().includes('diani') || i.name.toLowerCase().includes('mombasa')
     ).slice(0, 10);
 
-    const handleTagClick = (tag: string, index: number) => {
-      setActiveTag(tag);
-      const container = tagScrollRef.current;
-      if (container) {
-        const buttons = container.querySelectorAll('button');
-        const btn = buttons[index];
-        if (btn) {
-          const containerRect = container.getBoundingClientRect();
-          const btnRect = btn.getBoundingClientRect();
-          // Scroll selected tag to the start (right next to All)
-          const scrollLeft = container.scrollLeft + (btnRect.left - containerRect.left);
-          container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-        }
-      }
-    };
-
-    const locationRow = (
-      <div className="px-4 py-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-        <LocationSelector selectedCity="" onCityChange={() => {}} />
-      </div>
-    );
-
-    const tagPills = (
-      <div className="flex items-center">
-        <button
-          onClick={() => setActiveTag("All")}
-          className={cn(
-            "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border flex-shrink-0 mr-2",
-            activeTag === "All"
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-muted/80 text-foreground border-border/50"
-          )}
-        >
-          All
-        </button>
-        <div ref={tagScrollRef} className="overflow-x-auto scrollbar-hide flex-1" style={{ scrollbarWidth: 'none' }}>
-          <div className="inline-flex gap-2" style={{ paddingRight: '16px' }}>
-            {tags.filter(t => t !== "All").map((tag, index) => (
-              <button
-                key={tag}
-                onClick={() => handleTagClick(tag, index)}
-                className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border",
-                  activeTag === tag
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted/80 text-foreground border-border/50"
-                )}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-
     return (
-      <MobileShell headerContent={<div>{locationRow}{tagPills}</div>} hideAvatar>
+      <MobileShell hideAvatar>
         <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
           <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
         </div>

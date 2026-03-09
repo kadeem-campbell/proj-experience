@@ -5,7 +5,6 @@ import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Search, Compass, X, Heart, Plus, MapPin } from "lucide-react";
-import { LocationSelector } from "@/components/LocationSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { MobileShell } from "@/components/MobileShell";
@@ -14,19 +13,6 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
-
-const tags = ["All", "Beaches", "Water Sports", "Nightlife", "Wildlife", "Adventure", "Food", "Culture", "Wellness"];
-
-const tagToCategoryMap: Record<string, string> = {
-  "Beaches": "Beach",
-  "Water Sports": "Adventure",
-  "Nightlife": "Nightlife",
-  "Wildlife": "Wildlife",
-  "Adventure": "Adventure",
-  "Food": "Food",
-  "Culture": "Culture",
-  "Wellness": "Wellness",
-};
 
 // Horizontal scroll row - identical to itineraries/homepage
 const HorizontalScrollRow = ({ 
@@ -128,29 +114,19 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 const ExperiencesPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const initialTag = searchParams.get("tag");
   const addToId = searchParams.get("addTo");
-  const matchedTag = initialTag ? tags.find(t => t.toLowerCase() === initialTag.toLowerCase()) || "All" : "All";
   
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(24);
-  const [activeTag, setActiveTag] = useState(matchedTag);
   const [addedCount, setAddedCount] = useState(0);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const tagScrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { addExperienceToItinerary, itineraries } = useItineraries();
   
+  const experiences = allExperiences;
   const addToItinerary = addToId ? itineraries.find(i => i.id === addToId) : null;
   
-  const experiences = allExperiences;
-
-  // Filter by tag
-  const tagFilteredExperiences = activeTag === "All"
-    ? experiences
-    : experiences.filter(e => e.category === (tagToCategoryMap[activeTag] || activeTag));
-  
-  const filteredExperiences = tagFilteredExperiences.filter((experience) => {
+  const filteredExperiences = experiences.filter((experience) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -175,73 +151,18 @@ const ExperiencesPage = () => {
   }, [visibleCount, filteredExperiences.length]);
 
   if (isMobile) {
-    const handleTagClick = (tag: string, index: number) => {
-      setActiveTag(tag);
-      const container = tagScrollRef.current;
-      if (container) {
-        const buttons = container.querySelectorAll('button');
-        const btn = buttons[index];
-        if (btn) {
-          const containerRect = container.getBoundingClientRect();
-          const btnRect = btn.getBoundingClientRect();
-          const scrollLeft = container.scrollLeft + (btnRect.left - containerRect.left);
-          container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-        }
-      }
-    };
-
     // Group by category for horizontal rows
-    const adventureItems = tagFilteredExperiences.filter(e => e.category === "Adventure").slice(0, 10);
-    const foodItems = tagFilteredExperiences.filter(e => e.category === "Food").slice(0, 10);
-    const beachItems = tagFilteredExperiences.filter(e => e.category === "Beach").slice(0, 10);
-    const wildlifeItems = tagFilteredExperiences.filter(e => e.category === "Wildlife").slice(0, 10);
-    const partyItems = tagFilteredExperiences.filter(e => e.category === "Party" || e.category === "Nightlife").slice(0, 10);
-    const cultureItems = tagFilteredExperiences.filter(e => e.category === "Culture").slice(0, 10);
-    const allItems = tagFilteredExperiences.slice(0, 10);
-    const moreItems = tagFilteredExperiences.slice(10, 20);
-
-    const locationRow = (
-      <div className="px-4 py-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-        <LocationSelector selectedCity="" onCityChange={() => {}} />
-      </div>
-    );
-
-    const tagPills = (
-      <div className="flex items-center">
-        <button
-          onClick={() => setActiveTag("All")}
-          className={cn(
-            "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border flex-shrink-0 mr-2",
-            activeTag === "All"
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-muted/80 text-foreground border-border/50"
-          )}
-        >
-          All
-        </button>
-        <div ref={tagScrollRef} className="overflow-x-auto scrollbar-hide flex-1" style={{ scrollbarWidth: 'none' }}>
-          <div className="inline-flex gap-2" style={{ paddingRight: '16px' }}>
-            {tags.filter(t => t !== "All").map((tag, index) => (
-              <button
-                key={tag}
-                onClick={() => handleTagClick(tag, index)}
-                className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap border",
-                  activeTag === tag
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted/80 text-foreground border-border/50"
-                )}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    const adventureItems = experiences.filter(e => e.category === "Adventure").slice(0, 10);
+    const foodItems = experiences.filter(e => e.category === "Food").slice(0, 10);
+    const beachItems = experiences.filter(e => e.category === "Beach").slice(0, 10);
+    const wildlifeItems = experiences.filter(e => e.category === "Wildlife").slice(0, 10);
+    const partyItems = experiences.filter(e => e.category === "Party" || e.category === "Nightlife").slice(0, 10);
+    const cultureItems = experiences.filter(e => e.category === "Culture").slice(0, 10);
+    const allItems = experiences.slice(0, 10);
+    const moreItems = experiences.slice(10, 20);
 
     return (
-      <MobileShell headerContent={<div>{locationRow}{tagPills}</div>} hideAvatar>
+      <MobileShell hideAvatar>
         {/* Add-to banner when coming from Create flow */}
         {addToItinerary && (
           <div className="mx-4 mb-4 mt-2 p-3 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between">
