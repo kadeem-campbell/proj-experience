@@ -272,6 +272,9 @@ export const useItineraries = () => {
     window.dispatchEvent(new CustomEvent('itinerariesChanged', { detail: newItineraries }));
 
     if (userId) {
+      // Update localStorage cache for instant loading next time
+      localStorage.setItem(`itineraries_cache_${userId}`, JSON.stringify(newItineraries));
+      
       // Save to database in background - don't await
       Promise.all(
         newItineraries.map(itinerary => {
