@@ -491,6 +491,49 @@ export const MobileHomeView = () => {
         </DrawerContent>
       </Drawer>
 
+      {/* Search results */}
+      {hasSearchResults ? (
+        <div className="px-4 pb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-foreground">
+              Results for "{searchQuery}"
+            </h2>
+            <button onClick={() => setSearchQuery("")} className="text-xs text-primary font-medium">Clear</button>
+          </div>
+          
+          {filteredExperiences.length === 0 && filteredItineraries.length === 0 ? (
+            <div className="text-center py-12">
+              <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">No results found</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Try a different search term</p>
+            </div>
+          ) : (
+            <>
+              {filteredItineraries.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Itineraries</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {filteredItineraries.slice(0, 6).map(it => (
+                      <MobileItineraryCard key={it.id} itinerary={it} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {filteredExperiences.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Experiences</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {filteredExperiences.slice(0, 12).map(exp => (
+                      <MobileExperienceCard key={exp.id} experience={exp} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ) : (
+      <>
       {/* Discovery card */}
       <DiscoveryCard />
 
