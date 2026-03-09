@@ -1367,11 +1367,11 @@ const PublicItinerary = () => {
                 )}
                 
                 <div className="flex items-center gap-2">
-                  {/* Itinerary mode: show "Make it a Trip" button */}
+                  {/* Itinerary mode: show "Trip" button */}
                   {!activeTripMode ? (
                     <Button className="gap-2" onClick={() => setShowTripSelectorSheet(true)}>
                       <Rocket className="w-4 h-4" />
-                      <span className="hidden sm:inline">Make it a</span> Trip
+                      Trip
                     </Button>
                   ) : (
                     /* Trip mode: show date range, save, exit */
