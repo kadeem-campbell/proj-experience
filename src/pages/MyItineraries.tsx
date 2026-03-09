@@ -45,31 +45,21 @@ const ItineraryPlaylistCard = ({
       {/* Info */}
       <div className="flex-1 min-w-0">
         <h3 className="font-semibold text-sm text-foreground line-clamp-1">{itinerary.name}</h3>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-xs text-muted-foreground">{experienceCount} experience{experienceCount !== 1 ? 's' : ''}</span>
-          {location && (
-            <>
-              <span className="text-muted-foreground/40">·</span>
-              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
-                <MapPin className="w-2.5 h-2.5" />
-                {location}
-              </span>
-            </>
-          )}
-        </div>
-        {date && (
+        <p className="text-xs text-muted-foreground mt-0.5">
+          {experienceCount} experience{experienceCount !== 1 ? 's' : ''}
+          {date && ` · ${date}`}
+        </p>
+        {location && (
           <div className="flex items-center gap-1 mt-0.5">
-            <Calendar className="w-2.5 h-2.5 text-muted-foreground" />
-            <span className="text-[10px] text-muted-foreground">{date}</span>
+            <MapPin className="w-2.5 h-2.5 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground truncate">{location}</span>
           </div>
         )}
       </div>
 
-      {/* Quick play / options */}
+      {/* Options only */}
       <div className="flex items-center gap-1">
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm">
-          <Play className="w-3.5 h-3.5 text-primary-foreground fill-primary-foreground ml-0.5" />
-        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
         <button
           onClick={onOptions}
           className="p-2 rounded-full hover:bg-muted transition-colors"
