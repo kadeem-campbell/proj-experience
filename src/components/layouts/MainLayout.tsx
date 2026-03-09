@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface MainLayoutProps {
   children: ReactNode;
   showItineraryPanel?: boolean;
+  showSidebar?: boolean;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
   selectedCity?: City | null;
