@@ -93,7 +93,13 @@ const MyItinerariesPage = () => {
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
 
-  const handleCreate = async () => {
+  // Auto-open create drawer from ?create=true
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setShowCreate(true);
+    }
+  }, [searchParams]);
+
     if (!newName.trim()) return;
     setCreating(true);
     const created = await createItinerary(newName.trim());
