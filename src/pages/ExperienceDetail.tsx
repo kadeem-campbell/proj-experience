@@ -557,88 +557,61 @@ export default function ExperienceDetail() {
   // Desktop
   return (
     <div className="min-h-screen bg-background overflow-y-auto w-full">
-        {/* Header Nav */}
-        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
-          <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
-            <button 
-              onClick={handleGoBack}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="text-sm font-medium hidden sm:inline">Back</span>
-            </button>
-            
-            <div className="flex items-center gap-2">
-              {socialProof.trending && (
-                <Badge variant="secondary" className="gap-1 text-xs bg-primary/10 text-primary border-0">
-                  <Flame className="w-3 h-3" />
-                  Trending
-                </Badge>
-              )}
-              <ShareDrawer title={experience.title} url={shareUrl}>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <Share2 className="w-4 h-4" />
-                </Button>
-              </ShareDrawer>
+        {/* Media Section at Top with overlaid buttons - like mobile */}
+        <div className="relative">
+          {gallery.length > 1 ? (
+            <div className="aspect-[21/9] overflow-hidden">
+              <PhotoGallery images={gallery} title={experience.title} />
             </div>
-          </div>
-        </header>
+          ) : experience.videoUrl ? (
+            <div className="relative aspect-[21/9] overflow-hidden bg-muted">
+              <video
+                ref={videoRef}
+                poster={experience.videoThumbnail}
+                className="w-full h-full object-cover"
+                muted loop playsInline autoPlay
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              >
+                <source src={experience.videoUrl} type="video/mp4" />
+              </video>
+            </div>
+          ) : (
+            <div className="relative aspect-[21/9] overflow-hidden bg-muted">
+              <img 
+                src={gallery[0]} 
+                alt={experience.title} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          
+          {/* Overlaid Back button */}
+          <button 
+            onClick={handleGoBack}
+            className="absolute top-4 left-4 p-2.5 rounded-full bg-background/80 backdrop-blur-md hover:bg-background transition-colors z-10"
+          >
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          
+          {/* Overlaid Share button */}
+          <ShareDrawer title={experience.title} url={shareUrl}>
+            <button className="absolute top-4 right-4 p-2.5 rounded-full bg-background/80 backdrop-blur-md hover:bg-background transition-colors z-10">
+              <Share2 className="w-5 h-5 text-foreground" />
+            </button>
+          </ShareDrawer>
+          
+          {/* Trending badge on image */}
+          {socialProof.trending && (
+            <Badge variant="secondary" className="absolute top-4 left-1/2 -translate-x-1/2 gap-1 text-xs bg-background/80 backdrop-blur-md text-primary border-0 z-10">
+              <Flame className="w-3 h-3" />
+              Trending
+            </Badge>
+          )}
+        </div>
 
         {/* Main Content - Desktop: Centered Single Column */}
-        <main className="max-w-5xl mx-auto px-4 py-8">
-          {/* Title Section - Desktop Only */}
-          <div className="hidden lg:block mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Badge className="bg-foreground text-background border-0 font-medium text-sm">
-                {experience.category}
-              </Badge>
-              <div className="flex items-center gap-1 text-sm">
-                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                <span className="font-medium">{experience.rating}</span>
-              </div>
-              {socialProof.trending && (
-                <Badge variant="secondary" className="gap-1 text-xs bg-primary/10 text-primary border-0">
-                  <Flame className="w-3 h-3" />
-                  Trending
-                </Badge>
-              )}
-            </div>
-            <h1 className="text-4xl font-bold tracking-tight mb-3">{experience.title}</h1>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <MapPin className="w-4 h-4" />
-              <span className="text-base">{experience.location}</span>
-            </div>
-          </div>
-
-          {/* Media Section - Compact 4:3 Aspect Ratio */}
-          <div className="mb-8">
-            {gallery.length > 1 ? (
-              <div className="aspect-[16/9] rounded-2xl overflow-hidden">
-                <PhotoGallery images={gallery} title={experience.title} />
-              </div>
-            ) : experience.videoUrl ? (
-              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-muted">
-                <video
-                  ref={videoRef}
-                  poster={experience.videoThumbnail}
-                  className="w-full h-full object-cover"
-                  muted loop playsInline autoPlay
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                >
-                  <source src={experience.videoUrl} type="video/mp4" />
-                </video>
-              </div>
-            ) : (
-              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-muted">
-                <img 
-                  src={gallery[0]} 
-                  alt={experience.title} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-          </div>
+        <main className="max-w-5xl mx-auto px-4 py-6">
 
           {/* Content Section */}
           <div className="lg:px-0">
