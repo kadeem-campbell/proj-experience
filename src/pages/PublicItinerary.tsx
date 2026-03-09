@@ -162,7 +162,7 @@ const PublicItinerary = () => {
   }, [isAuthenticated, toggleDbLike]);
 
 
-  const itinerary = publicItinerariesData.find(i => i.id === id);
+  const itinerary = publicItinerariesData.find(i => i.id === id) || itineraries.find(i => i.id === id);
 
   // Keep ordering as local state so UI updates immediately (pin-to-top)
   useEffect(() => {
