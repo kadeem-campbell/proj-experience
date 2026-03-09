@@ -137,6 +137,7 @@ const PublicItinerary = () => {
     copyItinerary,
     createTrip,
     updateTrip,
+    isLoading: itinerariesLoading,
   } = useItineraries();
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -209,6 +210,18 @@ const PublicItinerary = () => {
     }
     return map;
   }, [activeTripMode, generatedTrip]);
+
+  // Show loading while user itineraries are still being fetched
+  if (!itinerary && itinerariesLoading) {
+    const Wrapper = isMobile ? MobileShell : MainLayout;
+    return (
+      <Wrapper {...(isMobile ? { hideTopBar: true } : {})}>
+        <div className="flex justify-center items-center py-20">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </Wrapper>
+    );
+  }
 
   if (!itinerary) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
@@ -473,6 +486,68 @@ const PublicItinerary = () => {
     const shareUrl = `${baseUrl}/itineraries/${itinerary.id}`;
     const text = `Check out this itinerary: ${itinerary.name}\n${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const exportExperiences = () => itinerary.experiences.map((exp: LikedExperience) => ({
+    name: exp.title || '',
+    location: exp.location || '',
+    category: exp.category || '',
+    timeSlot: exp.timeSlot || '',
+    notes: exp.notes || '',
+  }));
+
+  const handleExportCSV = () => {
+    const rows = exportExperiences();
+    const headers = ['Name', 'Location', 'Category', 'Time Slot', 'Notes'];
+    const csv = [
+      headers.join(','),
+      ...rows.map((r: any) => headers.map((_, i) => `"${String(Object.values(r)[i] || '').replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${itinerary.name}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported as CSV" });
+  };
+
+  const handleExportXLSX = () => {
+    // Export as tab-separated values with .xlsx-compatible format
+    const rows = exportExperiences();
+    const headers = ['Name', 'Location', 'Category', 'Time Slot', 'Notes'];
+    const tsv = [
+      headers.join('\t'),
+      ...rows.map((r: any) => Object.values(r).map(v => String(v || '')).join('\t'))
+    ].join('\n');
+    const blob = new Blob([tsv], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${itinerary.name}.xlsx`; a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported as XLSX" });
+  };
+
+  const handleExportPDF = () => {
+    const rows = exportExperiences();
+    const content = rows.map((r: any, i: number) => 
+      `${i + 1}. ${r.name}${r.location ? ` — ${r.location}` : ''}${r.category ? ` [${r.category}]` : ''}${r.timeSlot ? ` (${r.timeSlot})` : ''}${r.notes ? `\n   Notes: ${r.notes}` : ''}`
+    ).join('\n\n');
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html><head><title>${itinerary.name}</title>
+        <style>body{font-family:system-ui,sans-serif;padding:40px;max-width:700px;margin:0 auto}h1{font-size:24px;margin-bottom:8px}p{color:#666;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit;line-height:1.8;font-size:14px}</style>
+        </head><body>
+        <h1>${itinerary.name}</h1>
+        <p>${rows.length} experience${rows.length !== 1 ? 's' : ''}</p>
+        <pre>${content}</pre>
+        </body></html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    toast({ title: "PDF ready to print" });
   };
 
   const handleCopyComplete = () => {
@@ -966,6 +1041,19 @@ const PublicItinerary = () => {
                   <DropdownMenuItem onClick={() => setShowCollaboratorSheet(true)}>
                     <Users className="w-4 h-4 mr-2" />
                     Add Collaborators
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleExportCSV}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportXLSX}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Export as XLSX
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPDF}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Export as PDF
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
