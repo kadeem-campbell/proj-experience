@@ -105,7 +105,7 @@ export default function Map() {
     );
 
     return (
-      <MobileShell headerContent={headerContent} hideAvatar notFixed>
+      <MobileShell headerContent={headerContent} hideTopBar notFixed>
         <CityList />
       </MobileShell>
     );
