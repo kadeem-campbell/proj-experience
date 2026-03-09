@@ -1308,6 +1308,14 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     placeholder="Search experiences..."
                     className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
                   />
+                  {searchQuery && (
+                    <button 
+                      onClick={() => setSearchQuery("")}
+                      className="p-1 rounded-full hover:bg-background/50 ml-1"
+                    >
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  )}
                 </div>
               )}
               

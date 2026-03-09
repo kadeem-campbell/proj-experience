@@ -2,6 +2,7 @@ import { useState, useCallback, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Search, ListMusic, User, Settings, HelpCircle, Map, X, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useItineraries } from "@/hooks/useItineraries";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { cn } from "@/lib/utils";
 
@@ -73,6 +74,7 @@ const ProfileSlideMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () => void; isSearchOpen: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { experienceCount } = useItineraries();
 
   const handleHomeClick = useCallback(() => {
     if (location.pathname === "/" && !location.search) {
@@ -84,22 +86,29 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   }, [location.pathname, location.search, navigate]);
 
   const navItems = [
-    { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" && !isSearchOpen },
-    { icon: Search, label: "Search", action: onSearchClick, isActive: isSearchOpen },
-    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" && !isSearchOpen },
-    { icon: User, label: "Profile", action: () => navigate("/profile"), isActive: location.pathname === "/profile" && !isSearchOpen },
+    { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" && !isSearchOpen, badge: 0 },
+    { icon: Search, label: "Search", action: onSearchClick, isActive: isSearchOpen, badge: 0 },
+    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" && !isSearchOpen, badge: experienceCount },
+    { icon: User, label: "Profile", action: () => navigate("/profile"), isActive: location.pathname === "/profile" && !isSearchOpen, badge: 0 },
   ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[60] bg-background border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
       <div className="flex items-center justify-around px-4 pb-[env(safe-area-inset-bottom,8px)] pt-2">
-        {navItems.map(({ icon: Icon, label, action, isActive }) => (
+        {navItems.map(({ icon: Icon, label, action, isActive, badge }) => (
           <button
             key={label}
             onClick={action}
-            className="flex flex-col items-center gap-0.5 min-w-[56px] py-1"
+            className="flex flex-col items-center gap-0.5 min-w-[56px] py-1 relative"
           >
-            <Icon className={cn("w-[22px] h-[22px]", isActive ? "text-primary" : "text-muted-foreground")} strokeWidth={isActive ? 2.5 : 2} />
+            <div className="relative">
+              <Icon className={cn("w-[22px] h-[22px]", isActive ? "text-primary" : "text-muted-foreground")} strokeWidth={isActive ? 2.5 : 2} />
+              {badge > 0 && (
+                <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  {badge}
+                </span>
+              )}
+            </div>
             <span className={cn("text-[10px]", isActive ? "text-primary font-semibold" : "text-muted-foreground")}>
               {label}
             </span>

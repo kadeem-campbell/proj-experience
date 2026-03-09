@@ -158,7 +158,7 @@ const HorizontalScrollRow = ({
   const chevronColor = variant === "itinerary" ? "text-itinerary-color" : variant === "experience" ? "text-experience-color" : "text-muted-foreground";
 
   return (
-    <div className="py-5">
+    <div className="py-5 mb-2">
       <button 
         onClick={onTitleClick}
         className="mb-3 flex items-center gap-1.5 w-full text-left px-4"

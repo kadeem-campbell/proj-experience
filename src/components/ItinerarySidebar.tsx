@@ -288,7 +288,7 @@ export const ItinerarySidebar = ({
                                   role="button"
                                   title={isPinned ? "Unpin" : "Pin to top"}
                                   className="h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-accent text-muted-foreground hover:text-foreground cursor-pointer"
-                                  onClick={(e) => { e.stopPropagation(); togglePin(itinerary.id); }}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); togglePin(itinerary.id); }}
                                 >
                                   <Pin className={cn("w-3 h-3", isPinned && "text-primary rotate-45")} />
                                 </span>
