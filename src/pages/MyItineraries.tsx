@@ -139,7 +139,7 @@ const MyItinerariesPage = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} playlist{itineraries.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
