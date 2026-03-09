@@ -267,25 +267,23 @@ const ExperiencesPage = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {/* Featured section - fills remaining viewport */}
-          {featuredExperiences.length > 0 && (
-            <div className="h-[calc(100vh-80px)] flex flex-col px-6 lg:px-10 py-6">
-              <div className="max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
+        <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
+          <div className="max-w-[1600px] mx-auto">
+            {/* Featured section */}
+            {featuredExperiences.length > 0 && (
+              <div className="mb-10">
                 <h2 className="text-lg font-bold mb-4">Attractions you can't miss</h2>
-                <div className="flex-1 grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr">
+                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                   {featuredExperiences.map((experience) => (
                     <ExperienceCard key={experience.id} {...experience} compact />
                   ))}
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Rest of experiences - normal scroll */}
-          {restExperiences.length > 0 && (
-            <div className="px-6 lg:px-10 py-6">
-              <div className="max-w-[1600px] mx-auto">
+            {/* Rest of experiences */}
+            {restExperiences.length > 0 && (
+              <div>
                 <h2 className="text-lg font-bold mb-4">More to explore</h2>
                 <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
                   {restExperiences.slice(0, visibleCount - 10).map((experience) => (
@@ -293,20 +291,20 @@ const ExperiencesPage = () => {
                   ))}
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {visibleCount < filteredExperiences.length && (
-            <div ref={loadMoreRef} className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
-            </div>
-          )}
+            {visibleCount < filteredExperiences.length && (
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
+              </div>
+            )}
 
-          {filteredExperiences.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-muted-foreground">No experiences found matching "{searchQuery}"</p>
-            </div>
-          )}
+            {filteredExperiences.length === 0 && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground">No experiences found matching "{searchQuery}"</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </MainLayout>
