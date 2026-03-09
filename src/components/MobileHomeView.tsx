@@ -412,16 +412,14 @@ export const MobileHomeView = () => {
   const cityLabel = selectedCity || "your city";
 
   const headerContent = selectedCity ? (
-    <div className="flex items-center gap-2 px-1">
-      <button
-        onClick={() => handleCityChange("")}
-        className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold"
-      >
-        <MapPin className="w-3 h-3" />
-        {selectedCity}
-        <span className="ml-0.5 text-primary/60">✕</span>
-      </button>
-    </div>
+    <button
+      onClick={() => handleCityChange("")}
+      className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold"
+    >
+      <MapPin className="w-3 h-3" />
+      {selectedCity}
+      <span className="ml-0.5 text-primary/60">✕</span>
+    </button>
   ) : undefined;
 
   return (
