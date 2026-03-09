@@ -66,7 +66,7 @@ const DesktopDiscoveryCard = () => {
       }}
     >
       {/* Progress bars */}
-      <div className="flex gap-1.5 mb-6">
+      <div className="flex gap-1.5 mb-4">
         {discoverySlides.map((s, i) => (
           <button
             key={i}
