@@ -48,21 +48,30 @@ export const SocialVideoEmbed = ({
           <div
             key={video.videoId}
             className="flex-shrink-0 snap-start rounded-xl overflow-hidden bg-foreground/10 relative"
-            style={{ width: '128px', height: '192px' }}
+            style={{ width: '128px', height: '192px', touchAction: 'pan-x' }}
           >
-            {/* Scale full TikTok embed to fit card */}
+            {/* Block vertical scroll inside iframe */}
+            <div 
+              className="absolute inset-0 z-10" 
+              style={{ pointerEvents: 'none' }}
+              onTouchMove={(e) => e.preventDefault()}
+            />
+            {/* Clip top (share icons ~40px) and bottom (related ~60px) at scaled size */}
             <div style={{ 
               width: '325px', 
-              height: '487px', 
+              height: '400px',
               transform: 'scale(0.394)', 
-              transformOrigin: 'top left' 
+              transformOrigin: 'top left',
+              marginTop: '-16px',
+              overflow: 'hidden'
             }}>
               <iframe
-                src={`https://www.tiktok.com/embed/v2/${video.videoId}`}
+                src={`https://www.tiktok.com/embed/v2/${video.videoId}?hide_share=1`}
                 className="border-0"
-                style={{ width: '325px', height: '487px' }}
+                style={{ width: '325px', height: '550px', marginTop: '-40px' }}
                 allow="autoplay; encrypted-media"
                 allowFullScreen
+                scrolling="no"
                 sandbox="allow-scripts allow-same-origin allow-popups"
               />
             </div>
