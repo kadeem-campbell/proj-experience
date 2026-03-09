@@ -112,11 +112,30 @@ export const useItineraries = () => {
 
   // Load itineraries from database or localStorage
   const loadItineraries = useCallback(async (uid: string | null) => {
-    setIsLoading(true);
-    
     if (uid) {
-      // First sync any local itineraries
-      await syncLocalToDatabase(uid);
+      // Show cached data immediately while fetching
+      const cacheKey = `itineraries_cache_${uid}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed: Itinerary[] = JSON.parse(cached);
+          if (parsed.length > 0) {
+            setItineraries(parsed);
+            setIsLoading(false);
+            const storedActiveId = localStorage.getItem(ACTIVE_ITINERARY_KEY);
+            if (storedActiveId && parsed.find(i => i.id === storedActiveId)) {
+              setActiveItineraryIdState(storedActiveId);
+            } else {
+              setActiveItineraryIdState(parsed[0].id);
+            }
+          }
+        } catch {}
+      } else {
+        setIsLoading(true);
+      }
+
+      // Sync any local itineraries (fire-and-forget for speed)
+      syncLocalToDatabase(uid);
 
       // Load from database
       const { data, error } = await supabase
@@ -134,6 +153,7 @@ export const useItineraries = () => {
       if (data && data.length > 0) {
         const loaded = data.map(dbToItinerary);
         setItineraries(loaded);
+        localStorage.setItem(cacheKey, JSON.stringify(loaded));
         
         const storedActiveId = localStorage.getItem(ACTIVE_ITINERARY_KEY);
         if (storedActiveId && loaded.find(i => i.id === storedActiveId)) {
@@ -159,6 +179,7 @@ export const useItineraries = () => {
         setItineraries([defaultItinerary]);
         setActiveItineraryIdState(newId);
         localStorage.setItem(ACTIVE_ITINERARY_KEY, newId);
+        localStorage.setItem(cacheKey, JSON.stringify([defaultItinerary]));
       }
     } else {
       // Load from localStorage for unauthenticated users
