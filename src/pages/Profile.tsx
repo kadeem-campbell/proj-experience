@@ -168,7 +168,13 @@ const ProfilePage = () => {
               variant="ghost" 
               size="icon" 
               className="rounded-full h-9 w-9"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/');
+                }
+              }}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>

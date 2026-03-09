@@ -1097,10 +1097,10 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
           {/* Back Button */}
           <button 
             onClick={() => {
-              if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.origin)) {
+              if (window.history.state && window.history.state.idx > 0) {
                 navigate(-1);
               } else {
-                navigate('/experiences');
+                navigate('/itineraries');
               }
             }}
             className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4 md:mb-6 transition-colors text-sm"

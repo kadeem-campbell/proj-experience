@@ -818,7 +818,7 @@ const PublicItinerary = () => {
             {/* Back button */}
             <button 
               onClick={() => {
-                if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.origin)) {
+                if (window.history.state && window.history.state.idx > 0) {
                   navigate(-1);
                 } else {
                   navigate('/itineraries');
