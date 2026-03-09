@@ -185,45 +185,73 @@ const ItinerariesPage = () => {
     );
   }
 
+  // Desktop: featured section fills viewport, rest scrolls
+  const popularItems = itineraries.filter(i => i.tag === 'popular');
+  const restItems = itineraries.filter(i => i.tag !== 'popular');
+
   return (
-    <MainLayout>
+    <MainLayout showSidebar={false}>
       <div className="flex flex-col h-full">
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-3 md:px-4 py-3 md:py-4">
-          <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
-            <Link to="/">
-              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 md:h-10 md:w-10">
-                <ArrowLeft className="w-4 md:w-5 h-4 md:h-5" />
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              {getIcon()}
-              <h1 className="text-lg md:text-2xl font-bold">{getTitle()}</h1>
+        {/* Header */}
+        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 lg:px-10 py-4">
+          <div className="max-w-[1600px] mx-auto flex items-center gap-3 justify-between">
+            <div className="flex items-center gap-3">
+              <Link to="/">
+                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 hover:bg-muted/70">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                {getIcon()}
+                <h1 className="text-xl lg:text-2xl font-bold">{getTitle()}</h1>
+              </div>
+              <span className="text-muted-foreground text-sm">({allItineraries.length})</span>
             </div>
-            <span className="text-muted-foreground text-sm">({allItineraries.length})</span>
-          </div>
-          
-          <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 max-w-md">
-            <Search className="w-4 md:w-5 h-4 md:h-5 text-muted-foreground mr-2 md:mr-3" />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search itineraries..."
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm md:text-base placeholder:text-muted-foreground"
-            />
+            <div className="flex items-center bg-muted/50 border border-border/50 rounded-full px-4 py-2 w-80 hover:bg-muted/70 hover:border-border transition-all duration-200">
+              <Search className="w-4 h-4 text-muted-foreground mr-3" />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search itineraries..."
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground/60"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 md:p-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
-            {itineraries.map((itinerary) => (
-              <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
-            ))}
-          </div>
+        <div className="flex-1 overflow-y-auto">
+          {/* Featured section - fills remaining viewport */}
+          {popularItems.length > 0 && (
+            <div className="h-[calc(100vh-80px)] flex flex-col px-6 lg:px-10 py-6">
+              <div className="max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
+                <h2 className="text-lg font-bold mb-4">Attractions you can't miss</h2>
+                <div className="flex-1 grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr">
+                  {popularItems.slice(0, 10).map((itinerary) => (
+                    <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Rest of itineraries - normal scroll */}
+          {restItems.length > 0 && (
+            <div className="px-6 lg:px-10 py-6">
+              <div className="max-w-[1600px] mx-auto">
+                <h2 className="text-lg font-bold mb-4">All itineraries</h2>
+                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
+                  {restItems.map((itinerary) => (
+                    <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {itineraries.length === 0 && (
-            <div className="text-center py-8 md:py-12">
-              <p className="text-muted-foreground text-sm md:text-base">No itineraries found</p>
+            <div className="text-center py-16">
+              <p className="text-muted-foreground">No itineraries found</p>
             </div>
           )}
         </div>

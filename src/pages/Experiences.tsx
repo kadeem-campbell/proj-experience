@@ -232,42 +232,69 @@ const ExperiencesPage = () => {
     );
   }
 
+  // Desktop: featured section fills viewport, rest scrolls
+  const featuredExperiences = filteredExperiences.slice(0, 10);
+  const restExperiences = filteredExperiences.slice(10);
+
   return (
-    <MainLayout>
+    <MainLayout showSidebar={false}>
       <div className="flex flex-col h-full">
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 md:px-8 lg:px-10 py-4">
-          <div className="flex items-center gap-3 mb-3">
-            <Link to="/">
-              <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 hover:bg-muted/70">
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              <Compass className="w-5 h-5 text-primary" />
-              <h1 className="text-lg md:text-2xl font-bold">All Experiences</h1>
+        {/* Header */}
+        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 lg:px-10 py-4">
+          <div className="max-w-[1600px] mx-auto flex items-center gap-3 justify-between">
+            <div className="flex items-center gap-3">
+              <Link to="/">
+                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 hover:bg-muted/70">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                <Compass className="w-5 h-5 text-primary" />
+                <h1 className="text-xl lg:text-2xl font-bold">All Experiences</h1>
+              </div>
+              <span className="text-muted-foreground text-sm">({experiences.length})</span>
             </div>
-            <span className="text-muted-foreground text-xs md:text-sm">({experiences.length})</span>
-          </div>
-          
-          <div className="flex items-center bg-muted/50 border border-border/50 rounded-full px-4 py-2 max-w-md hover:bg-muted/70 hover:border-border transition-all duration-200">
-            <Search className="w-4 h-4 text-muted-foreground mr-3" />
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search experiences..."
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground/60"
-              style={{ fontSize: '14px' }}
-            />
+            <div className="flex items-center bg-muted/50 border border-border/50 rounded-full px-4 py-2 w-80 hover:bg-muted/70 hover:border-border transition-all duration-200">
+              <Search className="w-4 h-4 text-muted-foreground mr-3" />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search experiences..."
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground/60"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 md:px-8 lg:px-10 py-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6">
-            {filteredExperiences.slice(0, visibleCount).map((experience) => (
-              <ExperienceCard key={experience.id} {...experience} compact />
-            ))}
-          </div>
+        <div className="flex-1 overflow-y-auto">
+          {/* Featured section - fills remaining viewport */}
+          {featuredExperiences.length > 0 && (
+            <div className="h-[calc(100vh-80px)] flex flex-col px-6 lg:px-10 py-6">
+              <div className="max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
+                <h2 className="text-lg font-bold mb-4">Attractions you can't miss</h2>
+                <div className="flex-1 grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 auto-rows-fr">
+                  {featuredExperiences.map((experience) => (
+                    <ExperienceCard key={experience.id} {...experience} compact />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Rest of experiences - normal scroll */}
+          {restExperiences.length > 0 && (
+            <div className="px-6 lg:px-10 py-6">
+              <div className="max-w-[1600px] mx-auto">
+                <h2 className="text-lg font-bold mb-4">More to explore</h2>
+                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
+                  {restExperiences.slice(0, visibleCount - 10).map((experience) => (
+                    <ExperienceCard key={experience.id} {...experience} compact />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {visibleCount < filteredExperiences.length && (
             <div ref={loadMoreRef} className="flex justify-center py-8">
@@ -277,7 +304,7 @@ const ExperiencesPage = () => {
 
           {filteredExperiences.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-muted-foreground text-base">No experiences found matching "{searchQuery}"</p>
+              <p className="text-muted-foreground">No experiences found matching "{searchQuery}"</p>
             </div>
           )}
         </div>
