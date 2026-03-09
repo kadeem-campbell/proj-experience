@@ -8,7 +8,7 @@ import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { MobileHomeView } from "@/components/MobileHomeView";
 import { useItineraries } from "@/hooks/useItineraries";
 import { getPopularItineraries, publicItinerariesData } from "@/data/itinerariesData";
-import { useNavigate } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 import { City } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
