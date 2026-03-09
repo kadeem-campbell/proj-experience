@@ -1042,6 +1042,19 @@ const PublicItinerary = () => {
                     <Users className="w-4 h-4 mr-2" />
                     Add Collaborators
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleExportCSV}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportXLSX}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Export as XLSX
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPDF}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Export as PDF
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
