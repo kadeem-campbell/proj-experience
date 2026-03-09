@@ -1,4 +1,5 @@
-import { ExternalLink, Play, Video } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, Play, Video, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface TikTokVideo {
@@ -32,6 +33,37 @@ export const SocialVideoEmbed = ({
   instagramVideos = [],
   className 
 }: SocialVideoEmbedProps) => {
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+
+  // When a video is playing, show inline iframe player
+  if (playingVideoId) {
+    return (
+      <div className={cn("space-y-3", className)}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Video className="w-5 h-5 text-primary" />
+            Now Playing
+          </h3>
+          <button 
+            onClick={() => setPlayingVideoId(null)}
+            className="p-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+        <div className="w-full rounded-xl overflow-hidden bg-foreground/5" style={{ maxWidth: '100%' }}>
+          <iframe
+            src={`https://www.tiktok.com/embed/v2/${playingVideoId}`}
+            className="w-full border-0 rounded-xl"
+            style={{ height: '500px', maxHeight: '70vh' }}
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-popups"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -44,31 +76,24 @@ export const SocialVideoEmbed = ({
       </p>
       
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
-        {/* TikTok video cards — each opens that specific video URL only */}
+        {/* TikTok video cards — plays inline */}
         {tiktokVideos.map((video) => (
           <button
             key={video.videoId}
-            onClick={() => window.open(video.url, '_blank')}
+            onClick={() => setPlayingVideoId(video.videoId)}
             className="flex-shrink-0 relative group cursor-pointer snap-start"
           >
             <div className={cn(CARD_WIDTH, CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-foreground/90 to-foreground/70 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative")}>
-              {/* TikTok branding gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-              
-              {/* Play button */}
               <div className="relative z-10 w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg">
                 <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground ml-0.5" />
               </div>
-              
               <div className="relative z-10 text-center px-2">
                 <p className="text-background font-semibold text-xs">TikTok</p>
                 <p className="text-background/70 text-[10px] truncate max-w-[100px]">
                   {video.author || 'Watch Video'}
                 </p>
               </div>
-            </div>
-            <div className="absolute top-2 right-2 p-1 rounded-full bg-black/40 backdrop-blur z-10">
-              <ExternalLink className="w-2.5 h-2.5 text-background" />
             </div>
           </button>
         ))}
