@@ -50,11 +50,15 @@ export const MobileSearchOverlay = ({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      const handleKey = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose();
+      };
+      window.addEventListener('keydown', handleKey);
+      return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', handleKey); };
     } else {
       document.body.style.overflow = '';
     }
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
@@ -232,7 +236,15 @@ export const MobileSearchOverlay = ({
             {/* Press enter hint */}
             {(liveExperiences.length > 0 || liveItineraries.length > 0) && (
               <button
-                onClick={handleSubmit as any}
+                onClick={() => {
+                  if (searchQuery.trim()) {
+                    addToRecentSearches(searchQuery);
+                    onSearch(searchQuery);
+                    window.scrollTo({ top: 0 });
+                    document.querySelector('main')?.scrollTo({ top: 0 });
+                    onClose();
+                  }
+                }}
                 className="w-full py-3 text-center text-sm font-medium text-primary"
               >
                 See all results for "{searchQuery}"
