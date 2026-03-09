@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
@@ -7,9 +8,9 @@ import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { MobileHomeView } from "@/components/MobileHomeView";
 import { useItineraries } from "@/hooks/useItineraries";
 import { getPopularItineraries, publicItinerariesData } from "@/data/itinerariesData";
-import { useNavigate } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
-import { City } from "@/data/browseData";
+import { City, cities as browseDataCities } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { Compass, Map, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
@@ -214,8 +215,15 @@ const synonyms: Record<string, string[]> = {
 };
 
 const SearchPage = () => {
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [selectedCity, setSelectedCity] = useState<City | null>(() => {
+    const cityParam = searchParams.get("city");
+    if (cityParam) {
+      return browseDataCities.find(c => c.name.toLowerCase() === cityParam.toLowerCase()) || null;
+    }
+    return null;
+  });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const experiences = allExperiences;
   const [loading, setLoading] = useState(false);
@@ -235,6 +243,17 @@ const SearchPage = () => {
   const adventureExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Adventure").slice(0, 10), [cityFilteredExperiences]);
   const foodExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Food").slice(0, 10), [cityFilteredExperiences]);
   const beachExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Beach").slice(0, 10), [cityFilteredExperiences]);
+
+  // Sync city from URL params
+  useEffect(() => {
+    const cityParam = searchParams.get("city");
+    if (cityParam) {
+      const found = browseDataCities.find(c => c.name.toLowerCase() === cityParam.toLowerCase());
+      if (found) setSelectedCity(found);
+    } else {
+      setSelectedCity(null);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);

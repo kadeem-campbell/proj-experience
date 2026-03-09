@@ -338,15 +338,17 @@ const allExpsData = allExperiences;
 export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "");
   const [cityDrawerOpen, setCityDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
 
-  // Sync search query from URL params
+  // Sync from URL params
   useEffect(() => {
     const q = searchParams.get("q");
     setSearchQuery(q || "");
+    const city = searchParams.get("city");
+    if (city !== null) setSelectedCity(city);
   }, [searchParams]);
 
   const handleCityChange = useCallback((city: string) => {
