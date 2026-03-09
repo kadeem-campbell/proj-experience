@@ -141,15 +141,18 @@ export const SocialVideoEmbed = ({
             </button>
           </div>
           {activeVideo && (
-            <div className="w-full flex justify-center px-4 pb-6">
-              <iframe
-                src={`https://www.tiktok.com/embed/v2/${activeVideo.videoId}`}
-                className="border-0 rounded-xl"
-                style={{ width: '100%', maxWidth: '340px', height: '600px' }}
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                sandbox="allow-scripts allow-same-origin allow-popups"
-              />
+            <div className="w-full flex justify-center px-4 pb-6 overflow-hidden">
+              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '340px', height: '600px' }}>
+                <iframe
+                  src={`https://www.tiktok.com/embed/v2/${activeVideo.videoId}`}
+                  className="border-0"
+                  style={{ width: '100%', height: '100%' }}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  scrolling="no"
+                  sandbox="allow-scripts allow-same-origin allow-popups"
+                />
+              </div>
             </div>
           )}
         </DrawerContent>
