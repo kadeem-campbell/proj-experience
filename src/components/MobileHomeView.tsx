@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
+import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 const mapCities = [
@@ -337,6 +338,8 @@ export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [selectedCity, setSelectedCity] = useState("");
   const [cityDrawerOpen, setCityDrawerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleCityChange = useCallback((city: string) => {
     setSelectedCity(city);
@@ -352,6 +355,35 @@ export const MobileHomeView = () => {
     if (!selectedCity) return allExpsData;
     return allExpsData.filter(e => matchesCity(e.location || "", selectedCity));
   }, [selectedCity]);
+
+  // Search filtering
+  const normalizeText = (text: string) => text.toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ").trim();
+  
+  const filteredExperiences = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = normalizeText(searchQuery);
+    const terms = q.split(" ").filter(t => t.length > 1);
+    return experiences.filter(e => {
+      const fields = [e.title, e.location, e.category, e.creator].map(f => normalizeText(f || ""));
+      return terms.every(term => fields.some(field => field.includes(term) || field.split(" ").some(w => w.startsWith(term))));
+    });
+  }, [searchQuery, experiences]);
+
+  const filteredItineraries = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = normalizeText(searchQuery);
+    const terms = q.split(" ").filter(t => t.length > 1);
+    return itineraries.filter(it => {
+      const fields = [it.name, it.creatorName].map(f => normalizeText(f || ""));
+      const expFields = it.experiences?.some((exp: any) => {
+        const ef = [exp.title, exp.location, exp.category].map((f: string) => normalizeText(f || ""));
+        return terms.some(term => ef.some(field => field.includes(term)));
+      });
+      return terms.every(term => fields.some(field => field.includes(term))) || expFields;
+    });
+  }, [searchQuery, itineraries]);
+
+  const hasSearchResults = searchQuery.trim().length > 0;
 
   const adventureExperiences = useMemo(() => experiences.filter(e => e.category === "Adventure").slice(0, 10), [experiences]);
   const foodExperiences = useMemo(() => experiences.filter(e => e.category === "Food").slice(0, 10), [experiences]);
@@ -382,6 +414,34 @@ export const MobileHomeView = () => {
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
+      <MobileSearchOverlay
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={(q) => { setSearchQuery(q); setSearchOpen(false); }}
+      />
+
+      {/* Search bar - tappable */}
+      <div className="px-4 pb-2">
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="w-full flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-xl text-left transition-colors duration-150 active:bg-muted/50"
+        >
+          <Search className="w-5 h-5 text-muted-foreground shrink-0" />
+          <span className="text-sm text-muted-foreground/60 flex-1 truncate">
+            {searchQuery || "Find experiences, food, or places"}
+          </span>
+          {searchQuery && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setSearchQuery(""); }}
+              className="p-1 rounded-full hover:bg-muted"
+            >
+              <span className="text-muted-foreground text-sm">✕</span>
+            </button>
+          )}
+        </button>
+      </div>
 
       {/* City selector drawer */}
       <Drawer open={cityDrawerOpen} onOpenChange={setCityDrawerOpen}>
@@ -431,6 +491,49 @@ export const MobileHomeView = () => {
         </DrawerContent>
       </Drawer>
 
+      {/* Search results */}
+      {hasSearchResults ? (
+        <div className="px-4 pb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-foreground">
+              Results for "{searchQuery}"
+            </h2>
+            <button onClick={() => setSearchQuery("")} className="text-xs text-primary font-medium">Clear</button>
+          </div>
+          
+          {filteredExperiences.length === 0 && filteredItineraries.length === 0 ? (
+            <div className="text-center py-12">
+              <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">No results found</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Try a different search term</p>
+            </div>
+          ) : (
+            <>
+              {filteredItineraries.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Itineraries</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {filteredItineraries.slice(0, 6).map(it => (
+                      <MobileItineraryCard key={it.id} itinerary={it} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {filteredExperiences.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">Experiences</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {filteredExperiences.slice(0, 12).map(exp => (
+                      <MobileExperienceCard key={exp.id} experience={exp} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ) : (
+      <>
       {/* Discovery card */}
       <DiscoveryCard />
 
@@ -529,6 +632,8 @@ export const MobileHomeView = () => {
             <MobileExperienceCard key={experience.id} experience={experience} />
           ))}
         </HorizontalScrollRow>
+      )}
+      </>
       )}
     </MobileShell>
   );
