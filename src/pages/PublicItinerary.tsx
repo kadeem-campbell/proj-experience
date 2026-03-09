@@ -614,6 +614,7 @@ const PublicItinerary = () => {
 
             {/* Heart / Like button */}
             <button
+              data-card-action="true"
               onClick={async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
