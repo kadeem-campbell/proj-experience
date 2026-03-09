@@ -584,68 +584,64 @@ export default function ExperienceDetail() {
           </div>
         </header>
 
-        {/* Main Content - Desktop: Two Column, Mobile: Single Column */}
-        <main className="max-w-7xl mx-auto">
-          <div className="lg:grid lg:grid-cols-2 lg:gap-8">
-            
-            {/* Left Column - Media */}
-            <div className="lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] lg:overflow-hidden">
-              {/* Photo Gallery */}
-              <div className="relative h-full">
-                {gallery.length > 1 ? (
-                  <div className="lg:h-full">
-                    <PhotoGallery images={gallery} title={experience.title} className="lg:h-full" />
-                  </div>
-                ) : experience.videoUrl ? (
-                  <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden bg-muted">
-                    <video
-                      ref={videoRef}
-                      poster={experience.videoThumbnail}
-                      className="w-full h-full object-cover"
-                      muted loop playsInline autoPlay
-                      onPlay={() => setIsPlaying(true)}
-                      onPause={() => setIsPlaying(false)}
-                    >
-                      <source src={experience.videoUrl} type="video/mp4" />
-                    </video>
-                  </div>
-                ) : (
-                  <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden bg-muted">
-                    <img 
-                      src={gallery[0]} 
-                      alt={experience.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                
-                {/* Gradient overlay for desktop */}
-                <div className="hidden lg:block absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-                
-                {/* Desktop overlay content */}
-                <div className="hidden lg:flex absolute bottom-0 left-0 right-0 p-8 flex-col gap-4">
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-foreground/90 text-background border-0">
-                      {experience.category}
-                    </Badge>
-                    <div className="flex items-center gap-1 text-white/90 text-sm">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium">{experience.rating}</span>
-                    </div>
-                  </div>
-                  <h1 className="text-4xl xl:text-5xl font-bold text-white tracking-tight">
-                    {experience.title}
-                  </h1>
-                  <div className="flex items-center gap-2 text-white/80">
-                    <MapPin className="w-4 h-4" />
-                    <span>{experience.location}</span>
-                  </div>
-                </div>
+        {/* Main Content - Desktop: Centered Single Column */}
+        <main className="max-w-5xl mx-auto px-4 py-8">
+          {/* Title Section - Desktop Only */}
+          <div className="hidden lg:block mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Badge className="bg-foreground text-background border-0 font-medium text-sm">
+                {experience.category}
+              </Badge>
+              <div className="flex items-center gap-1 text-sm">
+                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                <span className="font-medium">{experience.rating}</span>
               </div>
+              {socialProof.trending && (
+                <Badge variant="secondary" className="gap-1 text-xs bg-primary/10 text-primary border-0">
+                  <Flame className="w-3 h-3" />
+                  Trending
+                </Badge>
+              )}
             </div>
+            <h1 className="text-4xl font-bold tracking-tight mb-3">{experience.title}</h1>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MapPin className="w-4 h-4" />
+              <span className="text-base">{experience.location}</span>
+            </div>
+          </div>
 
-            {/* Right Column - Content */}
-            <div className="px-4 py-6 lg:py-8 lg:px-0 lg:pr-8">
+          {/* Media Section - Compact 4:3 Aspect Ratio */}
+          <div className="mb-8">
+            {gallery.length > 1 ? (
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+                <PhotoGallery images={gallery} title={experience.title} />
+              </div>
+            ) : experience.videoUrl ? (
+              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted">
+                <video
+                  ref={videoRef}
+                  poster={experience.videoThumbnail}
+                  className="w-full h-full object-cover"
+                  muted loop playsInline autoPlay
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                >
+                  <source src={experience.videoUrl} type="video/mp4" />
+                </video>
+              </div>
+            ) : (
+              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted">
+                <img 
+                  src={gallery[0]} 
+                  alt={experience.title} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Content Section */}
+          <div className="lg:px-0">
               {/* Mobile-only title section */}
               <div className="lg:hidden">
                 <div className="flex flex-wrap items-center gap-2 mb-4">
