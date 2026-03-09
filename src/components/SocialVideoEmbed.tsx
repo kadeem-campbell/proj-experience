@@ -47,17 +47,25 @@ export const SocialVideoEmbed = ({
         {tiktokVideos.map((video) => (
           <div
             key={video.videoId}
-            className="flex-shrink-0 snap-start rounded-xl overflow-hidden bg-foreground/10"
-            style={{ width: '140px', height: '192px' }}
+            className="flex-shrink-0 snap-start rounded-xl overflow-hidden bg-foreground/10 relative"
+            style={{ width: '128px', height: '192px' }}
           >
-            <iframe
-              src={`https://www.tiktok.com/embed/v2/${video.videoId}`}
-              className="border-0"
-              style={{ width: '140px', height: '192px' }}
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              sandbox="allow-scripts allow-same-origin allow-popups"
-            />
+            {/* Scale full TikTok embed to fit card */}
+            <div style={{ 
+              width: '325px', 
+              height: '487px', 
+              transform: 'scale(0.394)', 
+              transformOrigin: 'top left' 
+            }}>
+              <iframe
+                src={`https://www.tiktok.com/embed/v2/${video.videoId}`}
+                className="border-0"
+                style={{ width: '325px', height: '487px' }}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                sandbox="allow-scripts allow-same-origin allow-popups"
+              />
+            </div>
           </div>
         ))}
 
