@@ -5,7 +5,6 @@ import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Search, Compass, X, Heart, Plus, MapPin } from "lucide-react";
-import { LocationSelector } from "@/components/LocationSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { MobileShell } from "@/components/MobileShell";
@@ -14,19 +13,6 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
-
-const tags = ["All", "Beaches", "Water Sports", "Nightlife", "Wildlife", "Adventure", "Food", "Culture", "Wellness"];
-
-const tagToCategoryMap: Record<string, string> = {
-  "Beaches": "Beach",
-  "Water Sports": "Adventure",
-  "Nightlife": "Nightlife",
-  "Wildlife": "Wildlife",
-  "Adventure": "Adventure",
-  "Food": "Food",
-  "Culture": "Culture",
-  "Wellness": "Wellness",
-};
 
 // Horizontal scroll row - identical to itineraries/homepage
 const HorizontalScrollRow = ({ 
