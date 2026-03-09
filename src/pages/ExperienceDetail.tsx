@@ -836,12 +836,9 @@ export default function ExperienceDetail() {
                   <span className="font-medium">{experience.rating}</span>
                 </div>
               </div>
-
-              {/* Spacer */}
-              <div className="h-8" />
             </div>
           </div>
         </main>
-    </div>
+      </div>
   );
 }
