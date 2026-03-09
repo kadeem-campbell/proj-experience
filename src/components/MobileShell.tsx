@@ -129,7 +129,7 @@ const MobileTopBar = ({
       "top-0 left-0 right-0 z-50 bg-background safe-area-inset-top",
       notFixed ? "relative" : "fixed"
     )}>
-      <div className="px-3 pt-2 pb-2">
+      <div className="pt-2 pb-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
         <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 w-full">
           <button onClick={onProfileClick} className="text-xl font-black tracking-tight text-[#121212]">
             SWAM
