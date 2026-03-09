@@ -1,5 +1,7 @@
-import { ExternalLink, Play, Video } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, Play, Video, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 
 export interface TikTokVideo {
   videoId: string;
@@ -31,6 +33,7 @@ export const SocialVideoEmbed = ({
   instagramVideos = [],
   className 
 }: SocialVideoEmbedProps) => {
+  const [activeVideo, setActiveVideo] = useState<TikTokVideo | null>(null);
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -43,39 +46,29 @@ export const SocialVideoEmbed = ({
       </p>
       
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
-        {/* TikTok videos — inline iframe players at card size */}
+        {/* TikTok video cards — tap to open drawer with full embed */}
         {tiktokVideos.map((video) => (
-          <div
+          <button
             key={video.videoId}
-            className="flex-shrink-0 snap-start rounded-xl overflow-hidden bg-foreground/10 relative"
-            style={{ width: '128px', height: '192px', touchAction: 'pan-x' }}
+            onClick={() => setActiveVideo(video)}
+            className="flex-shrink-0 relative group cursor-pointer snap-start"
           >
-            {/* Block vertical scroll inside iframe */}
-            <div 
-              className="absolute inset-0 z-10" 
-              style={{ pointerEvents: 'none' }}
-              onTouchMove={(e) => e.preventDefault()}
-            />
-            {/* Clip top (share icons ~40px) and bottom (related ~60px) at scaled size */}
-            <div style={{ 
-              width: '325px', 
-              height: '400px',
-              transform: 'scale(0.394)', 
-              transformOrigin: 'top left',
-              marginTop: '-16px',
-              overflow: 'hidden'
-            }}>
-              <iframe
-                src={`https://www.tiktok.com/embed/v2/${video.videoId}?hide_share=1`}
-                className="border-0"
-                style={{ width: '325px', height: '550px', marginTop: '-40px' }}
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                scrolling="no"
-                sandbox="allow-scripts allow-same-origin allow-popups"
-              />
+            <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-foreground/90 to-foreground/70 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative")}>
+              {/* TikTok logo accent */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#25F4EE] via-[#FE2C55] to-[#25F4EE]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+              
+              <div className="relative z-10 w-12 h-12 rounded-full bg-[#FE2C55] flex items-center justify-center shadow-lg">
+                <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+              </div>
+              <div className="relative z-10 text-center px-2">
+                <p className="text-white font-bold text-xs">TikTok</p>
+                <p className="text-white/70 text-[10px] truncate max-w-[100px]">
+                  @{video.author || 'Watch'}
+                </p>
+              </div>
             </div>
-          </div>
+          </button>
         ))}
 
         {/* TikTok search — only if no specific videos */}
@@ -124,6 +117,43 @@ export const SocialVideoEmbed = ({
           </div>
         </button>
       </div>
+
+      {/* Bottom sheet drawer for full TikTok video playback */}
+      <Drawer open={!!activeVideo} onOpenChange={(open) => !open && setActiveVideo(null)}>
+        <DrawerContent className="max-h-[85vh]">
+          <div className="flex items-center justify-between px-4 pt-2 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-foreground flex items-center justify-center">
+                <Play className="w-3 h-3 text-background fill-background ml-0.5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">TikTok</p>
+                {activeVideo?.author && (
+                  <p className="text-xs text-muted-foreground">@{activeVideo.author}</p>
+                )}
+              </div>
+            </div>
+            <button 
+              onClick={() => setActiveVideo(null)}
+              className="p-1.5 rounded-full bg-muted hover:bg-muted/80"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+          {activeVideo && (
+            <div className="w-full flex justify-center px-4 pb-6">
+              <iframe
+                src={`https://www.tiktok.com/embed/v2/${activeVideo.videoId}`}
+                className="border-0 rounded-xl"
+                style={{ width: '100%', maxWidth: '340px', height: '600px' }}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                sandbox="allow-scripts allow-same-origin allow-popups"
+              />
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
