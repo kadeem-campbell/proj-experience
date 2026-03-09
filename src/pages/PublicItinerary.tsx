@@ -784,17 +784,19 @@ const PublicItinerary = () => {
 
                     {/* Fixed bottom action */}
                     <div className="px-4 pb-4 pt-2 border-t">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleToggleItinerary(experience, e as any);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4 mr-3" />
-                        Remove from itinerary
-                      </Button>
+                      <DrawerClose asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleToggleItinerary(experience, e as any);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 mr-3" />
+                          Remove from itinerary
+                        </Button>
+                      </DrawerClose>
                     </div>
                   </div>
                 </DrawerContent>
