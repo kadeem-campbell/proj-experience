@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, X, Layers, Heart } from "lucide-react";
+import { Search, X, Layers, Heart, MapPin, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { cn } from "@/lib/utils";
+import { useUserLikes } from "@/hooks/useUserLikes";
+import { useAuth } from "@/hooks/useAuth";
+import { ItinerarySelector } from "@/components/ItinerarySelector";
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -37,6 +40,146 @@ const termMatch = (term: string, field: string) => {
   return field.split(" ").some(w => w.startsWith(term) || (s.length > 2 && w.startsWith(s)));
 };
 
+// Horizontal scroll row for search results
+const SearchHorizontalRow = ({ title, variant = "default", children }: {
+  title: string;
+  variant?: "itinerary" | "experience" | "default";
+  children: React.ReactNode;
+}) => {
+  const chevronColor = variant === "itinerary" ? "text-itinerary-color" : variant === "experience" ? "text-experience-color" : "text-muted-foreground";
+  return (
+    <div className="py-3">
+      <div className="mb-2 flex items-center gap-1.5 px-4">
+        <h2 className="text-[15px] font-bold text-foreground">{title}</h2>
+        <span className={cn("text-lg font-semibold", chevronColor)}>›</span>
+      </div>
+      <div
+        className="overflow-x-auto scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="inline-flex gap-3 snap-x snap-mandatory px-4">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Itinerary card for search results
+const SearchItineraryCard = ({ itinerary, onNavigate }: { itinerary: any; onNavigate: () => void }) => {
+  const [localLiked, setLocalLiked] = useState(false);
+  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
+  const { isAuthenticated } = useAuth();
+
+  const liked = isAuthenticated ? isDbLiked(itinerary.id, 'itinerary') : localLiked;
+  const experienceCount = itinerary.experiences?.length || 0;
+  const coverImage = itinerary.coverImage || itinerary.experiences?.[0]?.videoThumbnail;
+
+  const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if ('vibrate' in navigator) navigator.vibrate(10);
+    if (isAuthenticated) {
+      await toggleDbLike(itinerary.id, 'itinerary', {
+        id: itinerary.id, name: itinerary.name, coverImage: itinerary.coverImage,
+        creatorName: itinerary.creatorName, experiences: itinerary.experiences?.slice(0, 3)
+      });
+    } else {
+      setLocalLiked(!localLiked);
+    }
+  };
+
+  return (
+    <div className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+        {coverImage ? (
+          <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-itinerary-color/20 to-itinerary-color/5 flex items-center justify-center">
+            <Layers className="w-8 h-8 text-itinerary-color/40" />
+          </div>
+        )}
+        <button onClick={handleLikeClick} className={cn(
+          "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90",
+          liked ? "bg-experience-color/20" : "bg-white/80"
+        )}>
+          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-foreground")} />
+        </button>
+        <div className="absolute top-2 left-2 px-2 py-1 rounded-full backdrop-blur-xl shadow-sm flex items-center gap-1 bg-white/80">
+          <Layers className="w-3 h-3 text-foreground" />
+          <span className="text-xs font-medium text-foreground">{experienceCount}</span>
+        </div>
+      </div>
+      <div className="mt-2 space-y-0.5">
+        <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
+        <p className="text-xs text-muted-foreground truncate">{itinerary.creatorName || 'Local Creator'}</p>
+      </div>
+    </div>
+  );
+};
+
+// Experience card for search results
+const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onNavigate: () => void }) => {
+  const [localLiked, setLocalLiked] = useState(false);
+  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
+  const { isAuthenticated } = useAuth();
+
+  const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked;
+
+  const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if ('vibrate' in navigator) navigator.vibrate(10);
+    if (isAuthenticated) {
+      await toggleDbLike(experience.id, 'experience', {
+        id: experience.id, title: experience.title,
+        videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category
+      });
+    } else {
+      setLocalLiked(!localLiked);
+    }
+  };
+
+  return (
+    <div className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+        {experience.videoThumbnail ? (
+          <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-experience-color/20 to-experience-color/5" />
+        )}
+        <button onClick={handleLikeClick} className={cn(
+          "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90",
+          liked ? "bg-experience-color/20" : "bg-white/80"
+        )}>
+          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-foreground")} />
+        </button>
+        <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <ItinerarySelector
+            experienceId={experience.id}
+            experienceData={{
+              id: experience.id, title: experience.title, creator: experience.creator || '',
+              videoThumbnail: experience.videoThumbnail || '', category: experience.category || '',
+              location: experience.location || '', price: experience.price || '',
+            }}
+          >
+            <button className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm bg-white/80 active:scale-90">
+              <Plus className="w-4 h-4 text-foreground" />
+            </button>
+          </ItinerarySelector>
+        </div>
+      </div>
+      <div className="mt-2 space-y-0.5">
+        <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <MapPin className="w-3 h-3" />
+          <span className="truncate">{experience.location}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const MobileSearchOverlay = ({
   isOpen,
   onClose,
@@ -54,9 +197,7 @@ export const MobileSearchOverlay = ({
       document.body.style.position = 'fixed';
       document.body.style.inset = '0';
       document.body.style.width = '100%';
-      const handleKey = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') onClose();
-      };
+      const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
       window.addEventListener('keydown', handleKey);
       return () => {
         document.body.style.overflow = '';
@@ -92,7 +233,6 @@ export const MobileSearchOverlay = ({
     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
   };
 
-  // Live filtered results as user types
   const q = normalize(searchQuery);
   const terms = q.split(" ").filter(t => t.length > 1);
   const hasQuery = terms.length > 0;
@@ -102,7 +242,7 @@ export const MobileSearchOverlay = ({
     return allExpsData.filter(e => {
       const fields = normalize([e.title, e.location, e.category, e.creator].join(" "));
       return terms.some(t => termMatch(t, fields));
-    }).slice(0, 6);
+    }).slice(0, 12);
   }, [q]);
 
   const liveItineraries = useMemo(() => {
@@ -114,8 +254,18 @@ export const MobileSearchOverlay = ({
         return terms.some(t => termMatch(t, ef));
       });
       return terms.some(t => termMatch(t, fields)) || expMatch;
-    }).slice(0, 4);
+    }).slice(0, 8);
   }, [q]);
+
+  // More from the same category as top result
+  const relatedExperiences = useMemo(() => {
+    if (!hasQuery || liveExperiences.length === 0) return [];
+    const firstCategory = liveExperiences[0]?.category;
+    if (!firstCategory) return [];
+    return allExpsData
+      .filter(e => e.category === firstCategory && !liveExperiences.find(le => le.id === e.id))
+      .slice(0, 10);
+  }, [liveExperiences, hasQuery]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,12 +292,18 @@ export const MobileSearchOverlay = ({
     localStorage.removeItem(RECENT_SEARCHES_KEY);
   };
 
+  const handleNavigate = (path: string) => {
+    addToRecentSearches(searchQuery);
+    onClose();
+    navigate(path);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150 overflow-hidden touch-none">
-      {/* Search input */}
-      <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3">
+    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150">
+      {/* Search input - always fixed at top */}
+      <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3 shrink-0">
         <form onSubmit={handleSubmit}>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -162,19 +318,11 @@ export const MobileSearchOverlay = ({
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
               {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => onSearchChange("")}
-                  className="p-2 rounded-full hover:bg-muted"
-                >
+                <button type="button" onClick={() => onSearchChange("")} className="p-2 rounded-full hover:bg-muted">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={onClose}
-                className="text-sm font-medium text-primary px-2 py-1"
-              >
+              <button type="button" onClick={onClose} className="text-sm font-medium text-primary px-2 py-1">
                 Cancel
               </button>
             </div>
@@ -182,101 +330,82 @@ export const MobileSearchOverlay = ({
         </form>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-hidden px-4">
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         {hasQuery ? (
           <>
-            {/* Live experience results */}
-            {liveExperiences.length > 0 && (
-              <div className="mb-5">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Experiences</h3>
-                <div className="space-y-1">
-                  {liveExperiences.map(exp => (
-                    <button
-                      key={exp.id}
-                      onClick={() => { addToRecentSearches(searchQuery); onClose(); navigate(`/experience/${exp.id}`); }}
-                      className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
-                    >
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted shrink-0">
-                        <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{exp.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{exp.location} · {exp.category}</p>
-                      </div>
-                      <span className="text-xs font-semibold text-foreground shrink-0">{exp.price}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Featured Itineraries row */}
+            {liveItineraries.length > 0 && (
+              <SearchHorizontalRow title="Featured Itineraries" variant="itinerary">
+                {liveItineraries.map(it => (
+                  <SearchItineraryCard
+                    key={it.id}
+                    itinerary={it}
+                    onNavigate={() => handleNavigate(`/itineraries/${it.id}`)}
+                  />
+                ))}
+              </SearchHorizontalRow>
             )}
 
-            {/* Live itinerary results */}
-            {liveItineraries.length > 0 && (
-              <div className="mb-5">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Itineraries</h3>
-                <div className="space-y-1">
-                  {liveItineraries.map(it => (
-                    <button
-                      key={it.id}
-                      onClick={() => { addToRecentSearches(searchQuery); onClose(); navigate(`/itineraries/${it.id}`); }}
-                      className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
-                    >
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-                        {it.coverImage || it.experiences?.[0]?.videoThumbnail ? (
-                          <img src={it.coverImage || it.experiences?.[0]?.videoThumbnail} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <Layers className="w-5 h-5 text-muted-foreground/40" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{it.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {it.creatorName} · {it.experiences?.length || 0} experiences
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Featured Experiences row */}
+            {liveExperiences.length > 0 && (
+              <SearchHorizontalRow title="Featured Experiences" variant="experience">
+                {liveExperiences.map(exp => (
+                  <SearchExperienceCard
+                    key={exp.id}
+                    experience={exp}
+                    onNavigate={() => handleNavigate(`/experience/${exp.id}`)}
+                  />
+                ))}
+              </SearchHorizontalRow>
+            )}
+
+            {/* Related - more from same category */}
+            {relatedExperiences.length > 0 && (
+              <SearchHorizontalRow title={`More ${liveExperiences[0]?.category || 'Like This'}`} variant="experience">
+                {relatedExperiences.map(exp => (
+                  <SearchExperienceCard
+                    key={exp.id}
+                    experience={exp}
+                    onNavigate={() => handleNavigate(`/experience/${exp.id}`)}
+                  />
+                ))}
+              </SearchHorizontalRow>
             )}
 
             {liveExperiences.length === 0 && liveItineraries.length === 0 && (
-              <div className="text-center py-12">
+              <div className="text-center py-12 px-4">
                 <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">No results for "{searchQuery}"</p>
               </div>
             )}
 
-            {/* Press enter hint */}
             {(liveExperiences.length > 0 || liveItineraries.length > 0) && (
-              <button
-                onClick={() => {
-                  if (searchQuery.trim()) {
-                    addToRecentSearches(searchQuery);
-                    onSearch(searchQuery);
-                    window.scrollTo({ top: 0 });
-                    document.querySelector('main')?.scrollTo({ top: 0 });
-                    onClose();
-                  }
-                }}
-                className="w-full py-3 text-center text-sm font-medium text-primary"
-              >
-                See all results for "{searchQuery}"
-              </button>
+              <div className="px-4 pb-6 pt-2">
+                <button
+                  onClick={() => {
+                    if (searchQuery.trim()) {
+                      addToRecentSearches(searchQuery);
+                      onSearch(searchQuery);
+                      window.scrollTo({ top: 0 });
+                      document.querySelector('main')?.scrollTo({ top: 0 });
+                      onClose();
+                    }
+                  }}
+                  className="w-full py-3 text-center text-sm font-medium text-primary"
+                >
+                  See all results for "{searchQuery}"
+                </button>
+              </div>
             )}
           </>
         ) : (
-          <>
-            {/* Your history */}
+          <div className="px-4">
             {recentSearches.length > 0 && (
               <div className="mt-3 mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-base font-bold text-foreground">Your history</h3>
-                  <button
-                    onClick={clearRecentSearches}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
+                  <button onClick={clearRecentSearches} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                     Clear
                   </button>
                 </div>
@@ -294,7 +423,6 @@ export const MobileSearchOverlay = ({
               </div>
             )}
 
-            {/* Search by category */}
             <div className="mb-6">
               <h3 className="text-base font-bold text-foreground mb-3">Search by category</h3>
               <div className="grid grid-cols-3 gap-2">
@@ -310,7 +438,7 @@ export const MobileSearchOverlay = ({
                 ))}
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
