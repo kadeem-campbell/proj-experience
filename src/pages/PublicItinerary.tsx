@@ -20,6 +20,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -655,6 +662,248 @@ const PublicItinerary = () => {
     });
   };
 
+  // Render trip selector content (shared between Dialog and Sheet)
+  const renderTripSelectorContent = () => {
+    if (!showNewTripDatePicker) {
+      const parentItineraryName = itinerary?.name || "My Saved Trips";
+      const currentSavedItinerary = itineraries.find(i => i.name === parentItineraryName);
+      const trips = currentSavedItinerary?.trips || [];
+
+      return (
+        <div className="space-y-3 py-3">
+          {trips.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your saved trips</p>
+              {trips.map((trip: any, idx: number) => (
+                <button
+                  key={trip.id || idx}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
+                    activeTripId === trip.id
+                      ? "bg-primary/10 border-primary/30"
+                      : "bg-muted/30 border-border hover:bg-muted/50"
+                  )}
+                  onClick={() => {
+                    if (trip.experiences && trip.startDate) {
+                      const tripDays: Record<string, LikedExperience[]> = {};
+                      trip.experiences.forEach((exp: LikedExperience) => {
+                        if (exp.scheduledTime) {
+                          const dayKey = format(new Date(exp.scheduledTime), "yyyy-MM-dd");
+                          if (!tripDays[dayKey]) tripDays[dayKey] = [];
+                          tripDays[dayKey].push(exp);
+                        }
+                      });
+                      setGeneratedTrip(tripDays);
+                      setTripStartDate(new Date(trip.startDate));
+                      setTripEndDate(trip.endDate ? new Date(trip.endDate) : undefined);
+                      setActiveTripMode(true);
+                      setActiveTripId(trip.id);
+                      setHasUnsavedChanges(false);
+                      setShowTripSelectorSheet(false);
+                    }
+                  }}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <CalendarIcon className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{trip.name || `Trip ${idx + 1}`}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {trip.startDate && format(new Date(trip.startDate), "MMM d")}
+                      {trip.endDate && ` – ${format(new Date(trip.endDate), "MMM d")}`}
+                      {trip.experiences && ` · ${trip.experiences.length} experiences`}
+                    </p>
+                  </div>
+                  {activeTripId === trip.id && (
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
+            onClick={() => {
+              setActiveTripId(null);
+              setTripName("");
+              setShowNewTripDatePicker(true);
+            }}
+          >
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Plus className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-sm text-primary">New Trip</p>
+              <p className="text-xs text-muted-foreground">Auto-assign experiences to dates</p>
+            </div>
+          </button>
+
+          {activeTripMode && (
+            <Button 
+              variant="outline" 
+              className="w-full mt-2"
+              onClick={() => {
+                handleExitTripMode();
+                setShowTripSelectorSheet(false);
+              }}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Exit Trip Mode
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center py-3 w-full">
+        <div className="w-full overflow-x-auto flex justify-center pb-2">
+          <Calendar
+            mode="range"
+            selected={{ from: tripStartDate, to: tripEndDate }}
+            onSelect={(range) => {
+              setTripStartDate(range?.from);
+              setTripEndDate(range?.to);
+            }}
+            disabled={(date) => date < new Date()}
+            className="pointer-events-auto"
+            numberOfMonths={isMobile ? 1 : 2}
+          />
+        </div>
+        
+        <div className="w-full space-y-3 mt-4 px-2">
+          {tripStartDate && tripEndDate && (
+            <p className="text-sm text-center text-muted-foreground">
+              {format(tripStartDate, "MMM d")} – {format(tripEndDate, "MMM d, yyyy")}
+            </p>
+          )}
+          {tripStartDate && !tripEndDate && (
+            <p className="text-sm text-center text-muted-foreground">
+              Select an end date, or use a single day
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2 justify-center">
+            {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
+              <div key={slot} className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/50 rounded-full px-2.5 py-1">
+                <span>{timeSlotConfig[slot].emoji}</span>
+                <span>{timeSlotConfig[slot].label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowNewTripDatePicker(false)}
+            >
+              Back
+            </Button>
+            <Button 
+              className="flex-1 gap-2"
+              disabled={!tripStartDate}
+              onClick={() => {
+                if (tripStartDate) {
+                  generateTrip(tripStartDate, tripEndDate || tripStartDate);
+                }
+              }}
+            >
+              <Sparkles className="w-4 h-4" />
+              {tripStartDate && !tripEndDate 
+                ? `Generate for ${format(tripStartDate, "MMM d")}` 
+                : tripStartDate && tripEndDate 
+                  ? "Generate Trip" 
+                  : "Select dates"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render invite content (shared between Dialog and Sheet)
+  const renderInviteContent = () => (
+    <div className="space-y-4 py-4">
+      <div className="flex gap-2">
+        <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+          <Mail className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+          <Input
+            type="email"
+            placeholder="friend@email.com"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && inviteEmail.trim()) {
+                handleShare();
+                toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
+                setInviteEmail("");
+              }
+            }}
+          />
+        </div>
+        <Button
+          disabled={!inviteEmail.trim()}
+          onClick={() => {
+            handleShare();
+            toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
+            setInviteEmail("");
+          }}
+        >
+          <Send className="w-4 h-4" />
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1 gap-2" onClick={handleShare}>
+          <Copy className="w-4 h-4" />
+          Copy Link
+        </Button>
+        <Button variant="outline" className="flex-1 gap-2" onClick={handleShareWhatsApp}>
+          <MessageCircle className="w-4 h-4" />
+          WhatsApp
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Render collaborator content (shared between Dialog and Sheet)
+  const renderCollaboratorContent = () => (
+    <div className="space-y-4 py-4">
+      <div className="flex gap-2">
+        <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+          <UserPlus className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+          <Input
+            type="email"
+            placeholder="collaborator@email.com"
+            value={collaboratorEmail}
+            onChange={(e) => setCollaboratorEmail(e.target.value)}
+            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && collaboratorEmail.trim()) {
+                toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
+                setCollaboratorEmail("");
+              }
+            }}
+          />
+        </div>
+        <Button
+          disabled={!collaboratorEmail.trim()}
+          onClick={() => {
+            toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
+            setCollaboratorEmail("");
+          }}
+        >
+          <UserPlus className="w-4 h-4" />
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Collaborators can add experiences, edit the schedule, and help plan the trip.
+      </p>
+    </div>
+  );
+
   // Render experience card
   const renderExperienceCard = (experience: LikedExperience) => {
     const liked = isItemLiked(experience.id, 'experience');
@@ -727,155 +976,144 @@ const PublicItinerary = () => {
               />
             </button>
 
-            {/* More options: move to other itinerary, pin, remove */}
+            {/* More options: Dropdown on desktop, Drawer on mobile */}
             {!activeTripMode && (
-              <Drawer>
-                <DrawerTrigger asChild>
-                  <button
-                    type="button"
-                    data-card-action="true"
-                    onPointerDown={(e) => {
-                      // Stop the card navigation from stealing the tap on mobile
-                      e.stopPropagation();
-                    }}
-                    onClick={(e) => {
-                      // IMPORTANT: don't call preventDefault() here — Radix/Vaul won't open the drawer
-                      // when the event is defaultPrevented.
-                      e.stopPropagation();
-                    }}
-                    className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
-                    aria-label="Open actions"
-                  >
-                    <MoreHorizontal className="w-4 h-4 text-foreground/80" />
-                  </button>
-                </DrawerTrigger>
-                <DrawerContent onClick={(e) => e.stopPropagation()}>
-                  <DrawerHeader className="sr-only">
-                    <DrawerTitle>Experience actions</DrawerTitle>
-                  </DrawerHeader>
-                  <div className="flex flex-col h-[50vh]">
-                    {/* Fixed top action */}
-                    <div className="px-4 pt-2">
-                      {(() => {
-                        const isPinned = pinnedIds.has(experience.id);
-                        const pinnedCount = pinnedIds.size;
-                        return (
-                          <DrawerClose asChild>
-                            <Button
-                              variant="ghost"
-                              className={cn(
-                                "w-full justify-start font-normal h-12",
-                                isPinned && "text-primary"
-                              )}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (isPinned) {
-                                  // Already pinned, do nothing (or could unpin)
-                                  return;
-                                }
-                                const src = orderedExperiences || itinerary.experiences;
-                                const idx = src.findIndex(ex => ex.id === experience.id);
-
-                                if (idx === -1) {
-                                  toast({ title: "Couldn't pin this item", description: "Please try again." });
-                                  return;
-                                }
-
-                                if (idx === 0) {
-                                  // Mark as pinned even if already at top
-                                  setPinnedIds(prev => new Set(prev).add(experience.id));
-                                  toast({ title: "Pinned to top" });
-                                  return;
-                                }
-
-                                const reordered = [...src];
-                                const [item] = reordered.splice(idx, 1);
-                                reordered.unshift(item);
-                                setOrderedExperiences(reordered);
-                                setPinnedIds(prev => new Set(prev).add(experience.id));
-                                toast({ title: `"${experience.title}" pinned to top` });
-                              }}
-                            >
-                              <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
-                              {isPinned ? (
-                                <span>Pinned ({pinnedCount})</span>
-                              ) : (
-                                <span>Pin to top</span>
-                              )}
-                            </Button>
-                          </DrawerClose>
-                        );
-                      })()}
-                    </div>
-
-                    {/* Scrollable itinerary list */}
-                    <div className="px-4 py-3 text-sm font-semibold text-muted-foreground border-t mt-1">
-                      Copy to another itinerary
-                    </div>
-                    <div className="flex-1 overflow-y-auto px-4 min-h-0">
-                      {itineraries.map((itin) => {
-                        const isInThis = itin.experiences.some(e => e.id === experience.id);
-                        return (
-                          <DrawerClose asChild key={itin.id}>
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-between font-normal h-12"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleAddToSpecificItinerary(experience, itin.id, itin.name);
-                              }}
-                            >
-                              <span className="truncate">{itin.name}</span>
-                              {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
-                            </Button>
-                          </DrawerClose>
-                        );
-                      })}
-                      {showNewItineraryInput === experience.id ? (
-                        <div className="py-3 flex gap-2 w-full mt-1" onClick={(e) => e.stopPropagation()}>
-                          <Input
-                            placeholder="Itinerary name..."
-                            value={newItineraryName}
-                            onChange={(e) => setNewItineraryName(e.target.value)}
-                            className="h-11 text-sm flex-1"
-                            autoFocus
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }}
-                          />
-                          <Button className="h-11 px-6" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>
-                            Add
+              isMobile ? (
+                <Drawer>
+                  <DrawerTrigger asChild>
+                    <button
+                      type="button"
+                      data-card-action="true"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
+                      aria-label="Open actions"
+                    >
+                      <MoreHorizontal className="w-4 h-4 text-foreground/80" />
+                    </button>
+                  </DrawerTrigger>
+                  <DrawerContent onClick={(e) => e.stopPropagation()}>
+                    <DrawerHeader className="sr-only">
+                      <DrawerTitle>Experience actions</DrawerTitle>
+                    </DrawerHeader>
+                    <div className="flex flex-col h-[50vh]">
+                      <div className="px-4 pt-2">
+                        {(() => {
+                          const isPinned = pinnedIds.has(experience.id);
+                          const pinnedCount = pinnedIds.size;
+                          return (
+                            <DrawerClose asChild>
+                              <Button
+                                variant="ghost"
+                                className={cn("w-full justify-start font-normal h-12", isPinned && "text-primary")}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (isPinned) return;
+                                  const src = orderedExperiences || itinerary.experiences;
+                                  const idx = src.findIndex(ex => ex.id === experience.id);
+                                  if (idx === -1) { toast({ title: "Couldn't pin this item" }); return; }
+                                  if (idx === 0) { setPinnedIds(prev => new Set(prev).add(experience.id)); toast({ title: "Pinned to top" }); return; }
+                                  const reordered = [...src]; const [item] = reordered.splice(idx, 1); reordered.unshift(item);
+                                  setOrderedExperiences(reordered); setPinnedIds(prev => new Set(prev).add(experience.id));
+                                  toast({ title: `"${experience.title}" pinned to top` });
+                                }}
+                              >
+                                <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
+                                {isPinned ? <span>Pinned ({pinnedCount})</span> : <span>Pin to top</span>}
+                              </Button>
+                            </DrawerClose>
+                          );
+                        })()}
+                      </div>
+                      <div className="px-4 py-3 text-sm font-semibold text-muted-foreground border-t mt-1">Copy to another itinerary</div>
+                      <div className="flex-1 overflow-y-auto px-4 min-h-0">
+                        {itineraries.map((itin) => {
+                          const isInThis = itin.experiences.some(e => e.id === experience.id);
+                          return (
+                            <DrawerClose asChild key={itin.id}>
+                              <Button variant="ghost" className="w-full justify-between font-normal h-12" onClick={(e) => { e.preventDefault(); handleAddToSpecificItinerary(experience, itin.id, itin.name); }}>
+                                <span className="truncate">{itin.name}</span>
+                                {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                              </Button>
+                            </DrawerClose>
+                          );
+                        })}
+                        {showNewItineraryInput === experience.id ? (
+                          <div className="py-3 flex gap-2 w-full mt-1" onClick={(e) => e.stopPropagation()}>
+                            <Input placeholder="Itinerary name..." value={newItineraryName} onChange={(e) => setNewItineraryName(e.target.value)} className="h-11 text-sm flex-1" autoFocus onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }} />
+                            <Button className="h-11 px-6" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>Add</Button>
+                          </div>
+                        ) : (
+                          <Button variant="ghost" className="w-full justify-start font-normal h-12 mt-1" onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}>
+                            <ListPlus className="w-4 h-4 mr-3" />New Itinerary
                           </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start font-normal h-12 mt-1"
-                          onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}
-                        >
-                          <ListPlus className="w-4 h-4 mr-3" />
-                          New Itinerary
-                        </Button>
-                      )}
+                        )}
+                      </div>
+                      <div className="px-4 pb-4 pt-2 border-t">
+                        <DrawerClose asChild>
+                          <Button variant="ghost" className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={(e) => { e.preventDefault(); handleToggleItinerary(experience, e as any); }}>
+                            <Trash2 className="w-4 h-4 mr-3" />Remove from itinerary
+                          </Button>
+                        </DrawerClose>
+                      </div>
                     </div>
-
-                    {/* Fixed bottom action */}
-                    <div className="px-4 pb-4 pt-2 border-t">
-                      <DrawerClose asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  </DrawerContent>
+                </Drawer>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      data-card-action="true"
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200"
+                      aria-label="Open actions"
+                    >
+                      <MoreHorizontal className="w-4 h-4 text-foreground/80" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
+                    {(() => {
+                      const isPinned = pinnedIds.has(experience.id);
+                      return (
+                        <DropdownMenuItem
                           onClick={(e) => {
                             e.preventDefault();
-                            handleToggleItinerary(experience, e as any);
+                            if (isPinned) return;
+                            const src = orderedExperiences || itinerary.experiences;
+                            const idx = src.findIndex(ex => ex.id === experience.id);
+                            if (idx === -1) { toast({ title: "Couldn't pin this item" }); return; }
+                            if (idx === 0) { setPinnedIds(prev => new Set(prev).add(experience.id)); toast({ title: "Pinned to top" }); return; }
+                            const reordered = [...src]; const [item] = reordered.splice(idx, 1); reordered.unshift(item);
+                            setOrderedExperiences(reordered); setPinnedIds(prev => new Set(prev).add(experience.id));
+                            toast({ title: `"${experience.title}" pinned to top` });
                           }}
+                          className={cn(isPinned && "text-primary")}
                         >
-                          <Trash2 className="w-4 h-4 mr-3" />
-                          Remove from itinerary
-                        </Button>
-                      </DrawerClose>
-                    </div>
-                  </div>
-                </DrawerContent>
-              </Drawer>
+                          <ArrowLeft className="w-4 h-4 rotate-90 mr-2" />
+                          {isPinned ? "Pinned" : "Pin to top"}
+                        </DropdownMenuItem>
+                      );
+                    })()}
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Copy to itinerary</div>
+                    {itineraries.slice(0, 5).map((itin) => {
+                      const isInThis = itin.experiences.some(e => e.id === experience.id);
+                      return (
+                        <DropdownMenuItem key={itin.id} onClick={(e) => { e.preventDefault(); handleAddToSpecificItinerary(experience, itin.id, itin.name); }}>
+                          <span className="truncate flex-1">{itin.name}</span>
+                          {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.preventDefault(); handleToggleItinerary(experience, e as any); }}>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )
             )}
 
             {/* Trip mode: date/time badge at bottom of image */}
@@ -1246,284 +1484,100 @@ const PublicItinerary = () => {
         />
 
 
-        {/* Trip Selector Sheet */}
-        <Sheet open={showTripSelectorSheet} onOpenChange={setShowTripSelectorSheet}>
-          <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[90vh] overflow-y-auto">
-            <SheetHeader className="pb-3">
-              <SheetTitle className="flex items-center gap-2">
-                <Rocket className="w-5 h-5 text-primary" />
-                {showNewTripDatePicker ? "Select dates" : "Trip"}
-              </SheetTitle>
-              <SheetDescription>
-                {showNewTripDatePicker 
-                  ? "Pick your travel dates — experiences will be auto-assigned based on their time of day" 
-                  : "View existing trips or create a new one"}
-              </SheetDescription>
-            </SheetHeader>
-            
-            {!showNewTripDatePicker ? (
-              <div className="space-y-3 py-3">
-                {/* Existing trips from THIS itinerary only */}
-                {(() => {
-                  const parentItineraryName = itinerary?.name || "My Saved Trips";
-                  const currentSavedItinerary = itineraries.find(i => i.name === parentItineraryName);
-                  const trips = currentSavedItinerary?.trips || [];
+        {/* Trip Selector - Dialog on desktop, Sheet on mobile */}
+        {isMobile ? (
+          <Sheet open={showTripSelectorSheet} onOpenChange={setShowTripSelectorSheet}>
+            <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[90vh] overflow-y-auto">
+              <SheetHeader className="pb-3">
+                <SheetTitle className="flex items-center gap-2">
+                  <Rocket className="w-5 h-5 text-primary" />
+                  {showNewTripDatePicker ? "Select dates" : "Trip"}
+                </SheetTitle>
+                <SheetDescription>
+                  {showNewTripDatePicker 
+                    ? "Pick your travel dates — experiences will be auto-assigned based on their time of day" 
+                    : "View existing trips or create a new one"}
+                </SheetDescription>
+              </SheetHeader>
+              {renderTripSelectorContent()}
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <Dialog open={showTripSelectorSheet} onOpenChange={setShowTripSelectorSheet}>
+            <DialogContent className="sm:max-w-lg bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Rocket className="w-5 h-5 text-primary" />
+                  {showNewTripDatePicker ? "Select dates" : "Trip"}
+                </DialogTitle>
+                <DialogDescription>
+                  {showNewTripDatePicker 
+                    ? "Pick your travel dates — experiences will be auto-assigned based on their time of day" 
+                    : "View existing trips or create a new one"}
+                </DialogDescription>
+              </DialogHeader>
+              {renderTripSelectorContent()}
+            </DialogContent>
+          </Dialog>
+        )}
 
-                  if (trips.length === 0) return null;
+        {/* Invite Friends - Dialog on desktop, Sheet on mobile */}
+        {isMobile ? (
+          <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
+            <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[60vh]">
+              <SheetHeader className="pb-2">
+                <SheetTitle className="flex items-center gap-2">
+                  <Send className="w-5 h-5 text-primary" />
+                  Invite Friends
+                </SheetTitle>
+                <SheetDescription>Share this itinerary with friends via email</SheetDescription>
+              </SheetHeader>
+              {renderInviteContent()}
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <Dialog open={showInviteSheet} onOpenChange={setShowInviteSheet}>
+            <DialogContent className="sm:max-w-md bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Send className="w-5 h-5 text-primary" />
+                  Invite Friends
+                </DialogTitle>
+                <DialogDescription>Share this itinerary with friends via email</DialogDescription>
+              </DialogHeader>
+              {renderInviteContent()}
+            </DialogContent>
+          </Dialog>
+        )}
 
-                  return (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your saved trips</p>
-                      {trips.map((trip: any, idx: number) => (
-                        <button
-                          key={trip.id || idx}
-                          className={cn(
-                            "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
-                            activeTripId === trip.id
-                              ? "bg-primary/10 border-primary/30"
-                              : "bg-muted/30 border-border hover:bg-muted/50"
-                          )}
-                          onClick={() => {
-                            // Load this trip's schedule
-                            if (trip.experiences && trip.startDate) {
-                              const tripDays: Record<string, LikedExperience[]> = {};
-                              trip.experiences.forEach((exp: LikedExperience) => {
-                                if (exp.scheduledTime) {
-                                  const dayKey = format(new Date(exp.scheduledTime), "yyyy-MM-dd");
-                                  if (!tripDays[dayKey]) tripDays[dayKey] = [];
-                                  tripDays[dayKey].push(exp);
-                                }
-                              });
-                              setGeneratedTrip(tripDays);
-                              setTripStartDate(new Date(trip.startDate));
-                              setTripEndDate(trip.endDate ? new Date(trip.endDate) : undefined);
-                              setActiveTripMode(true);
-                              setActiveTripId(trip.id);
-                              setHasUnsavedChanges(false);
-                              setShowTripSelectorSheet(false);
-                            }
-                          }}
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <CalendarIcon className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{trip.name || `Trip ${idx + 1}`}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {trip.startDate && format(new Date(trip.startDate), "MMM d")}
-                              {trip.endDate && ` – ${format(new Date(trip.endDate), "MMM d")}`}
-                              {trip.experiences && ` · ${trip.experiences.length} experiences`}
-                            </p>
-                          </div>
-                          {activeTripId === trip.id && (
-                            <Check className="w-4 h-4 text-primary shrink-0" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  );
-                })()}
-
-                {/* New trip button */}
-                <button
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
-                  onClick={() => {
-                    setActiveTripId(null);
-                    setTripName("");
-                    setShowNewTripDatePicker(true);
-                  }}
-                >
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Plus className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm text-primary">New Trip</p>
-                    <p className="text-xs text-muted-foreground">Auto-assign experiences to dates</p>
-                  </div>
-                </button>
-
-                {/* If already in trip mode, option to exit */}
-                {activeTripMode && (
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-2"
-                    onClick={() => {
-                      handleExitTripMode();
-                      setShowTripSelectorSheet(false);
-                    }}
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Exit Trip Mode
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center py-3 w-full">
-                <div className="w-full overflow-x-auto flex justify-center pb-2">
-                  <Calendar
-                    mode="range"
-                    selected={{ from: tripStartDate, to: tripEndDate }}
-                    onSelect={(range) => {
-                      setTripStartDate(range?.from);
-                      setTripEndDate(range?.to);
-                    }}
-                    disabled={(date) => date < new Date()}
-                    className="pointer-events-auto"
-                    numberOfMonths={isMobile ? 1 : 2}
-                  />
-                </div>
-                
-                <div className="w-full space-y-3 mt-4 px-2">
-                  {tripStartDate && tripEndDate && (
-                    <p className="text-sm text-center text-muted-foreground">
-                      {format(tripStartDate, "MMM d")} – {format(tripEndDate, "MMM d, yyyy")}
-                    </p>
-                  )}
-                  {tripStartDate && !tripEndDate && (
-                    <p className="text-sm text-center text-muted-foreground">
-                      Select an end date, or use a single day
-                    </p>
-                  )}
-
-                  {/* Time slot legend */}
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
-                      <div key={slot} className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/50 rounded-full px-2.5 py-1">
-                        <span>{timeSlotConfig[slot].emoji}</span>
-                        <span>{timeSlotConfig[slot].label}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setShowNewTripDatePicker(false)}
-                    >
-                      Back
-                    </Button>
-                    <Button 
-                      className="flex-1 gap-2"
-                      disabled={!tripStartDate}
-                      onClick={() => {
-                        if (tripStartDate) {
-                          generateTrip(tripStartDate, tripEndDate || tripStartDate);
-                        }
-                      }}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      {tripStartDate && !tripEndDate 
-                        ? `Generate for ${format(tripStartDate, "MMM d")}` 
-                        : tripStartDate && tripEndDate 
-                          ? "Generate Trip" 
-                          : "Select dates"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </SheetContent>
-        </Sheet>
-
-        {/* Invite Friends Sheet */}
-        <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
-          <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[60vh]">
-            <SheetHeader className="pb-2">
-              <SheetTitle className="flex items-center gap-2">
-                <Send className="w-5 h-5 text-primary" />
-                Invite Friends
-              </SheetTitle>
-              <SheetDescription>Share this itinerary with friends via email</SheetDescription>
-            </SheetHeader>
-            <div className="space-y-4 py-4">
-              <div className="flex gap-2">
-                <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
-                  <Mail className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-                  <Input
-                    type="email"
-                    placeholder="friend@email.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && inviteEmail.trim()) {
-                        handleShare();
-                        toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
-                        setInviteEmail("");
-                      }
-                    }}
-                  />
-                </div>
-                <Button
-                  disabled={!inviteEmail.trim()}
-                  onClick={() => {
-                    handleShare();
-                    toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
-                    setInviteEmail("");
-                  }}
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 gap-2" onClick={handleShare}>
-                  <Copy className="w-4 h-4" />
-                  Copy Link
-                </Button>
-                <Button variant="outline" className="flex-1 gap-2" onClick={handleShareWhatsApp}>
-                  <MessageCircle className="w-4 h-4" />
-                  WhatsApp
-                </Button>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {/* Add Collaborators Sheet */}
-        <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-          <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[60vh]">
-            <SheetHeader className="pb-2">
-              <SheetTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                Add Collaborators
-              </SheetTitle>
-              <SheetDescription>Invite people to edit and plan this trip together</SheetDescription>
-            </SheetHeader>
-            <div className="space-y-4 py-4">
-              <div className="flex gap-2">
-                <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
-                  <UserPlus className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-                  <Input
-                    type="email"
-                    placeholder="collaborator@email.com"
-                    value={collaboratorEmail}
-                    onChange={(e) => setCollaboratorEmail(e.target.value)}
-                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && collaboratorEmail.trim()) {
-                        toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
-                        setCollaboratorEmail("");
-                      }
-                    }}
-                  />
-                </div>
-                <Button
-                  disabled={!collaboratorEmail.trim()}
-                  onClick={() => {
-                    toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
-                    setCollaboratorEmail("");
-                  }}
-                >
-                  <UserPlus className="w-4 h-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Collaborators can add experiences, edit the schedule, and help plan the trip.
-              </p>
-            </div>
-          </SheetContent>
-        </Sheet>
+        {/* Add Collaborators - Dialog on desktop, Sheet on mobile */}
+        {isMobile ? (
+          <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
+            <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[60vh]">
+              <SheetHeader className="pb-2">
+                <SheetTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Add Collaborators
+                </SheetTitle>
+                <SheetDescription>Invite people to edit and plan this trip together</SheetDescription>
+              </SheetHeader>
+              {renderCollaboratorContent()}
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <Dialog open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
+            <DialogContent className="sm:max-w-md bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Add Collaborators
+                </DialogTitle>
+                <DialogDescription>Invite people to edit and plan this trip together</DialogDescription>
+              </DialogHeader>
+              {renderCollaboratorContent()}
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </Wrapper>
