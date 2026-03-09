@@ -211,6 +211,18 @@ const PublicItinerary = () => {
     return map;
   }, [activeTripMode, generatedTrip]);
 
+  // Show loading while user itineraries are still being fetched
+  if (!itinerary && itinerariesLoading) {
+    const Wrapper = isMobile ? MobileShell : MainLayout;
+    return (
+      <Wrapper {...(isMobile ? { hideTopBar: true } : {})}>
+        <div className="flex justify-center items-center py-20">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </Wrapper>
+    );
+  }
+
   if (!itinerary) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
     return (
