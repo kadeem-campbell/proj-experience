@@ -681,36 +681,56 @@ const PublicItinerary = () => {
                   <div className="flex flex-col h-[50vh]">
                     {/* Fixed top action */}
                     <div className="px-4 pt-2">
-                      <DrawerClose asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start font-normal h-12"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const src = orderedExperiences || itinerary.experiences;
-                            const idx = src.findIndex(ex => ex.id === experience.id);
+                      {(() => {
+                        const isPinned = pinnedIds.has(experience.id);
+                        const pinnedCount = pinnedIds.size;
+                        return (
+                          <DrawerClose asChild>
+                            <Button
+                              variant="ghost"
+                              className={cn(
+                                "w-full justify-start font-normal h-12",
+                                isPinned && "text-primary"
+                              )}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (isPinned) {
+                                  // Already pinned, do nothing (or could unpin)
+                                  return;
+                                }
+                                const src = orderedExperiences || itinerary.experiences;
+                                const idx = src.findIndex(ex => ex.id === experience.id);
 
-                            if (idx === -1) {
-                              toast({ title: "Couldn't pin this item", description: "Please try again." });
-                              return;
-                            }
+                                if (idx === -1) {
+                                  toast({ title: "Couldn't pin this item", description: "Please try again." });
+                                  return;
+                                }
 
-                            if (idx === 0) {
-                              toast({ title: "Already pinned", description: "This experience is already at the top." });
-                              return;
-                            }
+                                if (idx === 0) {
+                                  // Mark as pinned even if already at top
+                                  setPinnedIds(prev => new Set(prev).add(experience.id));
+                                  toast({ title: "Pinned to top" });
+                                  return;
+                                }
 
-                            const reordered = [...src];
-                            const [item] = reordered.splice(idx, 1);
-                            reordered.unshift(item);
-                            setOrderedExperiences(reordered);
-                            toast({ title: `"${experience.title}" pinned to top` });
-                          }}
-                        >
-                          <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
-                          Pin to top
-                        </Button>
-                      </DrawerClose>
+                                const reordered = [...src];
+                                const [item] = reordered.splice(idx, 1);
+                                reordered.unshift(item);
+                                setOrderedExperiences(reordered);
+                                setPinnedIds(prev => new Set(prev).add(experience.id));
+                                toast({ title: `"${experience.title}" pinned to top` });
+                              }}
+                            >
+                              <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
+                              {isPinned ? (
+                                <span>Pinned ({pinnedCount})</span>
+                              ) : (
+                                <span>Pin to top</span>
+                              )}
+                            </Button>
+                          </DrawerClose>
+                        );
+                      })()}
                     </div>
 
                     {/* Scrollable itinerary list */}
