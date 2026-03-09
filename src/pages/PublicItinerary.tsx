@@ -124,6 +124,7 @@ const PublicItinerary = () => {
     isInItinerary,
     copyItinerary,
     createTrip,
+    updateTrip,
   } = useItineraries();
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();

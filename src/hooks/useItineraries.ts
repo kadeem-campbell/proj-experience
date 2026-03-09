@@ -630,12 +630,51 @@ export const useItineraries = () => {
       if (i.id !== itineraryId) return i;
       return {
         ...i,
-        trips: (i.trips || []).map(t => t.id === tripId ? { ...t, name: newName } : t),
+        trips: (i.trips || []).map(t => (t.id === tripId ? { ...t, name: newName } : t)),
         updatedAt: new Date().toISOString()
       };
     });
     await saveItineraries(updated);
   }, [itineraries, saveItineraries]);
+
+  const updateTrip = useCallback(
+    async (
+      itineraryId: string,
+      tripId: string,
+      patch: Partial<Pick<Trip, "name" | "startDate" | "endDate" | "experiences">>
+    ): Promise<Trip | null> => {
+      let updatedTrip: Trip | null = null;
+
+      const updated = itineraries.map(i => {
+        if (i.id !== itineraryId) return i;
+
+        const nextTrips = (i.trips || []).map(t => {
+          if (t.id !== tripId) return t;
+
+          updatedTrip = {
+            ...t,
+            ...(patch.name !== undefined ? { name: patch.name } : {}),
+            ...(patch.startDate !== undefined ? { startDate: patch.startDate } : {}),
+            ...(patch.endDate !== undefined ? { endDate: patch.endDate } : {}),
+            ...(patch.experiences !== undefined ? { experiences: patch.experiences } : {})
+          };
+
+          return updatedTrip;
+        });
+
+        return {
+          ...i,
+          trips: nextTrips,
+          activeTripId: tripId,
+          updatedAt: new Date().toISOString()
+        };
+      });
+
+      await saveItineraries(updated);
+      return updatedTrip;
+    },
+    [itineraries, saveItineraries]
+  );
 
   const setActiveTrip = useCallback(async (itineraryId: string, tripId: string) => {
     const updated = itineraries.map(i => {
