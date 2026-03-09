@@ -221,7 +221,7 @@ export default function ExperienceDetail() {
 
   // Smart back navigation - go to referrer or default to experiences
   const handleGoBack = () => {
-    if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.origin)) {
+    if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
     } else {
       navigate('/experiences');
