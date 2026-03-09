@@ -170,7 +170,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
         onClose={() => setMobileSearchOpen(false)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onSearch={(q) => { setSearchQuery(q); setMobileSearchOpen(false); }}
+        onSearch={(q) => { setSearchQuery(q); setMobileSearchOpen(false); navigate("/?q=" + encodeURIComponent(q)); }}
       />
       <ProfileSlideMenu isOpen={profileMenuOpen} onClose={() => setProfileMenuOpen(false)} />
 
