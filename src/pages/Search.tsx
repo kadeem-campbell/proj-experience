@@ -60,42 +60,39 @@ const DesktopDiscoveryCard = () => {
 
   return (
     <div
-      className="mb-8 py-5 px-6 rounded-2xl relative overflow-hidden"
+      className="mb-6 py-3 px-5 rounded-xl relative overflow-hidden"
       style={{
         background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
       }}
     >
       {/* Progress bars */}
-      <div className="flex gap-1.5 mb-4">
+      <div className="flex gap-1 mb-3">
         {discoverySlides.map((s, i) => (
           <button
             key={i}
             onClick={(e) => { e.stopPropagation(); setActiveSlide(i); }}
             className={cn(
-              "h-1 flex-1 rounded-full transition-all duration-500",
+              "h-0.5 flex-1 rounded-full transition-all duration-500",
               i === activeSlide ? s.colorClass : "bg-foreground/10"
             )}
           />
         ))}
       </div>
 
-      <div className="flex flex-col items-center text-center gap-3 mb-4">
-        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", slide.bgClass)}>
-          <Icon className={cn("w-5 h-5", slide.textClass)} />
+      <div className="flex items-center gap-3 mb-3">
+        <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", slide.bgClass)}>
+          <Icon className={cn("w-4 h-4", slide.textClass)} />
         </div>
-        <div>
-          <h3 className="text-base font-bold text-foreground">{slide.title}</h3>
-          <p className="text-sm text-muted-foreground mt-0.5">{slide.subtitle}</p>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-bold text-foreground">{slide.title}</h3>
+          <p className="text-xs text-muted-foreground">{slide.subtitle}</p>
         </div>
-      </div>
-
-      <div className="flex gap-2 justify-center">
         {slide.ctas.map((cta, i) => (
           <button
             key={i}
             onClick={(e) => { e.stopPropagation(); navigate(cta.route); }}
             className={cn(
-              "px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.97]",
+              "px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.97] shrink-0",
               cta.primary
                 ? cn(slide.colorClass, "text-primary-foreground")
                 : "bg-muted text-foreground"
