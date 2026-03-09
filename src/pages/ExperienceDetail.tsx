@@ -610,72 +610,49 @@ export default function ExperienceDetail() {
           )}
         </div>
 
-        {/* Main Content - Desktop: Centered Single Column */}
-        <main className="max-w-5xl mx-auto px-4 py-6">
-
-          {/* Desktop Title Section - below hero image */}
-          <div className="hidden lg:block mb-6">
-            <div className="flex items-center gap-3 mb-3">
-              <Badge className="bg-foreground text-background border-0 font-medium text-sm">
-                {experience.category}
-              </Badge>
-              <div className="flex items-center gap-1 text-sm">
-                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                <span className="font-medium">{experience.rating}</span>
-              </div>
-              <span className="text-muted-foreground text-sm">•</span>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <TrendingUp className="w-4 h-4" />
-                <span><strong className="text-foreground">{socialProof.added}</strong> added this</span>
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">{experience.title}</h1>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <MapPin className="w-4 h-4" />
-              <span className="text-base">{experience.location}</span>
-            </div>
-          </div>
-
-          {/* Mobile-only title section */}
-          <div className="lg:hidden mb-4">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Badge className="bg-foreground text-background border-0 font-medium">
-                {experience.category}
-              </Badge>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                <span className="font-medium text-foreground">{experience.rating}</span>
-              </div>
-              <span className="text-muted-foreground text-sm">•</span>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>{socialProof.added} added this</span>
-              </div>
-            </div>
-
-            <h1 className="text-2xl font-bold tracking-tight mb-2">
-              {experience.title}
-            </h1>
-
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-4">
-              <MapPin className="w-4 h-4" />
-              <span>{experience.location}</span>
-            </div>
-          </div>
-
-              {/* Live Planning Indicator */}
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10 mb-6">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-primary" />
+        {/* Main Content - Desktop: Two-column layout */}
+        <main className="max-w-6xl mx-auto px-6 py-6">
+          <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-8">
+            {/* Left column - main content */}
+            <div>
+              {/* Desktop Title Section */}
+              <div className="hidden lg:block mb-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <Badge className="bg-foreground text-background border-0 font-medium text-sm">
+                    {experience.category}
+                  </Badge>
+                  <div className="flex items-center gap-1 text-sm">
+                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                    <span className="font-medium">{experience.rating}</span>
                   </div>
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-muted-foreground text-sm">•</span>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <TrendingUp className="w-4 h-4" />
+                    <span><strong className="text-foreground">{socialProof.added}</strong> added this</span>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">
-                    <span className="text-primary">{socialProof.planning} people</span> are planning this right now
-                  </p>
-                  <p className="text-xs text-muted-foreground">Join them and start building your itinerary</p>
+                <h1 className="text-3xl font-bold tracking-tight mb-2">{experience.title}</h1>
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-base">{experience.location}</span>
+                </div>
+              </div>
+
+              {/* Mobile-only title section */}
+              <div className="lg:hidden mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <Badge className="bg-foreground text-background border-0 font-medium">
+                    {experience.category}
+                  </Badge>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                    <span className="font-medium text-foreground">{experience.rating}</span>
+                  </div>
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight mb-2">{experience.title}</h1>
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-4">
+                  <MapPin className="w-4 h-4" />
+                  <span>{experience.location}</span>
                 </div>
               </div>
 
@@ -695,58 +672,11 @@ export default function ExperienceDetail() {
                 </div>
               </div>
 
-              {/* Indicative Pricing Section */}
-              <div className="mb-6 p-4 rounded-2xl bg-muted/50 border border-border">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
-                  Typical prices people are paying
-                </p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-foreground">$15 - $75</span>
-                  <span className="text-sm text-muted-foreground">per person</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Prices vary by provider and season. This is informational only.
-                </p>
-              </div>
-
-              {/* Desktop CTA - Inline */}
-              <div className="hidden lg:block mb-8">
-                <ItinerarySelector
-                  experienceId={experience.id}
-                  experienceData={{
-                    id: experience.id,
-                    title: experience.title,
-                    creator: experience.creator,
-                    videoThumbnail: experience.videoThumbnail,
-                    category: experience.category,
-                    location: experience.location,
-                    price: "",
-                  }}
-                  onAdd={() => {
-                    setJustAdded(true);
-                    setTimeout(() => setJustAdded(false), 2000);
-                  }}
-                >
-                  <Button 
-                    size="lg"
-                    className={cn(
-                      "w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
-                      justAdded && "animate-pulse"
-                    )}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Plus className="w-5 h-5" />
-                      Add to Itinerary
-                      {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length > 0 && (
-                        <span className="ml-1 px-2 py-0.5 rounded-full bg-primary-foreground/20 text-xs">
-                          {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length}
-                        </span>
-                      )}
-                    </span>
-                  </Button>
-                </ItinerarySelector>
-                <p className="text-center text-xs text-muted-foreground mt-2">
-                  <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this to their trip
+              {/* Description */}
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-3">About this experience</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  {experience.description}
                 </p>
               </div>
 
@@ -755,28 +685,17 @@ export default function ExperienceDetail() {
                 experienceTitle={experience.title}
                 location={experience.location}
                 tiktokVideos={experience.tiktokVideos || []}
-                className="mb-8"
+                className="mb-6"
               />
 
-              {/* Description */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-3 lg:text-xl">About this experience</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  {experience.description}
-                </p>
-              </div>
-
               {/* Highlights */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-4 lg:text-xl">What makes it special</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {experience.highlights?.map((item: string, index: number) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Sparkles className="w-4 h-4 text-primary" />
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-3">Highlights</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {experience.highlights?.map((item: string, i: number) => (
+                    <div key={i} className="flex items-center gap-2.5 p-3 rounded-xl bg-card border border-border">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="w-3 h-3 text-primary" />
                       </div>
                       <span className="text-sm">{item}</span>
                     </div>
@@ -785,8 +704,8 @@ export default function ExperienceDetail() {
               </div>
 
               {/* Meeting Points */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-4 lg:text-xl">Where to find it</h2>
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-3">Where to find it</h2>
                 <div className="space-y-2">
                   {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
                     <div 
@@ -807,7 +726,7 @@ export default function ExperienceDetail() {
               </div>
 
               {/* Creator */}
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-8">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-6">
                 <Avatar className="w-12 h-12">
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">
                     {experience.creator?.slice(0, 2).toUpperCase()}
@@ -822,6 +741,108 @@ export default function ExperienceDetail() {
                   <span className="font-medium">{experience.rating}</span>
                 </div>
               </div>
+            </div>
+
+            {/* Right column - sticky sidebar with actions */}
+            <div className="hidden lg:block">
+              <div className="sticky top-4 space-y-4">
+                {/* Add to Itinerary CTA */}
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <ItinerarySelector
+                    experienceId={experience.id}
+                    experienceData={{
+                      id: experience.id,
+                      title: experience.title,
+                      creator: experience.creator,
+                      videoThumbnail: experience.videoThumbnail,
+                      category: experience.category,
+                      location: experience.location,
+                      price: "",
+                    }}
+                    onAdd={() => {
+                      setJustAdded(true);
+                      setTimeout(() => setJustAdded(false), 2000);
+                    }}
+                  >
+                    <Button 
+                      size="lg"
+                      className={cn(
+                        "w-full h-13 rounded-xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90",
+                        justAdded && "animate-pulse"
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Plus className="w-5 h-5" />
+                        Add to Itinerary
+                      </span>
+                    </Button>
+                  </ItinerarySelector>
+                  <p className="text-center text-xs text-muted-foreground mt-2.5">
+                    <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this
+                  </p>
+                </div>
+
+                {/* In Your Itineraries */}
+                {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length > 0 && (
+                  <div className="rounded-2xl border border-border bg-card p-5">
+                    <h3 className="text-sm font-semibold mb-3">In your itineraries</h3>
+                    <div className="space-y-2">
+                      {itineraries
+                        .filter(i => i.experiences.some(e => e.id === experience.id))
+                        .map(itinerary => (
+                          <Link 
+                            key={itinerary.id} 
+                            to={`/itinerary/${itinerary.id}`}
+                            className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <MapPin className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{itinerary.name}</p>
+                              <p className="text-xs text-muted-foreground">{itinerary.experiences.length} experiences</p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                          </Link>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Live Planning Indicator */}
+                <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Zap className="w-5 h-5 text-primary" />
+                      </div>
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">
+                        <span className="text-primary">{socialProof.planning} people</span> planning now
+                      </p>
+                      <p className="text-xs text-muted-foreground">Join them and build your trip</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Indicative Pricing */}
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
+                    Typical prices
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-foreground">$15 - $75</span>
+                    <span className="text-sm text-muted-foreground">per person</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    Prices vary by provider and season
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </main>
     </div>
   );
