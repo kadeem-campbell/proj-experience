@@ -365,14 +365,12 @@ export default function ExperienceDetail() {
       );
     }
     return (
-      <MainLayout showItineraryPanel={false}>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <h1 className="text-xl font-bold mb-3">Experience not found</h1>
-            <Link to="/"><Button size="sm">Back to Discover</Button></Link>
-          </div>
+      <div className="flex items-center justify-center min-h-screen bg-background w-full">
+        <div className="text-center">
+          <h1 className="text-xl font-bold mb-3">Experience not found</h1>
+          <Link to="/"><Button size="sm">Back to Discover</Button></Link>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
