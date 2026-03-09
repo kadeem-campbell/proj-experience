@@ -227,9 +227,14 @@ const SearchPage = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
-  const adventureExps = useMemo(() => experiences.filter(e => e.category === "Adventure").slice(0, 10), [experiences]);
-  const foodExps = useMemo(() => experiences.filter(e => e.category === "Food").slice(0, 10), [experiences]);
-  const beachExps = useMemo(() => experiences.filter(e => e.category === "Beach").slice(0, 10), [experiences]);
+  const cityFilteredExperiences = useMemo(() => {
+    if (!selectedCity) return experiences;
+    return experiences.filter(e => e.location?.toLowerCase().includes(selectedCity.name.toLowerCase()));
+  }, [experiences, selectedCity]);
+
+  const adventureExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Adventure").slice(0, 10), [cityFilteredExperiences]);
+  const foodExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Food").slice(0, 10), [cityFilteredExperiences]);
+  const beachExps = useMemo(() => cityFilteredExperiences.filter(e => e.category === "Beach").slice(0, 10), [cityFilteredExperiences]);
 
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
