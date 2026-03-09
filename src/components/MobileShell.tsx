@@ -144,7 +144,7 @@ const MobileTopBar = ({
             SWAM
           </button>
           <button 
-            onClick={() => navigate("/")} 
+            onClick={() => navigate("/map")} 
             className="w-9 h-9 rounded-full bg-[#f5f5f5] flex items-center justify-center"
           >
             <Map className="w-5 h-5 text-[#121212]" strokeWidth={2.2} />
