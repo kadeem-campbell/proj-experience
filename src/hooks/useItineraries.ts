@@ -645,6 +645,11 @@ export const useItineraries = () => {
     ): Promise<Trip | null> => {
       let updatedTrip: Trip | null = null;
 
+      const hasName = Object.prototype.hasOwnProperty.call(patch, "name");
+      const hasStartDate = Object.prototype.hasOwnProperty.call(patch, "startDate");
+      const hasEndDate = Object.prototype.hasOwnProperty.call(patch, "endDate");
+      const hasExperiences = Object.prototype.hasOwnProperty.call(patch, "experiences");
+
       const updated = itineraries.map(i => {
         if (i.id !== itineraryId) return i;
 
@@ -653,10 +658,10 @@ export const useItineraries = () => {
 
           updatedTrip = {
             ...t,
-            ...(patch.name !== undefined ? { name: patch.name } : {}),
-            ...(patch.startDate !== undefined ? { startDate: patch.startDate } : {}),
-            ...(patch.endDate !== undefined ? { endDate: patch.endDate } : {}),
-            ...(patch.experiences !== undefined ? { experiences: patch.experiences } : {})
+            ...(hasName ? { name: patch.name as string } : {}),
+            ...(hasStartDate ? { startDate: patch.startDate as string } : {}),
+            ...(hasEndDate ? { endDate: patch.endDate as string | undefined } : {}),
+            ...(hasExperiences ? { experiences: patch.experiences as LikedExperience[] } : {})
           };
 
           return updatedTrip;
