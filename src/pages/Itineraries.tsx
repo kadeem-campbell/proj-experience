@@ -100,21 +100,6 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Map tag names to experience categories for filtering
-const tagToCategoryMap: Record<string, string> = {
-  "Beaches": "Beach",
-  "Water Sports": "Adventure",
-  "Nightlife": "Nightlife",
-  "Wildlife": "Wildlife",
-  "Adventure": "Adventure",
-  "Food": "Food",
-  "Culture": "Culture",
-  "Wellness": "Wellness",
-};
-
-const itineraryMatchesCategory = (itinerary: any, category: string) => {
-  return itinerary.experiences?.some((exp: any) => exp.category === category);
-};
 
 const ItinerariesPage = () => {
   const [searchParams] = useSearchParams();
