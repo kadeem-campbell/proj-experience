@@ -1,6 +1,6 @@
 import { useState, useCallback, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Search, ListMusic, PlusCircle, User, Settings, HelpCircle, Map, X, ChevronRight } from "lucide-react";
+import { Home, Search, ListMusic, User, Settings, HelpCircle, Map, X, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { cn } from "@/lib/utils";
@@ -88,7 +88,6 @@ const MobileBottomNav = ({ onSearchClick }: { onSearchClick: () => void }) => {
     { icon: Search, label: "Search", action: onSearchClick, isActive: false },
     { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" },
     { icon: User, label: "Profile", action: () => navigate("/profile"), isActive: location.pathname === "/profile" },
-    { icon: PlusCircle, label: "Create", action: () => navigate("/my-itineraries?create=true"), isActive: false },
   ];
 
   return (
@@ -160,6 +159,7 @@ interface MobileShellProps {
 }
 
 export const MobileShell = ({ children, headerContent, hideTopBar = false, hideAvatar = false, notFixed = false, className }: MobileShellProps) => {
+  const navigate = useNavigate();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -171,7 +171,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
         onClose={() => setMobileSearchOpen(false)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onSearch={(q) => { setSearchQuery(q); setMobileSearchOpen(false); }}
+        onSearch={(q) => { setSearchQuery(q); setMobileSearchOpen(false); navigate("/?q=" + encodeURIComponent(q)); }}
       />
       <ProfileSlideMenu isOpen={profileMenuOpen} onClose={() => setProfileMenuOpen(false)} />
 
