@@ -424,7 +424,7 @@ export const MobileHomeView = () => {
       {/* Search bar - Uber Eats style */}
       <div className="px-4 pb-3">
         <button
-          onClick={() => setSearchOpen(true)}
+          onClick={() => navigate("/search")}
           className="w-full flex items-center gap-3 px-4 py-3 bg-muted rounded-full text-left transition-colors duration-150 active:bg-muted/70"
         >
           <Search className="w-5 h-5 text-muted-foreground shrink-0" />
