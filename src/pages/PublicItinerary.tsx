@@ -1032,16 +1032,16 @@ const PublicItinerary = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isAuthenticated) { setShowAuthModal(true); return; }
-                            // Add directly to this itinerary if owned, otherwise show add-to-itinerary sheet
-                            if (isOwned && ownedItinerary) {
-                              addExperienceToItinerary(ownedItinerary.id, {
-                                id: exp.id, title: exp.title, creator: exp.creator || '',
-                                videoThumbnail: exp.videoThumbnail || '', category: exp.category || '',
-                                location: exp.location || '', price: exp.price || '',
-                              });
-                              toast({ title: "Added", description: `${exp.title} added to ${ownedItinerary.name}` });
+                            // Add directly to this itinerary at the end - like Spotify
+                            const result = addExperienceToItinerary(itinerary.id, {
+                              id: exp.id, title: exp.title, creator: exp.creator || '',
+                              videoThumbnail: exp.videoThumbnail || '', category: exp.category || '',
+                              location: exp.location || '', price: exp.price || '',
+                            });
+                            if (result.success) {
+                              toast({ title: "Added", description: `${exp.title} added` });
                             } else {
-                              setShowAddToItinerarySheet(true);
+                              toast({ title: "Already added", description: `${exp.title} is already in this itinerary`, variant: "destructive" });
                             }
                           }}
                           className="shrink-0 text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10 active:bg-primary/20 transition-colors"
