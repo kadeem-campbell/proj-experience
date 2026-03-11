@@ -292,14 +292,10 @@ const ExperienceCollectionPage = () => {
         {/* Divider + continued discovery */}
         {remainingSections.length > 0 && (
           <>
-            <div className="px-4 pt-8 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px" style={{ backgroundColor: 'hsl(210 70% 50% / 0.3)' }} />
-                <span className="text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: 'hsl(210 70% 50%)' }}>
-                  More experiences to explore
-                </span>
-                <div className="flex-1 h-px" style={{ backgroundColor: 'hsl(210 70% 50% / 0.3)' }} />
-              </div>
+            <div className="mt-10 mb-6 py-3 px-4 text-center" style={{ backgroundColor: 'hsl(210 70% 50%)' }}>
+              <span className="text-xs uppercase tracking-wider text-white/90">
+                More experiences to explore
+              </span>
             </div>
 
             {remainingSections.map(section => (
