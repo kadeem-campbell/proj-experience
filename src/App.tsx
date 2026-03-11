@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import MyItineraries from "./pages/MyItineraries";
 import Liked from "./pages/Liked";
 import Collection from "./pages/Collection";
+import ExperienceCollection from "./pages/ExperienceCollection";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +69,8 @@ const App = () => (
           <Route path="/itinerary-collections/:slug" element={<Collection />} />
           {/* Legacy collection support */}
           <Route path="/collections/:slug" element={<Collection />} />
+          {/* Experience collection pages */}
+          <Route path="/experience-collections/:slug" element={<ExperienceCollection />} />
           <Route path="/experiences" element={<Experiences />} />
           <Route path="/trip/:id" element={<Trip />} />
           <Route path="/profile" element={<Profile />} />
