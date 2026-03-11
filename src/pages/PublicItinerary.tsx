@@ -395,7 +395,6 @@ const PublicItinerary = () => {
       updated[fromDay] = updated[fromDay].filter(e => e.id !== expId);
       if (!updated[toDay]) updated[toDay] = [];
       updated[toDay].push(exp);
-      // Check warnings
       const warning = validatePlacement(exp, toDay, exp.timeSlot || 'afternoon');
       if (warning) {
         setDragWarnings(prev => new Map(prev).set(expId, warning));
@@ -403,6 +402,24 @@ const PublicItinerary = () => {
       return updated;
     });
   };
+
+  // Reorder experience within a day
+  const handleReorderInDay = (dayKey: string, expId: string, direction: 'up' | 'down') => {
+    setGeneratedTrip(prev => {
+      const updated = { ...prev };
+      const dayExps = [...(updated[dayKey] || [])];
+      const idx = dayExps.findIndex(e => e.id === expId);
+      if (idx < 0) return prev;
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= dayExps.length) return prev;
+      [dayExps[idx], dayExps[targetIdx]] = [dayExps[targetIdx], dayExps[idx]];
+      updated[dayKey] = dayExps;
+      return updated;
+    });
+  };
+
+  // State for move-to-day dropdown
+  const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
 
   // --- Render functions ---
 
