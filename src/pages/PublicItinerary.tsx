@@ -600,7 +600,7 @@ const PublicItinerary = () => {
                 </Badge>
               </div>
               <div className="space-y-0">
-                {day.experiences.map(renderListRow)}
+                {day.experiences.map((exp, i) => renderListRow(exp, i, day.experiences.length))}
               </div>
             </div>
           ))}
