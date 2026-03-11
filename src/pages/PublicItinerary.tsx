@@ -134,6 +134,8 @@ const PublicItinerary = () => {
   const [showAutoSave, setShowAutoSave] = useState(false);
   const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
   const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
+  const [showBrowsePublicTrips, setShowBrowsePublicTrips] = useState(false);
+  const [previewingPublicTrip, setPreviewingPublicTrip] = useState<{ itinerary: typeof publicItinerariesData[0]; tripIdx: number } | null>(null);
   
   // Auth
   const [showAuthModal, setShowAuthModal] = useState(false);
