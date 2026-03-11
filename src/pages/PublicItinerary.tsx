@@ -600,25 +600,38 @@ const PublicItinerary = () => {
 
   // Trips view - day-separated
   const renderTripsView = () => {
-    if (!isOwned) {
-      // Public: show 3 preset examples
+    // Show preset trips (for both public and owned without generated trips)
+    if (!isOwned || generatedTrips.length === 0) {
+      const [activePresetIdx, setActivePresetIdx] = useState(0);
+      const activePreset = publicTripExamples[activePresetIdx];
+      if (!activePreset) return (
+        <div className="text-center py-12 px-4">
+          <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground mb-4">No trips available</p>
+        </div>
+      );
       return (
-        <div className="space-y-6 px-4 py-4">
-          <p className="text-xs text-muted-foreground text-center">Example trip layouts for this itinerary</p>
-          {publicTripExamples.map((day, idx) => (
-            <div key={idx}>
-              <div className="flex items-center gap-2 mb-3">
-                <CalendarIcon className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-semibold text-foreground">{day.label}</h3>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {day.experiences.length} {day.experiences.length === 1 ? 'activity' : 'activities'}
-                </Badge>
-              </div>
-              <div className="space-y-0">
-                {day.experiences.map((exp, i) => renderListRow(exp, i, day.experiences.length))}
-              </div>
-            </div>
-          ))}
+        <div className="px-4 py-4">
+          {/* Trip selector - horizontal scroll */}
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+            {publicTripExamples.map((trip, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActivePresetIdx(idx)}
+                className={cn(
+                  "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors max-w-[200px] truncate",
+                  idx === activePresetIdx
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {trip.label}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-0">
+            {activePreset.experiences.map((exp, i) => renderListRow(exp, i, activePreset.experiences.length))}
+          </div>
         </div>
       );
     }
