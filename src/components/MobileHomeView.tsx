@@ -182,6 +182,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
+  const [showTick, setShowTick] = useState(false);
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
 
@@ -199,6 +200,11 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
     } else {
       setLocalLiked(!localLiked);
     }
+  };
+
+  const handleAdded = () => {
+    setShowTick(true);
+    setTimeout(() => setShowTick(false), 1500);
   };
 
   return (
@@ -227,12 +233,17 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
               videoThumbnail: experience.videoThumbnail || '', category: experience.category || '',
               location: experience.location || '', price: experience.price || '',
             }}
+            onAdd={handleAdded}
           >
             <button className={cn(
               "w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm transition-all active:scale-90",
-              "bg-white/80 hover:bg-experience-color/10"
+              showTick ? "bg-primary/90" : "bg-white/80 hover:bg-experience-color/10"
             )}>
-              <Plus className="w-4 h-4 text-foreground" />
+              {showTick ? (
+                <Check className="w-4 h-4 text-white" />
+              ) : (
+                <Plus className="w-4 h-4 text-foreground" />
+              )}
             </button>
           </ItinerarySelector>
         </div>
