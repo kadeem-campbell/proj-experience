@@ -229,18 +229,32 @@ const CollectionPage = () => {
           </div>
         </div>
 
-        {/* Continue discovery — remaining sections as carousels */}
-        {remainingSections.map(section => (
-          <HorizontalScrollRow
-            key={section.key}
-            title={section.title}
-            onTitleClick={() => navigate(`/collections/${section.key}`)}
-          >
-            {section.items.map((it: any) => (
-              <MobileItineraryCard key={it.id} itinerary={it} />
+        {/* Divider + continued discovery */}
+        {remainingSections.length > 0 && (
+          <>
+            <div className="px-4 pt-4 pb-2">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border/60" />
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                  More itineraries to explore
+                </span>
+                <div className="flex-1 h-px bg-border/60" />
+              </div>
+            </div>
+
+            {remainingSections.map(section => (
+              <HorizontalScrollRow
+                key={section.key}
+                title={section.title}
+                onTitleClick={() => navigate(`/collections/${section.key}`)}
+              >
+                {section.items.map((it: any) => (
+                  <MobileItineraryCard key={it.id} itinerary={it} />
+                ))}
+              </HorizontalScrollRow>
             ))}
-          </HorizontalScrollRow>
-        ))}
+          </>
+        )}
       </MobileShell>
     );
   }
