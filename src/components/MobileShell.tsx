@@ -95,7 +95,7 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   const navItems = [
     { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" && !isSearchOpen, badge: 0 },
     { icon: Search, label: "Search", action: onSearchClick, isActive: isSearchOpen, badge: 0 },
-    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" && !isSearchOpen, badge: experienceCount },
+    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" && !isSearchOpen, badge: unreadCount },
     { icon: User, label: "Profile", action: () => navigate("/profile"), isActive: location.pathname === "/profile" && !isSearchOpen, badge: 0 },
   ];
 
