@@ -30,11 +30,11 @@ const mapCities = [
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
-  { label: "Beaches", category: "Beach", emoji: "🏖️" },
-  { label: "Nightlife", category: "Nightlife", emoji: "🍸" },
-  { label: "Nature", category: "Wildlife", emoji: "🌴" },
-  { label: "Adventure", category: "Adventure", emoji: "🧗" },
-  { label: "Food", category: "Food", emoji: "🍽️" },
+  { label: "Beaches", category: "Beach", icon: catBeaches },
+  { label: "Nightlife", category: "Nightlife", icon: catNightlife },
+  { label: "Nature", category: "Wildlife", icon: catNature },
+  { label: "Adventure", category: "Adventure", icon: catAdventure },
+  { label: "Food", category: "Food", icon: catFood },
 ];
 
 const rotatingPlaceholders = [
