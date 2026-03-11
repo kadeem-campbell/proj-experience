@@ -515,7 +515,7 @@ const PublicItinerary = () => {
     const a = document.createElement('a');
     a.href = url; a.download = `${itinerary.name}.csv`; a.click();
     URL.revokeObjectURL(url);
-    toast({ title: "Exported as CSV" });
+    // export complete
   };
 
   const handleExportXLSX = () => {
