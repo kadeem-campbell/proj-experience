@@ -2,6 +2,11 @@ import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check } from "lucide-react";
+import catBeaches from "@/assets/cat-beaches.png";
+import catNightlife from "@/assets/cat-nightlife.png";
+import catNature from "@/assets/cat-nature.png";
+import catAdventure from "@/assets/cat-adventure.png";
+import catFood from "@/assets/cat-food.png";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -25,11 +30,11 @@ const mapCities = [
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
-  { label: "Beaches", category: "Beach", emoji: "🏖️" },
-  { label: "Nightlife", category: "Nightlife", emoji: "🍸" },
-  { label: "Nature", category: "Wildlife", emoji: "🌴" },
-  { label: "Adventure", category: "Adventure", emoji: "🧗" },
-  { label: "Food", category: "Food", emoji: "🍽️" },
+  { label: "Beaches", category: "Beach", icon: catBeaches },
+  { label: "Nightlife", category: "Nightlife", icon: catNightlife },
+  { label: "Nature", category: "Wildlife", icon: catNature },
+  { label: "Adventure", category: "Adventure", icon: catAdventure },
+  { label: "Food", category: "Food", icon: catFood },
 ];
 
 const rotatingPlaceholders = [
@@ -59,12 +64,12 @@ const CategoryFilterPills = ({
               className="flex flex-col items-center gap-1 transition-all active:scale-95"
             >
               <div className={cn(
-                "w-14 h-14 rounded-full flex items-center justify-center transition-all",
+                "w-[60px] h-[60px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
                 isActive 
-                  ? "bg-primary/10 ring-2 ring-primary" 
+                  ? "ring-2 ring-primary bg-primary/5" 
                   : "bg-muted"
               )}>
-                <span className="text-2xl">{cat.emoji}</span>
+                <img src={cat.icon} alt={cat.label} className="w-11 h-11 object-contain" />
               </div>
               <span className={cn(
                 "text-[11px] font-medium transition-colors",
