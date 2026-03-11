@@ -808,11 +808,11 @@ const PublicItinerary = () => {
             </button>
             <div className="h-px bg-border/50 mx-3 my-1" />
             <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Download className="w-4.5 h-4.5 text-foreground" /></div>
               <span className="font-medium text-sm">Export as CSV</span>
             </button>
             <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Download className="w-4.5 h-4.5 text-foreground" /></div>
               <span className="font-medium text-sm">Export as XLSX</span>
             </button>
           </div>
