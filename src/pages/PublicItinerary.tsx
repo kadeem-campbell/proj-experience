@@ -487,9 +487,9 @@ const PublicItinerary = () => {
             </button>
           </div>
         )}
-        <button
+        <div
           onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
-          className={cn("flex-1 flex items-center gap-3 py-3 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left", showReorder ? "px-2" : "px-4")}
+          className={cn("flex-1 flex items-center gap-3 py-3 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer", showReorder ? "px-2" : "px-4")}
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
             {experience.videoThumbnail ? (
