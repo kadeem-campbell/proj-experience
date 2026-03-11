@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, Check, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,6 +59,9 @@ export const ItinerarySelector = ({
     return itinerary?.experiences.some(e => e.id === experienceId) || false;
   };
 
+  const [justAdded, setJustAdded] = useState<string | null>(null);
+  const justAddedTimer = useRef<NodeJS.Timeout | null>(null);
+
   const handleToggleItinerary = (itinerary: Itinerary) => {
     const alreadyAdded = isInItinerary(itinerary.id);
     if ('vibrate' in navigator) navigator.vibrate(10);
@@ -74,10 +77,12 @@ export const ItinerarySelector = ({
         return;
       }
       setActiveItinerary(itinerary.id);
+      setJustAdded(itinerary.id);
+      if (justAddedTimer.current) clearTimeout(justAddedTimer.current);
+      justAddedTimer.current = setTimeout(() => setJustAdded(null), 1500);
       onAdd?.();
       toast.success(`Added to "${itinerary.name}"`);
     }
-    setOpen(false);
   };
 
   const handleCreateAndAdd = async () => {
@@ -92,6 +97,13 @@ export const ItinerarySelector = ({
     toast.success(`Created "${newName.trim()}" and added experience`);
   };
 
+  // Sort: selected itineraries first
+  const sortedItineraries = [...itineraries].sort((a, b) => {
+    const aIn = isInItinerary(a.id) ? 0 : 1;
+    const bIn = isInItinerary(b.id) ? 0 : 1;
+    return aIn - bIn;
+  });
+
   const selectorContent = (
     <>
       <div className="p-4 border-b border-border">
@@ -100,13 +112,14 @@ export const ItinerarySelector = ({
       </div>
       
       <div className="max-h-[50vh] overflow-y-auto">
-        {itineraries.length === 0 && (
+        {sortedItineraries.length === 0 && (
           <div className="px-4 py-6 text-center">
             <p className="text-sm text-muted-foreground">No itineraries yet</p>
           </div>
         )}
-        {itineraries.map((itinerary) => {
+        {sortedItineraries.map((itinerary) => {
           const alreadyAdded = isInItinerary(itinerary.id);
+          const wasJustAdded = justAdded === itinerary.id;
           return (
             <button
               key={itinerary.id}
@@ -127,7 +140,11 @@ export const ItinerarySelector = ({
                 </span>
               </div>
               {alreadyAdded ? (
-                <Minus className="w-5 h-5 text-destructive flex-shrink-0" />
+                wasJustAdded ? (
+                  <Check className="w-5 h-5 text-primary flex-shrink-0 animate-in zoom-in-50 duration-200" />
+                ) : (
+                  <Minus className="w-5 h-5 text-destructive flex-shrink-0" />
+                )
               ) : (
                 <Plus className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               )}
