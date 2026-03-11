@@ -893,18 +893,10 @@ const PublicItinerary = () => {
             </div>
           ) : isOwned ? (
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <button onClick={() => setShowShareSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                <Share2 className="w-3.5 h-3.5" />
-                <span className="font-medium">Share</span>
-              </button>
-              <button onClick={() => setShowInviteSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                <Send className="w-3.5 h-3.5" />
-                <span className="font-medium">Invite friends</span>
-              </button>
-              <button onClick={() => setShowCollaboratorSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                <Users className="w-3.5 h-3.5" />
-                <span className="font-medium">Collab</span>
-              </button>
+              <span className="flex items-center gap-1">
+                <Heart className="w-3.5 h-3.5 text-primary/70" />
+                <span>Your itinerary · <span className="font-semibold text-foreground">{itinerary.experiences.length}</span> experiences</span>
+              </span>
             </div>
           ) : null}
         </div>
