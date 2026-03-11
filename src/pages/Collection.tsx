@@ -232,7 +232,7 @@ const CollectionPage = () => {
         {/* Divider + continued discovery */}
         {remainingSections.length > 0 && (
           <>
-            <div className="mt-10 pb-8" style={{ backgroundColor: '#811b25' }}>
+            <div className="mt-10 pb-8 [&_h3]:text-white [&_p]:text-white/60 [&_.text-foreground]:text-white [&_.text-muted-foreground]:text-white/60" style={{ backgroundColor: '#811b25' }}>
               <div className="py-4 px-4 text-center">
                 <span className="text-xs uppercase tracking-wider text-white/80">
                   More itineraries to explore
