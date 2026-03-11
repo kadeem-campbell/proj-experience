@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Heart, Users, MapPin, Calendar } from "lucide-react";
+import { Heart, MapPin, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Itinerary {

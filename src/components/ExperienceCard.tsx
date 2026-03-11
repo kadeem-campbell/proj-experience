@@ -158,10 +158,10 @@ export const ExperienceCard = ({
             >
               <button className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
-                "bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm",
-                "hover:bg-background/70"
+                "bg-white/15 backdrop-blur-2xl border border-white/20 shadow-lg",
+                "hover:bg-white/25"
               )}>
-                <Plus className="w-4 h-4 text-foreground/80" />
+                <Plus className="w-4 h-4 text-white/90" />
               </button>
             </ItinerarySelector>
           </div>
