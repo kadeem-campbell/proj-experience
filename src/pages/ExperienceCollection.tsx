@@ -187,6 +187,24 @@ const GridExperienceCard = ({ experience }: { experience: any }) => {
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-primary text-primary" : "text-white/90")} />
         </button>
+        <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <ItinerarySelector
+            experienceId={experience.id}
+            experienceData={{
+              id: experience.id, title: experience.title, creator: experience.creator || '',
+              videoThumbnail: experience.videoThumbnail || '', category: experience.category || '',
+              location: experience.location || '', price: experience.price || '',
+            }}
+            onAdd={() => { setShowTick(true); setTimeout(() => setShowTick(false), 1500); }}
+          >
+            <button className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm transition-all",
+              showTick ? "bg-primary/90" : "bg-white/80"
+            )}>
+              {showTick ? <Check className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-foreground" />}
+            </button>
+          </ItinerarySelector>
+        </div>
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
