@@ -58,6 +58,8 @@ import {
   Sparkles,
   Heart,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   X,
   Sunrise,
   Sun,
@@ -75,6 +77,9 @@ import {
   Route,
   AlertTriangle,
   ExternalLink,
+  Download,
+  ArrowUpDown,
+  MoveVertical,
 } from "lucide-react";
 
 // Time slot configurations
@@ -126,6 +131,7 @@ const PublicItinerary = () => {
   const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
   const [activeTripMode, setActiveTripMode] = useState(false);
   const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
+  const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
   
   // Auth
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -390,7 +396,6 @@ const PublicItinerary = () => {
       updated[fromDay] = updated[fromDay].filter(e => e.id !== expId);
       if (!updated[toDay]) updated[toDay] = [];
       updated[toDay].push(exp);
-      // Check warnings
       const warning = validatePlacement(exp, toDay, exp.timeSlot || 'afternoon');
       if (warning) {
         setDragWarnings(prev => new Map(prev).set(expId, warning));
@@ -398,6 +403,22 @@ const PublicItinerary = () => {
       return updated;
     });
   };
+
+  // Reorder experience within a day
+  const handleReorderInDay = (dayKey: string, expId: string, direction: 'up' | 'down') => {
+    setGeneratedTrip(prev => {
+      const updated = { ...prev };
+      const dayExps = [...(updated[dayKey] || [])];
+      const idx = dayExps.findIndex(e => e.id === expId);
+      if (idx < 0) return prev;
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= dayExps.length) return prev;
+      [dayExps[idx], dayExps[targetIdx]] = [dayExps[targetIdx], dayExps[idx]];
+      updated[dayKey] = dayExps;
+      return updated;
+    });
+  };
+
 
   // --- Render functions ---
 
@@ -542,11 +563,10 @@ const PublicItinerary = () => {
 
     // Owned: show actual trips or generated trip
     if (activeTripMode && Object.keys(generatedTrip).length > 0) {
+      const sortedDays = Object.entries(generatedTrip).sort(([a], [b]) => a.localeCompare(b));
       return (
         <div className="space-y-6 px-4 py-4">
-          {Object.entries(generatedTrip)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([dayKey, dayExps]) => (
+          {sortedDays.map(([dayKey, dayExps]) => (
               <div key={dayKey}>
                 <div className="flex items-center gap-2 mb-3">
                   <CalendarIcon className="w-4 h-4 text-primary" />
@@ -558,7 +578,95 @@ const PublicItinerary = () => {
                   </Badge>
                 </div>
                 <div className="space-y-0">
-                  {dayExps.map(renderListRow)}
+                  {dayExps.map((exp, expIdx) => {
+                    const warning = dragWarnings.get(exp.id);
+                    const isMoving = movingExp?.id === exp.id && movingExp?.fromDay === dayKey;
+                    return (
+                      <div key={exp.id} className="relative">
+                        {/* Experience row with move controls */}
+                        <div className="flex items-center gap-2 py-2.5 px-3 border-b border-border/20 last:border-b-0">
+                          {/* Move handle area */}
+                          <div className="flex flex-col gap-0.5 shrink-0">
+                            <button
+                              onClick={() => handleReorderInDay(dayKey, exp.id, 'up')}
+                              disabled={expIdx === 0}
+                              className={cn("p-0.5 rounded", expIdx === 0 ? "opacity-20" : "active:bg-muted")}
+                            >
+                              <ChevronUp className="w-3 h-3 text-muted-foreground" />
+                            </button>
+                            <button
+                              onClick={() => handleReorderInDay(dayKey, exp.id, 'down')}
+                              disabled={expIdx === dayExps.length - 1}
+                              className={cn("p-0.5 rounded", expIdx === dayExps.length - 1 ? "opacity-20" : "active:bg-muted")}
+                            >
+                              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                            </button>
+                          </div>
+
+                          {/* Thumbnail */}
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                            {exp.videoThumbnail ? (
+                              <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <MapPin className="w-3.5 h-3.5 text-muted-foreground/40" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Text */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-medium text-foreground truncate">{exp.title}</h4>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {[exp.location, exp.category].filter(Boolean).join(' · ')}
+                            </p>
+                            {warning && (
+                              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
+                                <AlertTriangle className="w-2.5 h-2.5" />
+                                <span>{warning}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Move to different day button */}
+                          {sortedDays.length > 1 && (
+                            <button
+                              onClick={() => setMovingExp(isMoving ? null : { id: exp.id, fromDay: dayKey })}
+                              className={cn(
+                                "p-1.5 rounded-md transition-colors shrink-0",
+                                isMoving ? "bg-primary/10 text-primary" : "text-muted-foreground/40 active:bg-muted"
+                              )}
+                            >
+                              <ArrowUpDown className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Move-to-day picker */}
+                        {isMoving && (
+                          <div className="bg-muted/50 border-b border-border/20 px-4 py-2">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Move to</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {sortedDays
+                                .filter(([dk]) => dk !== dayKey)
+                                .map(([dk]) => (
+                                  <button
+                                    key={dk}
+                                    onClick={() => {
+                                      handleMoveExperience(exp.id, dayKey, dk);
+                                      setMovingExp(null);
+                                    }}
+                                    className="text-xs font-medium px-2.5 py-1 rounded-md bg-background border border-border/50 text-foreground hover:bg-primary/5 hover:border-primary/20 active:bg-primary/10 transition-colors"
+                                  >
+                                    {format(new Date(dk), "EEE, MMM d")}
+                                  </button>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -693,10 +801,10 @@ const PublicItinerary = () => {
               />
             </div>
 
-            {/* View switcher + CTA row */}
-            <div className="flex items-center justify-between">
+            {/* Unified action bar: view switcher + CTA */}
+            <div className="flex items-center gap-2">
               {/* View mode switcher */}
-              <div className="flex items-center bg-muted rounded-lg p-0.5">
+              <div className="flex items-center bg-muted rounded-lg p-0.5 flex-1">
                 {([
                   { mode: 'list' as ViewMode, icon: List, label: 'List' },
                   { mode: 'icons' as ViewMode, icon: Grid3X3, label: 'Icons' },
@@ -706,7 +814,7 @@ const PublicItinerary = () => {
                     key={mode}
                     onClick={() => setViewMode(mode)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      "flex items-center justify-center gap-1.5 flex-1 px-2 py-2 rounded-md text-xs font-medium transition-all",
                       viewMode === mode
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -718,19 +826,19 @@ const PublicItinerary = () => {
                 ))}
               </div>
 
-              {/* Primary CTA */}
+              {/* Primary CTA - matches switcher height */}
               {isOwned ? (
-                <Button size="sm" className="gap-1.5" onClick={() => setShowCreateTripSheet(true)}>
+                <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => setShowCreateTripSheet(true)}>
                   <Rocket className="w-3.5 h-3.5" />
                   Create trip
                 </Button>
               ) : (
-                <Button size="sm" className="gap-1.5" onClick={() => {
+                <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => {
                   if (!isAuthenticated) { setShowAuthModal(true); return; }
                   setShowAddToItinerarySheet(true);
                 }}>
                   <Plus className="w-3.5 h-3.5" />
-                  Add to itinerary
+                  Add
                 </Button>
               )}
             </div>
@@ -803,11 +911,11 @@ const PublicItinerary = () => {
             </button>
             <div className="h-px bg-border/50 mx-3 my-1" />
             <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Download className="w-4.5 h-4.5 text-foreground" /></div>
               <span className="font-medium text-sm">Export as CSV</span>
             </button>
             <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Download className="w-4.5 h-4.5 text-foreground" /></div>
               <span className="font-medium text-sm">Export as XLSX</span>
             </button>
           </div>
