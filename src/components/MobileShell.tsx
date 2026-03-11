@@ -76,7 +76,7 @@ const ProfileSlideMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () => void; isSearchOpen: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { experienceCount } = useItineraries();
+  const { unreadCount } = useItineraryUpdates();
 
   const handleHomeClick = useCallback(() => {
     // Always close search first if it's open
