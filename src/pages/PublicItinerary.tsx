@@ -835,10 +835,13 @@ const PublicItinerary = () => {
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
             className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
+            style={{ fontSize: '16px' }}
+            onFocus={(e) => {
+              setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && inviteEmail.trim()) {
                 handleShare();
-                toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
                 setInviteEmail("");
               }
             }}
@@ -848,7 +851,6 @@ const PublicItinerary = () => {
           disabled={!inviteEmail.trim()}
           onClick={() => {
             handleShare();
-            toast({ title: "Invite sent!", description: `Link shared with ${inviteEmail}` });
             setInviteEmail("");
           }}
         >
@@ -858,7 +860,7 @@ const PublicItinerary = () => {
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1 gap-2" onClick={handleShare}>
           <Copy className="w-4 h-4" />
-          Copy Link
+          {copied ? "Copied!" : "Copy Link"}
         </Button>
         <Button variant="outline" className="flex-1 gap-2" onClick={handleShareWhatsApp}>
           <MessageCircle className="w-4 h-4" />
