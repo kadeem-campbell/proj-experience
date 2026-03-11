@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import MyItineraries from "./pages/MyItineraries";
 import Liked from "./pages/Liked";
 import Collection from "./pages/Collection";
+import ExperienceCollection from "./pages/ExperienceCollection";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
