@@ -249,8 +249,8 @@ const buildExperienceMap = () => {
 const { byId: experienceMapById, bySlug: experienceMapBySlug } = buildExperienceMap();
 
 export default function ExperienceDetail() {
-  // Support both old /experience/:id and new /experience/:location/:slug URLs
-  const { id, location: locationParam, slug } = useParams();
+  // Support /experiences/:slug, legacy /experience/:location/:legacySlug, and /experience/:id
+  const { id, location: locationParam, legacySlug, slug } = useParams();
   const navigate = useNavigate();
   const { itineraries, removeExperience, isInItinerary } = useItineraries();
   const videoRef = useRef<HTMLVideoElement>(null);
