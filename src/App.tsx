@@ -61,6 +61,7 @@ const App = () => (
           <Route path="/itineraries/:id" element={<PublicItinerary />} />
           <Route path="/public-itinerary/:id" element={<PublicItinerary />} />
           <Route path="/itineraries" element={<Itineraries />} />
+          <Route path="/collections/:slug" element={<Collection />} />
           <Route path="/experiences" element={<Experiences />} />
           <Route path="/trip/:id" element={<Trip />} />
           <Route path="/profile" element={<Profile />} />
