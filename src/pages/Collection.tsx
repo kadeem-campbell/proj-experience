@@ -232,23 +232,26 @@ const CollectionPage = () => {
         {/* Divider + continued discovery */}
         {remainingSections.length > 0 && (
           <>
-            <div className="mt-10 mb-6 py-3 px-4 text-center" style={{ backgroundColor: 'hsl(0 0% 12%)' }}>
-              <span className="text-xs uppercase tracking-wider text-white/90">
-                More itineraries to explore
-              </span>
-            </div>
+            <div className="mt-10 rounded-2xl mx-3 overflow-hidden pb-8" style={{ backgroundColor: '#811b25' }}>
+              <div className="py-4 px-4 text-center">
+                <span className="text-xs uppercase tracking-wider text-white/80">
+                  More itineraries to explore
+                </span>
+              </div>
 
-            {remainingSections.map(section => (
-              <HorizontalScrollRow
-                key={section.key}
-                title={section.title}
-                onTitleClick={() => navigate(`/itinerary-collections/${section.key}`)}
-              >
-                {section.items.map((it: any) => (
-                  <MobileItineraryCard key={it.id} itinerary={it} />
-                ))}
-              </HorizontalScrollRow>
-            ))}
+              {remainingSections.map(section => (
+                <HorizontalScrollRow
+                  key={section.key}
+                  title={section.title}
+                  onTitleClick={() => navigate(`/itinerary-collections/${section.key}`)}
+                  titleClassName="text-white/90"
+                >
+                  {section.items.map((it: any) => (
+                    <MobileItineraryCard key={it.id} itinerary={it} />
+                  ))}
+                </HorizontalScrollRow>
+              ))}
+            </div>
           </>
         )}
       </MobileShell>
