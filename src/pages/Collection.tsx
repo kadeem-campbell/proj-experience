@@ -269,7 +269,7 @@ const CollectionPage = () => {
       <Helmet>
         <title>{collection.title} — Curated Itineraries | Swam</title>
         <meta name="description" content={collection.description} />
-        <link rel="canonical" href={`https://guiduuid.lovable.app/collections/${slug}`} />
+        <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
       </Helmet>
 
       <div className="flex flex-col h-full">
