@@ -558,10 +558,7 @@ const PublicItinerary = () => {
   };
 
   const handleCopyComplete = () => {
-    toast({
-      title: "Itinerary copied!",
-      description: "The experiences have been added to your collection.",
-    });
+    // silently complete
   };
 
   const handleDragStart = (e: React.DragEvent, experience: LikedExperience) => {
