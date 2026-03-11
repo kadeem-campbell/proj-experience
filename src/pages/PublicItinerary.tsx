@@ -58,6 +58,8 @@ import {
   Sparkles,
   Heart,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   X,
   Sunrise,
   Sun,
@@ -75,6 +77,9 @@ import {
   Route,
   AlertTriangle,
   ExternalLink,
+  Download,
+  ArrowUpDown,
+  MoveVertical,
 } from "lucide-react";
 
 // Time slot configurations
