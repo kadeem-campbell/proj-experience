@@ -131,6 +131,7 @@ const PublicItinerary = () => {
   const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
   const [activeTripMode, setActiveTripMode] = useState(false);
   const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
+  const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
   
   // Auth
   const [showAuthModal, setShowAuthModal] = useState(false);
