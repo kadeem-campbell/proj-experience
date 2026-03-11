@@ -160,8 +160,8 @@ export const ExperienceCard = ({
               <button className={cn(
                 "rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
                 isMobile ? "w-7 h-7" : "w-8 h-8",
-                "bg-black/20 backdrop-blur-xl border border-black/30",
-                "hover:bg-black/30"
+                "bg-white/10 backdrop-blur-2xl border border-white/15 shadow-lg",
+                "hover:bg-white/20"
               )}>
                 <Plus className="w-4 h-4 text-white/90" />
               </button>

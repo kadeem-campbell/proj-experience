@@ -99,7 +99,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
                 experienceData={experienceData}
                 onAdd={handleAddSuccess}
               >
-              <div className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-black/30 flex items-center justify-center cursor-pointer hover:bg-black/30 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-2xl border border-white/15 flex items-center justify-center shadow-lg cursor-pointer hover:bg-white/20 transition-colors">
                   <Plus className="w-4 h-4 text-white/90" />
                 </div>
               </ItinerarySelector>
