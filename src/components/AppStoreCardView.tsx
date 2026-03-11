@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { slugify } from "@/utils/slugUtils";
 import { Heart, Plus, MapPin } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
@@ -57,7 +58,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
 
   return (
     <Link 
-      to={`/experience/${experience.id}`}
+      to={`/experiences/${slugify(experience.title)}`}
       className="block w-full"
     >
       <div className="relative w-full rounded-2xl overflow-hidden">

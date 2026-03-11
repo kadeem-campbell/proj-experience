@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { slugify } from "@/utils/slugUtils";
 import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check, Sun, Wine, TreePine, Mountain, UtensilsCrossed } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
@@ -208,7 +209,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div 
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
-      onClick={() => navigate(`/experience/${experience.id}`)}
+      onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
@@ -541,7 +542,7 @@ export const MobileHomeView = () => {
             `${catLabel} you can't miss`
           )}
           variant="itinerary"
-          onTitleClick={() => navigate("/collections/attractions-you-cant-miss")}
+          onTitleClick={() => navigate("/itinerary-collections/attractions-you-cant-miss")}
         >
           {categoryItineraries.slice(0, 6).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -568,7 +569,7 @@ export const MobileHomeView = () => {
         <HorizontalScrollRow 
           title={rowTitle("Curated by locals", `${catLabel} curated by locals`)}
           variant="itinerary"
-          onTitleClick={() => navigate("/collections/curated-by-locals")}
+          onTitleClick={() => navigate("/itinerary-collections/curated-by-locals")}
         >
           {categoryItineraries.slice(3, 9).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -592,7 +593,7 @@ export const MobileHomeView = () => {
         <HorizontalScrollRow 
           title="Weekend getaways"
           variant="itinerary"
-          onTitleClick={() => navigate("/collections/weekend-getaways")}
+          onTitleClick={() => navigate("/itinerary-collections/weekend-getaways")}
         >
           {categoryItineraries.slice(1, 7).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -616,7 +617,7 @@ export const MobileHomeView = () => {
         <HorizontalScrollRow 
           title="Popular this week"
           variant="itinerary"
-          onTitleClick={() => navigate("/collections/popular-this-week")}
+          onTitleClick={() => navigate("/itinerary-collections/popular-this-week")}
         >
           {categoryItineraries.slice(2, 8).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />

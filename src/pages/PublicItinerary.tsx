@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { slugify } from "@/utils/slugUtils";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { allExperiences } from "@/hooks/useExperiencesData";
 
@@ -98,7 +99,7 @@ const timeSlotConfig: Record<TimeSlot, { label: string; emoji: string; icon: Rea
 };
 
 const PublicItinerary = () => {
-  const { id } = useParams();
+  const { slug: id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -919,12 +920,12 @@ const PublicItinerary = () => {
           // Guard: don't navigate when tapping action buttons (mobile tap precision)
           const target = e.target as HTMLElement;
           if (target.closest('button,[data-card-action="true"]')) return;
-          navigate(`/experience/${experience.id}`);
+          navigate(`/experiences/${slugify(experience.title)}`);
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            navigate(`/experience/${experience.id}`);
+            navigate(`/experiences/${slugify(experience.title)}`);
           }
         }}
       >
@@ -1471,7 +1472,7 @@ const PublicItinerary = () => {
                         return (
                           <button
                             key={experience.id}
-                            onClick={() => navigate(`/experience/${experience.id}`)}
+                            onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
                             className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 active:bg-muted/80 transition-colors text-left"
                           >
                             {/* Thumbnail */}

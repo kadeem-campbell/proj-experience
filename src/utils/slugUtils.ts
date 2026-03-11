@@ -10,14 +10,16 @@ export const slugify = (text: string): string => {
 };
 
 export const generateExperienceUrl = (location: string, title: string): string => {
-  const locationSlug = slugify(location);
   const titleSlug = slugify(title);
-  return `/experience/${locationSlug}/${titleSlug}`;
+  return `/experiences/${titleSlug}`;
 };
 
-export const parseExperienceSlug = (locationSlug: string, titleSlug: string): { location: string; title: string } => {
+export const generateExperienceSlug = (title: string): string => {
+  return slugify(title);
+};
+
+export const parseExperienceSlug = (slug: string): { title: string } => {
   return {
-    location: locationSlug.replace(/-/g, ' '),
-    title: titleSlug.replace(/-/g, ' ')
+    title: slug.replace(/-/g, ' ')
   };
 };

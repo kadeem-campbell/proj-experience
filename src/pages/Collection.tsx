@@ -195,7 +195,7 @@ const CollectionPage = () => {
         <Helmet>
           <title>{collection.title} — Curated Itineraries | Swam</title>
           <meta name="description" content={collection.description} />
-          <link rel="canonical" href={`https://guiduuid.lovable.app/collections/${slug}`} />
+          <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
         </Helmet>
 
         {/* Hero header */}
@@ -246,7 +246,7 @@ const CollectionPage = () => {
               <HorizontalScrollRow
                 key={section.key}
                 title={section.title}
-                onTitleClick={() => navigate(`/collections/${section.key}`)}
+                onTitleClick={() => navigate(`/itinerary-collections/${section.key}`)}
               >
                 {section.items.map((it: any) => (
                   <MobileItineraryCard key={it.id} itinerary={it} />
@@ -269,7 +269,7 @@ const CollectionPage = () => {
       <Helmet>
         <title>{collection.title} — Curated Itineraries | Swam</title>
         <meta name="description" content={collection.description} />
-        <link rel="canonical" href={`https://guiduuid.lovable.app/collections/${slug}`} />
+        <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
       </Helmet>
 
       <div className="flex flex-col h-full">

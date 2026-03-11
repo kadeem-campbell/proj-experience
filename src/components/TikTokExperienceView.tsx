@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { slugify } from "@/utils/slugUtils";
 import { Heart, Plus, Check, MapPin, ChevronUp } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
@@ -118,7 +119,7 @@ const TikTokCard = ({ experience, isActive }: { experience: Experience; isActive
       className="h-full w-full snap-start snap-always relative flex-shrink-0"
       style={{ scrollSnapAlign: 'start' }}
     >
-      <Link to={`/experience/${experience.id}`} className="block h-full w-full">
+      <Link to={`/experiences/${slugify(experience.title)}`} className="block h-full w-full">
         {/* Full-screen media */}
         <div className="absolute inset-0 bg-black">
           {experience.videoUrl ? (

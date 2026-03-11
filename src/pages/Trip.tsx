@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
+import { slugify } from "@/utils/slugUtils";
 import { format, parseISO, isSameDay, addDays, setHours, setMinutes } from "date-fns";
 import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
@@ -771,7 +772,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     return (
       <Link 
         key={experience.id}
-        to={`/experience/${experience.id}`}
+        to={`/experiences/${slugify(experience.title)}`}
       >
         <div className="group cursor-pointer transition-transform duration-150">
           {/* Cover Image - match PublicItinerary geometry (4:3, rounded-xl) */}

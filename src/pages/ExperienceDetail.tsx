@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
-import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl, generateExperienceSlug } from "@/utils/slugUtils";
 
 // Mock data
 import partyImage from "@/assets/party-experience.jpg";
@@ -209,8 +209,8 @@ const buildExperienceMap = () => {
   // Add mock experiences with full details
   mockExperiences.forEach(exp => {
     byId.set(exp.id, exp);
-    const slugKey = `${slugify(exp.location)}/${slugify(exp.title)}`;
-    bySlug.set(slugKey, exp);
+    const titleSlug = slugify(exp.title);
+    bySlug.set(titleSlug, exp);
   });
   
   // Add experiences from public itineraries
@@ -234,8 +234,10 @@ const buildExperienceMap = () => {
           meetingPoints: [{ name: exp.location, type: "Main Location" }]
         };
         byId.set(exp.id, fullExp);
-        const slugKey = `${slugify(exp.location)}/${slugify(exp.title)}`;
-        bySlug.set(slugKey, fullExp);
+        const titleSlug = slugify(exp.title);
+        if (!bySlug.has(titleSlug)) {
+          bySlug.set(titleSlug, fullExp);
+        }
       }
     });
   });
@@ -247,8 +249,8 @@ const buildExperienceMap = () => {
 const { byId: experienceMapById, bySlug: experienceMapBySlug } = buildExperienceMap();
 
 export default function ExperienceDetail() {
-  // Support both old /experience/:id and new /experience/:location/:slug URLs
-  const { id, location: locationParam, slug } = useParams();
+  // Support /experiences/:slug, legacy /experience/:location/:legacySlug, and /experience/:id
+  const { id, location: locationParam, legacySlug, slug } = useParams();
   const navigate = useNavigate();
   const { itineraries, removeExperience, isInItinerary } = useItineraries();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -268,17 +270,23 @@ export default function ExperienceDetail() {
 
   // Instant lookup - no loading state needed for cached data
   const experience = useMemo(() => {
-    // New SEO-friendly URL format: /experience/:location/:slug
-    if (locationParam && slug) {
-      const slugKey = `${locationParam}/${slug}`;
-      if (experienceMapBySlug.has(slugKey)) {
-        return experienceMapBySlug.get(slugKey);
+    // New URL format: /experiences/:slug
+    if (slug) {
+      if (experienceMapBySlug.has(slug)) {
+        return experienceMapBySlug.get(slug);
+      }
+    }
+    
+    // Legacy URL format: /experience/:location/:legacySlug
+    if (locationParam && legacySlug) {
+      // Try matching by title slug
+      if (experienceMapBySlug.has(legacySlug)) {
+        return experienceMapBySlug.get(legacySlug);
       }
     }
     
     // Legacy URL format: /experience/:id
     if (id) {
-      // Check pre-computed map first (instant)
       if (experienceMapById.has(id)) {
         return experienceMapById.get(id);
       }
@@ -308,7 +316,7 @@ export default function ExperienceDetail() {
     }
     
     return null;
-  }, [id, locationParam, slug, itineraries]);
+  }, [id, locationParam, legacySlug, slug, itineraries]);
 
   // Check if experience is in active itinerary
   const inItinerary = isInItinerary(experience?.id || '');

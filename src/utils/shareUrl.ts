@@ -23,12 +23,12 @@ export const getShareBaseUrl = (): string => {
  * Generate a shareable itinerary URL
  */
 export const getItineraryShareUrl = (itineraryId: string): string => {
-  return `${getShareBaseUrl()}/itinerary/${itineraryId}`;
+  return `${getShareBaseUrl()}/itineraries/${itineraryId}`;
 };
 
 /**
  * Generate a shareable experience URL
  */
-export const getExperienceShareUrl = (experienceId: string): string => {
-  return `${getShareBaseUrl()}/experience/${experienceId}`;
+export const getExperienceShareUrl = (experienceSlug: string): string => {
+  return `${getShareBaseUrl()}/experiences/${experienceSlug}`;
 };
