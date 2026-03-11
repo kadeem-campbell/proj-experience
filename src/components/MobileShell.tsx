@@ -5,8 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { cn } from "@/lib/utils";
-import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
-import { cn } from "@/lib/utils";
 
 // Spotify-style left slide-out profile menu
 const ProfileSlideMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
