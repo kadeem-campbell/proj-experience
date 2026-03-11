@@ -14,7 +14,7 @@ import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
 import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
-
+import catSafari from "@/assets/cat-safari.png";
 interface MobileSearchOverlayProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,7 +32,7 @@ const categories = [
   { icon: catNature, label: "Nature" },
   { icon: catAdventure, label: "Adventure" },
   { icon: catFood, label: "Food" },
-  { icon: catNature, label: "Safari" },
+  { icon: catSafari, label: "Safari" },
 ];
 
 const allItinerariesData = getPopularItineraries();
