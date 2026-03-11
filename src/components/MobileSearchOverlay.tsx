@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, X, Layers, Heart, MapPin, Plus } from "lucide-react";
+import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
 import { useNavigate } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { allExperiences } from "@/hooks/useExperiencesData";
