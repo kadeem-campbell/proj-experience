@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
+import catBeaches from "@/assets/cat-beaches.png";
+import catNightlife from "@/assets/cat-nightlife.png";
+import catNature from "@/assets/cat-nature.png";
+import catAdventure from "@/assets/cat-adventure.png";
+import catFood from "@/assets/cat-food.png";
+import catParty from "@/assets/cat-party.png";
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
