@@ -192,35 +192,18 @@ export const MobileSearchOverlay = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Save current scroll position before locking
-      const scrollY = window.scrollY;
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.inset = '0';
-      document.body.style.width = '100%';
-      document.body.dataset.scrollY = String(scrollY);
       const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
       window.addEventListener('keydown', handleKey);
       return () => {
-        const savedScrollY = parseInt(document.body.dataset.scrollY || '0', 10);
         document.body.style.overflow = '';
         document.documentElement.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.inset = '';
-        document.body.style.width = '';
-        window.scrollTo(0, savedScrollY);
         window.removeEventListener('keydown', handleKey);
       };
     } else {
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.inset = '';
-      document.body.style.width = '';
     }
   }, [isOpen, onClose]);
 
