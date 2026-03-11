@@ -246,7 +246,7 @@ const CollectionPage = () => {
               <HorizontalScrollRow
                 key={section.key}
                 title={section.title}
-                onTitleClick={() => navigate(`/collections/${section.key}`)}
+                onTitleClick={() => navigate(`/itinerary-collections/${section.key}`)}
               >
                 {section.items.map((it: any) => (
                   <MobileItineraryCard key={it.id} itinerary={it} />
