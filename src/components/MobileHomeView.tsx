@@ -207,7 +207,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
       onClick={() => navigate(`/experience/${experience.id}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
