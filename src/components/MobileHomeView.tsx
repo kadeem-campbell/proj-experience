@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check, Umbrella, Music, TreePine, Mountain, UtensilsCrossed } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check, Waves, Wine, TreePine, Mountain, UtensilsCrossed } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -24,8 +24,8 @@ const mapCities = [
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
-  { label: "Beaches", category: "Beach", icon: Umbrella },
-  { label: "Nightlife", category: "Nightlife", icon: Music },
+  { label: "Beaches", category: "Beach", icon: Waves },
+  { label: "Nightlife", category: "Nightlife", icon: Wine },
   { label: "Wildlife", category: "Wildlife", icon: TreePine },
   { label: "Adventure", category: "Adventure", icon: Mountain },
   { label: "Food", category: "Food", icon: UtensilsCrossed },
