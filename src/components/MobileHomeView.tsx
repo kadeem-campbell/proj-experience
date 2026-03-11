@@ -161,11 +161,11 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
           </div>
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-xl transition-all active:scale-90",
-          "bg-black/20 border border-black/30",
-          liked ? "bg-black/30" : "hover:bg-black/30"
+          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all active:scale-90",
+          "bg-white/10 border border-white/15",
+          liked ? "bg-white/20" : "hover:bg-white/20"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-white text-white" : "text-white/90")} />
+          <Heart className={cn("w-4 h-4", liked ? "fill-primary text-primary" : "text-white/90")} />
         </button>
       </div>
       <div className="mt-2 space-y-0.5">
