@@ -273,11 +273,20 @@ const PublicItinerary = () => {
 
   // --- Share Handlers ---
   const handleCopyLink = async () => {
-    const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    const shareUrl = `${baseUrl}/itineraries/${itinerary.id}`;
-    await navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
+      const shareUrl = `${baseUrl}/itineraries/${itinerary.id}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      // Auto-dismiss share sheet after showing tick
+      setTimeout(() => {
+        setCopied(false);
+        setShowShareSheet(false);
+      }, 600);
+    } catch {
+      // Fallback for clipboard API failure
+      setCopied(false);
+    }
   };
 
   const handleShareWhatsApp = () => {
