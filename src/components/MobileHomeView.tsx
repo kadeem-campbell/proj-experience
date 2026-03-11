@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check, Waves, Wine, TreePine, Mountain, UtensilsCrossed } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check, Sun, Wine, TreePine, Mountain, UtensilsCrossed } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -24,9 +24,9 @@ const mapCities = [
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
-  { label: "Beaches", category: "Beach", icon: Waves },
+  { label: "Beaches", category: "Beach", icon: Sun },
   { label: "Nightlife", category: "Nightlife", icon: Wine },
-  { label: "Wildlife", category: "Wildlife", icon: TreePine },
+  { label: "Nature", category: "Wildlife", icon: TreePine },
   { label: "Adventure", category: "Adventure", icon: Mountain },
   { label: "Food", category: "Food", icon: UtensilsCrossed },
 ];
@@ -48,8 +48,8 @@ const CategoryFilterPills = ({
   onCategoryChange: (cat: string) => void;
 }) => {
   return (
-    <div className="px-4 pb-3">
-      <div className="flex justify-center gap-6">
+    <div className="px-8 pb-3">
+      <div className="flex justify-center gap-5">
         {filterCategories.map((cat) => {
           const Icon = cat.icon;
           const isActive = activeCategory === cat.category;
