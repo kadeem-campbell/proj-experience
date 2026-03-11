@@ -489,7 +489,7 @@ const PublicItinerary = () => {
   const renderListRow = (experience: LikedExperience, _idx?: number, _total?: number) => {
     const liked = isItemLiked(experience.id, 'experience');
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
-    const price = experience.price ? `$${experience.price} avg` : null;
+    const price = experience.price ? `${experience.price} avg` : null;
 
     const metaParts: string[] = [];
     if (experience.location) metaParts.push(experience.location);
