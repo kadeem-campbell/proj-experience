@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Search, X, Layers, Heart, MapPin, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { slugify } from "@/utils/slugUtils";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { cn } from "@/lib/utils";
