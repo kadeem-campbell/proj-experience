@@ -419,8 +419,6 @@ const PublicItinerary = () => {
     });
   };
 
-  // State for move-to-day dropdown
-  const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
 
   // --- Render functions ---
 
