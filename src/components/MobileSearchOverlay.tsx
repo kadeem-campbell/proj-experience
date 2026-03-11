@@ -233,7 +233,7 @@ export const MobileSearchOverlay = ({
     return allExpsData.filter(e => {
       const fields = normalize([e.title, e.location, e.category, e.creator].join(" "));
       return terms.some(t => termMatch(t, fields));
-    }).slice(0, 12);
+    });
   }, [q]);
 
   const liveItineraries = useMemo(() => {
