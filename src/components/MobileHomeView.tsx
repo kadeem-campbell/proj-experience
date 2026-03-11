@@ -64,12 +64,12 @@ const CategoryFilterPills = ({
               className="flex flex-col items-center gap-1 transition-all active:scale-95"
             >
               <div className={cn(
-                "w-14 h-14 rounded-full flex items-center justify-center transition-all",
+                "w-[60px] h-[60px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
                 isActive 
-                  ? "bg-primary/10 ring-2 ring-primary" 
+                  ? "ring-2 ring-primary bg-primary/5" 
                   : "bg-muted"
               )}>
-                <span className="text-2xl">{cat.emoji}</span>
+                <img src={cat.icon} alt={cat.label} className="w-11 h-11 object-contain" />
               </div>
               <span className={cn(
                 "text-[11px] font-medium transition-colors",
