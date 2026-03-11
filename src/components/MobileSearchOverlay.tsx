@@ -433,10 +433,10 @@ export const MobileSearchOverlay = ({
                   <button
                     key={cat.label}
                     onClick={() => handleQuickSearch(cat.label)}
-                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl bg-background border border-border hover:bg-muted/40 transition-colors duration-150"
+                    className="flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg bg-background border border-border hover:bg-muted/40 transition-colors duration-150"
                   >
-                    <img src={cat.icon} alt={cat.label} className="w-10 h-10 object-contain" />
-                    <span className="text-xs font-medium text-foreground truncate">{cat.label}</span>
+                    <img src={cat.icon} alt={cat.label} className="w-8 h-8 object-contain" />
+                    <span className="text-[11px] font-medium text-foreground truncate">{cat.label}</span>
                   </button>
                 ))}
               </div>
