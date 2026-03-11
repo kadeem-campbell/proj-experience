@@ -1045,7 +1045,7 @@ const PublicItinerary = () => {
 
       {/* Create Trip Sheet (owned itinerary only) */}
       <Sheet open={showCreateTripSheet} onOpenChange={setShowCreateTripSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto pb-[env(safe-area-inset-bottom,16px)]">
           <SheetHeader className="pb-3">
             <SheetTitle className="flex items-center gap-2">
               <Rocket className="w-5 h-5 text-primary" />
