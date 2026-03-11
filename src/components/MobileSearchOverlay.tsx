@@ -46,12 +46,12 @@ const SearchHorizontalRow = ({ title, variant = "default", children }: {
   variant?: "itinerary" | "experience" | "default";
   children: React.ReactNode;
 }) => {
-  const chevronColor = variant === "itinerary" ? "text-itinerary-color" : variant === "experience" ? "text-experience-color" : "text-muted-foreground";
+  
   return (
     <div className="py-3">
       <div className="mb-2 flex items-center gap-1.5 px-4">
         <h2 className="text-[15px] font-bold text-foreground">{title}</h2>
-        <span className={cn("text-lg font-semibold", chevronColor)}>›</span>
+        
       </div>
       <div
         className="overflow-x-auto scrollbar-hide"
@@ -233,7 +233,7 @@ export const MobileSearchOverlay = ({
     return allExpsData.filter(e => {
       const fields = normalize([e.title, e.location, e.category, e.creator].join(" "));
       return terms.some(t => termMatch(t, fields));
-    }).slice(0, 12);
+    });
   }, [q]);
 
   const liveItineraries = useMemo(() => {
@@ -245,7 +245,7 @@ export const MobileSearchOverlay = ({
         return terms.some(t => termMatch(t, ef));
       });
       return terms.some(t => termMatch(t, fields)) || expMatch;
-    }).slice(0, 8);
+    });
   }, [q]);
 
   // More from the same category as top result
@@ -322,7 +322,8 @@ export const MobileSearchOverlay = ({
       </div>
 
       {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      <div className="flex-1 overflow-y-auto overscroll-contain search-scroll-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style>{`.search-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
         {hasQuery ? (
           <>
             {/* Featured Itineraries row */}

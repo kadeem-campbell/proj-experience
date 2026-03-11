@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
@@ -12,9 +12,7 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
-
-
-// Horizontal scroll row - identical to homepage
+// Horizontal scroll row
 const HorizontalScrollRow = ({ 
   title, 
   children 
@@ -41,7 +39,7 @@ const HorizontalScrollRow = ({
   );
 };
 
-// Itinerary card for horizontal scroll - 3:2 aspect, same as homepage
+// Itinerary card for horizontal scroll
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
   const [localLiked, setLocalLiked] = useState(false);
@@ -100,10 +98,42 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
+// Section definitions matching homepage carousel sections
+const sectionDefinitions: Record<string, { title: string; filter: (items: any[]) => any[] }> = {
+  popular: {
+    title: "Attractions you can't miss",
+    filter: (items) => items.filter(i => i.tag === 'popular'),
+  },
+  'staff-picks': {
+    title: "Staff picks",
+    filter: (items) => items.filter(i => i.tag === 'fave'),
+  },
+  zanzibar: {
+    title: "Zanzibar getaways",
+    filter: (items) => items.filter(i => i.name?.toLowerCase().includes('zanzibar')),
+  },
+  'popular-week': {
+    title: "Popular this week",
+    filter: (items) => items.filter(i => i.tag === 'popular'),
+  },
+  beach: {
+    title: "Beach & island life",
+    filter: (items) => items.filter(i =>
+      i.name?.toLowerCase().includes('beach') || i.name?.toLowerCase().includes('island') || i.name?.toLowerCase().includes('diani') || i.name?.toLowerCase().includes('mombasa')
+    ),
+  },
+  safari: {
+    title: "Safari adventures",
+    filter: (items) => items.filter(i =>
+      i.name?.toLowerCase().includes('safari') || i.name?.toLowerCase().includes('serengeti') || i.name?.toLowerCase().includes('maasai')
+    ),
+  },
+};
 
 const ItinerariesPage = () => {
   const [searchParams] = useSearchParams();
   const filter = searchParams.get('filter');
+  const section = searchParams.get('section');
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -115,9 +145,9 @@ const ItinerariesPage = () => {
   };
 
   const allItineraries = getBaseItineraries();
-  const itineraries = allItineraries;
 
   const getTitle = () => {
+    if (section && sectionDefinitions[section]) return sectionDefinitions[section].title;
     if (filter === 'popular') return 'Most Popular';
     if (filter === 'fave') return 'Staff Picks';
     return 'All Itineraries';
@@ -128,16 +158,79 @@ const ItinerariesPage = () => {
     return <Users className="w-5 h-5 md:w-6 md:h-6 text-primary" />;
   };
 
+  // Compute featured (section) items and remaining
+  const { featuredItems, remainingItems } = useMemo(() => {
+    if (section && sectionDefinitions[section]) {
+      const featured = sectionDefinitions[section].filter(allItineraries);
+      const featuredIds = new Set(featured.map((i: any) => i.id));
+      const remaining = allItineraries.filter((i: any) => !featuredIds.has(i.id));
+      return { featuredItems: featured, remainingItems: remaining };
+    }
+    return { featuredItems: [] as any[], remainingItems: allItineraries };
+  }, [section, allItineraries]);
+
   if (isMobile) {
-    const popularItems = itineraries.filter(i => i.tag === 'popular').slice(0, 10);
-    const faveItems = itineraries.filter(i => i.tag === 'fave').slice(0, 10);
-    const recentItems = [...itineraries].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
-    const zanzibarItems = itineraries.filter(i => i.name.toLowerCase().includes('zanzibar')).slice(0, 10);
-    const safariItems = itineraries.filter(i => 
-      i.name.toLowerCase().includes('safari') || i.name.toLowerCase().includes('serengeti') || i.name.toLowerCase().includes('maasai')
+    // If a section is selected, show featured in grid first, then remaining in carousels
+    if (section && featuredItems.length > 0) {
+      // Build carousel groups from remaining
+      const popularRemaining = remainingItems.filter((i: any) => i.tag === 'popular').slice(0, 10);
+      const faveRemaining = remainingItems.filter((i: any) => i.tag === 'fave').slice(0, 10);
+      const zanzibarRemaining = remainingItems.filter((i: any) => i.name?.toLowerCase().includes('zanzibar')).slice(0, 10);
+      const beachRemaining = remainingItems.filter((i: any) =>
+        i.name?.toLowerCase().includes('beach') || i.name?.toLowerCase().includes('island')
+      ).slice(0, 10);
+
+      return (
+        <MobileShell hideAvatar>
+          <div className="mb-4 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+            <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{featuredItems.length} itineraries</p>
+          </div>
+
+          {/* Featured items in grid */}
+          <div className="px-4 mb-8">
+            <div className="grid grid-cols-2 gap-3">
+              {featuredItems.map((it: any) => (
+                <MobileItineraryCard key={it.id} itinerary={it} />
+              ))}
+            </div>
+          </div>
+
+          {/* Remaining in carousels */}
+          {popularRemaining.length > 0 && (
+            <HorizontalScrollRow title="Attractions you can't miss">
+              {popularRemaining.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            </HorizontalScrollRow>
+          )}
+          {faveRemaining.length > 0 && (
+            <HorizontalScrollRow title="Staff picks">
+              {faveRemaining.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            </HorizontalScrollRow>
+          )}
+          {zanzibarRemaining.length > 0 && (
+            <HorizontalScrollRow title="Zanzibar getaways">
+              {zanzibarRemaining.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            </HorizontalScrollRow>
+          )}
+          {beachRemaining.length > 0 && (
+            <HorizontalScrollRow title="Beach & island life">
+              {beachRemaining.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            </HorizontalScrollRow>
+          )}
+        </MobileShell>
+      );
+    }
+
+    // Default: all carousels
+    const popularItems = allItineraries.filter((i: any) => i.tag === 'popular').slice(0, 10);
+    const faveItems = allItineraries.filter((i: any) => i.tag === 'fave').slice(0, 10);
+    const recentItems = [...allItineraries].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+    const zanzibarItems = allItineraries.filter((i: any) => i.name?.toLowerCase().includes('zanzibar')).slice(0, 10);
+    const safariItems = allItineraries.filter((i: any) =>
+      i.name?.toLowerCase().includes('safari') || i.name?.toLowerCase().includes('serengeti') || i.name?.toLowerCase().includes('maasai')
     ).slice(0, 10);
-    const beachItems = itineraries.filter(i => 
-      i.name.toLowerCase().includes('beach') || i.name.toLowerCase().includes('island') || i.name.toLowerCase().includes('diani') || i.name.toLowerCase().includes('mombasa')
+    const beachItems = allItineraries.filter((i: any) =>
+      i.name?.toLowerCase().includes('beach') || i.name?.toLowerCase().includes('island') || i.name?.toLowerCase().includes('diani') || i.name?.toLowerCase().includes('mombasa')
     ).slice(0, 10);
 
     return (
@@ -148,51 +241,45 @@ const ItinerariesPage = () => {
 
         {popularItems.length > 0 && (
           <HorizontalScrollRow title="Attractions you can't miss">
-            {popularItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            {popularItems.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
           </HorizontalScrollRow>
         )}
-
         {faveItems.length > 0 && (
           <HorizontalScrollRow title="Staff picks">
-            {faveItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            {faveItems.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
           </HorizontalScrollRow>
         )}
-
         {zanzibarItems.length > 0 && (
           <HorizontalScrollRow title="Zanzibar getaways">
-            {zanzibarItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            {zanzibarItems.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
           </HorizontalScrollRow>
         )}
-
         {beachItems.length > 0 && (
           <HorizontalScrollRow title="Beach & island life">
-            {beachItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            {beachItems.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
           </HorizontalScrollRow>
         )}
-
         {safariItems.length > 0 && (
           <HorizontalScrollRow title="Safari adventures">
-            {safariItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            {safariItems.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
           </HorizontalScrollRow>
         )}
-
         {recentItems.length > 0 && (
           <HorizontalScrollRow title="Recently added">
-            {recentItems.map(it => <MobileItineraryCard key={it.id} itinerary={it} />)}
+            {recentItems.map((it: any) => <MobileItineraryCard key={it.id} itinerary={it} />)}
           </HorizontalScrollRow>
         )}
       </MobileShell>
     );
   }
 
-  // Desktop: featured section fills viewport, rest scrolls
-  const popularItems = itineraries.filter(i => i.tag === 'popular');
-  const restItems = itineraries.filter(i => i.tag !== 'popular');
+  // Desktop
+  const popularItems = allItineraries.filter((i: any) => i.tag === 'popular');
+  const restItems = allItineraries.filter((i: any) => i.tag !== 'popular');
 
   return (
     <MainLayout>
       <div className="flex flex-col h-full">
-        {/* Header */}
         <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 lg:px-10 py-4">
           <div className="max-w-[1600px] mx-auto flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
@@ -223,30 +310,30 @@ const ItinerariesPage = () => {
         <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
           <div className="max-w-[1600px] mx-auto">
             {/* Featured section */}
-            {popularItems.length > 0 && (
+            {(section && featuredItems.length > 0 ? featuredItems : popularItems).length > 0 && (
               <div className="mb-10">
-                <h2 className="text-lg font-bold mb-4">Attractions you can't miss</h2>
+                <h2 className="text-lg font-bold mb-4">{section ? getTitle() : "Attractions you can't miss"}</h2>
                 <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-                  {popularItems.slice(0, 10).map((itinerary) => (
+                  {(section && featuredItems.length > 0 ? featuredItems : popularItems).slice(0, 10).map((itinerary: any) => (
                     <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Rest of itineraries */}
-            {restItems.length > 0 && (
+            {/* Rest */}
+            {(section ? remainingItems : restItems).length > 0 && (
               <div>
                 <h2 className="text-lg font-bold mb-4">All itineraries</h2>
                 <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
-                  {restItems.map((itinerary) => (
+                  {(section ? remainingItems : restItems).map((itinerary: any) => (
                     <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
                   ))}
                 </div>
               </div>
             )}
 
-            {itineraries.length === 0 && (
+            {allItineraries.length === 0 && (
               <div className="text-center py-16">
                 <p className="text-muted-foreground">No itineraries found</p>
               </div>

@@ -1,4 +1,4 @@
-import { useState, useCallback, ReactNode } from "react";
+import { useState, useCallback, useEffect, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Search, ListMusic, User, Settings, HelpCircle, Map, X, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -177,6 +177,13 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Scroll to top on route change (not search toggle)
+  const location = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.querySelector('main')?.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
