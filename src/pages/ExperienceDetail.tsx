@@ -209,8 +209,8 @@ const buildExperienceMap = () => {
   // Add mock experiences with full details
   mockExperiences.forEach(exp => {
     byId.set(exp.id, exp);
-    const slugKey = `${slugify(exp.location)}/${slugify(exp.title)}`;
-    bySlug.set(slugKey, exp);
+    const titleSlug = slugify(exp.title);
+    bySlug.set(titleSlug, exp);
   });
   
   // Add experiences from public itineraries
@@ -234,8 +234,10 @@ const buildExperienceMap = () => {
           meetingPoints: [{ name: exp.location, type: "Main Location" }]
         };
         byId.set(exp.id, fullExp);
-        const slugKey = `${slugify(exp.location)}/${slugify(exp.title)}`;
-        bySlug.set(slugKey, fullExp);
+        const titleSlug = slugify(exp.title);
+        if (!bySlug.has(titleSlug)) {
+          bySlug.set(titleSlug, fullExp);
+        }
       }
     });
   });
