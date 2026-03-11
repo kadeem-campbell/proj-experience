@@ -192,20 +192,19 @@ export const MobileSearchOverlay = ({
   const navigate = useNavigate();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
+  const savedScrollRef = useRef(0);
+
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
+      savedScrollRef.current = lockBodyScroll();
       const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
       window.addEventListener('keydown', handleKey);
       return () => {
-        document.body.style.overflow = '';
-        document.documentElement.style.overflow = '';
+        unlockBodyScroll(savedScrollRef.current);
         window.removeEventListener('keydown', handleKey);
       };
     } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
+      unlockBodyScroll(savedScrollRef.current);
     }
   }, [isOpen, onClose]);
 
