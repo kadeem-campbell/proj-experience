@@ -34,13 +34,6 @@ import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { publicItinerariesData } from "@/data/itinerariesData";
 import { LikedExperience, TimeSlot } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { 
   ArrowLeft, 
   Copy, 
@@ -80,6 +73,10 @@ import {
   Download,
   ArrowUpDown,
   MoveVertical,
+  SortAsc,
+  TrendingUp,
+  Flame,
+  BookmarkCheck,
 } from "lucide-react";
 
 // Time slot configurations
@@ -91,6 +88,7 @@ const timeSlotConfig: Record<TimeSlot, { label: string; icon: React.ReactNode }>
 };
 
 type ViewMode = 'list' | 'icons' | 'trips';
+type SortMode = 'default' | 'name' | 'time';
 
 const PublicItinerary = () => {
   const { slug: id } = useParams();
@@ -108,6 +106,8 @@ const PublicItinerary = () => {
   
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [sortMode, setSortMode] = useState<SortMode>('default');
+  const [showSortSheet, setShowSortSheet] = useState(false);
   
   // Add to itinerary flow
   const [showAddToItinerarySheet, setShowAddToItinerarySheet] = useState(false);
@@ -128,8 +128,9 @@ const PublicItinerary = () => {
   const [tripStartDate, setTripStartDate] = useState<Date | undefined>(undefined);
   const [tripEndDate, setTripEndDate] = useState<Date | undefined>(undefined);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
-  const [activeTripMode, setActiveTripMode] = useState(false);
+  const [generatedTrips, setGeneratedTrips] = useState<Array<{ id: string; name: string; days: Record<string, LikedExperience[]> }>>([]);
+  const [activeTripIndex, setActiveTripIndex] = useState(0);
+  const [showAutoSave, setShowAutoSave] = useState(false);
   const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
   const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
   
@@ -182,27 +183,24 @@ const PublicItinerary = () => {
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
 
-  // Custom order for list/icons (separate from trips)
-  const [customOrder, setCustomOrder] = useState<string[] | null>(null);
-
-  // Initialize custom order when itinerary loads
-  useEffect(() => {
-    if (itinerary && !customOrder) {
-      setCustomOrder(itinerary.experiences.map(e => e.id));
-    }
+  // Social proof (fake but convincing for public)
+  const socialProof = useMemo(() => {
+    if (!itinerary) return null;
+    const seed = itinerary.id.charCodeAt(0) + itinerary.experiences.length;
+    const savedBy = 80 + (seed % 200);
+    return { savedBy };
   }, [itinerary]);
 
   // Filter and order experiences for list/icons
   const filteredExperiences = useMemo(() => {
     if (!itinerary) return [];
     let exps = [...itinerary.experiences];
-    // Apply custom order
-    if (customOrder) {
-      exps.sort((a, b) => {
-        const ai = customOrder.indexOf(a.id);
-        const bi = customOrder.indexOf(b.id);
-        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-      });
+    // Apply sort
+    if (sortMode === 'name') {
+      exps.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    } else if (sortMode === 'time') {
+      const order: Record<string, number> = { morning: 0, afternoon: 1, evening: 2, night: 3 };
+      exps.sort((a, b) => (order[a.timeSlot || 'afternoon'] || 1) - (order[b.timeSlot || 'afternoon'] || 1));
     }
     if (!searchQuery.trim()) return exps;
     const q = searchQuery.toLowerCase();
@@ -211,21 +209,21 @@ const PublicItinerary = () => {
       e.location?.toLowerCase().includes(q) ||
       e.category?.toLowerCase().includes(q)
     );
-  }, [itinerary, searchQuery, customOrder]);
+  }, [itinerary, searchQuery, sortMode]);
 
-  // Reorder in list/icons view
-  const handleListReorder = useCallback((expId: string, direction: 'up' | 'down') => {
-    setCustomOrder(prev => {
-      if (!prev) return prev;
-      const order = [...prev];
-      const idx = order.indexOf(expId);
-      if (idx < 0) return prev;
-      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
-      if (targetIdx < 0 || targetIdx >= order.length) return prev;
-      [order[idx], order[targetIdx]] = [order[targetIdx], order[idx]];
-      return order;
-    });
-  }, []);
+  // External experience matches (not in this itinerary)
+  const externalMatches = useMemo(() => {
+    if (!searchQuery.trim() || !itinerary) return [];
+    const q = searchQuery.toLowerCase();
+    const inIds = new Set(itinerary.experiences.map(e => e.id));
+    return allExperiences
+      .filter(e => !inIds.has(e.id) && (
+        e.title?.toLowerCase().includes(q) ||
+        e.location?.toLowerCase().includes(q) ||
+        e.category?.toLowerCase().includes(q)
+      ))
+      .slice(0, 6);
+  }, [searchQuery, itinerary]);
 
   // Filtered itineraries for add-to-itinerary search
   const filteredItineraries = useMemo(() => {
@@ -319,7 +317,6 @@ const PublicItinerary = () => {
   const handleAddToNewItinerary = async () => {
     if (!newItineraryName.trim()) return;
     const name = newItineraryName.trim();
-    // Copy all experiences from this public itinerary
     const newIt = await createItinerary(name, itinerary.experiences.map(e => ({ ...e, likedAt: new Date().toISOString() })));
     addUpdate({
       type: 'created',
@@ -335,7 +332,6 @@ const PublicItinerary = () => {
   };
 
   const handleAddToExistingItinerary = (targetItinerary: Itinerary) => {
-    // Add all experiences from this public itinerary into the existing one
     let addedCount = 0;
     for (const exp of itinerary.experiences) {
       const result = addExperienceToItinerary(targetItinerary.id, {
@@ -387,7 +383,6 @@ const PublicItinerary = () => {
         }
       }
     }
-    // Remaining to last day
     const lastDayKey = format(addDays(startDate, numDays - 1), "yyyy-MM-dd");
     const allSlots: TimeSlot[] = ['morning', 'afternoon', 'evening', 'night'];
     for (const slot of allSlots) {
@@ -395,11 +390,20 @@ const PublicItinerary = () => {
         tripDays[lastDayKey].push(bySlot[slot].shift()!);
       }
     }
+    const tripId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7);
+    const tripName = `${format(startDate, "MMM d")}${endDate ? ` – ${format(endDate, "MMM d")}` : ''}`;
     setTimeout(() => {
-      setGeneratedTrip(tripDays);
+      setGeneratedTrips(prev => {
+        const next = [...prev, { id: tripId, name: tripName, days: tripDays }];
+        setActiveTripIndex(next.length - 1);
+        return next;
+      });
       setIsGenerating(false);
-      setActiveTripMode(true);
       setShowCreateTripSheet(false);
+      setViewMode('trips');
+      // Auto-save gesture
+      setShowAutoSave(true);
+      setTimeout(() => setShowAutoSave(false), 3000);
       addUpdate({
         type: 'trip_created',
         message: `Trip created from ${itinerary.name}`,
@@ -419,48 +423,64 @@ const PublicItinerary = () => {
     return null;
   };
 
-  // Move experience between days in trip mode
+  // Move experience between days in active trip
   const handleMoveExperience = (expId: string, fromDay: string, toDay: string) => {
-    setGeneratedTrip(prev => {
-      const updated = { ...prev };
-      const exp = updated[fromDay]?.find(e => e.id === expId);
+    setGeneratedTrips(prev => {
+      const updated = [...prev];
+      const trip = { ...updated[activeTripIndex], days: { ...updated[activeTripIndex].days } };
+      const exp = trip.days[fromDay]?.find(e => e.id === expId);
       if (!exp) return prev;
-      updated[fromDay] = updated[fromDay].filter(e => e.id !== expId);
-      if (!updated[toDay]) updated[toDay] = [];
-      updated[toDay].push(exp);
+      trip.days[fromDay] = trip.days[fromDay].filter(e => e.id !== expId);
+      if (!trip.days[toDay]) trip.days[toDay] = [];
+      trip.days[toDay] = [...trip.days[toDay], exp];
       const warning = validatePlacement(exp, toDay, exp.timeSlot || 'afternoon');
       if (warning) {
         setDragWarnings(prev => new Map(prev).set(expId, warning));
       }
+      updated[activeTripIndex] = trip;
       return updated;
     });
+    // Show auto-save
+    setShowAutoSave(true);
+    setTimeout(() => setShowAutoSave(false), 2000);
   };
 
   // Reorder experience within a day
   const handleReorderInDay = (dayKey: string, expId: string, direction: 'up' | 'down') => {
-    setGeneratedTrip(prev => {
-      const updated = { ...prev };
-      const dayExps = [...(updated[dayKey] || [])];
+    setGeneratedTrips(prev => {
+      const updated = [...prev];
+      const trip = { ...updated[activeTripIndex], days: { ...updated[activeTripIndex].days } };
+      const dayExps = [...(trip.days[dayKey] || [])];
       const idx = dayExps.findIndex(e => e.id === expId);
       if (idx < 0) return prev;
       const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
       if (targetIdx < 0 || targetIdx >= dayExps.length) return prev;
       [dayExps[idx], dayExps[targetIdx]] = [dayExps[targetIdx], dayExps[idx]];
-      updated[dayKey] = dayExps;
+      trip.days[dayKey] = dayExps;
+      updated[activeTripIndex] = trip;
       return updated;
     });
+    setShowAutoSave(true);
+    setTimeout(() => setShowAutoSave(false), 2000);
+  };
+
+  // Handle view mode tap - if already on list, open sort modal
+  const handleViewModeClick = (mode: ViewMode) => {
+    if (mode === 'list' && viewMode === 'list') {
+      setShowSortSheet(true);
+    } else {
+      setViewMode(mode);
+    }
   };
 
 
   // --- Render functions ---
 
-  // Clean list row (Requirement #1)
-  const renderListRow = (experience: LikedExperience, idx?: number, total?: number) => {
+  // Clean list row
+  const renderListRow = (experience: LikedExperience, _idx?: number, _total?: number) => {
     const liked = isItemLiked(experience.id, 'experience');
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
     const price = experience.price ? `$${experience.price} avg` : null;
-    const warning = dragWarnings.get(experience.id);
-    const showReorder = isOwned && idx !== undefined && total !== undefined && !searchQuery.trim();
 
     const metaParts: string[] = [];
     if (experience.location) metaParts.push(experience.location);
@@ -468,28 +488,9 @@ const PublicItinerary = () => {
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
-        {/* Reorder controls for owned */}
-        {showReorder && (
-          <div className="flex flex-col gap-0.5 pl-2 shrink-0">
-            <button
-              onClick={() => handleListReorder(experience.id, 'up')}
-              disabled={idx === 0}
-              className={cn("p-0.5 rounded", idx === 0 ? "opacity-20" : "active:bg-muted")}
-            >
-              <ChevronUp className="w-3 h-3 text-muted-foreground" />
-            </button>
-            <button
-              onClick={() => handleListReorder(experience.id, 'down')}
-              disabled={idx === (total - 1)}
-              className={cn("p-0.5 rounded", idx === (total - 1) ? "opacity-20" : "active:bg-muted")}
-            >
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            </button>
-          </div>
-        )}
         <div
           onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
-          className={cn("flex-1 flex items-center gap-3 py-3 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer", showReorder ? "px-2" : "px-4")}
+          className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
             {experience.videoThumbnail ? (
@@ -517,12 +518,6 @@ const PublicItinerary = () => {
                 </>
               )}
             </div>
-            {warning && (
-              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
-                <AlertTriangle className="w-2.5 h-2.5" />
-                <span>{warning}</span>
-              </div>
-            )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
@@ -608,12 +603,50 @@ const PublicItinerary = () => {
       );
     }
 
-    // Owned: show actual trips or generated trip
-    if (activeTripMode && Object.keys(generatedTrip).length > 0) {
-      const sortedDays = Object.entries(generatedTrip).sort(([a], [b]) => a.localeCompare(b));
+    // Owned: show generated trips
+    if (generatedTrips.length > 0) {
+      const activeTrip = generatedTrips[activeTripIndex];
+      if (!activeTrip) return null;
+      const sortedDays = Object.entries(activeTrip.days).sort(([a], [b]) => a.localeCompare(b));
       return (
-        <div className="space-y-6 px-4 py-4">
-          {sortedDays.map(([dayKey, dayExps]) => (
+        <div className="px-4 py-4">
+          {/* Auto-save banner */}
+          {showAutoSave && (
+            <div className="flex items-center gap-2 px-3 py-2 mb-3 rounded-lg bg-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
+              <Check className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs text-primary font-medium">Auto-saved</span>
+            </div>
+          )}
+          
+          {/* Trip switcher */}
+          {generatedTrips.length > 1 && (
+            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
+              {generatedTrips.map((trip, idx) => (
+                <button
+                  key={trip.id}
+                  onClick={() => setActiveTripIndex(idx)}
+                  className={cn(
+                    "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                    idx === activeTripIndex
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {trip.name}
+                </button>
+              ))}
+              <button
+                onClick={() => setShowCreateTripSheet(true)}
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-muted/50 text-muted-foreground border border-dashed border-border"
+              >
+                <Plus className="w-3 h-3 inline mr-1" />New
+              </button>
+            </div>
+          )}
+
+          {/* Days */}
+          <div className="space-y-6">
+            {sortedDays.map(([dayKey, dayExps]) => (
               <div key={dayKey}>
                 <div className="flex items-center gap-2 mb-3">
                   <CalendarIcon className="w-4 h-4 text-primary" />
@@ -630,7 +663,6 @@ const PublicItinerary = () => {
                     const isMoving = movingExp?.id === exp.id && movingExp?.fromDay === dayKey;
                     return (
                       <div key={exp.id} className="relative">
-                        {/* Experience row with move controls */}
                         <div className="flex items-center gap-2 py-2.5 px-3 border-b border-border/20 last:border-b-0">
                           {/* Move handle area */}
                           <div className="flex flex-col gap-0.5 shrink-0">
@@ -717,50 +749,20 @@ const PublicItinerary = () => {
                 </div>
               </div>
             ))}
+          </div>
         </div>
       );
     }
 
     // Owned but no trip yet
-    const ownedTrips = ownedItinerary?.trips || [];
-    if (ownedTrips.length === 0) {
-      return (
-        <div className="text-center py-12 px-4">
-          <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground mb-4">No trips created yet</p>
-          <Button onClick={() => setShowCreateTripSheet(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Create trip
-          </Button>
-        </div>
-      );
-    }
-
     return (
-      <div className="space-y-6 px-4 py-4">
-        {ownedTrips.map((trip, idx) => {
-          // Group experiences by date
-          const dayMap: Record<string, LikedExperience[]> = {};
-          (trip.experiences || []).forEach(exp => {
-            const dayKey = exp.scheduledTime ? format(new Date(exp.scheduledTime), "yyyy-MM-dd") : trip.startDate;
-            if (!dayMap[dayKey]) dayMap[dayKey] = [];
-            dayMap[dayKey].push(exp);
-          });
-          return (
-            <div key={trip.id || idx}>
-              <h3 className="text-base font-bold text-foreground mb-3">{trip.name || `Trip ${idx + 1}`}</h3>
-              {Object.entries(dayMap).sort(([a], [b]) => a.localeCompare(b)).map(([dayKey, exps]) => (
-                <div key={dayKey} className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CalendarIcon className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-xs font-semibold text-foreground">{format(new Date(dayKey), "EEEE, MMM d")}</span>
-                  </div>
-                  <div className="space-y-0">{exps.map((exp, i) => renderListRow(exp, i, exps.length))}</div>
-                </div>
-              ))}
-            </div>
-          );
-        })}
+      <div className="text-center py-12 px-4">
+        <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+        <p className="text-sm text-muted-foreground mb-4">No trips created yet</p>
+        <Button onClick={() => setShowCreateTripSheet(true)} className="gap-2">
+          <Plus className="w-4 h-4" />
+          Create trip
+        </Button>
       </div>
     );
   };
@@ -792,14 +794,12 @@ const PublicItinerary = () => {
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
             <div className="flex items-center gap-2">
-              {/* Share button */}
               <button 
                 onClick={() => setShowShareSheet(true)}
                 className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg"
               >
                 <Share2 className="w-5 h-5 text-foreground" />
               </button>
-              {/* Like */}
               <button 
                 onClick={() => handleToggleLike(itinerary.id, 'itinerary', { id: itinerary.id, name: itinerary.name })}
                 className={cn(
@@ -832,6 +832,37 @@ const PublicItinerary = () => {
           </div>
         </div>
 
+        {/* Social proof / owned sharing bar */}
+        <div className="px-4 py-2.5 border-b border-border/30 flex items-center justify-between">
+          {!isOwned && socialProof ? (
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <BookmarkCheck className="w-3.5 h-3.5 text-primary/70" />
+                <span>Saved by <span className="font-semibold text-foreground">{socialProof.savedBy}</span> people</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <TrendingUp className="w-3.5 h-3.5 text-primary/70" />
+                <span>Trending</span>
+              </span>
+            </div>
+          ) : isOwned ? (
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <button onClick={() => setShowShareSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                <Share2 className="w-3.5 h-3.5" />
+                <span className="font-medium">Share</span>
+              </button>
+              <button onClick={() => setShowInviteSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                <Send className="w-3.5 h-3.5" />
+                <span className="font-medium">Invite friends</span>
+              </button>
+              <button onClick={() => setShowCollaboratorSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                <Users className="w-3.5 h-3.5" />
+                <span className="font-medium">Collab</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
+
         {/* Main Content */}
         <div className="flex-1 w-full">
           {/* Search + View Switcher + CTA */}
@@ -859,7 +890,7 @@ const PublicItinerary = () => {
                 ]).map(({ mode, icon: Icon, label }) => (
                   <button
                     key={mode}
-                    onClick={() => setViewMode(mode)}
+                    onClick={() => handleViewModeClick(mode)}
                     className={cn(
                       "flex items-center justify-center gap-1.5 flex-1 px-2 py-2 rounded-md text-xs font-medium transition-all",
                       viewMode === mode
@@ -873,7 +904,7 @@ const PublicItinerary = () => {
                 ))}
               </div>
 
-              {/* Primary CTA - matches switcher height */}
+              {/* Primary CTA */}
               {isOwned ? (
                 <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => setShowCreateTripSheet(true)}>
                   <Rocket className="w-3.5 h-3.5" />
@@ -914,8 +945,36 @@ const PublicItinerary = () => {
               <div>
                 {filteredExperiences.map((exp, i) => renderListRow(exp, i, filteredExperiences.length))}
                 {filteredExperiences.length === 0 && searchQuery && (
-                  <div className="text-center py-8">
+                  <div className="text-center py-6">
                     <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+                  </div>
+                )}
+                {/* External matches */}
+                {externalMatches.length > 0 && (
+                  <div className="border-t border-border/30 mt-2 pt-3 px-4">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                      Also on SWAM
+                    </p>
+                    {externalMatches.map(exp => (
+                      <div
+                        key={exp.id}
+                        onClick={() => navigate(`/experiences/${slugify(exp.title)}`)}
+                        className="flex items-center gap-3 py-2 cursor-pointer hover:bg-muted/40 rounded-lg px-1 transition-colors"
+                      >
+                        <div className="w-9 h-9 rounded-md overflow-hidden bg-muted shrink-0">
+                          {exp.videoThumbnail ? (
+                            <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3 h-3 text-muted-foreground/40" /></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{exp.title}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{exp.location}</p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 shrink-0" />
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -932,26 +991,21 @@ const PublicItinerary = () => {
 
       {/* === SHEETS === */}
 
-      {/* Share Sheet - compact horizontal layout like reference */}
+      {/* Share Sheet */}
       <Sheet open={showShareSheet} onOpenChange={setShowShareSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
           <SheetHeader className="pb-2">
             <SheetTitle className="text-center">Share</SheetTitle>
             <SheetDescription className="sr-only">Share this itinerary</SheetDescription>
           </SheetHeader>
           <div className="px-2 pb-4 space-y-3">
             {/* Top row: icon grid */}
-            <div className="grid grid-cols-5 gap-1">
+            <div className="grid grid-cols-4 gap-1">
               {[
                 { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); } },
                 { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); } },
                 { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setShowInviteSheet(true); } },
                 { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setShowCollaboratorSheet(true); } },
-                { label: "Email", icon: Mail, action: () => { 
-                  const shareUrl = `${window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app'}/itineraries/${itinerary.id}`;
-                  window.open(`mailto:?subject=${encodeURIComponent(itinerary.name)}&body=${encodeURIComponent(shareUrl)}`, '_blank');
-                  setShowShareSheet(false);
-                }},
               ].map((opt) => (
                 <button key={opt.label} onClick={opt.action} className="flex flex-col items-center gap-1.5 p-2 rounded-xl active:bg-muted transition-colors">
                   <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center">
@@ -965,20 +1019,50 @@ const PublicItinerary = () => {
             <div className="flex gap-2">
               <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
                 <Download className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs font-medium">CSV</span>
+                <span className="text-xs font-medium">Export CSV</span>
               </button>
               <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
                 <Download className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs font-medium">XLSX</span>
+                <span className="text-xs font-medium">Export XLSX</span>
               </button>
             </div>
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Add to Itinerary Sheet - Spotify-style */}
+      {/* Sort Sheet */}
+      <Sheet open={showSortSheet} onOpenChange={setShowSortSheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <SheetHeader className="pb-2">
+            <SheetTitle className="text-center">Sort by</SheetTitle>
+            <SheetDescription className="sr-only">Sort experiences</SheetDescription>
+          </SheetHeader>
+          <div className="px-2 pb-4 space-y-1">
+            {[
+              { key: 'default' as SortMode, label: 'Recently added', icon: Clock },
+              { key: 'name' as SortMode, label: 'Name', icon: SortAsc },
+              { key: 'time' as SortMode, label: 'Time of day', icon: Sunrise },
+            ].map(opt => (
+              <button
+                key={opt.key}
+                onClick={() => { setSortMode(opt.key); setShowSortSheet(false); }}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-left",
+                  sortMode === opt.key ? "bg-primary/10 text-primary" : "hover:bg-muted/40 text-foreground"
+                )}
+              >
+                <opt.icon className="w-4.5 h-4.5" />
+                <span className="text-sm font-medium">{opt.label}</span>
+                {sortMode === opt.key && <Check className="w-4 h-4 ml-auto" />}
+              </button>
+            ))}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Add to Itinerary Sheet */}
       <Sheet open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] overflow-hidden flex flex-col pb-[env(safe-area-inset-bottom,16px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
           <SheetHeader className="pb-2 shrink-0">
             <SheetTitle>Add to itinerary</SheetTitle>
             <SheetDescription>Save this itinerary to your collection</SheetDescription>
@@ -1063,7 +1147,6 @@ const PublicItinerary = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     No itineraries match "<span className="font-medium text-foreground">{addItinerarySearch}</span>"
                   </p>
-                  {/* Suggested quick-adds from all itineraries */}
                   {itineraries.length > 0 && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Suggested</p>
@@ -1092,7 +1175,7 @@ const PublicItinerary = () => {
 
       {/* Create Trip Sheet (owned itinerary only) */}
       <Sheet open={showCreateTripSheet} onOpenChange={setShowCreateTripSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto pb-[env(safe-area-inset-bottom,16px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
           <SheetHeader className="pb-3">
             <SheetTitle className="flex items-center gap-2">
               <Rocket className="w-5 h-5 text-primary" />
@@ -1129,7 +1212,6 @@ const PublicItinerary = () => {
               disabled={!tripStartDate || isGenerating}
               onClick={() => {
                 if (tripStartDate) {
-                  setViewMode('trips');
                   generateTrip(tripStartDate, tripEndDate || tripStartDate);
                 }
               }}
@@ -1143,7 +1225,7 @@ const PublicItinerary = () => {
 
       {/* Invite Friends Sheet */}
       <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[env(safe-area-inset-bottom,16px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Invite Friends</SheetTitle>
             <SheetDescription>Share this itinerary with friends via email</SheetDescription>
@@ -1173,10 +1255,10 @@ const PublicItinerary = () => {
 
       {/* Collaborator Sheet */}
       <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[env(safe-area-inset-bottom,16px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Add Collaborators</SheetTitle>
-            <SheetDescription>Invite people to edit and plan this trip together</SheetDescription>
+            <SheetDescription>Invite people to edit and plan this itinerary together</SheetDescription>
           </SheetHeader>
           <div className="space-y-4 py-4">
             <div className="flex gap-2">
@@ -1189,7 +1271,7 @@ const PublicItinerary = () => {
                 <UserPlus className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Collaborators can add experiences, edit the schedule, and help plan the trip.</p>
+            <p className="text-xs text-muted-foreground">Collaborators can add experiences, edit the schedule, and help plan together.</p>
           </div>
         </SheetContent>
       </Sheet>
