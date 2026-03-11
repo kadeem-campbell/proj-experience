@@ -554,7 +554,7 @@ const PublicItinerary = () => {
       printWindow.document.close();
       printWindow.print();
     }
-    toast({ title: "PDF ready to print" });
+    // export complete
   };
 
   const handleCopyComplete = () => {
