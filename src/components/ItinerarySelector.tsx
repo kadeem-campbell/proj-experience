@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, Check, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

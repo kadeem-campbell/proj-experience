@@ -140,8 +140,8 @@ const MobileTopBar = ({
     )}>
       <div className="px-0 pt-1 pb-2">
         <div className="flex items-center justify-between bg-white mx-0 px-5 py-3 w-full">
-          <button onClick={onProfileClick} className="text-xl font-black tracking-tight text-[#121212]">
-            SWAM
+          <button onClick={onProfileClick} className="text-[22px] tracking-tight text-foreground" style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontWeight: 900, fontStyle: 'italic' }}>
+            swam<span className="text-primary">.app</span>
           </button>
           <div className="flex items-center gap-2">
             {headerContent}

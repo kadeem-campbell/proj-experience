@@ -32,12 +32,11 @@ const filterCategories = [
 ];
 
 const rotatingPlaceholders = [
+  "Search the best beaches",
+  "Search cultural experiences",
   "Search food tours",
-  "Find the best beaches",
-  "Discover hidden gems",
-  "Explore nightlife spots",
-  "Find cultural experiences",
-  "Search sunset activities",
+  "Search hidden gems",
+  "Search sunset spots",
 ];
 
 const CategoryFilterPills = ({ 
