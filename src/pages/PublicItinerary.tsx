@@ -1272,9 +1272,9 @@ const PublicItinerary = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Collaborator Sheet */}
+      {/* Collaborator Sheet - keyboard aware */}
       <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]" style={{ maxHeight: '100dvh' }}>
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Add Collaborators</SheetTitle>
             <SheetDescription>Invite people to edit and plan this itinerary together</SheetDescription>
@@ -1284,7 +1284,9 @@ const PublicItinerary = () => {
               <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
                 <UserPlus className="w-4 h-4 text-muted-foreground mr-2" />
                 <Input type="email" placeholder="collaborator@email.com" value={collaboratorEmail} onChange={(e) => setCollaboratorEmail(e.target.value)}
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }} />
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }}
+                  onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
+                />
               </div>
               <Button disabled={!collaboratorEmail.trim()} onClick={() => setCollaboratorEmail("")}>
                 <UserPlus className="w-4 h-4" />
