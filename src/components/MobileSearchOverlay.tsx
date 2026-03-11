@@ -28,12 +28,12 @@ const RECENT_SEARCHES_KEY = "guiduuid_recent_searches";
 const MAX_RECENT_SEARCHES = 8;
 
 const categories = [
-  { emoji: "🏖️", label: "Beaches" },
-  { emoji: "📍", label: "Excursions" },
-  { emoji: "🍽️", label: "Food & Drink" },
-  { emoji: "🎉", label: "Nightlife" },
-  { emoji: "🦁", label: "Wildlife" },
-  { emoji: "🏄", label: "Water Sports" },
+  { icon: catBeaches, label: "Beaches" },
+  { icon: catNightlife, label: "Nightlife" },
+  { icon: catNature, label: "Nature" },
+  { icon: catAdventure, label: "Adventure" },
+  { icon: catFood, label: "Food" },
+  { icon: catParty, label: "Party" },
 ];
 
 const allItinerariesData = getPopularItineraries();
