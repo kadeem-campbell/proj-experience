@@ -912,7 +912,7 @@ const PublicItinerary = () => {
           <div className="pb-4">
             {viewMode === 'list' && (
               <div>
-                {filteredExperiences.map(renderListRow)}
+                {filteredExperiences.map((exp, i) => renderListRow(exp, i, filteredExperiences.length))}
                 {filteredExperiences.length === 0 && searchQuery && (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
