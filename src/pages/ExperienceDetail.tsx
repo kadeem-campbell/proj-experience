@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
-import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl, generateExperienceSlug } from "@/utils/slugUtils";
 
 // Mock data
 import partyImage from "@/assets/party-experience.jpg";
