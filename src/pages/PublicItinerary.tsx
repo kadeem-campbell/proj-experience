@@ -130,6 +130,7 @@ const PublicItinerary = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedTrips, setGeneratedTrips] = useState<Array<{ id: string; name: string; days: Record<string, LikedExperience[]> }>>([]);
   const [activeTripIndex, setActiveTripIndex] = useState(0);
+  const [activePresetTripIndex, setActivePresetTripIndex] = useState(0);
   const [showAutoSave, setShowAutoSave] = useState(false);
   const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
   const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
@@ -232,17 +233,28 @@ const PublicItinerary = () => {
     return itineraries.filter(i => i.name.toLowerCase().includes(q));
   }, [itineraries, addItinerarySearch]);
 
-  // --- Preset public trip examples ---
+  // --- Preset public trip examples (2 trips, named first-to-last activity) ---
   const publicTripExamples = useMemo(() => {
-    if (isOwned || !itinerary) return [];
+    if (!itinerary) return [];
     const exps = itinerary.experiences;
-    const perDay = Math.ceil(exps.length / 3);
-    return [
-      { label: "Day 1", experiences: exps.slice(0, perDay) },
-      { label: "Day 2", experiences: exps.slice(perDay, perDay * 2) },
-      { label: "Day 3", experiences: exps.slice(perDay * 2) },
-    ].filter(d => d.experiences.length > 0);
-  }, [isOwned, itinerary]);
+    if (exps.length === 0) return [];
+    const mid = Math.ceil(exps.length / 2);
+    const trip1Exps = exps.slice(0, mid);
+    const trip2Exps = exps.slice(mid);
+    const trips = [
+      { 
+        label: `${trip1Exps[0]?.title || 'Start'} to ${trip1Exps[trip1Exps.length - 1]?.title || 'End'}`,
+        experiences: trip1Exps 
+      },
+    ];
+    if (trip2Exps.length > 0) {
+      trips.push({
+        label: `${trip2Exps[0]?.title || 'Start'} to ${trip2Exps[trip2Exps.length - 1]?.title || 'End'}`,
+        experiences: trip2Exps
+      });
+    }
+    return trips;
+  }, [itinerary]);
 
   // Loading / not found states
   if (!itinerary && itinerariesLoading) {
@@ -489,7 +501,7 @@ const PublicItinerary = () => {
   const renderListRow = (experience: LikedExperience, _idx?: number, _total?: number) => {
     const liked = isItemLiked(experience.id, 'experience');
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
-    const price = experience.price ? `$${experience.price} avg` : null;
+    const price = experience.price ? `${experience.price} avg` : null;
 
     const metaParts: string[] = [];
     if (experience.location) metaParts.push(experience.location);
@@ -589,25 +601,37 @@ const PublicItinerary = () => {
 
   // Trips view - day-separated
   const renderTripsView = () => {
-    if (!isOwned) {
-      // Public: show 3 preset examples
+    // Show preset trips (for both public and owned without generated trips)
+    if (!isOwned || generatedTrips.length === 0) {
+      const activePreset = publicTripExamples[activePresetTripIndex];
+      if (!activePreset) return (
+        <div className="text-center py-12 px-4">
+          <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground mb-4">No trips available</p>
+        </div>
+      );
       return (
-        <div className="space-y-6 px-4 py-4">
-          <p className="text-xs text-muted-foreground text-center">Example trip layouts for this itinerary</p>
-          {publicTripExamples.map((day, idx) => (
-            <div key={idx}>
-              <div className="flex items-center gap-2 mb-3">
-                <CalendarIcon className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-semibold text-foreground">{day.label}</h3>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {day.experiences.length} {day.experiences.length === 1 ? 'activity' : 'activities'}
-                </Badge>
-              </div>
-              <div className="space-y-0">
-                {day.experiences.map((exp, i) => renderListRow(exp, i, day.experiences.length))}
-              </div>
-            </div>
-          ))}
+        <div className="px-4 py-4">
+          {/* Trip selector - horizontal scroll */}
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+            {publicTripExamples.map((trip, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActivePresetTripIndex(idx)}
+                className={cn(
+                  "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors max-w-[200px] truncate",
+                  idx === activePresetTripIndex
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {trip.label}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-0">
+            {activePreset.experiences.map((exp, i) => renderListRow(exp, i, activePreset.experiences.length))}
+          </div>
         </div>
       );
     }
@@ -846,12 +870,8 @@ const PublicItinerary = () => {
           {!isOwned && socialProof ? (
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <BookmarkCheck className="w-3.5 h-3.5 text-primary/70" />
-                <span>Saved by <span className="font-semibold text-foreground">{socialProof.savedBy}</span> people</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-primary/70" />
-                <span>Trending</span>
+                <Heart className="w-3.5 h-3.5 text-primary/70" />
+                <span>Liked by <span className="font-semibold text-foreground">{socialProof.savedBy}</span> people</span>
               </span>
             </div>
           ) : isOwned ? (
@@ -876,56 +896,79 @@ const PublicItinerary = () => {
         <div className="flex-1 w-full">
           {/* Search + View Switcher + CTA */}
           <div className="px-4 py-3 border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-10">
-            {/* Search bar */}
-            <div className="flex items-center bg-muted rounded-full px-3 py-2 mb-3">
-              <Search className="w-4 h-4 text-muted-foreground mr-2" />
+            {/* Search bar - matching homepage style */}
+            <div className="flex items-center bg-muted rounded-full px-4 py-2.5 mb-3">
+              <Search className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
               <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search this itinerary"
-                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-[15px]"
+                style={{ fontSize: '16px' }}
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="p-1 rounded-full shrink-0"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
             </div>
 
             {/* Unified action bar: view switcher + CTA */}
             <div className="flex items-center gap-2">
-              {/* View mode switcher */}
-              <div className="flex items-center bg-muted rounded-lg p-0.5 flex-1">
+              {/* View mode switcher - compact */}
+              <div className="flex items-center bg-muted rounded-lg p-0.5">
                 {([
                   { mode: 'list' as ViewMode, icon: List, label: 'List' },
                   { mode: 'icons' as ViewMode, icon: Grid3X3, label: 'Icons' },
-                  { mode: 'trips' as ViewMode, icon: Route, label: 'Trips' },
                 ]).map(({ mode, icon: Icon, label }) => (
                   <button
                     key={mode}
                     onClick={() => handleViewModeClick(mode)}
                     className={cn(
-                      "flex items-center justify-center gap-1.5 flex-1 px-2 py-2 rounded-md text-xs font-medium transition-all",
+                      "flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all",
                       viewMode === mode
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-3 h-3" />
                     <span>{label}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Primary CTA */}
+              {/* Trips button - separate accent style */}
+              <button
+                onClick={() => handleViewModeClick('trips')}
+                className={cn(
+                  "flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all",
+                  viewMode === 'trips'
+                    ? "bg-accent text-accent-foreground shadow-sm"
+                    : "bg-accent/10 text-accent hover:bg-accent/20"
+                )}
+              >
+                <Route className="w-3 h-3" />
+                <span>Trips</span>
+              </button>
+
+              {/* Primary CTA - most prominent */}
               {isOwned ? (
-                <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => setShowCreateTripSheet(true)}>
-                  <Rocket className="w-3.5 h-3.5" />
+                <Button size="sm" className="gap-1.5 h-[32px] rounded-lg shrink-0 ml-auto text-xs" onClick={() => setShowCreateTripSheet(true)}>
+                  <Rocket className="w-3 h-3" />
                   Create trip
                 </Button>
               ) : (
-                <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => {
+                <Button size="sm" className="gap-1.5 h-[32px] rounded-lg shrink-0 ml-auto text-xs" onClick={() => {
                   if (!isAuthenticated) { setShowAuthModal(true); return; }
                   setShowAddToItinerarySheet(true);
                 }}>
-                  <Plus className="w-3.5 h-3.5" />
-                  Add
+                  <Plus className="w-3 h-3" />
+                  Add to Itinerary
                 </Button>
               )}
             </div>
@@ -958,30 +1001,54 @@ const PublicItinerary = () => {
                     <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
                   </div>
                 )}
-                {/* External matches */}
+                {/* External matches - Recommended */}
                 {externalMatches.length > 0 && (
                   <div className="border-t border-border/30 mt-2 pt-3 px-4">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
-                      Also on SWAM
+                      Recommended
                     </p>
                     {externalMatches.map(exp => (
                       <div
                         key={exp.id}
-                        onClick={() => navigate(`/experiences/${slugify(exp.title)}`)}
-                        className="flex items-center gap-3 py-2 cursor-pointer hover:bg-muted/40 rounded-lg px-1 transition-colors"
+                        className="flex items-center gap-3 py-2 rounded-lg px-1 transition-colors"
                       >
-                        <div className="w-9 h-9 rounded-md overflow-hidden bg-muted shrink-0">
-                          {exp.videoThumbnail ? (
-                            <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3 h-3 text-muted-foreground/40" /></div>
-                          )}
+                        <div
+                          onClick={() => navigate(`/experiences/${slugify(exp.title)}`)}
+                          className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-muted/40 rounded-lg transition-colors"
+                        >
+                          <div className="w-9 h-9 rounded-md overflow-hidden bg-muted shrink-0">
+                            {exp.videoThumbnail ? (
+                              <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3 h-3 text-muted-foreground/40" /></div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{exp.title}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{exp.location}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{exp.title}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{exp.location}</p>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/20 shrink-0" />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isAuthenticated) { setShowAuthModal(true); return; }
+                            // Add directly to this itinerary if owned, otherwise show add-to-itinerary sheet
+                            if (isOwned && ownedItinerary) {
+                              addExperienceToItinerary(ownedItinerary.id, {
+                                id: exp.id, title: exp.title, creator: exp.creator || '',
+                                videoThumbnail: exp.videoThumbnail || '', category: exp.category || '',
+                                location: exp.location || '', price: exp.price || '',
+                              });
+                              toast({ title: "Added", description: `${exp.title} added to ${ownedItinerary.name}` });
+                            } else {
+                              setShowAddToItinerarySheet(true);
+                            }
+                          }}
+                          className="shrink-0 text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10 active:bg-primary/20 transition-colors"
+                          style={{ WebkitTapHighlightColor: 'transparent' }}
+                        >
+                          Add
+                        </button>
                       </div>
                     ))}
                   </div>
