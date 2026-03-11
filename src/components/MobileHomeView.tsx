@@ -239,11 +239,10 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         </div>
       </div>
       <div className="mt-2 space-y-0.5">
-        <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="w-3 h-3" />
-          <span className="truncate">{experience.location}</span>
-        </div>
+        <h3 className="font-semibold text-sm text-foreground truncate">{experience.title}</h3>
+        {experience.price && (
+          <p className="text-xs text-muted-foreground truncate">{experience.price} typical</p>
+        )}
       </div>
     </div>
   );
