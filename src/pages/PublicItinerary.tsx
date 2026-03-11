@@ -755,7 +755,7 @@ const PublicItinerary = () => {
                     <CalendarIcon className="w-3.5 h-3.5 text-primary" />
                     <span className="text-xs font-semibold text-foreground">{format(new Date(dayKey), "EEEE, MMM d")}</span>
                   </div>
-                  <div className="space-y-0">{exps.map(renderListRow)}</div>
+                  <div className="space-y-0">{exps.map((exp, i) => renderListRow(exp, i, exps.length))}</div>
                 </div>
               ))}
             </div>
