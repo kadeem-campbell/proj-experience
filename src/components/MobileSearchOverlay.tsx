@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, X, Layers, Heart, MapPin, Plus } from "lucide-react";
+import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
 import { useNavigate } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { allExperiences } from "@/hooks/useExperiencesData";
@@ -191,20 +192,19 @@ export const MobileSearchOverlay = ({
   const navigate = useNavigate();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
+  const savedScrollRef = useRef(0);
+
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
+      savedScrollRef.current = lockBodyScroll();
       const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
       window.addEventListener('keydown', handleKey);
       return () => {
-        document.body.style.overflow = '';
-        document.documentElement.style.overflow = '';
+        unlockBodyScroll(savedScrollRef.current);
         window.removeEventListener('keydown', handleKey);
       };
     } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
+      unlockBodyScroll(savedScrollRef.current);
     }
   }, [isOpen, onClose]);
 
@@ -293,7 +293,7 @@ export const MobileSearchOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150" style={{ height: '100dvh' }}>
       {/* Search input - always fixed at top */}
       <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3 shrink-0">
         <form onSubmit={handleSubmit}>

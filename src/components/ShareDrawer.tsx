@@ -54,12 +54,16 @@ const ShareContent = ({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+        onClose();
+      }, 600);
+    } catch {
       setCopied(false);
-      onClose();
-    }, 1000);
+    }
   };
 
   const shareOptions = [
@@ -98,9 +102,10 @@ const ShareContent = ({
           <button
             key={option.name}
             onClick={option.onClick}
-            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-muted transition-colors ${option.className || ''}`}
+            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors select-none outline-none focus:outline-none ${option.className || ''}`}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${option.className?.includes('text-green') ? 'bg-green-100' : 'bg-muted'}`}>
               <option.icon className="w-4 h-4" />
             </div>
             <span className="text-[11px] text-muted-foreground">{option.name}</span>
@@ -152,14 +157,8 @@ export const ShareDrawer = ({ title, url, children, onExportCSV, onExportXLSX, o
   const shareText = `Check out: ${title}`;
 
   const handleTriggerClick = async () => {
-    if (isMobile && navigator.share) {
-      try {
-        await navigator.share({ title, url: shareUrl });
-        return;
-      } catch (e) {
-        // Fall through to drawer
-      }
-    }
+    // Don't use navigator.share on mobile — always show our custom drawer
+    // navigator.share causes issues when combined with other share actions
     setOpen(true);
   };
 

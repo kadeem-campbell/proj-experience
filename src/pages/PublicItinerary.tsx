@@ -273,11 +273,20 @@ const PublicItinerary = () => {
 
   // --- Share Handlers ---
   const handleCopyLink = async () => {
-    const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    const shareUrl = `${baseUrl}/itineraries/${itinerary.id}`;
-    await navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
+      const shareUrl = `${baseUrl}/itineraries/${itinerary.id}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      // Auto-dismiss share sheet after showing tick
+      setTimeout(() => {
+        setCopied(false);
+        setShowShareSheet(false);
+      }, 600);
+    } catch {
+      // Fallback for clipboard API failure
+      setCopied(false);
+    }
   };
 
   const handleShareWhatsApp = () => {
@@ -1002,14 +1011,22 @@ const PublicItinerary = () => {
             {/* Top row: icon grid */}
             <div className="grid grid-cols-4 gap-1">
               {[
-                { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); } },
-                { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); } },
-                { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setShowInviteSheet(true); } },
-                { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setShowCollaboratorSheet(true); } },
+                { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); }, highlight: copied },
+                { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); }, highlight: false },
+                { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setTimeout(() => setShowInviteSheet(true), 100); }, highlight: false },
+                { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setTimeout(() => setShowCollaboratorSheet(true), 100); }, highlight: false },
               ].map((opt) => (
-                <button key={opt.label} onClick={opt.action} className="flex flex-col items-center gap-1.5 p-2 rounded-xl active:bg-muted transition-colors">
-                  <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center">
-                    <opt.icon className="w-4.5 h-4.5 text-foreground" />
+                <button
+                  key={opt.label}
+                  onClick={opt.action}
+                  className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors select-none outline-none focus:outline-none"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className={cn(
+                    "w-11 h-11 rounded-full flex items-center justify-center transition-colors",
+                    opt.highlight ? "bg-green-100" : "bg-muted"
+                  )}>
+                    <opt.icon className={cn("w-4.5 h-4.5", opt.highlight ? "text-green-600" : "text-foreground")} />
                   </div>
                   <span className="text-[10px] text-muted-foreground text-center leading-tight whitespace-pre-line">{opt.label}</span>
                 </button>
@@ -1223,9 +1240,9 @@ const PublicItinerary = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Invite Friends Sheet */}
+      {/* Invite Friends Sheet - keyboard aware */}
       <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]" style={{ maxHeight: '100dvh' }}>
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Invite Friends</SheetTitle>
             <SheetDescription>Share this itinerary with friends via email</SheetDescription>
@@ -1235,7 +1252,9 @@ const PublicItinerary = () => {
               <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
                 <Mail className="w-4 h-4 text-muted-foreground mr-2" />
                 <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }} />
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }}
+                  onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
+                />
               </div>
               <Button disabled={!inviteEmail.trim()} onClick={() => { handleCopyLink(); setInviteEmail(""); }}>
                 <Send className="w-4 h-4" />
@@ -1253,9 +1272,9 @@ const PublicItinerary = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Collaborator Sheet */}
+      {/* Collaborator Sheet - keyboard aware */}
       <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]" style={{ maxHeight: '100dvh' }}>
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Add Collaborators</SheetTitle>
             <SheetDescription>Invite people to edit and plan this itinerary together</SheetDescription>
@@ -1265,7 +1284,9 @@ const PublicItinerary = () => {
               <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
                 <UserPlus className="w-4 h-4 text-muted-foreground mr-2" />
                 <Input type="email" placeholder="collaborator@email.com" value={collaboratorEmail} onChange={(e) => setCollaboratorEmail(e.target.value)}
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }} />
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }}
+                  onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
+                />
               </div>
               <Button disabled={!collaboratorEmail.trim()} onClick={() => setCollaboratorEmail("")}>
                 <UserPlus className="w-4 h-4" />
