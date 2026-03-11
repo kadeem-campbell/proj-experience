@@ -106,7 +106,6 @@ const HorizontalScrollRow = ({
         className="mb-3 flex items-center gap-1.5 w-full text-left px-4"
       >
         <h2 className="text-[17px] font-bold text-foreground">{title}</h2>
-        <span className={cn("text-lg font-semibold", chevronColor)}>›</span>
       </button>
       <div 
         ref={scrollRef}
