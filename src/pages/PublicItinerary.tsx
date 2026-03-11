@@ -399,18 +399,6 @@ const PublicItinerary = () => {
     });
   };
 
-  // --- Preset public trip examples ---
-  const publicTripExamples = useMemo(() => {
-    if (isOwned || !itinerary) return [];
-    const exps = itinerary.experiences;
-    const perDay = Math.ceil(exps.length / 3);
-    return [
-      { label: "Day 1", experiences: exps.slice(0, perDay) },
-      { label: "Day 2", experiences: exps.slice(perDay, perDay * 2) },
-      { label: "Day 3", experiences: exps.slice(perDay * 2) },
-    ].filter(d => d.experiences.length > 0);
-  }, [isOwned, itinerary]);
-
   // --- Render functions ---
 
   // Clean list row (Requirement #1)
