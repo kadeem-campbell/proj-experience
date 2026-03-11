@@ -54,7 +54,7 @@ const experienceCollectionDefinitions: Record<string, { title: string; descripti
 };
 
 // Horizontal scroll row
-const HorizontalScrollRow = ({ title, onTitleClick, children }: { title: string; onTitleClick?: () => void; children: React.ReactNode }) => {
+const HorizontalScrollRow = ({ title, onTitleClick, children, titleClassName }: { title: string; onTitleClick?: () => void; children: React.ReactNode; titleClassName?: string }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <div className="mb-8">
