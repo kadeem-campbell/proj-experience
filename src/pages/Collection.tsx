@@ -62,7 +62,7 @@ const collectionDefinitions: Record<string, { title: string; description: string
 };
 
 // Horizontal scroll row for remaining sections
-const HorizontalScrollRow = ({ title, onTitleClick, children }: { title: string; onTitleClick?: () => void; children: React.ReactNode }) => {
+const HorizontalScrollRow = ({ title, onTitleClick, children, titleClassName }: { title: string; onTitleClick?: () => void; children: React.ReactNode; titleClassName?: string }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <div className="mb-8">
