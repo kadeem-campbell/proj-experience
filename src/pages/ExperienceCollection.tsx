@@ -54,12 +54,12 @@ const experienceCollectionDefinitions: Record<string, { title: string; descripti
 };
 
 // Horizontal scroll row
-const HorizontalScrollRow = ({ title, onTitleClick, children }: { title: string; onTitleClick?: () => void; children: React.ReactNode }) => {
+const HorizontalScrollRow = ({ title, onTitleClick, children, titleClassName }: { title: string; onTitleClick?: () => void; children: React.ReactNode; titleClassName?: string }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <div className="mb-8">
       <button onClick={onTitleClick} className="mb-4 flex items-center gap-1.5 w-full text-left" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-        <h2 className="text-base font-bold text-foreground truncate">{title}</h2>
+        <h2 className={cn("text-base font-bold truncate", titleClassName || "text-foreground")}>{title}</h2>
       </button>
       <div ref={scrollRef} className="overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
         <div className="inline-flex gap-3 snap-x snap-mandatory" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
@@ -292,23 +292,26 @@ const ExperienceCollectionPage = () => {
         {/* Divider + continued discovery */}
         {remainingSections.length > 0 && (
           <>
-            <div className="mt-10 mb-6 py-3 px-4 text-center" style={{ backgroundColor: 'hsl(210 70% 50%)' }}>
-              <span className="text-xs uppercase tracking-wider text-white/90">
-                More experiences to explore
-              </span>
-            </div>
+            <div className="mt-10 rounded-2xl mx-3 overflow-hidden pb-8" style={{ backgroundColor: '#0d444f' }}>
+              <div className="py-4 px-4 text-center">
+                <span className="text-xs uppercase tracking-wider text-white/80">
+                  More experiences to explore
+                </span>
+              </div>
 
-            {remainingSections.map(section => (
-              <HorizontalScrollRow
-                key={section.key}
-                title={section.title}
-                onTitleClick={() => navigate(`/experience-collections/${section.key}`)}
-              >
-                {section.items.map((exp: any) => (
-                  <MobileExperienceCard key={exp.id} experience={exp} />
-                ))}
-              </HorizontalScrollRow>
-            ))}
+              {remainingSections.map(section => (
+                <HorizontalScrollRow
+                  key={section.key}
+                  title={section.title}
+                  onTitleClick={() => navigate(`/experience-collections/${section.key}`)}
+                  titleClassName="text-white/90"
+                >
+                  {section.items.map((exp: any) => (
+                    <MobileExperienceCard key={exp.id} experience={exp} />
+                  ))}
+                </HorizontalScrollRow>
+              ))}
+            </div>
           </>
         )}
       </MobileShell>
