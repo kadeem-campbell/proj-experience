@@ -1126,7 +1126,7 @@ const PublicItinerary = () => {
 
       {/* Collaborator Sheet */}
       <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh]">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[env(safe-area-inset-bottom,16px)]">
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Add Collaborators</SheetTitle>
             <SheetDescription>Invite people to edit and plan this trip together</SheetDescription>
