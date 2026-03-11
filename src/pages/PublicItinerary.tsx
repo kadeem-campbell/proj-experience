@@ -698,10 +698,10 @@ const PublicItinerary = () => {
               />
             </div>
 
-            {/* View switcher + CTA row */}
-            <div className="flex items-center justify-between">
+            {/* Unified action bar: view switcher + CTA */}
+            <div className="flex items-center gap-2">
               {/* View mode switcher */}
-              <div className="flex items-center bg-muted rounded-lg p-0.5">
+              <div className="flex items-center bg-muted rounded-lg p-0.5 flex-1">
                 {([
                   { mode: 'list' as ViewMode, icon: List, label: 'List' },
                   { mode: 'icons' as ViewMode, icon: Grid3X3, label: 'Icons' },
@@ -711,7 +711,7 @@ const PublicItinerary = () => {
                     key={mode}
                     onClick={() => setViewMode(mode)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      "flex items-center justify-center gap-1.5 flex-1 px-2 py-2 rounded-md text-xs font-medium transition-all",
                       viewMode === mode
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -723,19 +723,19 @@ const PublicItinerary = () => {
                 ))}
               </div>
 
-              {/* Primary CTA */}
+              {/* Primary CTA - matches switcher height */}
               {isOwned ? (
-                <Button size="sm" className="gap-1.5" onClick={() => setShowCreateTripSheet(true)}>
+                <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => setShowCreateTripSheet(true)}>
                   <Rocket className="w-3.5 h-3.5" />
                   Create trip
                 </Button>
               ) : (
-                <Button size="sm" className="gap-1.5" onClick={() => {
+                <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => {
                   if (!isAuthenticated) { setShowAuthModal(true); return; }
                   setShowAddToItinerarySheet(true);
                 }}>
                   <Plus className="w-3.5 h-3.5" />
-                  Add to itinerary
+                  Add
                 </Button>
               )}
             </div>
