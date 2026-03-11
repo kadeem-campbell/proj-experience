@@ -134,6 +134,8 @@ const PublicItinerary = () => {
   const [showAutoSave, setShowAutoSave] = useState(false);
   const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
   const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
+  const [showBrowsePublicTrips, setShowBrowsePublicTrips] = useState(false);
+  const [previewingPublicTrip, setPreviewingPublicTrip] = useState<{ itinerary: typeof publicItinerariesData[0]; tripIdx: number } | null>(null);
   
   // Auth
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -599,10 +601,23 @@ const PublicItinerary = () => {
     );
   };
 
+  // Delete a generated trip
+  const handleDeleteTrip = (tripIdx: number) => {
+    setGeneratedTrips(prev => {
+      const next = prev.filter((_, i) => i !== tripIdx);
+      if (activeTripIndex >= next.length) setActiveTripIndex(Math.max(0, next.length - 1));
+      return next;
+    });
+    setShowAutoSave(true);
+    setTimeout(() => setShowAutoSave(false), 2000);
+  };
+
+
+
   // Trips view - day-separated
   const renderTripsView = () => {
-    // Show preset trips (for both public and owned without generated trips)
-    if (!isOwned || generatedTrips.length === 0) {
+    // PUBLIC itineraries: show Day 1, Day 2, Day 3 format
+    if (!isOwned) {
       const activePreset = publicTripExamples[activePresetTripIndex];
       if (!activePreset) return (
         <div className="text-center py-12 px-4">
@@ -610,6 +625,14 @@ const PublicItinerary = () => {
           <p className="text-sm text-muted-foreground mb-4">No trips available</p>
         </div>
       );
+
+      // Split into days (4 per day)
+      const experiencesPerDay = 4;
+      const days: LikedExperience[][] = [];
+      for (let i = 0; i < activePreset.experiences.length; i += experiencesPerDay) {
+        days.push(activePreset.experiences.slice(i, i + experiencesPerDay));
+      }
+
       return (
         <div className="px-4 py-4">
           {/* Trip selector - horizontal scroll */}
@@ -629,34 +652,42 @@ const PublicItinerary = () => {
               </button>
             ))}
           </div>
-          <div className="space-y-0">
-            {(() => {
+
+          {/* Days with Day 1, Day 2 headers */}
+          <div className="space-y-6">
+            {days.map((dayExps, dayIdx) => {
               const q = searchQuery.trim().toLowerCase();
-              const tripExps = q
-                ? activePreset.experiences.filter(exp =>
+              const filtered = q
+                ? dayExps.filter(exp =>
                     exp.title?.toLowerCase().includes(q) ||
                     exp.location?.toLowerCase().includes(q) ||
                     exp.category?.toLowerCase().includes(q)
                   )
-                : activePreset.experiences;
-              if (tripExps.length === 0 && q) {
-                return (
-                  <div className="text-center py-6">
-                    <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+                : dayExps;
+              if (filtered.length === 0) return null;
+              return (
+                <div key={dayIdx}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <CalendarIcon className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">Day {dayIdx + 1}</h3>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {filtered.length} {filtered.length === 1 ? 'activity' : 'activities'}
+                    </Badge>
                   </div>
-                );
-              }
-              return tripExps.map((exp, i) => renderListRow(exp, i, tripExps.length));
-            })()}
+                  <div className="space-y-0">
+                    {filtered.map((exp, i) => renderListRow(exp, i, filtered.length))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       );
     }
 
-    // Owned: show generated trips
-    if (generatedTrips.length > 0) {
+    // OWNED: show generated trips with actual dates, or empty state
+    if (generatedTrips.length > 0 && activeTripIndex >= 0 && activeTripIndex < generatedTrips.length) {
       const activeTrip = generatedTrips[activeTripIndex];
-      if (!activeTrip) return null;
       const sortedDays = Object.entries(activeTrip.days).sort(([a], [b]) => a.localeCompare(b));
       return (
         <div className="px-4 py-4">
@@ -668,15 +699,14 @@ const PublicItinerary = () => {
             </div>
           )}
           
-          {/* Trip switcher */}
-          {generatedTrips.length > 1 && (
-            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
-              {generatedTrips.map((trip, idx) => (
+          {/* Trip switcher with deselect + delete */}
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
+            {generatedTrips.map((trip, idx) => (
+              <div key={trip.id} className="shrink-0 flex items-center gap-0.5">
                 <button
-                  key={trip.id}
-                  onClick={() => setActiveTripIndex(idx)}
+                  onClick={() => setActiveTripIndex(idx === activeTripIndex ? -1 : idx)}
                   className={cn(
-                    "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                    "px-3 py-1.5 rounded-l-full text-xs font-medium transition-colors",
                     idx === activeTripIndex
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground"
@@ -684,24 +714,31 @@ const PublicItinerary = () => {
                 >
                   {trip.name}
                 </button>
-              ))}
-              <button
-                onClick={() => setShowCreateTripSheet(true)}
-                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-muted/50 text-muted-foreground border border-dashed border-border"
-              >
-                <Plus className="w-3 h-3 inline mr-1" />New
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => {
+                    if (confirm(`Delete trip "${trip.name}"?`)) handleDeleteTrip(idx);
+                  }}
+                  className={cn(
+                    "px-1.5 py-1.5 rounded-r-full text-xs transition-colors",
+                    idx === activeTripIndex
+                      ? "bg-primary/80 text-primary-foreground hover:bg-destructive"
+                      : "bg-muted text-muted-foreground/60 hover:bg-destructive/20 hover:text-destructive"
+                  )}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
 
-          {/* Days */}
+          {/* Days with actual calendar dates */}
           <div className="space-y-6">
             {sortedDays.map(([dayKey, dayExps]) => (
               <div key={dayKey}>
                 <div className="flex items-center gap-2 mb-3">
                   <CalendarIcon className="w-4 h-4 text-primary" />
                   <h3 className="text-sm font-semibold text-foreground">
-                    {format(new Date(dayKey), "EEEE, MMM d")}
+                    {format(new Date(dayKey), "d MMMM")}
                   </h3>
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                     {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
@@ -787,7 +824,7 @@ const PublicItinerary = () => {
                                     }}
                                     className="text-xs font-medium px-2.5 py-1 rounded-md bg-background border border-border/50 text-foreground hover:bg-primary/5 hover:border-primary/20 active:bg-primary/10 transition-colors"
                                   >
-                                    {format(new Date(dk), "EEE, MMM d")}
+                                    {format(new Date(dk), "d MMM")}
                                   </button>
                                 ))}
                             </div>
@@ -804,15 +841,24 @@ const PublicItinerary = () => {
       );
     }
 
-    // Owned but no trip yet
+    // Owned: no trip selected or no trips yet - show empty state
     return (
       <div className="text-center py-12 px-4">
         <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground mb-4">No trips created yet</p>
-        <Button onClick={() => setShowCreateTripSheet(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Create trip
-        </Button>
+        <p className="text-sm text-muted-foreground mb-2">
+          {generatedTrips.length > 0 ? "No trip selected" : "No trips yet"}
+        </p>
+        <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch or use an existing public trip as a starting point.</p>
+        <div className="flex flex-col gap-2 max-w-[240px] mx-auto">
+          <Button onClick={() => setShowCreateTripSheet(true)} className="gap-2 w-full">
+            <Plus className="w-4 h-4" />
+            Create trip
+          </Button>
+          <Button variant="outline" onClick={() => setShowBrowsePublicTrips(true)} className="gap-2 w-full">
+            <Globe className="w-4 h-4" />
+            Browse public trips
+          </Button>
+        </div>
       </div>
     );
   };
@@ -893,18 +939,10 @@ const PublicItinerary = () => {
             </div>
           ) : isOwned ? (
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <button onClick={() => setShowShareSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                <Share2 className="w-3.5 h-3.5" />
-                <span className="font-medium">Share</span>
-              </button>
-              <button onClick={() => setShowInviteSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                <Send className="w-3.5 h-3.5" />
-                <span className="font-medium">Invite friends</span>
-              </button>
-              <button onClick={() => setShowCollaboratorSheet(true)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                <Users className="w-3.5 h-3.5" />
-                <span className="font-medium">Collab</span>
-              </button>
+              <span className="flex items-center gap-1">
+                <Heart className="w-3.5 h-3.5 text-primary/70" />
+                <span>Your itinerary · <span className="font-semibold text-foreground">{itinerary.experiences.length}</span> experiences</span>
+              </span>
             </div>
           ) : null}
         </div>
@@ -1275,7 +1313,7 @@ const PublicItinerary = () => {
               Create trip
             </DrawerTitle>
             <DrawerDescription>
-              Select your travel dates to turn this itinerary into a trip.
+              Select your travel dates to create a new trip.
             </DrawerDescription>
           </DrawerHeader>
           <div className="flex flex-col items-center py-3 w-full px-4">
@@ -1294,7 +1332,7 @@ const PublicItinerary = () => {
             </div>
             {tripStartDate && tripEndDate && (
               <p className="text-sm text-center text-muted-foreground mb-3">
-                {format(tripStartDate, "MMM d")} – {format(tripEndDate, "MMM d, yyyy")}
+                {format(tripStartDate, "d MMMM")} – {format(tripEndDate, "d MMMM yyyy")}
               </p>
             )}
             {tripStartDate && !tripEndDate && (
@@ -1310,8 +1348,106 @@ const PublicItinerary = () => {
               }}
             >
               <Sparkles className="w-4 h-4" />
-              {isGenerating ? "Generating..." : "Generate trip"}
+              {isGenerating ? "Generating..." : "Create trip"}
             </Button>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Browse Public Trips Drawer */}
+      <Drawer open={showBrowsePublicTrips} onOpenChange={setShowBrowsePublicTrips}>
+        <DrawerContent className="max-h-[75vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-2 shrink-0">
+            <DrawerTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-primary" />
+              Browse public trips
+            </DrawerTitle>
+            <DrawerDescription>Choose a public itinerary to use as a starting point</DrawerDescription>
+          </DrawerHeader>
+          <div className="flex-1 overflow-y-auto min-h-0 px-2 pb-4">
+            {previewingPublicTrip ? (
+              <div className="px-2">
+                <button
+                  onClick={() => setPreviewingPublicTrip(null)}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3 hover:text-foreground transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  Back to list
+                </button>
+                <h3 className="font-semibold text-sm mb-3">{previewingPublicTrip.itinerary.name}</h3>
+                <div className="space-y-4">
+                  {(() => {
+                    const exps = previewingPublicTrip.itinerary.experiences;
+                    const perDay = 4;
+                    const days: typeof exps[] = [];
+                    for (let i = 0; i < exps.length; i += perDay) {
+                      days.push(exps.slice(i, i + perDay));
+                    }
+                    return days.map((dayExps, dayIdx) => (
+                      <div key={dayIdx}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CalendarIcon className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs font-semibold text-foreground">Day {dayIdx + 1}</span>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{dayExps.length}</Badge>
+                        </div>
+                        {dayExps.map((exp) => (
+                          <div key={exp.id} className="flex items-center gap-3 py-2 px-2 border-b border-border/20">
+                            <div className="w-8 h-8 rounded-md overflow-hidden bg-muted shrink-0">
+                              {exp.videoThumbnail ? (
+                                <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3 h-3 text-muted-foreground/40" /></div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium truncate">{exp.title}</p>
+                              <p className="text-[10px] text-muted-foreground truncate">{exp.location}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ));
+                  })()}
+                </div>
+                <Button
+                  className="w-full gap-2 mt-4"
+                  onClick={() => {
+                    setShowBrowsePublicTrips(false);
+                    setPreviewingPublicTrip(null);
+                    // Open create trip sheet so user picks dates, then we'll map the public trip
+                    setShowCreateTripSheet(true);
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                  Use this trip – pick dates
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {publicItinerariesData.map((pub) => (
+                  <button
+                    key={pub.id}
+                    onClick={() => setPreviewingPublicTrip({ itinerary: pub, tripIdx: 0 })}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                      {pub.coverImage ? (
+                        <img src={pub.coverImage} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                          <Route className="w-4 h-4 text-primary/40" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{pub.name}</p>
+                      <p className="text-xs text-muted-foreground">{pub.experiences.length} experiences</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground/30 shrink-0" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </DrawerContent>
       </Drawer>
