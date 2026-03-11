@@ -54,12 +54,16 @@ const ShareContent = ({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+        onClose();
+      }, 600);
+    } catch {
       setCopied(false);
-      onClose();
-    }, 1000);
+    }
   };
 
   const shareOptions = [
