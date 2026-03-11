@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
+import catBeaches from "@/assets/cat-beaches.png";
+import catNightlife from "@/assets/cat-nightlife.png";
+import catNature from "@/assets/cat-nature.png";
+import catAdventure from "@/assets/cat-adventure.png";
+import catFood from "@/assets/cat-food.png";
+import catParty from "@/assets/cat-party.png";
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -22,12 +28,12 @@ const RECENT_SEARCHES_KEY = "guiduuid_recent_searches";
 const MAX_RECENT_SEARCHES = 8;
 
 const categories = [
-  { emoji: "🏖️", label: "Beaches" },
-  { emoji: "📍", label: "Excursions" },
-  { emoji: "🍽️", label: "Food & Drink" },
-  { emoji: "🎉", label: "Nightlife" },
-  { emoji: "🦁", label: "Wildlife" },
-  { emoji: "🏄", label: "Water Sports" },
+  { icon: catBeaches, label: "Beaches" },
+  { icon: catNightlife, label: "Nightlife" },
+  { icon: catNature, label: "Nature" },
+  { icon: catAdventure, label: "Adventure" },
+  { icon: catFood, label: "Food" },
+  { icon: catParty, label: "Party" },
 ];
 
 const allItinerariesData = getPopularItineraries();
@@ -426,9 +432,9 @@ export const MobileSearchOverlay = ({
                   <button
                     key={cat.label}
                     onClick={() => handleQuickSearch(cat.label)}
-                    className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-background border border-border hover:bg-muted/40 transition-colors duration-150 text-left"
+                    className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl bg-background border border-border hover:bg-muted/40 transition-colors duration-150"
                   >
-                    <span className="text-lg">{cat.emoji}</span>
+                    <img src={cat.icon} alt={cat.label} className="w-10 h-10 object-contain" />
                     <span className="text-xs font-medium text-foreground truncate">{cat.label}</span>
                   </button>
                 ))}
