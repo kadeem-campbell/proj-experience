@@ -293,7 +293,7 @@ export const MobileSearchOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150" style={{ height: '100dvh' }}>
       {/* Search input - always fixed at top */}
       <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3 shrink-0">
         <form onSubmit={handleSubmit}>

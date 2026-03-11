@@ -133,6 +133,14 @@ All colors MUST be HSL.
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* iOS keyboard stability: prevent layout viewport jump */
+    height: 100%;
+  }
+  
+  /* When body is scroll-locked (fixed position), prevent iOS rubber-banding */
+  body[style*="position: fixed"] {
+    width: 100%;
+    height: 100%;
   }
   
   #root {
