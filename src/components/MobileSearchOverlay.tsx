@@ -31,7 +31,7 @@ const MAX_RECENT_SEARCHES = 8;
 const categories = [
   { icon: catBeaches, label: "Beaches" },
   { icon: catNightlife, label: "Nightlife" },
-  { icon: catNature, label: "Nature" },
+  { icon: catSafari, label: "Safari" },
   { icon: catAdventure, label: "Adventure" },
   { icon: catFood, label: "Food" },
   { icon: catParty, label: "Party" },
