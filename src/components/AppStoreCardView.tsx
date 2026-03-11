@@ -83,12 +83,12 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
           <div className="absolute top-3 right-3 flex gap-2">
             <button
               onClick={handleLikeClick}
-              className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-2xl border border-white/30 flex items-center justify-center shadow-sm"
+              className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-2xl border border-white/20 flex items-center justify-center shadow-lg"
             >
               <Heart 
                 className={cn(
-                  "w-5 h-5 transition-colors",
-                  liked ? "fill-destructive text-destructive" : "text-neutral-700"
+                  "w-4.5 h-4.5 transition-colors",
+                  liked ? "fill-destructive text-destructive" : "text-white/90"
                 )} 
               />
             </button>
