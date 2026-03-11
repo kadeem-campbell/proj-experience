@@ -51,7 +51,7 @@ const SearchHorizontalRow = ({ title, variant = "default", children }: {
     <div className="py-3">
       <div className="mb-2 flex items-center gap-1.5 px-4">
         <h2 className="text-[15px] font-bold text-foreground">{title}</h2>
-        <span className={cn("text-lg font-semibold", chevronColor)}>›</span>
+        
       </div>
       <div
         className="overflow-x-auto scrollbar-hide"

@@ -543,7 +543,7 @@ export const MobileHomeView = () => {
             `${catLabel} you can't miss`
           )}
           variant="itinerary"
-          onTitleClick={() => navigate("/itineraries")}
+          onTitleClick={() => navigate("/itineraries?section=popular")}
         >
           {categoryItineraries.slice(0, 6).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -570,7 +570,7 @@ export const MobileHomeView = () => {
         <HorizontalScrollRow 
           title={rowTitle("Curated by locals", `${catLabel} curated by locals`)}
           variant="itinerary"
-          onTitleClick={() => navigate("/itineraries")}
+          onTitleClick={() => navigate("/itineraries?section=staff-picks")}
         >
           {categoryItineraries.slice(3, 9).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -594,7 +594,7 @@ export const MobileHomeView = () => {
         <HorizontalScrollRow 
           title="Weekend getaways"
           variant="itinerary"
-          onTitleClick={() => navigate("/itineraries")}
+          onTitleClick={() => navigate("/itineraries?section=zanzibar")}
         >
           {categoryItineraries.slice(1, 7).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -618,7 +618,7 @@ export const MobileHomeView = () => {
         <HorizontalScrollRow 
           title="Popular this week"
           variant="itinerary"
-          onTitleClick={() => navigate("/itineraries")}
+          onTitleClick={() => navigate("/itineraries?section=popular-week")}
         >
           {categoryItineraries.slice(2, 8).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
