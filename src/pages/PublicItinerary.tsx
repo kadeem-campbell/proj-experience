@@ -13,12 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Dialog,
   DialogContent,
@@ -1032,16 +1032,16 @@ const PublicItinerary = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isAuthenticated) { setShowAuthModal(true); return; }
-                            // Add directly to this itinerary if owned, otherwise show add-to-itinerary sheet
-                            if (isOwned && ownedItinerary) {
-                              addExperienceToItinerary(ownedItinerary.id, {
-                                id: exp.id, title: exp.title, creator: exp.creator || '',
-                                videoThumbnail: exp.videoThumbnail || '', category: exp.category || '',
-                                location: exp.location || '', price: exp.price || '',
-                              });
-                              toast({ title: "Added", description: `${exp.title} added to ${ownedItinerary.name}` });
+                            // Add directly to this itinerary at the end - like Spotify
+                            const result = addExperienceToItinerary(itinerary.id, {
+                              id: exp.id, title: exp.title, creator: exp.creator || '',
+                              videoThumbnail: exp.videoThumbnail || '', category: exp.category || '',
+                              location: exp.location || '', price: exp.price || '',
+                            });
+                            if (result.success) {
+                              toast({ title: "Added", description: `${exp.title} added` });
                             } else {
-                              setShowAddToItinerarySheet(true);
+                              toast({ title: "Already added", description: `${exp.title} is already in this itinerary`, variant: "destructive" });
                             }
                           }}
                           className="shrink-0 text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10 active:bg-primary/20 transition-colors"
@@ -1065,16 +1065,16 @@ const PublicItinerary = () => {
         </div>
       </div>
 
-      {/* === SHEETS === */}
+      {/* === DRAWERS (drag-down dismissible) === */}
 
-      {/* Share Sheet */}
-      <Sheet open={showShareSheet} onOpenChange={setShowShareSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
-          <SheetHeader className="pb-2">
-            <SheetTitle className="text-center">Share</SheetTitle>
-            <SheetDescription className="sr-only">Share this itinerary</SheetDescription>
-          </SheetHeader>
-          <div className="px-2 pb-4 space-y-3">
+      {/* Share Drawer */}
+      <Drawer open={showShareSheet} onOpenChange={setShowShareSheet}>
+        <DrawerContent className="pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="text-center">Share</DrawerTitle>
+            <DrawerDescription className="sr-only">Share this itinerary</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-3">
             {/* Top row: icon grid */}
             <div className="grid grid-cols-4 gap-1">
               {[
@@ -1111,17 +1111,17 @@ const PublicItinerary = () => {
               </button>
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Sort Sheet */}
-      <Sheet open={showSortSheet} onOpenChange={setShowSortSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
-          <SheetHeader className="pb-2">
-            <SheetTitle className="text-center">Sort by</SheetTitle>
-            <SheetDescription className="sr-only">Sort experiences</SheetDescription>
-          </SheetHeader>
-          <div className="px-2 pb-4 space-y-1">
+      {/* Sort Drawer */}
+      <Drawer open={showSortSheet} onOpenChange={setShowSortSheet}>
+        <DrawerContent className="pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="text-center">Sort by</DrawerTitle>
+            <DrawerDescription className="sr-only">Sort experiences</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-1">
             {[
               { key: 'default' as SortMode, label: 'Recently added', icon: Clock },
               { key: 'name' as SortMode, label: 'Name', icon: SortAsc },
@@ -1141,16 +1141,16 @@ const PublicItinerary = () => {
               </button>
             ))}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Add to Itinerary Sheet */}
-      <Sheet open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
-          <SheetHeader className="pb-2 shrink-0">
-            <SheetTitle>Add to itinerary</SheetTitle>
-            <SheetDescription>Save this itinerary to your collection</SheetDescription>
-          </SheetHeader>
+      {/* Add to Itinerary Drawer */}
+      <Drawer open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
+        <DrawerContent className="max-h-[60vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-2 shrink-0">
+            <DrawerTitle>Add to itinerary</DrawerTitle>
+            <DrawerDescription>Save this itinerary to your collection</DrawerDescription>
+          </DrawerHeader>
           <div className="flex-1 overflow-y-auto min-h-0">
             {/* New itinerary option */}
             {showNewItineraryInput ? (
@@ -1159,10 +1159,11 @@ const PublicItinerary = () => {
                   value={newItineraryName}
                   onChange={(e) => setNewItineraryName(e.target.value)}
                   placeholder="Itinerary name..."
-                  className="h-11 flex-1"
+                  className="h-11 flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
                   style={{ fontSize: '16px' }}
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleAddToNewItinerary()}
+                  onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
                 />
                 <Button className="h-11 px-5" onClick={handleAddToNewItinerary} disabled={!newItineraryName.trim()}>
                   Create
@@ -1185,7 +1186,7 @@ const PublicItinerary = () => {
 
             {/* Search */}
             <div className="px-4 py-2">
-              <div className="flex items-center bg-muted rounded-lg px-3 py-2">
+              <div className="flex items-center bg-muted rounded-full px-3 py-2">
                 <Search className="w-4 h-4 text-muted-foreground mr-2" />
                 <Input
                   type="text"
@@ -1194,7 +1195,13 @@ const PublicItinerary = () => {
                   placeholder="Search your itineraries..."
                   className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
                   style={{ fontSize: '16px' }}
+                  onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
                 />
+                {addItinerarySearch && (
+                  <button onClick={() => setAddItinerarySearch("")} className="p-1 rounded-full shrink-0">
+                    <X className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1231,21 +1238,6 @@ const PublicItinerary = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     No itineraries match "<span className="font-medium text-foreground">{addItinerarySearch}</span>"
                   </p>
-                  {itineraries.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Suggested</p>
-                      {itineraries.slice(0, 3).map(itin => (
-                        <button
-                          key={itin.id}
-                          onClick={() => handleAddToExistingItinerary(itin)}
-                          className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted/40 transition-colors text-left"
-                        >
-                          <span className="text-sm font-medium truncate">{itin.name}</span>
-                          <span className="text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10 shrink-0 ml-2">Add</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -1254,22 +1246,22 @@ const PublicItinerary = () => {
               )}
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Create Trip Sheet (owned itinerary only) */}
-      <Sheet open={showCreateTripSheet} onOpenChange={setShowCreateTripSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
-          <SheetHeader className="pb-3">
-            <SheetTitle className="flex items-center gap-2">
+      {/* Create Trip Drawer (owned itinerary only) */}
+      <Drawer open={showCreateTripSheet} onOpenChange={setShowCreateTripSheet}>
+        <DrawerContent className="max-h-[85vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-3">
+            <DrawerTitle className="flex items-center gap-2">
               <Rocket className="w-5 h-5 text-primary" />
               Create trip
-            </SheetTitle>
-            <SheetDescription>
+            </DrawerTitle>
+            <DrawerDescription>
               Select your travel dates to turn this itinerary into a trip.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="flex flex-col items-center py-3 w-full">
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex flex-col items-center py-3 w-full px-4">
             <div className="w-full overflow-x-auto flex justify-center pb-2">
               <Calendar
                 mode="range"
@@ -1304,19 +1296,19 @@ const PublicItinerary = () => {
               {isGenerating ? "Generating..." : "Generate trip"}
             </Button>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Invite Friends Sheet - keyboard aware */}
-      <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]" style={{ maxHeight: '100dvh' }}>
-          <SheetHeader className="pb-2">
-            <SheetTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Invite Friends</SheetTitle>
-            <SheetDescription>Share this itinerary with friends via email</SheetDescription>
-          </SheetHeader>
-          <div className="space-y-4 py-4">
+      {/* Invite Friends Drawer */}
+      <Drawer open={showInviteSheet} onOpenChange={setShowInviteSheet}>
+        <DrawerContent className="pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Invite Friends</DrawerTitle>
+            <DrawerDescription>Share this itinerary with friends via email</DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-4 px-4 pb-4">
             <div className="flex gap-2">
-              <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+              <div className="flex-1 flex items-center bg-muted rounded-full px-3">
                 <Mail className="w-4 h-4 text-muted-foreground mr-2" />
                 <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
                   className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }}
@@ -1336,19 +1328,19 @@ const PublicItinerary = () => {
               </Button>
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Collaborator Sheet - keyboard aware */}
-      <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]" style={{ maxHeight: '100dvh' }}>
-          <SheetHeader className="pb-2">
-            <SheetTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Add Collaborators</SheetTitle>
-            <SheetDescription>Invite people to edit and plan this itinerary together</SheetDescription>
-          </SheetHeader>
-          <div className="space-y-4 py-4">
+      {/* Collaborator Drawer */}
+      <Drawer open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
+        <DrawerContent className="pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-2">
+            <DrawerTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Add Collaborators</DrawerTitle>
+            <DrawerDescription>Invite people to edit and plan this itinerary together</DrawerDescription>
+          </DrawerHeader>
+          <div className="space-y-4 px-4 pb-4">
             <div className="flex gap-2">
-              <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+              <div className="flex-1 flex items-center bg-muted rounded-full px-3">
                 <UserPlus className="w-4 h-4 text-muted-foreground mr-2" />
                 <Input type="email" placeholder="collaborator@email.com" value={collaboratorEmail} onChange={(e) => setCollaboratorEmail(e.target.value)}
                   className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }}
@@ -1361,8 +1353,8 @@ const PublicItinerary = () => {
             </div>
             <p className="text-xs text-muted-foreground">Collaborators can add experiences, edit the schedule, and help plan together.</p>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
 
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </Wrapper>

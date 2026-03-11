@@ -293,28 +293,38 @@ export const MobileSearchOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150" style={{ height: '100dvh' }}>
-      {/* Search input - always fixed at top */}
+    <div
+      className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150"
+      style={{ height: '100dvh' }}
+      onTouchMove={(e) => {
+        // Allow scrolling only within the scrollable content area
+        const scrollable = e.currentTarget.querySelector('.search-scroll-area');
+        if (scrollable && !scrollable.contains(e.target as Node)) {
+          e.preventDefault();
+        }
+      }}
+    >
+      {/* Search input - fixed at top, matching homepage pill style */}
       <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3 shrink-0">
         <form onSubmit={handleSubmit}>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <div className="flex items-center bg-muted rounded-full px-4 py-3">
+            <Search className="w-5 h-5 text-muted-foreground mr-2.5 shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Find experiences, food, or places"
               autoFocus
-              className="w-full pl-12 pr-20 py-4 text-base bg-muted/30 border border-border rounded-2xl outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 placeholder:text-muted-foreground/50 text-foreground"
-              style={{ fontSize: '16px' }}
+              className="flex-1 bg-transparent border-0 outline-none text-base text-foreground placeholder:text-muted-foreground/50"
+              style={{ fontSize: '16px', WebkitAppearance: 'none' }}
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               {searchQuery && (
-                <button type="button" onClick={() => onSearchChange("")} className="p-2 rounded-full hover:bg-muted">
+                <button type="button" onClick={() => onSearchChange("")} className="p-1.5 rounded-full" style={{ WebkitTapHighlightColor: 'transparent' }}>
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               )}
-              <button type="button" onClick={onClose} className="text-sm font-medium text-primary px-2 py-1">
+              <button type="button" onClick={onClose} className="text-sm font-medium text-primary px-2 py-1" style={{ WebkitTapHighlightColor: 'transparent' }}>
                 Cancel
               </button>
             </div>
@@ -323,7 +333,7 @@ export const MobileSearchOverlay = ({
       </div>
 
       {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto overscroll-contain search-scroll-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex-1 overflow-y-auto overscroll-contain search-scroll-area search-scroll-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <style>{`.search-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
         {hasQuery ? (
           <>
