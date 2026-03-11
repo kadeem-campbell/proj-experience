@@ -563,11 +563,10 @@ const PublicItinerary = () => {
 
     // Owned: show actual trips or generated trip
     if (activeTripMode && Object.keys(generatedTrip).length > 0) {
+      const sortedDays = Object.entries(generatedTrip).sort(([a], [b]) => a.localeCompare(b));
       return (
         <div className="space-y-6 px-4 py-4">
-          {Object.entries(generatedTrip)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([dayKey, dayExps]) => (
+          {sortedDays.map(([dayKey, dayExps]) => (
               <div key={dayKey}>
                 <div className="flex items-center gap-2 mb-3">
                   <CalendarIcon className="w-4 h-4 text-primary" />
@@ -579,7 +578,95 @@ const PublicItinerary = () => {
                   </Badge>
                 </div>
                 <div className="space-y-0">
-                  {dayExps.map(renderListRow)}
+                  {dayExps.map((exp, expIdx) => {
+                    const warning = dragWarnings.get(exp.id);
+                    const isMoving = movingExp?.id === exp.id && movingExp?.fromDay === dayKey;
+                    return (
+                      <div key={exp.id} className="relative">
+                        {/* Experience row with move controls */}
+                        <div className="flex items-center gap-2 py-2.5 px-3 border-b border-border/20 last:border-b-0">
+                          {/* Move handle area */}
+                          <div className="flex flex-col gap-0.5 shrink-0">
+                            <button
+                              onClick={() => handleReorderInDay(dayKey, exp.id, 'up')}
+                              disabled={expIdx === 0}
+                              className={cn("p-0.5 rounded", expIdx === 0 ? "opacity-20" : "active:bg-muted")}
+                            >
+                              <ChevronUp className="w-3 h-3 text-muted-foreground" />
+                            </button>
+                            <button
+                              onClick={() => handleReorderInDay(dayKey, exp.id, 'down')}
+                              disabled={expIdx === dayExps.length - 1}
+                              className={cn("p-0.5 rounded", expIdx === dayExps.length - 1 ? "opacity-20" : "active:bg-muted")}
+                            >
+                              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                            </button>
+                          </div>
+
+                          {/* Thumbnail */}
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                            {exp.videoThumbnail ? (
+                              <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <MapPin className="w-3.5 h-3.5 text-muted-foreground/40" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Text */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-medium text-foreground truncate">{exp.title}</h4>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {[exp.location, exp.category].filter(Boolean).join(' · ')}
+                            </p>
+                            {warning && (
+                              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
+                                <AlertTriangle className="w-2.5 h-2.5" />
+                                <span>{warning}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Move to different day button */}
+                          {sortedDays.length > 1 && (
+                            <button
+                              onClick={() => setMovingExp(isMoving ? null : { id: exp.id, fromDay: dayKey })}
+                              className={cn(
+                                "p-1.5 rounded-md transition-colors shrink-0",
+                                isMoving ? "bg-primary/10 text-primary" : "text-muted-foreground/40 active:bg-muted"
+                              )}
+                            >
+                              <ArrowUpDown className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Move-to-day picker */}
+                        {isMoving && (
+                          <div className="bg-muted/50 border-b border-border/20 px-4 py-2">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Move to</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {sortedDays
+                                .filter(([dk]) => dk !== dayKey)
+                                .map(([dk]) => (
+                                  <button
+                                    key={dk}
+                                    onClick={() => {
+                                      handleMoveExperience(exp.id, dayKey, dk);
+                                      setMovingExp(null);
+                                    }}
+                                    className="text-xs font-medium px-2.5 py-1 rounded-md bg-background border border-border/50 text-foreground hover:bg-primary/5 hover:border-primary/20 active:bg-primary/10 transition-colors"
+                                  >
+                                    {format(new Date(dk), "EEE, MMM d")}
+                                  </button>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
