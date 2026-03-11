@@ -1011,14 +1011,22 @@ const PublicItinerary = () => {
             {/* Top row: icon grid */}
             <div className="grid grid-cols-4 gap-1">
               {[
-                { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); } },
-                { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); } },
-                { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setShowInviteSheet(true); } },
-                { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setShowCollaboratorSheet(true); } },
+                { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); }, highlight: copied },
+                { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); }, highlight: false },
+                { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setTimeout(() => setShowInviteSheet(true), 100); }, highlight: false },
+                { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setTimeout(() => setShowCollaboratorSheet(true), 100); }, highlight: false },
               ].map((opt) => (
-                <button key={opt.label} onClick={opt.action} className="flex flex-col items-center gap-1.5 p-2 rounded-xl active:bg-muted transition-colors">
-                  <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center">
-                    <opt.icon className="w-4.5 h-4.5 text-foreground" />
+                <button
+                  key={opt.label}
+                  onClick={opt.action}
+                  className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors select-none outline-none focus:outline-none"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <div className={cn(
+                    "w-11 h-11 rounded-full flex items-center justify-center transition-colors",
+                    opt.highlight ? "bg-green-100" : "bg-muted"
+                  )}>
+                    <opt.icon className={cn("w-4.5 h-4.5", opt.highlight ? "text-green-600" : "text-foreground")} />
                   </div>
                   <span className="text-[10px] text-muted-foreground text-center leading-tight whitespace-pre-line">{opt.label}</span>
                 </button>
