@@ -245,7 +245,7 @@ export const MobileSearchOverlay = ({
         return terms.some(t => termMatch(t, ef));
       });
       return terms.some(t => termMatch(t, fields)) || expMatch;
-    }).slice(0, 8);
+    });
   }, [q]);
 
   // More from the same category as top result
