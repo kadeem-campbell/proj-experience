@@ -1056,8 +1056,8 @@ const PublicItinerary = () => {
                     <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
                   </div>
                 )}
-                {/* External matches - Recommended */}
-                {externalMatches.length > 0 && (
+                {/* External matches - Recommended (owned only) */}
+                {isOwned && externalMatches.length > 0 && (
                   <div className="border-t border-border/30 mt-2 pt-3 px-4">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
                       Recommended
@@ -1087,17 +1087,11 @@ const PublicItinerary = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isAuthenticated) { setShowAuthModal(true); return; }
-                            // Add directly to this itinerary at the end - like Spotify
-                            const result = addExperienceToItinerary(itinerary.id, {
+                            addExperienceToItinerary(itinerary.id, {
                               id: exp.id, title: exp.title, creator: exp.creator || '',
                               videoThumbnail: exp.videoThumbnail || '', category: exp.category || '',
                               location: exp.location || '', price: exp.price || '',
                             });
-                            if (result.success) {
-                              toast({ title: "Added", description: `${exp.title} added` });
-                            } else {
-                              toast({ title: "Already added", description: `${exp.title} is already in this itinerary`, variant: "destructive" });
-                            }
                           }}
                           className="shrink-0 text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10 active:bg-primary/20 transition-colors"
                           style={{ WebkitTapHighlightColor: 'transparent' }}
