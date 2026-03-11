@@ -182,10 +182,28 @@ const PublicItinerary = () => {
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
 
-  // Filter experiences
+  // Custom order for list/icons (separate from trips)
+  const [customOrder, setCustomOrder] = useState<string[] | null>(null);
+
+  // Initialize custom order when itinerary loads
+  useEffect(() => {
+    if (itinerary && !customOrder) {
+      setCustomOrder(itinerary.experiences.map(e => e.id));
+    }
+  }, [itinerary]);
+
+  // Filter and order experiences for list/icons
   const filteredExperiences = useMemo(() => {
     if (!itinerary) return [];
-    const exps = itinerary.experiences;
+    let exps = [...itinerary.experiences];
+    // Apply custom order
+    if (customOrder) {
+      exps.sort((a, b) => {
+        const ai = customOrder.indexOf(a.id);
+        const bi = customOrder.indexOf(b.id);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      });
+    }
     if (!searchQuery.trim()) return exps;
     const q = searchQuery.toLowerCase();
     return exps.filter(e =>
@@ -193,7 +211,21 @@ const PublicItinerary = () => {
       e.location?.toLowerCase().includes(q) ||
       e.category?.toLowerCase().includes(q)
     );
-  }, [itinerary, searchQuery]);
+  }, [itinerary, searchQuery, customOrder]);
+
+  // Reorder in list/icons view
+  const handleListReorder = useCallback((expId: string, direction: 'up' | 'down') => {
+    setCustomOrder(prev => {
+      if (!prev) return prev;
+      const order = [...prev];
+      const idx = order.indexOf(expId);
+      if (idx < 0) return prev;
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= order.length) return prev;
+      [order[idx], order[targetIdx]] = [order[targetIdx], order[idx]];
+      return order;
+    });
+  }, []);
 
   // Filtered itineraries for add-to-itinerary search
   const filteredItineraries = useMemo(() => {
@@ -423,77 +455,92 @@ const PublicItinerary = () => {
   // --- Render functions ---
 
   // Clean list row (Requirement #1)
-  const renderListRow = (experience: LikedExperience) => {
+  const renderListRow = (experience: LikedExperience, idx?: number, total?: number) => {
     const liked = isItemLiked(experience.id, 'experience');
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
     const price = experience.price ? `$${experience.price} avg` : null;
     const warning = dragWarnings.get(experience.id);
+    const showReorder = isOwned && idx !== undefined && total !== undefined && !searchQuery.trim();
 
-    // Build metadata line: Location · Category · [time icon] · $49 avg
     const metaParts: string[] = [];
     if (experience.location) metaParts.push(experience.location);
     if (experience.category) metaParts.push(experience.category);
 
     return (
-      <button
-        key={experience.id}
-        onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
-        className="w-full flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left border-b border-border/30 last:border-b-0"
-      >
-        {/* Thumbnail - clean, no overlay */}
-        <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-          {experience.videoThumbnail ? (
-            <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-muted-foreground/40" />
-            </div>
-          )}
-        </div>
-        
-        {/* Text content */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
-          <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
-            <span>{metaParts.join(' · ')}</span>
-            {slotInfo && (
-              <>
-                <span className="opacity-40">·</span>
-                <span className="inline-flex items-center">{slotInfo.icon}</span>
-              </>
-            )}
-            {price && (
-              <>
-                <span className="opacity-40">·</span>
-                <span>{price}</span>
-              </>
+      <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
+        {/* Reorder controls for owned */}
+        {showReorder && (
+          <div className="flex flex-col gap-0.5 pl-2 shrink-0">
+            <button
+              onClick={() => handleListReorder(experience.id, 'up')}
+              disabled={idx === 0}
+              className={cn("p-0.5 rounded", idx === 0 ? "opacity-20" : "active:bg-muted")}
+            >
+              <ChevronUp className="w-3 h-3 text-muted-foreground" />
+            </button>
+            <button
+              onClick={() => handleListReorder(experience.id, 'down')}
+              disabled={idx === (total - 1)}
+              className={cn("p-0.5 rounded", idx === (total - 1) ? "opacity-20" : "active:bg-muted")}
+            >
+              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+            </button>
+          </div>
+        )}
+        <div
+          onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+          className={cn("flex-1 flex items-center gap-3 py-3 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer", showReorder ? "px-2" : "px-4")}
+        >
+          <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
+            {experience.videoThumbnail ? (
+              <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-muted-foreground/40" />
+              </div>
             )}
           </div>
-          {warning && (
-            <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
-              <AlertTriangle className="w-2.5 h-2.5" />
-              <span>{warning}</span>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
+            <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
+              <span>{metaParts.join(' · ')}</span>
+              {slotInfo && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span className="inline-flex items-center">{slotInfo.icon}</span>
+                </>
+              )}
+              {price && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span>{price}</span>
+                </>
+              )}
             </div>
-          )}
+            {warning && (
+              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
+                <AlertTriangle className="w-2.5 h-2.5" />
+                <span>{warning}</span>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={async (e) => {
+                e.preventDefault(); e.stopPropagation();
+                if ('vibrate' in navigator) navigator.vibrate(10);
+                await handleToggleLike(experience.id, 'experience', {
+                  id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail,
+                });
+              }}
+              className="p-1"
+            >
+              <Heart className={cn("w-4 h-4 transition-all", liked ? "fill-primary text-primary" : "text-muted-foreground/30")} />
+            </button>
+            <ChevronRight className="w-4 h-4 text-muted-foreground/20" />
+          </div>
         </div>
-
-        {/* Right side */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={async (e) => {
-              e.preventDefault(); e.stopPropagation();
-              if ('vibrate' in navigator) navigator.vibrate(10);
-              await handleToggleLike(experience.id, 'experience', {
-                id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail,
-              });
-            }}
-            className="p-1"
-          >
-            <Heart className={cn("w-4 h-4 transition-all", liked ? "fill-primary text-primary" : "text-muted-foreground/30")} />
-          </button>
-          <ChevronRight className="w-4 h-4 text-muted-foreground/20" />
-        </div>
-      </button>
+      </div>
     );
   };
 
@@ -553,7 +600,7 @@ const PublicItinerary = () => {
                 </Badge>
               </div>
               <div className="space-y-0">
-                {day.experiences.map(renderListRow)}
+                {day.experiences.map((exp, i) => renderListRow(exp, i, day.experiences.length))}
               </div>
             </div>
           ))}
@@ -708,7 +755,7 @@ const PublicItinerary = () => {
                     <CalendarIcon className="w-3.5 h-3.5 text-primary" />
                     <span className="text-xs font-semibold text-foreground">{format(new Date(dayKey), "EEEE, MMM d")}</span>
                   </div>
-                  <div className="space-y-0">{exps.map(renderListRow)}</div>
+                  <div className="space-y-0">{exps.map((exp, i) => renderListRow(exp, i, exps.length))}</div>
                 </div>
               ))}
             </div>
@@ -865,7 +912,7 @@ const PublicItinerary = () => {
           <div className="pb-4">
             {viewMode === 'list' && (
               <div>
-                {filteredExperiences.map(renderListRow)}
+                {filteredExperiences.map((exp, i) => renderListRow(exp, i, filteredExperiences.length))}
                 {filteredExperiences.length === 0 && searchQuery && (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
@@ -885,46 +932,53 @@ const PublicItinerary = () => {
 
       {/* === SHEETS === */}
 
-      {/* Share Sheet - full-width bottom sheet */}
+      {/* Share Sheet - compact horizontal layout like reference */}
       <Sheet open={showShareSheet} onOpenChange={setShowShareSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh]">
-          <SheetHeader className="pb-3">
-            <SheetTitle>Share</SheetTitle>
-            <SheetDescription>Share this itinerary with others</SheetDescription>
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)]">
+          <SheetHeader className="pb-2">
+            <SheetTitle className="text-center">Share</SheetTitle>
+            <SheetDescription className="sr-only">Share this itinerary</SheetDescription>
           </SheetHeader>
-          <div className="space-y-1 pb-4">
-            <button onClick={() => { handleCopyLink(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">{copied ? "Copied!" : "Copy link"}</span>
-            </button>
-            <button onClick={() => { handleShareWhatsApp(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><MessageCircle className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Share via WhatsApp</span>
-            </button>
-            <button onClick={() => { setShowShareSheet(false); setShowInviteSheet(true); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Send className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Invite friends</span>
-            </button>
-            <button onClick={() => { setShowShareSheet(false); setShowCollaboratorSheet(true); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Users className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Add collaborators</span>
-            </button>
-            <div className="h-px bg-border/50 mx-3 my-1" />
-            <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Download className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Export as CSV</span>
-            </button>
-            <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Download className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Export as XLSX</span>
-            </button>
+          <div className="px-2 pb-4 space-y-3">
+            {/* Top row: icon grid */}
+            <div className="grid grid-cols-5 gap-1">
+              {[
+                { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); } },
+                { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); } },
+                { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setShowInviteSheet(true); } },
+                { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setShowCollaboratorSheet(true); } },
+                { label: "Email", icon: Mail, action: () => { 
+                  const shareUrl = `${window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app'}/itineraries/${itinerary.id}`;
+                  window.open(`mailto:?subject=${encodeURIComponent(itinerary.name)}&body=${encodeURIComponent(shareUrl)}`, '_blank');
+                  setShowShareSheet(false);
+                }},
+              ].map((opt) => (
+                <button key={opt.label} onClick={opt.action} className="flex flex-col items-center gap-1.5 p-2 rounded-xl active:bg-muted transition-colors">
+                  <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center">
+                    <opt.icon className="w-4.5 h-4.5 text-foreground" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground text-center leading-tight whitespace-pre-line">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+            {/* Export row */}
+            <div className="flex gap-2">
+              <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
+                <Download className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-medium">CSV</span>
+              </button>
+              <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
+                <Download className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-medium">XLSX</span>
+              </button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
 
       {/* Add to Itinerary Sheet - Spotify-style */}
       <Sheet open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] overflow-hidden flex flex-col">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] overflow-hidden flex flex-col pb-[env(safe-area-inset-bottom,16px)]">
           <SheetHeader className="pb-2 shrink-0">
             <SheetTitle>Add to itinerary</SheetTitle>
             <SheetDescription>Save this itinerary to your collection</SheetDescription>
@@ -1038,7 +1092,7 @@ const PublicItinerary = () => {
 
       {/* Create Trip Sheet (owned itinerary only) */}
       <Sheet open={showCreateTripSheet} onOpenChange={setShowCreateTripSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto pb-[env(safe-area-inset-bottom,16px)]">
           <SheetHeader className="pb-3">
             <SheetTitle className="flex items-center gap-2">
               <Rocket className="w-5 h-5 text-primary" />
@@ -1089,7 +1143,7 @@ const PublicItinerary = () => {
 
       {/* Invite Friends Sheet */}
       <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh]">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[env(safe-area-inset-bottom,16px)]">
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Invite Friends</SheetTitle>
             <SheetDescription>Share this itinerary with friends via email</SheetDescription>
@@ -1119,7 +1173,7 @@ const PublicItinerary = () => {
 
       {/* Collaborator Sheet */}
       <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh]">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[env(safe-area-inset-bottom,16px)]">
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Add Collaborators</SheetTitle>
             <SheetDescription>Invite people to edit and plan this trip together</SheetDescription>

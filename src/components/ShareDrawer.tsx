@@ -178,7 +178,7 @@ export const ShareDrawer = ({ title, url, children }: ShareDrawerProps) => {
       }}>
         {children}
       </DrawerTrigger>
-      <DrawerContent className="max-h-[60vh]">
+      <DrawerContent className="max-h-[60vh] pb-[env(safe-area-inset-bottom,16px)]">
         <DrawerHeader className="pb-2">
           <DrawerTitle className="text-center">Share</DrawerTitle>
         </DrawerHeader>
