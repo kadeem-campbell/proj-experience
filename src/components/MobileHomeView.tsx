@@ -142,30 +142,24 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => navigate(`/itineraries/${itinerary.id}`)}
     >
-      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+      <div className="relative aspect-[3/2.5] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-itinerary-color/20 to-itinerary-color/5 flex items-center justify-center">
-            <Layers className="w-8 h-8 text-itinerary-color/40" />
+            <MapPin className="w-8 h-8 text-itinerary-color/40" />
           </div>
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90",
-          liked ? "bg-experience-color/20" : "bg-white/80 hover:bg-itinerary-color/10"
+          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all active:scale-90",
+          liked ? "bg-white/25" : "bg-white/15 border border-white/20 hover:bg-white/25"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-foreground")} />
+          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-white/90")} />
         </button>
-        <div className={cn(
-          "absolute top-2 left-2 px-2 py-1 rounded-full backdrop-blur-xl shadow-sm flex items-center gap-1",
-          "bg-white/80 hover:bg-itinerary-color/10 transition-colors"
-        )}>
-          <Layers className="w-3 h-3 text-foreground" />
-          <span className="text-xs font-medium text-foreground">{experienceCount}</span>
-        </div>
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
+        <p className="text-xs text-muted-foreground">{experienceCount} experiences</p>
         <p className="text-xs text-muted-foreground truncate">
           {itinerary.creatorName || 'Local Creator'}
         </p>
@@ -209,10 +203,10 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <div className="w-full h-full bg-gradient-to-br from-experience-color/20 to-experience-color/5" />
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90",
-          liked ? "bg-experience-color/20" : "bg-white/80 hover:bg-experience-color/10"
+          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all active:scale-90",
+          liked ? "bg-white/25" : "bg-white/15 border border-white/20 hover:bg-white/25"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-foreground")} />
+          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-white/90")} />
         </button>
         <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
           <ItinerarySelector

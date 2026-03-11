@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Heart, Users, MapPin, Calendar } from "lucide-react";
+import { Heart, MapPin, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Itinerary {
@@ -36,29 +36,22 @@ const AppStoreItineraryCard = ({ itinerary }: { itinerary: Itinerary }) => {
     >
       <div className="relative w-full rounded-2xl overflow-hidden">
         {/* Image - tall aspect ratio like App Store */}
-        <div className="relative aspect-[4/5] w-full">
+        <div className="relative aspect-[4/4.5] w-full">
           <img
             src={itinerary.coverImage}
             alt={itinerary.name}
             className="w-full h-full object-cover"
           />
           
-          {/* Gradient overlay - cleaner, no weird shade */}
+          {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-          
-          {/* Experience count badge - top right */}
-          <div className="absolute top-3 right-3">
-            <div className="flex items-center gap-1 bg-white/60 backdrop-blur-2xl border border-white/30 px-3 py-1.5 rounded-full shadow-sm">
-              <Users className="w-4 h-4 text-neutral-700" />
-              <span className="text-neutral-700 text-xs font-semibold">{itinerary.experienceCount} experiences</span>
-            </div>
-          </div>
 
           {/* Content overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-3">
+          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
             <h2 className="text-xl font-bold text-white line-clamp-2">
               {itinerary.name}
             </h2>
+            <p className="text-white/70 text-sm">{itinerary.experienceCount} experiences</p>
             
             {itinerary.location && (
               <div className="flex items-center gap-2 text-white/90 text-sm">
