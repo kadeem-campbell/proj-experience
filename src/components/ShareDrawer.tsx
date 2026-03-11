@@ -102,9 +102,10 @@ const ShareContent = ({
           <button
             key={option.name}
             onClick={option.onClick}
-            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-muted transition-colors ${option.className || ''}`}
+            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors select-none outline-none focus:outline-none ${option.className || ''}`}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${option.className?.includes('text-green') ? 'bg-green-100' : 'bg-muted'}`}>
               <option.icon className="w-4 h-4" />
             </div>
             <span className="text-[11px] text-muted-foreground">{option.name}</span>
