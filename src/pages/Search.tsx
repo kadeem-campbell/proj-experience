@@ -254,7 +254,15 @@ const SearchPage = () => {
     return () => observer.disconnect();
   }, [visibleCount, experiences.length]);
 
-  if (isMobile) return <MobileHomeView />;
+  if (isMobile) return (
+    <MobileSearchOverlay
+      isOpen={true}
+      onClose={() => navigate(-1)}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      onSearch={(q) => setSearchQuery(q)}
+    />
+  );
 
   const handleCitySelect = (city: City | null) => { setSelectedCity(city); setSelectedCategory(null); };
   const handleCategorySelect = (categoryName: string | null) => { setSelectedCategory(categoryName); };
