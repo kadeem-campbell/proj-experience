@@ -77,13 +77,18 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   const { experienceCount } = useItineraries();
 
   const handleHomeClick = useCallback(() => {
+    // Always close search first if it's open
+    if (isSearchOpen) {
+      onSearchClick(); // toggles search off
+      return;
+    }
     if (location.pathname === "/" && !location.search) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       navigate("/");
     }
-  }, [location.pathname, location.search, navigate]);
+  }, [location.pathname, location.search, navigate, isSearchOpen, onSearchClick]);
 
   const navItems = [
     { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" && !isSearchOpen, badge: 0 },

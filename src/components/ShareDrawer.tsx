@@ -45,7 +45,6 @@ const ShareContent = ({
   const handleCopy = async () => {
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    toast.success("Link copied!");
     setTimeout(() => {
       setCopied(false);
       onClose();
