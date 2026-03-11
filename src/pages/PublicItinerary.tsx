@@ -603,8 +603,7 @@ const PublicItinerary = () => {
   const renderTripsView = () => {
     // Show preset trips (for both public and owned without generated trips)
     if (!isOwned || generatedTrips.length === 0) {
-      const [activePresetIdx, setActivePresetIdx] = useState(0);
-      const activePreset = publicTripExamples[activePresetIdx];
+      const activePreset = publicTripExamples[activePresetTripIndex];
       if (!activePreset) return (
         <div className="text-center py-12 px-4">
           <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
@@ -618,10 +617,10 @@ const PublicItinerary = () => {
             {publicTripExamples.map((trip, idx) => (
               <button
                 key={idx}
-                onClick={() => setActivePresetIdx(idx)}
+                onClick={() => setActivePresetTripIndex(idx)}
                 className={cn(
                   "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors max-w-[200px] truncate",
-                  idx === activePresetIdx
+                  idx === activePresetTripIndex
                     ? "bg-accent text-accent-foreground"
                     : "bg-muted text-muted-foreground"
                 )}
