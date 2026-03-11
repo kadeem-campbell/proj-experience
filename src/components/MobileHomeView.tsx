@@ -240,6 +240,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm text-foreground truncate">{experience.title}</h3>
+        <p className="text-xs text-muted-foreground truncate">{experience.location}</p>
         {experience.price && (
           <p className="text-xs text-muted-foreground truncate">{experience.price} typical</p>
         )}
