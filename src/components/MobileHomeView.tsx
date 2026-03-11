@@ -97,7 +97,7 @@ const HorizontalScrollRow = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const chevronColor = variant === "itinerary" ? "text-itinerary-color" : variant === "experience" ? "text-experience-color" : "text-muted-foreground";
+  
 
   return (
     <div className="py-5 mb-2">

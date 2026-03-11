@@ -46,7 +46,7 @@ const SearchHorizontalRow = ({ title, variant = "default", children }: {
   variant?: "itinerary" | "experience" | "default";
   children: React.ReactNode;
 }) => {
-  const chevronColor = variant === "itinerary" ? "text-itinerary-color" : variant === "experience" ? "text-experience-color" : "text-muted-foreground";
+  
   return (
     <div className="py-3">
       <div className="mb-2 flex items-center gap-1.5 px-4">
