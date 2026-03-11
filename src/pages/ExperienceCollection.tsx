@@ -310,7 +310,7 @@ const ExperienceCollectionPage = () => {
         {/* Divider + continued discovery */}
         {remainingSections.length > 0 && (
           <>
-            <div className="flex-1 [&_h3]:text-white [&_p]:text-white/60 [&_.text-foreground]:text-white [&_.text-muted-foreground]:text-white/60" style={{ backgroundColor: '#0d444f' }}>
+            <div className="flex-1 -mb-20 pb-20 [&_h3]:text-white [&_p]:text-white/60 [&_.text-foreground]:text-white [&_.text-muted-foreground]:text-white/60" style={{ backgroundColor: '#0d444f' }}>
               <div className="pt-8 pb-4 px-4 text-center">
                 <span className="text-xs uppercase tracking-wider text-white/80">
                   More experiences to explore
