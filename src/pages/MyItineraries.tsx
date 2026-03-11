@@ -134,6 +134,7 @@ const MyItinerariesPage = () => {
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
   const isMobile = useIsMobile();
+  const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
 
   // Auto-open create drawer from ?create=true
   useEffect(() => {
