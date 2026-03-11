@@ -48,8 +48,8 @@ const CategoryFilterPills = ({
   onCategoryChange: (cat: string) => void;
 }) => {
   return (
-    <div className="px-4 pb-3">
-      <div className="flex justify-center gap-6">
+    <div className="px-8 pb-3">
+      <div className="flex justify-center gap-5">
         {filterCategories.map((cat) => {
           const Icon = cat.icon;
           const isActive = activeCategory === cat.category;
