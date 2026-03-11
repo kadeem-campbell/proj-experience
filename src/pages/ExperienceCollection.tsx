@@ -331,6 +331,7 @@ const ExperienceCollectionPage = () => {
               ))}
               <div className="pb-4" />
             </div>
+          </>
         )}
       </MobileShell>
     );
