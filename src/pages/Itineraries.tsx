@@ -66,7 +66,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
       onClick={() => navigate(`/itineraries/${itinerary.id}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
@@ -78,8 +78,8 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
           </div>
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90",
-          liked && "bg-destructive/20"
+          "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-colors",
+          liked ? "bg-black/40 border border-white/10" : "bg-background/70"
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>

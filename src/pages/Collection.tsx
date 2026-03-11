@@ -105,7 +105,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 
   return (
     <div
-      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
       onClick={() => navigate(`/itineraries/${itinerary.id}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
@@ -117,8 +117,8 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
           </div>
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 p-2 rounded-full bg-background/70 backdrop-blur-xl shadow-sm transition-all active:scale-90",
-          liked && "bg-destructive/20"
+          "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-colors",
+          liked ? "bg-black/40 border border-white/10" : "bg-background/70"
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-destructive text-destructive" : "text-foreground")} />
         </button>
@@ -229,18 +229,32 @@ const CollectionPage = () => {
           </div>
         </div>
 
-        {/* Continue discovery — remaining sections as carousels */}
-        {remainingSections.map(section => (
-          <HorizontalScrollRow
-            key={section.key}
-            title={section.title}
-            onTitleClick={() => navigate(`/collections/${section.key}`)}
-          >
-            {section.items.map((it: any) => (
-              <MobileItineraryCard key={it.id} itinerary={it} />
+        {/* Divider + continued discovery */}
+        {remainingSections.length > 0 && (
+          <>
+            <div className="px-4 pt-4 pb-2">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border/60" />
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                  More itineraries to explore
+                </span>
+                <div className="flex-1 h-px bg-border/60" />
+              </div>
+            </div>
+
+            {remainingSections.map(section => (
+              <HorizontalScrollRow
+                key={section.key}
+                title={section.title}
+                onTitleClick={() => navigate(`/collections/${section.key}`)}
+              >
+                {section.items.map((it: any) => (
+                  <MobileItineraryCard key={it.id} itinerary={it} />
+                ))}
+              </HorizontalScrollRow>
             ))}
-          </HorizontalScrollRow>
-        ))}
+          </>
+        )}
       </MobileShell>
     );
   }
