@@ -925,7 +925,7 @@ const PublicItinerary = () => {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            navigate(`/experience/${experience.id}`);
+            navigate(`/experiences/${slugify(experience.title)}`);
           }
         }}
       >
