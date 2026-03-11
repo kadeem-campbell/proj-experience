@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import Search from "./pages/Search";
 import ExperienceDetail from "./pages/ExperienceDetail";
@@ -24,12 +25,14 @@ import Trip from "./pages/Trip";
 import Profile from "./pages/Profile";
 import MyItineraries from "./pages/MyItineraries";
 import Liked from "./pages/Liked";
+import Collection from "./pages/Collection";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -58,6 +61,7 @@ const App = () => (
           <Route path="/itineraries/:id" element={<PublicItinerary />} />
           <Route path="/public-itinerary/:id" element={<PublicItinerary />} />
           <Route path="/itineraries" element={<Itineraries />} />
+          <Route path="/collections/:slug" element={<Collection />} />
           <Route path="/experiences" element={<Experiences />} />
           <Route path="/trip/:id" element={<Trip />} />
           <Route path="/profile" element={<Profile />} />
@@ -69,6 +73,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 
