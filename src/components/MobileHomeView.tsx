@@ -415,20 +415,20 @@ export const MobileHomeView = () => {
         onSearch={(q) => { setSearchQuery(q); setSearchOpen(false); }}
       />
 
-      {/* Search bar - tappable */}
-      <div className="px-4 pb-2">
+      {/* Search bar - Uber Eats style */}
+      <div className="px-4 pb-3">
         <button
           onClick={() => setSearchOpen(true)}
-          className="w-full flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-xl text-left transition-colors duration-150 active:bg-muted/50"
+          className="w-full flex items-center gap-3 px-4 py-3 bg-muted rounded-full text-left transition-colors duration-150 active:bg-muted/70"
         >
           <Search className="w-5 h-5 text-muted-foreground shrink-0" />
-          <span className="text-sm text-muted-foreground/60 flex-1 truncate">
+          <span className="text-[15px] text-muted-foreground flex-1 truncate">
             {searchQuery || rotatingPlaceholders[placeholderIndex]}
           </span>
           {searchQuery && (
             <button
               onClick={(e) => { e.stopPropagation(); setSearchQuery(""); }}
-              className="p-1 rounded-full hover:bg-muted"
+              className="p-1 rounded-full hover:bg-background/50"
             >
               <span className="text-muted-foreground text-sm">✕</span>
             </button>
