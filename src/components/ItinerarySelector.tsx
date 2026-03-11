@@ -59,6 +59,9 @@ export const ItinerarySelector = ({
     return itinerary?.experiences.some(e => e.id === experienceId) || false;
   };
 
+  const [justAdded, setJustAdded] = useState<string | null>(null);
+  const justAddedTimer = useRef<NodeJS.Timeout | null>(null);
+
   const handleToggleItinerary = (itinerary: Itinerary) => {
     const alreadyAdded = isInItinerary(itinerary.id);
     if ('vibrate' in navigator) navigator.vibrate(10);
@@ -74,10 +77,12 @@ export const ItinerarySelector = ({
         return;
       }
       setActiveItinerary(itinerary.id);
+      setJustAdded(itinerary.id);
+      if (justAddedTimer.current) clearTimeout(justAddedTimer.current);
+      justAddedTimer.current = setTimeout(() => setJustAdded(null), 1500);
       onAdd?.();
       toast.success(`Added to "${itinerary.name}"`);
     }
-    setOpen(false);
   };
 
   const handleCreateAndAdd = async () => {
