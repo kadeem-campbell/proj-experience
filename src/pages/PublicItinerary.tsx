@@ -531,7 +531,7 @@ const PublicItinerary = () => {
     const a = document.createElement('a');
     a.href = url; a.download = `${itinerary.name}.xlsx`; a.click();
     URL.revokeObjectURL(url);
-    toast({ title: "Exported as XLSX" });
+    // export complete
   };
 
   const handleExportPDF = () => {
