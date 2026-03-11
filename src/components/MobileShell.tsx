@@ -178,11 +178,13 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Scroll to top on route change (not search toggle)
+  // Scroll to top on route change, except homepage which preserves position
   const location = useLocation();
   useEffect(() => {
-    window.scrollTo(0, 0);
-    document.querySelector('main')?.scrollTo(0, 0);
+    if (location.pathname !== '/') {
+      window.scrollTo(0, 0);
+      document.querySelector('main')?.scrollTo(0, 0);
+    }
   }, [location.pathname]);
 
   return (
