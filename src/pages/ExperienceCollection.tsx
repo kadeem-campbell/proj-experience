@@ -304,7 +304,7 @@ const ExperienceCollectionPage = () => {
                   key={section.key}
                   title={section.title}
                   onTitleClick={() => navigate(`/experience-collections/${section.key}`)}
-                  titleClassName="text-white/90"
+                  titleClassName="text-white"
                 >
                   {section.items.map((exp: any) => (
                     <MobileExperienceCard key={exp.id} experience={exp} />

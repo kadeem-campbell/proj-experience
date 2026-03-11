@@ -244,7 +244,7 @@ const CollectionPage = () => {
                   key={section.key}
                   title={section.title}
                   onTitleClick={() => navigate(`/itinerary-collections/${section.key}`)}
-                  titleClassName="text-white/90"
+                  titleClassName="text-white"
                 >
                   {section.items.map((it: any) => (
                     <MobileItineraryCard key={it.id} itinerary={it} />
