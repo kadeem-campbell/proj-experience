@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { slugify } from "@/utils/slugUtils";
 import { Heart, Plus, MapPin } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
