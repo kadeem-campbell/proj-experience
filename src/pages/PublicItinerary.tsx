@@ -931,7 +931,7 @@ const PublicItinerary = () => {
 
       {/* Add to Itinerary Sheet - Spotify-style */}
       <Sheet open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] overflow-hidden flex flex-col">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] overflow-hidden flex flex-col pb-[env(safe-area-inset-bottom,16px)]">
           <SheetHeader className="pb-2 shrink-0">
             <SheetTitle>Add to itinerary</SheetTitle>
             <SheetDescription>Save this itinerary to your collection</SheetDescription>
