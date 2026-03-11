@@ -24,9 +24,9 @@ const mapCities = [
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
-  { label: "Beaches", category: "Beach", icon: Waves },
+  { label: "Beaches", category: "Beach", icon: Sun },
   { label: "Nightlife", category: "Nightlife", icon: Wine },
-  { label: "Wildlife", category: "Wildlife", icon: TreePine },
+  { label: "Nature", category: "Wildlife", icon: TreePine },
   { label: "Adventure", category: "Adventure", icon: Mountain },
   { label: "Food", category: "Food", icon: UtensilsCrossed },
 ];
