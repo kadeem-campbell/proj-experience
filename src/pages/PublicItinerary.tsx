@@ -1462,11 +1462,71 @@ const PublicItinerary = () => {
                     ))}
                 </div>
               ) : (
-                /* Normal mode: flat grid */
+                /* Normal mode: list view on mobile, grid on desktop */
                 <>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {filteredExperiences.slice(0, 10).map(renderExperienceCard)}
-                  </div>
+                  {isMobile ? (
+                    <div className="space-y-1">
+                      {filteredExperiences.slice(0, 20).map((experience) => {
+                        const liked = isItemLiked(experience.id, 'experience');
+                        const schedule = tripScheduleMap.get(experience.id);
+                        const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
+                        const hasImage = !!experience.videoThumbnail;
+                        return (
+                          <button
+                            key={experience.id}
+                            onClick={() => navigate(`/experience/${experience.id}`)}
+                            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 active:bg-muted/80 transition-colors text-left"
+                          >
+                            {/* Thumbnail */}
+                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 relative">
+                              {experience.videoThumbnail ? (
+                                <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <MapPin className="w-5 h-5 text-muted-foreground/40" />
+                                </div>
+                              )}
+                              {hasImage && (
+                                <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded bg-black/50 flex items-center justify-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="white" className="w-2.5 h-2.5">
+                                    <path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3zm3.5 6.5L7 8l2 2.5L11 8l2 3H3l2.5-1.5zM5.5 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Text content */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs text-muted-foreground truncate">{experience.location}</span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                {experience.category && (
+                                  <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{experience.category}</span>
+                                )}
+                                {slotInfo && (
+                                  <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                    {slotInfo.emoji} {slotInfo.label}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Right side indicators */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {liked && <Heart className="w-3.5 h-3.5 fill-primary text-primary" />}
+                              <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                      {filteredExperiences.slice(0, 10).map(renderExperienceCard)}
+                    </div>
+                  )}
 
                   {filteredExperiences.length === 0 && searchQuery && (
                     <div className="text-center py-8">
