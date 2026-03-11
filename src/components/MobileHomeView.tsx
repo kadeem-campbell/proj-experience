@@ -49,24 +49,36 @@ const CategoryFilterPills = ({
 }) => {
   return (
     <div className="px-4 pb-3">
-      <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-        <div className="inline-flex gap-2">
-          {filterCategories.map((cat) => (
+      <div className="flex justify-between">
+        {filterCategories.map((cat) => {
+          const Icon = cat.icon;
+          const isActive = activeCategory === cat.category;
+          return (
             <button
               key={cat.label}
-              onClick={() => onCategoryChange(activeCategory === cat.category ? "" : cat.category)}
-              className={cn(
-                "whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all active:scale-95",
-                activeCategory === cat.category
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-transparent border border-border text-muted-foreground"
-              )}
-              style={{ height: '36px' }}
+              onClick={() => onCategoryChange(isActive ? "" : cat.category)}
+              className="flex flex-col items-center gap-1.5 transition-all active:scale-95"
             >
-              {cat.label}
+              <div className={cn(
+                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                isActive 
+                  ? "bg-primary/15 border-2 border-primary" 
+                  : "bg-muted/60 border border-border/50"
+              )}>
+                <Icon className={cn(
+                  "w-5 h-5 transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )} />
+              </div>
+              <span className={cn(
+                "text-[11px] font-medium transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground"
+              )}>
+                {cat.label}
+              </span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
