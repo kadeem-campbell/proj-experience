@@ -543,7 +543,7 @@ export const MobileHomeView = () => {
             `${catLabel} you can't miss`
           )}
           variant="itinerary"
-          onTitleClick={() => navigate("/itineraries?section=popular")}
+          onTitleClick={() => navigate("/collections/attractions-you-cant-miss")}
         >
           {categoryItineraries.slice(0, 6).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
