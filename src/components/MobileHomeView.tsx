@@ -24,13 +24,11 @@ const mapCities = [
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
-  { label: "Beaches", category: "Beach" },
-  { label: "Nightlife", category: "Nightlife" },
-  { label: "Wildlife", category: "Wildlife" },
-  { label: "Adventure", category: "Adventure" },
-  { label: "Food", category: "Food" },
-  { label: "Culture", category: "Culture" },
-  { label: "Water Sports", category: "Water Sports" },
+  { label: "Beaches", category: "Beach", icon: Umbrella },
+  { label: "Nightlife", category: "Nightlife", icon: Music },
+  { label: "Wildlife", category: "Wildlife", icon: TreePine },
+  { label: "Adventure", category: "Adventure", icon: Mountain },
+  { label: "Food", category: "Food", icon: UtensilsCrossed },
 ];
 
 const rotatingPlaceholders = [
