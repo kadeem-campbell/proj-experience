@@ -539,7 +539,7 @@ const PublicItinerary = () => {
             </button>
             <ChevronRight className="w-4 h-4 text-muted-foreground/20" />
           </div>
-        </button>
+        </div>
       </div>
     );
   };
