@@ -557,7 +557,7 @@ export const MobileHomeView = () => {
             `${catLabel} available next weekend`
           )}
           variant="experience"
-          onTitleClick={() => navigate("/experiences")}
+          onTitleClick={() => navigate("/experience-collections/available-next-weekend")}
         >
           {categoryExperiences.slice(0, 8).map((experience) => (
             <MobileExperienceCard key={experience.id} experience={experience} />
