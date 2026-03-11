@@ -9,11 +9,9 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -32,11 +30,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
-import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
-import { CopyItineraryDialog } from "@/components/CopyItineraryDialog";
+import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
+import { publicItinerariesData } from "@/data/itinerariesData";
 import { LikedExperience, TimeSlot } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
-import confetti from "canvas-confetti";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,16 +41,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
 import { 
   ArrowLeft, 
   Copy, 
@@ -64,7 +51,6 @@ import {
   MoreHorizontal,
   ListPlus,
   MessageCircle,
-  Minus,
   Rocket,
   Calendar as CalendarIcon,
   Clock,
@@ -72,31 +58,34 @@ import {
   Sparkles,
   Heart,
   ChevronRight,
-  ChevronDown,
-  GripVertical,
   X,
   Sunrise,
   Sun,
   Sunset,
   Moon,
   Globe,
-  Lock,
-  Palette,
   Edit2,
   Trash2,
   Users,
   UserPlus,
   Send,
-  Mail
+  Mail,
+  List,
+  Grid3X3,
+  Route,
+  AlertTriangle,
+  ExternalLink,
 } from "lucide-react";
 
-// Time slot configurations — emoji labels only, no fixed times
-const timeSlotConfig: Record<TimeSlot, { label: string; emoji: string; icon: React.ReactNode }> = {
-  morning: { label: "Morning", emoji: "🌅", icon: <Sunrise className="w-3 h-3" /> },
-  afternoon: { label: "Afternoon", emoji: "☀️", icon: <Sun className="w-3 h-3" /> },
-  evening: { label: "Evening", emoji: "🌆", icon: <Sunset className="w-3 h-3" /> },
-  night: { label: "Night", emoji: "🌙", icon: <Moon className="w-3 h-3" /> },
+// Time slot configurations
+const timeSlotConfig: Record<TimeSlot, { label: string; icon: React.ReactNode }> = {
+  morning: { label: "Morning", icon: <Sunrise className="w-3 h-3" /> },
+  afternoon: { label: "Afternoon", icon: <Sun className="w-3 h-3" /> },
+  evening: { label: "Evening", icon: <Sunset className="w-3 h-3" /> },
+  night: { label: "Night", icon: <Moon className="w-3 h-3" /> },
 };
+
+type ViewMode = 'list' | 'icons' | 'trips';
 
 const PublicItinerary = () => {
   const { slug: id } = useParams();
@@ -104,11 +93,6 @@ const PublicItinerary = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
-  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [showInviteSheet, setShowInviteSheet] = useState(false);
-  const [showCollaboratorSheet, setShowCollaboratorSheet] = useState(false);
-  const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
     try {
@@ -116,41 +100,49 @@ const PublicItinerary = () => {
       return stored ? new Set(JSON.parse(stored)) : new Set();
     } catch { return new Set(); }
   });
-  const [draggedExperience, setDraggedExperience] = useState<LikedExperience | null>(null);
-  const [newItineraryName, setNewItineraryName] = useState("");
-  const [showNewItineraryInput, setShowNewItineraryInput] = useState<string | null>(null);
   
-  // Trip generation state
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showTripSelectorSheet, setShowTripSelectorSheet] = useState(false);
-  const [showNewTripDatePicker, setShowNewTripDatePicker] = useState(false);
+  // View mode
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  
+  // Add to itinerary flow
+  const [showAddToItinerarySheet, setShowAddToItinerarySheet] = useState(false);
+  const [addItinerarySearch, setAddItinerarySearch] = useState("");
+  const [newItineraryName, setNewItineraryName] = useState("");
+  const [showNewItineraryInput, setShowNewItineraryInput] = useState(false);
+  const [goToAction, setGoToAction] = useState<{ name: string; id: string } | null>(null);
+  
+  // Share sheet
+  const [showShareSheet, setShowShareSheet] = useState(false);
+  const [showInviteSheet, setShowInviteSheet] = useState(false);
+  const [showCollaboratorSheet, setShowCollaboratorSheet] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [collaboratorEmail, setCollaboratorEmail] = useState("");
+  
+  // Trip creation (owned itinerary)
+  const [showCreateTripSheet, setShowCreateTripSheet] = useState(false);
   const [tripStartDate, setTripStartDate] = useState<Date | undefined>(undefined);
   const [tripEndDate, setTripEndDate] = useState<Date | undefined>(undefined);
-  const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
   const [isGenerating, setIsGenerating] = useState(false);
-  const [tripName, setTripName] = useState("");
+  const [generatedTrip, setGeneratedTrip] = useState<Record<string, LikedExperience[]>>({});
   const [activeTripMode, setActiveTripMode] = useState(false);
-  const [activeTripId, setActiveTripId] = useState<string | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [orderedExperiences, setOrderedExperiences] = useState<LikedExperience[] | null>(null);
-  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
+  
+  // Auth
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   const { 
-    addExperience, 
-    removeExperience, 
     addExperienceToItinerary, 
     createItinerary, 
     itineraries, 
-    isInItinerary,
     copyItinerary,
     createTrip,
-    updateTrip,
     isLoading: itinerariesLoading,
   } = useItineraries();
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
+  const { addUpdate } = useItineraryUpdates();
 
-  // Unified like check and toggle for both auth and guest users
+  // Like helpers
   const isItemLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' = 'experience') => {
     if (isAuthenticated) return isDbLiked(itemId, itemType);
     return localLikes.has(`${itemType}:${itemId}`);
@@ -170,18 +162,12 @@ const PublicItinerary = () => {
     }
   }, [isAuthenticated, toggleDbLike]);
 
+  // Find itinerary - check public data first, then user's own
+  const publicItinerary = publicItinerariesData.find(i => i.id === id);
+  const ownedItinerary = itineraries.find(i => i.id === id);
+  const itinerary = publicItinerary || ownedItinerary;
+  const isOwned = !!ownedItinerary && !publicItinerary;
 
-  const itinerary = publicItinerariesData.find(i => i.id === id) || itineraries.find(i => i.id === id);
-
-  // Keep ordering as local state so UI updates immediately (pin-to-top)
-  useEffect(() => {
-    if (!itinerary) {
-      setOrderedExperiences(null);
-      return;
-    }
-    setOrderedExperiences([...itinerary.experiences]);
-  }, [id]);
-  // Get the primary location of this itinerary
   const itineraryLocation = useMemo(() => {
     if (!itinerary) return '';
     const locations = itinerary.experiences.map(e => e.location).filter(Boolean);
@@ -190,36 +176,39 @@ const PublicItinerary = () => {
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
 
-  // Suggested experiences from the full database (not already in this itinerary)
-  const itineraryExpIds = useMemo(() => new Set(itinerary?.experiences.map(e => e.id) || []), [itinerary]);
-
-  const suggestedExperiences = useMemo(() => {
-    if (!searchQuery.trim() || !itinerary) return [];
+  // Filter experiences
+  const filteredExperiences = useMemo(() => {
+    if (!itinerary) return [];
+    const exps = itinerary.experiences;
+    if (!searchQuery.trim()) return exps;
     const q = searchQuery.toLowerCase();
-    return allExperiences
-      .filter(exp => !itineraryExpIds.has(exp.id))
-      .filter(exp =>
-        exp.title?.toLowerCase().includes(q) ||
-        exp.location?.toLowerCase().includes(q) ||
-        exp.category?.toLowerCase().includes(q)
-      )
-      .slice(0, 10);
-  }, [searchQuery, itineraryExpIds, itinerary]);
+    return exps.filter(e =>
+      e.title?.toLowerCase().includes(q) ||
+      e.location?.toLowerCase().includes(q) ||
+      e.category?.toLowerCase().includes(q)
+    );
+  }, [itinerary, searchQuery]);
 
-  // Build a lookup map: experience ID → { day, slot } when in trip mode
-  const tripScheduleMap = useMemo(() => {
-    if (!activeTripMode || Object.keys(generatedTrip).length === 0) return new Map<string, { day: string; slot: TimeSlot }>();
-    const map = new Map<string, { day: string; slot: TimeSlot }>();
-    for (const [dayKey, exps] of Object.entries(generatedTrip)) {
-      for (const exp of exps) {
-        const slot = exp.timeSlot || 'afternoon';
-        map.set(exp.id, { day: dayKey, slot });
-      }
-    }
-    return map;
-  }, [activeTripMode, generatedTrip]);
+  // Filtered itineraries for add-to-itinerary search
+  const filteredItineraries = useMemo(() => {
+    if (!addItinerarySearch.trim()) return itineraries;
+    const q = addItinerarySearch.toLowerCase();
+    return itineraries.filter(i => i.name.toLowerCase().includes(q));
+  }, [itineraries, addItinerarySearch]);
 
-  // Show loading while user itineraries are still being fetched
+  // --- Preset public trip examples ---
+  const publicTripExamples = useMemo(() => {
+    if (isOwned || !itinerary) return [];
+    const exps = itinerary.experiences;
+    const perDay = Math.ceil(exps.length / 3);
+    return [
+      { label: "Day 1", experiences: exps.slice(0, perDay) },
+      { label: "Day 2", experiences: exps.slice(perDay, perDay * 2) },
+      { label: "Day 3", experiences: exps.slice(perDay * 2) },
+    ].filter(d => d.experiences.length > 0);
+  }, [isOwned, itinerary]);
+
+  // Loading / not found states
   if (!itinerary && itinerariesLoading) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
     return (
@@ -239,254 +228,20 @@ const PublicItinerary = () => {
           <h1 className="text-2xl font-bold mb-4">Itinerary Not Found</h1>
           <p className="text-muted-foreground mb-6">This itinerary doesn't exist or has been removed.</p>
           <Link to="/experiences">
-            <Button>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Experiences
-            </Button>
+            <Button><ArrowLeft className="w-4 h-4 mr-2" />Back to Experiences</Button>
           </Link>
         </div>
       </Wrapper>
     );
   }
 
-  // Auto-generate trip based on experiences — assign to dates with time-of-day labels only
-  const generateTrip = (startDate: Date, endDate?: Date) => {
-    setIsGenerating(true);
-    
-    const bySlot: Record<TimeSlot, LikedExperience[]> = {
-      morning: [],
-      afternoon: [],
-      evening: [],
-      night: [],
-    };
-    
-    itinerary.experiences.forEach(exp => {
-      const slot = exp.timeSlot || 'afternoon';
-      bySlot[slot].push({ ...exp });
-    });
-    
-    const totalExperiences = itinerary.experiences.length;
-    const experiencesPerDay = 4;
-    const autoNumDays = Math.max(1, Math.ceil(totalExperiences / experiencesPerDay));
-    const numDays = endDate 
-      ? Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
-      : autoNumDays;
-    
-    const tripDays: Record<string, LikedExperience[]> = {};
-    
-    for (let day = 0; day < numDays; day++) {
-      const dayKey = format(addDays(startDate, day), "yyyy-MM-dd");
-      tripDays[dayKey] = [];
-      
-      const slots: TimeSlot[] = ['morning', 'afternoon', 'evening', 'night'];
-      
-      for (const slot of slots) {
-        if (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
-          const exp = bySlot[slot].shift()!;
-          tripDays[dayKey].push({ ...exp, timeSlot: slot });
-        }
-      }
-      
-      // Fill remaining from any slot
-      for (const slot of slots) {
-        while (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
-          const exp = bySlot[slot].shift()!;
-          tripDays[dayKey].push({ ...exp, timeSlot: slot });
-        }
-      }
-    }
-    
-    // Any remaining experiences go to the last day
-    const lastDayKey = format(addDays(startDate, numDays - 1), "yyyy-MM-dd");
-    const slots: TimeSlot[] = ['morning', 'afternoon', 'evening', 'night'];
-    for (const slot of slots) {
-      while (bySlot[slot].length > 0) {
-        const exp = bySlot[slot].shift()!;
-        tripDays[lastDayKey].push({ ...exp, timeSlot: slot });
-      }
-    }
-    
-    setTimeout(() => {
-      setGeneratedTrip(tripDays);
-      setIsGenerating(false);
-      setActiveTripMode(true);
-      setShowTripSelectorSheet(false);
-      setShowNewTripDatePicker(false);
-      setHasUnsavedChanges(true);
-      // NOTE: don't clear activeTripId here — if a user is editing an existing trip,
-      // we want Save to update that trip rather than creating a new one.
-    }, 500);
-  };
-
-  const handleMakeItATrip = () => {
-    if (!tripStartDate) {
-      toast({
-        title: "Select a date range",
-        description: "Choose when your trip begins to generate a schedule.",
-      });
-      return;
-    }
-    generateTrip(tripStartDate, tripEndDate);
-  };
-
-  // Update experience time slot (no fixed times)
-  const handleUpdateExperienceSlot = (expId: string, newSlot: TimeSlot) => {
-    setGeneratedTrip(prev => {
-      const updated = { ...prev };
-      for (const dayKey of Object.keys(updated)) {
-        updated[dayKey] = updated[dayKey].map(exp => 
-          exp.id === expId ? { ...exp, timeSlot: newSlot } : exp
-        );
-      }
-      return updated;
-    });
-    setHasUnsavedChanges(true);
-  };
-
-  // Move experience to different day
-  const handleMoveExperienceToDay = (expId: string, fromDay: string, toDay: string) => {
-    setGeneratedTrip(prev => {
-      const updated = { ...prev };
-      const exp = updated[fromDay]?.find(e => e.id === expId);
-      if (!exp) return prev;
-      
-      updated[fromDay] = updated[fromDay].filter(e => e.id !== expId);
-      if (!updated[toDay]) updated[toDay] = [];
-      updated[toDay].push({ ...exp });
-      
-      return updated;
-    });
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSaveTrip = async () => {
-    if (!tripStartDate) return;
-
-    const nowIso = new Date().toISOString();
-    const scheduledExperiences = Object.entries(generatedTrip).flatMap(([dayKey, exps]) =>
-      exps.map(exp => ({
-        ...exp,
-        // Persist day association so trips re-load correctly
-        scheduledTime: exp.scheduledTime ?? new Date(dayKey).toISOString(),
-        likedAt: nowIso
-      }))
-    );
-
-    const startDateStr = format(tripStartDate, 'yyyy-MM-dd');
-    const endDateStr = tripEndDate ? format(tripEndDate, 'yyyy-MM-dd') : undefined;
-    const newTripName = tripName.trim() || `My Trip`;
-
-    // Guest users: save/update locally
-    if (!isAuthenticated) {
-      const localTripsStr = localStorage.getItem('local_trips') || '[]';
-      let localTrips: any[] = [];
-      try {
-        localTrips = JSON.parse(localTripsStr);
-      } catch {
-        localTrips = [];
-      }
-
-      const existingIdx = activeTripId ? localTrips.findIndex(t => t.id === activeTripId) : -1;
-      const nextId = existingIdx >= 0
-        ? localTrips[existingIdx].id
-        : (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7));
-
-      const nextTrip = {
-        id: nextId,
-        name: newTripName,
-        startDate: startDateStr,
-        endDate: endDateStr,
-        experiences: scheduledExperiences,
-        savedAt: nowIso,
-      };
-
-      if (existingIdx >= 0) localTrips[existingIdx] = nextTrip;
-      else localTrips.push(nextTrip);
-
-      localStorage.setItem('local_trips', JSON.stringify(localTrips));
-      setActiveTripId(nextId);
-      setHasUnsavedChanges(false);
-
-      toast({
-        title: existingIdx >= 0 ? "Trip updated locally" : "Trip saved locally! 🎉",
-        description: "Sign in to make sure you don't lose it.",
-        action: (
-          <Button variant="outline" size="sm" onClick={() => setShowAuthModal(true)}>
-            Sign in
-          </Button>
-        ),
-      });
-      return;
-    }
-
-    // Auth users: ensure this trip is stored on THIS itinerary only
-    const parentItineraryName = itinerary?.name || "My Saved Trips";
-    let parentItinerary = itineraries.find(i => i.name === parentItineraryName);
-
-    if (!parentItinerary) {
-      parentItinerary = await createItinerary(
-        parentItineraryName,
-        itinerary?.experiences?.map(e => ({
-          ...e,
-          likedAt: nowIso
-        })) || []
-      );
-    }
-
-    const tripExists = !!(activeTripId && (parentItinerary.trips || []).some(t => t.id === activeTripId));
-
-    if (tripExists && activeTripId) {
-      await updateTrip(parentItinerary.id, activeTripId, {
-        name: newTripName,
-        startDate: startDateStr,
-        endDate: endDateStr,
-        experiences: scheduledExperiences,
-      });
-      toast({ title: "Trip updated", description: `Updated ${newTripName}.` });
-    } else {
-      const created = await createTrip(parentItinerary.id, newTripName, startDateStr, endDateStr, scheduledExperiences);
-      setActiveTripId(created?.id || null);
-      toast({ title: "Trip saved! 🎉", description: `Your ${newTripName} has been saved.` });
-    }
-
-    setHasUnsavedChanges(false);
-  };
-
-  const handleExitTripMode = () => {
-    if (hasUnsavedChanges) {
-      const confirmed = window.confirm("You have unsaved changes. Exit without saving?");
-      if (!confirmed) return;
-    }
-    setActiveTripMode(false);
-    setGeneratedTrip({});
-    setTripStartDate(undefined);
-    setTripEndDate(undefined);
-    setTripName("");
-    setActiveTripId(null);
-    setHasUnsavedChanges(false);
-  };
-
-  const handleShare = async () => {
+  // --- Share Handlers ---
+  const handleCopyLink = async () => {
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
     const shareUrl = `${baseUrl}/itineraries/${itinerary.id}`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: itinerary.name,
-          text: `Check out this itinerary: ${itinerary.name}`,
-          url: shareUrl,
-        });
-      } catch {
-        await navigator.clipboard.writeText(shareUrl);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    } else {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShareWhatsApp = () => {
@@ -496,716 +251,361 @@ const PublicItinerary = () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const exportExperiences = () => itinerary.experiences.map((exp: LikedExperience) => ({
-    name: exp.title || '',
-    location: exp.location || '',
-    category: exp.category || '',
-    timeSlot: exp.timeSlot || '',
-    notes: exp.notes || '',
-  }));
-
   const handleExportCSV = () => {
-    const rows = exportExperiences();
+    const rows = itinerary.experiences.map(exp => ({
+      name: exp.title || '', location: exp.location || '', category: exp.category || '',
+      timeSlot: exp.timeSlot || '', notes: exp.notes || '',
+    }));
     const headers = ['Name', 'Location', 'Category', 'Time Slot', 'Notes'];
-    const csv = [
-      headers.join(','),
-      ...rows.map((r: any) => headers.map((_, i) => `"${String(Object.values(r)[i] || '').replace(/"/g, '""')}"`).join(','))
-    ].join('\n');
+    const csv = [headers.join(','), ...rows.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `${itinerary.name}.csv`; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = `${itinerary.name}.csv`; a.click();
     URL.revokeObjectURL(url);
-    // export complete
   };
 
   const handleExportXLSX = () => {
-    // Export as tab-separated values with .xlsx-compatible format
-    const rows = exportExperiences();
+    const rows = itinerary.experiences.map(exp => ({
+      name: exp.title || '', location: exp.location || '', category: exp.category || '',
+      timeSlot: exp.timeSlot || '', notes: exp.notes || '',
+    }));
     const headers = ['Name', 'Location', 'Category', 'Time Slot', 'Notes'];
-    const tsv = [
-      headers.join('\t'),
-      ...rows.map((r: any) => Object.values(r).map(v => String(v || '')).join('\t'))
-    ].join('\n');
+    const tsv = [headers.join('\t'), ...rows.map(r => Object.values(r).map(v => String(v)).join('\t'))].join('\n');
     const blob = new Blob([tsv], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `${itinerary.name}.xlsx`; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = `${itinerary.name}.xlsx`; a.click();
     URL.revokeObjectURL(url);
-    // export complete
   };
 
-  const handleExportPDF = () => {
-    const rows = exportExperiences();
-    const content = rows.map((r: any, i: number) => 
-      `${i + 1}. ${r.name}${r.location ? ` — ${r.location}` : ''}${r.category ? ` [${r.category}]` : ''}${r.timeSlot ? ` (${r.timeSlot})` : ''}${r.notes ? `\n   Notes: ${r.notes}` : ''}`
-    ).join('\n\n');
-    
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html><head><title>${itinerary.name}</title>
-        <style>body{font-family:system-ui,sans-serif;padding:40px;max-width:700px;margin:0 auto}h1{font-size:24px;margin-bottom:8px}p{color:#666;margin-bottom:24px}pre{white-space:pre-wrap;font-family:inherit;line-height:1.8;font-size:14px}</style>
-        </head><body>
-        <h1>${itinerary.name}</h1>
-        <p>${rows.length} experience${rows.length !== 1 ? 's' : ''}</p>
-        <pre>${content}</pre>
-        </body></html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
-    // export complete
-  };
-
-  const handleCopyComplete = () => {
-    // silently complete
-  };
-
-  const handleDragStart = (e: React.DragEvent, experience: LikedExperience) => {
-    setDraggedExperience(experience);
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('text/plain', JSON.stringify(experience));
-  };
-
-  const handleDragEnd = () => {
-    setDraggedExperience(null);
-  };
-
-  const handleToggleItinerary = (experience: LikedExperience, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (isInItinerary(experience.id)) {
-      removeExperience(experience.id);
-    } else {
-      addExperience({
-        id: experience.id,
-        title: experience.title,
-        creator: experience.creator,
-        videoThumbnail: experience.videoThumbnail,
-        category: experience.category,
-        location: experience.location,
-        price: experience.price,
-        timeSlot: experience.timeSlot,
-      });
-    }
-  };
-
-  const handleAddToSpecificItinerary = (experience: LikedExperience, itineraryId: string, itineraryName: string) => {
-    const targetItinerary = itineraries.find(i => i.id === itineraryId);
-    if (targetItinerary?.experiences.some(e => e.id === experience.id)) {
-      return;
-    }
-
-    addExperienceToItinerary(itineraryId, {
-      id: experience.id,
-      title: experience.title,
-      creator: experience.creator,
-      videoThumbnail: experience.videoThumbnail,
-      category: experience.category,
-      location: experience.location,
-      price: experience.price,
-      timeSlot: experience.timeSlot,
-    });
-  };
-
-  const handleCreateAndAdd = async (experience: LikedExperience) => {
+  // --- Add to Itinerary Handlers ---
+  const handleAddToNewItinerary = async () => {
     if (!newItineraryName.trim()) return;
-    
-    const newItinerary = await createItinerary(newItineraryName.trim());
-    await addExperienceToItinerary(newItinerary.id, {
-      id: experience.id,
-      title: experience.title,
-      creator: experience.creator,
-      videoThumbnail: experience.videoThumbnail,
-      category: experience.category,
-      location: experience.location,
-      price: experience.price,
-      timeSlot: experience.timeSlot,
+    const name = newItineraryName.trim();
+    // Copy all experiences from this public itinerary
+    const newIt = await createItinerary(name, itinerary.experiences.map(e => ({ ...e, likedAt: new Date().toISOString() })));
+    addUpdate({
+      type: 'created',
+      message: `New itinerary created: ${name}`,
+      itineraryId: newIt.id,
+      itineraryName: name,
     });
-    
-    toast({ title: "Created & added", description: `${experience.title} added to "${newItineraryName}".` });
     setNewItineraryName("");
-    setShowNewItineraryInput(null);
+    setShowNewItineraryInput(false);
+    setShowAddToItinerarySheet(false);
+    setGoToAction({ name, id: newIt.id });
+    setTimeout(() => setGoToAction(null), 8000);
   };
 
-  // Use ordered state if available, otherwise original
-  const currentExperiences = orderedExperiences || itinerary.experiences;
+  const handleAddToExistingItinerary = (targetItinerary: Itinerary) => {
+    // Add all experiences from this public itinerary into the existing one
+    let addedCount = 0;
+    for (const exp of itinerary.experiences) {
+      const result = addExperienceToItinerary(targetItinerary.id, {
+        id: exp.id, title: exp.title, creator: exp.creator,
+        videoThumbnail: exp.videoThumbnail, category: exp.category,
+        location: exp.location, price: exp.price, timeSlot: exp.timeSlot,
+      });
+      if (result.success) addedCount++;
+    }
+    addUpdate({
+      type: 'added_experiences',
+      message: `Added ${addedCount} experience${addedCount !== 1 ? 's' : ''} to ${targetItinerary.name}`,
+      itineraryId: targetItinerary.id,
+      itineraryName: targetItinerary.name,
+    });
+    setShowAddToItinerarySheet(false);
+    setGoToAction({ name: targetItinerary.name, id: targetItinerary.id });
+    setTimeout(() => setGoToAction(null), 8000);
+  };
 
-  // Filter experiences by search query
-  const filteredExperiences = currentExperiences.filter((experience) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      experience.title?.toLowerCase().includes(q) ||
-      experience.location?.toLowerCase().includes(q) ||
-      experience.category?.toLowerCase().includes(q)
-    );
-  });
+  // --- Trip Generation (Owned) ---
+  const generateTrip = (startDate: Date, endDate?: Date) => {
+    setIsGenerating(true);
+    const bySlot: Record<TimeSlot, LikedExperience[]> = { morning: [], afternoon: [], evening: [], night: [] };
+    itinerary.experiences.forEach(exp => {
+      const slot = exp.timeSlot || 'afternoon';
+      bySlot[slot].push({ ...exp });
+    });
+    const totalExperiences = itinerary.experiences.length;
+    const experiencesPerDay = 4;
+    const numDays = endDate
+      ? Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+      : Math.max(1, Math.ceil(totalExperiences / experiencesPerDay));
+    const tripDays: Record<string, LikedExperience[]> = {};
+    for (let day = 0; day < numDays; day++) {
+      const dayKey = format(addDays(startDate, day), "yyyy-MM-dd");
+      tripDays[dayKey] = [];
+      const slots: TimeSlot[] = ['morning', 'afternoon', 'evening', 'night'];
+      for (const slot of slots) {
+        if (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
+          const exp = bySlot[slot].shift()!;
+          tripDays[dayKey].push({ ...exp, timeSlot: slot });
+        }
+      }
+      for (const slot of slots) {
+        while (bySlot[slot].length > 0 && tripDays[dayKey].length < experiencesPerDay) {
+          const exp = bySlot[slot].shift()!;
+          tripDays[dayKey].push({ ...exp, timeSlot: slot });
+        }
+      }
+    }
+    // Remaining to last day
+    const lastDayKey = format(addDays(startDate, numDays - 1), "yyyy-MM-dd");
+    const allSlots: TimeSlot[] = ['morning', 'afternoon', 'evening', 'night'];
+    for (const slot of allSlots) {
+      while (bySlot[slot].length > 0) {
+        tripDays[lastDayKey].push(bySlot[slot].shift()!);
+      }
+    }
+    setTimeout(() => {
+      setGeneratedTrip(tripDays);
+      setIsGenerating(false);
+      setActiveTripMode(true);
+      setShowCreateTripSheet(false);
+      addUpdate({
+        type: 'trip_created',
+        message: `Trip created from ${itinerary.name}`,
+        itineraryId: itinerary.id,
+        itineraryName: itinerary.name,
+      });
+    }, 500);
+  };
 
-  // Handle changing an experience's time slot in trip mode
-  const handleChangeTimeSlot = (expId: string, newSlot: TimeSlot) => {
+  // Validate experience placement
+  const validatePlacement = (exp: LikedExperience, dayKey: string, targetSlot: TimeSlot): string | null => {
+    const originalSlot = exp.timeSlot || 'afternoon';
+    if (originalSlot !== targetSlot) {
+      const slotLabel = timeSlotConfig[originalSlot].label;
+      return `Best suited for ${slotLabel}`;
+    }
+    return null;
+  };
+
+  // Move experience between days in trip mode
+  const handleMoveExperience = (expId: string, fromDay: string, toDay: string) => {
     setGeneratedTrip(prev => {
       const updated = { ...prev };
-      for (const dayKey of Object.keys(updated)) {
-        updated[dayKey] = updated[dayKey].map(exp => {
-          if (exp.id === expId) {
-            return { ...exp, timeSlot: newSlot };
-          }
-          return exp;
-        });
+      const exp = updated[fromDay]?.find(e => e.id === expId);
+      if (!exp) return prev;
+      updated[fromDay] = updated[fromDay].filter(e => e.id !== expId);
+      if (!updated[toDay]) updated[toDay] = [];
+      updated[toDay].push(exp);
+      // Check warnings
+      const warning = validatePlacement(exp, toDay, exp.timeSlot || 'afternoon');
+      if (warning) {
+        setDragWarnings(prev => new Map(prev).set(expId, warning));
       }
       return updated;
     });
   };
 
-  // Render trip selector content (shared between Dialog and Sheet)
-  const renderTripSelectorContent = () => {
-    if (!showNewTripDatePicker) {
-      const parentItineraryName = itinerary?.name || "My Saved Trips";
-      const currentSavedItinerary = itineraries.find(i => i.name === parentItineraryName);
-      const trips = currentSavedItinerary?.trips || [];
+  // --- Render functions ---
 
-      return (
-        <div className="space-y-3 py-3">
-          {trips.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your saved trips</p>
-              {trips.map((trip: any, idx: number) => (
-                <button
-                  key={trip.id || idx}
-                  className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
-                    activeTripId === trip.id
-                      ? "bg-primary/10 border-primary/30"
-                      : "bg-muted/30 border-border hover:bg-muted/50"
-                  )}
-                  onClick={() => {
-                    if (trip.experiences && trip.startDate) {
-                      const tripDays: Record<string, LikedExperience[]> = {};
-                      trip.experiences.forEach((exp: LikedExperience) => {
-                        if (exp.scheduledTime) {
-                          const dayKey = format(new Date(exp.scheduledTime), "yyyy-MM-dd");
-                          if (!tripDays[dayKey]) tripDays[dayKey] = [];
-                          tripDays[dayKey].push(exp);
-                        }
-                      });
-                      setGeneratedTrip(tripDays);
-                      setTripStartDate(new Date(trip.startDate));
-                      setTripEndDate(trip.endDate ? new Date(trip.endDate) : undefined);
-                      setActiveTripMode(true);
-                      setActiveTripId(trip.id);
-                      setHasUnsavedChanges(false);
-                      setShowTripSelectorSheet(false);
-                    }
-                  }}
-                >
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <CalendarIcon className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{trip.name || `Trip ${idx + 1}`}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {trip.startDate && format(new Date(trip.startDate), "MMM d")}
-                      {trip.endDate && ` – ${format(new Date(trip.endDate), "MMM d")}`}
-                      {trip.experiences && ` · ${trip.experiences.length} experiences`}
-                    </p>
-                  </div>
-                  {activeTripId === trip.id && (
-                    <Check className="w-4 h-4 text-primary shrink-0" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
+  // Clean list row (Requirement #1)
+  const renderListRow = (experience: LikedExperience) => {
+    const liked = isItemLiked(experience.id, 'experience');
+    const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
+    const price = experience.price ? `$${experience.price} avg` : null;
+    const warning = dragWarnings.get(experience.id);
 
-          <button
-            className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
-            onClick={() => {
-              setActiveTripId(null);
-              setTripName("");
-              setShowNewTripDatePicker(true);
-            }}
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Plus className="w-4 h-4 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-sm text-primary">New Trip</p>
-              <p className="text-xs text-muted-foreground">Auto-assign experiences to dates</p>
-            </div>
-          </button>
-
-          {activeTripMode && (
-            <Button 
-              variant="outline" 
-              className="w-full mt-2"
-              onClick={() => {
-                handleExitTripMode();
-                setShowTripSelectorSheet(false);
-              }}
-            >
-              <X className="w-4 h-4 mr-2" />
-              Exit Trip Mode
-            </Button>
-          )}
-        </div>
-      );
-    }
+    // Build metadata line: Location · Category · [time icon] · $49 avg
+    const metaParts: string[] = [];
+    if (experience.location) metaParts.push(experience.location);
+    if (experience.category) metaParts.push(experience.category);
 
     return (
-      <div className="flex flex-col items-center py-3 w-full">
-        <div className="w-full overflow-x-auto flex justify-center pb-2">
-          <Calendar
-            mode="range"
-            selected={{ from: tripStartDate, to: tripEndDate }}
-            onSelect={(range) => {
-              setTripStartDate(range?.from);
-              setTripEndDate(range?.to);
-            }}
-            disabled={(date) => date < new Date()}
-            className="p-3 pointer-events-auto"
-            numberOfMonths={isMobile ? 1 : 2}
-          />
+      <button
+        key={experience.id}
+        onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+        className="w-full flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left border-b border-border/30 last:border-b-0"
+      >
+        {/* Thumbnail - clean, no overlay */}
+        <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
+          {experience.videoThumbnail ? (
+            <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <MapPin className="w-4 h-4 text-muted-foreground/40" />
+            </div>
+          )}
         </div>
         
-        <div className="w-full space-y-3 mt-4 px-2">
-          {tripStartDate && tripEndDate && (
-            <p className="text-sm text-center text-muted-foreground">
-              {format(tripStartDate, "MMM d")} – {format(tripEndDate, "MMM d, yyyy")}
-            </p>
-          )}
-          {tripStartDate && !tripEndDate && (
-            <p className="text-sm text-center text-muted-foreground">
-              Select an end date, or use a single day
-            </p>
-          )}
-
-          <div className="flex flex-wrap gap-2 justify-center">
-            {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => (
-              <div key={slot} className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/50 rounded-full px-2.5 py-1">
-                <span>{timeSlotConfig[slot].emoji}</span>
-                <span>{timeSlotConfig[slot].label}</span>
-              </div>
-            ))}
+        {/* Text content */}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
+          <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
+            <span>{metaParts.join(' · ')}</span>
+            {slotInfo && (
+              <>
+                <span className="opacity-40">·</span>
+                <span className="inline-flex items-center">{slotInfo.icon}</span>
+              </>
+            )}
+            {price && (
+              <>
+                <span className="opacity-40">·</span>
+                <span>{price}</span>
+              </>
+            )}
           </div>
+          {warning && (
+            <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
+              <AlertTriangle className="w-2.5 h-2.5" />
+              <span>{warning}</span>
+            </div>
+          )}
+        </div>
 
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              className="flex-1"
-              onClick={() => setShowNewTripDatePicker(false)}
-            >
-              Back
-            </Button>
-            <Button 
-              className="flex-1 gap-2"
-              disabled={!tripStartDate}
-              onClick={() => {
-                if (tripStartDate) {
-                  generateTrip(tripStartDate, tripEndDate || tripStartDate);
-                }
-              }}
-            >
-              <Sparkles className="w-4 h-4" />
-              {tripStartDate && !tripEndDate 
-                ? `Generate for ${format(tripStartDate, "MMM d")}` 
-                : tripStartDate && tripEndDate 
-                  ? "Generate Trip" 
-                  : "Select dates"}
-            </Button>
-          </div>
+        {/* Right side */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={async (e) => {
+              e.preventDefault(); e.stopPropagation();
+              if ('vibrate' in navigator) navigator.vibrate(10);
+              await handleToggleLike(experience.id, 'experience', {
+                id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail,
+              });
+            }}
+            className="p-1"
+          >
+            <Heart className={cn("w-4 h-4 transition-all", liked ? "fill-primary text-primary" : "text-muted-foreground/30")} />
+          </button>
+          <ChevronRight className="w-4 h-4 text-muted-foreground/20" />
+        </div>
+      </button>
+    );
+  };
+
+  // Icons view card
+  const renderIconCard = (experience: LikedExperience) => {
+    const liked = isItemLiked(experience.id, 'experience');
+    return (
+      <div
+        key={experience.id}
+        className="cursor-pointer group"
+        onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+      >
+        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+          {experience.videoThumbnail ? (
+            <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <MapPin className="w-6 h-6 text-muted-foreground" />
+            </div>
+          )}
+          <button
+            onClick={async (e) => {
+              e.preventDefault(); e.stopPropagation();
+              if ('vibrate' in navigator) navigator.vibrate(10);
+              await handleToggleLike(experience.id, 'experience', { id: experience.id, title: experience.title });
+            }}
+            className={cn(
+              "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-colors",
+              liked ? "bg-black/40" : "bg-background/70"
+            )}
+          >
+            <Heart className={cn("w-3.5 h-3.5", liked ? "fill-primary text-primary" : "text-muted-foreground/40")} />
+          </button>
+        </div>
+        <div className="mt-2 space-y-0.5">
+          <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
+          <p className="text-xs text-muted-foreground truncate">{experience.location}</p>
         </div>
       </div>
     );
   };
 
-  // Render invite content (shared between Dialog and Sheet)
-  const renderInviteContent = () => (
-    <div className="space-y-4 py-4">
-      <div className="flex gap-2">
-        <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
-          <Mail className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-          <Input
-            type="email"
-            placeholder="friend@email.com"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
-            style={{ fontSize: '16px' }}
-            onFocus={(e) => {
-              setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && inviteEmail.trim()) {
-                handleShare();
-                setInviteEmail("");
-              }
-            }}
-          />
-        </div>
-        <Button
-          disabled={!inviteEmail.trim()}
-          onClick={() => {
-            handleShare();
-            setInviteEmail("");
-          }}
-        >
-          <Send className="w-4 h-4" />
-        </Button>
-      </div>
-      <div className="flex gap-2">
-        <Button variant="outline" className="flex-1 gap-2" onClick={handleShare}>
-          <Copy className="w-4 h-4" />
-          {copied ? "Copied!" : "Copy Link"}
-        </Button>
-        <Button variant="outline" className="flex-1 gap-2" onClick={handleShareWhatsApp}>
-          <MessageCircle className="w-4 h-4" />
-          WhatsApp
-        </Button>
-      </div>
-    </div>
-  );
-
-  // Render collaborator content (shared between Dialog and Sheet)
-  const renderCollaboratorContent = () => (
-    <div className="space-y-4 py-4">
-      <div className="flex gap-2">
-        <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
-          <UserPlus className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-          <Input
-            type="email"
-            placeholder="collaborator@email.com"
-            value={collaboratorEmail}
-            onChange={(e) => setCollaboratorEmail(e.target.value)}
-            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
-            style={{ fontSize: '16px' }}
-            onFocus={(e) => {
-              setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && collaboratorEmail.trim()) {
-                setCollaboratorEmail("");
-              }
-            }}
-          />
-        </div>
-        <Button
-          disabled={!collaboratorEmail.trim()}
-          onClick={() => {
-            setCollaboratorEmail("");
-          }}
-        >
-          <UserPlus className="w-4 h-4" />
-        </Button>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Collaborators can add experiences, edit the schedule, and help plan the trip.
-      </p>
-    </div>
-  );
-
-  // Render experience card
-  const renderExperienceCard = (experience: LikedExperience) => {
-    const liked = isItemLiked(experience.id, 'experience');
-    const schedule = tripScheduleMap.get(experience.id);
-    
-    return (
-      <div
-        key={experience.id}
-        role="link"
-        tabIndex={0}
-        onClick={(e) => {
-          // Guard: don't navigate when tapping action buttons (mobile tap precision)
-          const target = e.target as HTMLElement;
-          if (target.closest('button,[data-card-action="true"]')) return;
-          navigate(`/experiences/${slugify(experience.title)}`);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            navigate(`/experiences/${slugify(experience.title)}`);
-          }
-        }}
-      >
-        <div className="group cursor-pointer transition-transform duration-150">
-          {/* Cover Image - match ExperienceCard geometry (4:3, rounded-xl) */}
-          <div className={cn(
-            "relative aspect-[4/3] overflow-hidden rounded-xl bg-muted",
-            activeTripMode && "ring-1 ring-primary/20"
-          )}>
-            {experience.videoThumbnail ? (
-              <img 
-                src={experience.videoThumbnail} 
-                alt={experience.title}
-                className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-muted-foreground" />
+  // Trips view - day-separated
+  const renderTripsView = () => {
+    if (!isOwned) {
+      // Public: show 3 preset examples
+      return (
+        <div className="space-y-6 px-4 py-4">
+          <p className="text-xs text-muted-foreground text-center">Example trip layouts for this itinerary</p>
+          {publicTripExamples.map((day, idx) => (
+            <div key={idx}>
+              <div className="flex items-center gap-2 mb-3">
+                <CalendarIcon className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">{day.label}</h3>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {day.experiences.length} {day.experiences.length === 1 ? 'activity' : 'activities'}
+                </Badge>
               </div>
-            )}
-
-            {/* Heart / Like button */}
-            <button
-              data-card-action="true"
-              onClick={async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                await handleToggleLike(experience.id, 'experience', {
-                  id: experience.id,
-                  title: experience.title,
-                  creator: experience.creator,
-                  videoThumbnail: experience.videoThumbnail,
-                  category: experience.category,
-                  location: experience.location,
-                  price: experience.price,
-                });
-              }}
-              className={cn(
-                "absolute top-2.5 left-2.5 p-2 rounded-full transition-all duration-200 active:scale-90",
-                "bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm",
-                "hover:bg-background/70",
-                liked && "bg-primary/15"
-              )}
-            >
-              <Heart 
-                className={cn(
-                  "w-4 h-4 transition-all duration-200",
-                  liked ? "fill-primary text-primary scale-110" : "text-foreground/80"
-                )} 
-              />
-            </button>
-
-            {/* More options: Dropdown on desktop, Drawer on mobile */}
-            {!activeTripMode && (
-              isMobile ? (
-                <Drawer>
-                  <DrawerTrigger asChild>
-                    <button
-                      type="button"
-                      data-card-action="true"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200 active:scale-90"
-                      aria-label="Open actions"
-                    >
-                      <MoreHorizontal className="w-4 h-4 text-foreground/80" />
-                    </button>
-                  </DrawerTrigger>
-                  <DrawerContent onClick={(e) => e.stopPropagation()}>
-                    <DrawerHeader className="sr-only">
-                      <DrawerTitle>Experience actions</DrawerTitle>
-                    </DrawerHeader>
-                    <div className="flex flex-col h-[50vh]">
-                      <div className="px-4 pt-2">
-                        {(() => {
-                          const isPinned = pinnedIds.has(experience.id);
-                          const pinnedCount = pinnedIds.size;
-                          return (
-                            <DrawerClose asChild>
-                              <Button
-                                variant="ghost"
-                                className={cn("w-full justify-start font-normal h-12", isPinned && "text-primary")}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (isPinned) return;
-                                  const src = orderedExperiences || itinerary.experiences;
-                                  const idx = src.findIndex(ex => ex.id === experience.id);
-                                  if (idx === -1) { toast({ title: "Couldn't pin this item" }); return; }
-                                  if (idx === 0) { setPinnedIds(prev => new Set(prev).add(experience.id)); toast({ title: "Pinned to top" }); return; }
-                                  const reordered = [...src]; const [item] = reordered.splice(idx, 1); reordered.unshift(item);
-                                  setOrderedExperiences(reordered); setPinnedIds(prev => new Set(prev).add(experience.id));
-                                  toast({ title: `"${experience.title}" pinned to top` });
-                                }}
-                              >
-                                <ArrowLeft className="w-4 h-4 rotate-90 mr-3" />
-                                {isPinned ? <span>Pinned ({pinnedCount})</span> : <span>Pin to top</span>}
-                              </Button>
-                            </DrawerClose>
-                          );
-                        })()}
-                      </div>
-                      <div className="px-4 py-3 text-sm font-semibold text-muted-foreground border-t mt-1">Copy to another itinerary</div>
-                      <div className="flex-1 overflow-y-auto px-4 min-h-0">
-                        {itineraries.map((itin) => {
-                          const isInThis = itin.experiences.some(e => e.id === experience.id);
-                          return (
-                            <DrawerClose asChild key={itin.id}>
-                              <Button variant="ghost" className="w-full justify-between font-normal h-12" onClick={(e) => { e.preventDefault(); handleAddToSpecificItinerary(experience, itin.id, itin.name); }}>
-                                <span className="truncate">{itin.name}</span>
-                                {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
-                              </Button>
-                            </DrawerClose>
-                          );
-                        })}
-                        {showNewItineraryInput === experience.id ? (
-                          <div className="py-3 flex gap-2 w-full mt-1" onClick={(e) => e.stopPropagation()}>
-                            <Input placeholder="Itinerary name..." value={newItineraryName} onChange={(e) => setNewItineraryName(e.target.value)} className="h-11 text-sm flex-1" autoFocus onKeyDown={(e) => { if (e.key === 'Enter') handleCreateAndAdd(experience); }} />
-                            <Button className="h-11 px-6" onClick={() => handleCreateAndAdd(experience)} disabled={!newItineraryName.trim()}>Add</Button>
-                          </div>
-                        ) : (
-                          <Button variant="ghost" className="w-full justify-start font-normal h-12 mt-1" onClick={(e) => { e.preventDefault(); setShowNewItineraryInput(experience.id); }}>
-                            <ListPlus className="w-4 h-4 mr-3" />New Itinerary
-                          </Button>
-                        )}
-                      </div>
-                      <div className="px-4 pb-4 pt-2 border-t">
-                        <DrawerClose asChild>
-                          <Button variant="ghost" className="w-full justify-start font-normal h-12 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={(e) => { e.preventDefault(); handleToggleItinerary(experience, e as any); }}>
-                            <Trash2 className="w-4 h-4 mr-3" />Remove from itinerary
-                          </Button>
-                        </DrawerClose>
-                      </div>
-                    </div>
-                  </DrawerContent>
-                </Drawer>
-              ) : (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      data-card-action="true"
-                      onClick={(e) => e.stopPropagation()}
-                      className="absolute top-2.5 right-2.5 p-2 rounded-full bg-background/50 backdrop-blur-xl border border-border/20 shadow-sm hover:bg-background/70 transition-all duration-200"
-                      aria-label="Open actions"
-                    >
-                      <MoreHorizontal className="w-4 h-4 text-foreground/80" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
-                    {(() => {
-                      const isPinned = pinnedIds.has(experience.id);
-                      return (
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (isPinned) return;
-                            const src = orderedExperiences || itinerary.experiences;
-                            const idx = src.findIndex(ex => ex.id === experience.id);
-                            if (idx === -1) { toast({ title: "Couldn't pin this item" }); return; }
-                            if (idx === 0) { setPinnedIds(prev => new Set(prev).add(experience.id)); toast({ title: "Pinned to top" }); return; }
-                            const reordered = [...src]; const [item] = reordered.splice(idx, 1); reordered.unshift(item);
-                            setOrderedExperiences(reordered); setPinnedIds(prev => new Set(prev).add(experience.id));
-                            toast({ title: `"${experience.title}" pinned to top` });
-                          }}
-                          className={cn(isPinned && "text-primary")}
-                        >
-                          <ArrowLeft className="w-4 h-4 rotate-90 mr-2" />
-                          {isPinned ? "Pinned" : "Pin to top"}
-                        </DropdownMenuItem>
-                      );
-                    })()}
-                    <DropdownMenuSeparator />
-                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Copy to itinerary</div>
-                    {itineraries.slice(0, 5).map((itin) => {
-                      const isInThis = itin.experiences.some(e => e.id === experience.id);
-                      return (
-                        <DropdownMenuItem key={itin.id} onClick={(e) => { e.preventDefault(); handleAddToSpecificItinerary(experience, itin.id, itin.name); }}>
-                          <span className="truncate flex-1">{itin.name}</span>
-                          {isInThis && <Check className="w-4 h-4 text-primary ml-2" />}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.preventDefault(); handleToggleItinerary(experience, e as any); }}>
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Remove
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )
-            )}
-
-            {/* Trip mode: date/time badge at bottom of image */}
-            {activeTripMode && schedule && (() => {
-              const slotInfo = timeSlotConfig[schedule.slot];
-              const originalSlot = experience.timeSlot || 'afternoon';
-              const isMismatch = originalSlot !== schedule.slot;
-              return (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-white text-[11px] font-medium">
-                      <span>{slotInfo.emoji}</span>
-                      <span>{format(new Date(schedule.day), "EEE d")}</span>
-                      <span className="opacity-60">·</span>
-                      <span className="opacity-80">{slotInfo.label}</span>
-                      {isMismatch && (
-                        <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 text-[9px] font-medium">
-                          Usually {timeSlotConfig[originalSlot].emoji} {timeSlotConfig[originalSlot].label}
-                        </span>
-                      )}
-                    </div>
-                    {/* Change time slot + move day */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                          className="p-1 rounded bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
-                        >
-                          <Edit2 className="w-3 h-3 text-white" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Time of day</div>
-                        {(Object.keys(timeSlotConfig) as TimeSlot[]).map((slot) => {
-                          const isOriginal = slot === originalSlot;
-                          const isSelected = schedule.slot === slot;
-                          return (
-                            <DropdownMenuItem
-                              key={slot}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleChangeTimeSlot(experience.id, slot);
-                              }}
-                              className={cn("flex items-center gap-2", isSelected && "bg-accent")}
-                            >
-                              <span>{timeSlotConfig[slot].emoji}</span>
-                              <span className="flex-1">{timeSlotConfig[slot].label}</span>
-                              {isOriginal && !isSelected && (
-                                <span className="text-[9px] bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded px-1 py-0.5">best</span>
-                              )}
-                              {isSelected && <Check className="w-3 h-3 text-primary" />}
-                            </DropdownMenuItem>
-                          );
-                        })}
-                        <DropdownMenuSeparator />
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Move to day</div>
-                        {Object.keys(generatedTrip).map((dayKey) => (
-                          <DropdownMenuItem
-                            key={dayKey}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (dayKey !== schedule.day) {
-                                handleMoveExperienceToDay(experience.id, schedule.day, dayKey);
-                              }
-                            }}
-                            className={cn("flex items-center gap-2", dayKey === schedule.day && "bg-accent")}
-                          >
-                            <CalendarIcon className="w-3 h-3" />
-                            <span>{format(new Date(dayKey), "EEE, MMM d")}</span>
-                            {dayKey === schedule.day && <Check className="w-3 h-3 ml-auto text-primary" />}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-
-          {/* Text content (match ExperienceCard) */}
-          <div className="mt-2.5 space-y-0.5">
-            <h3 className="font-semibold line-clamp-1 text-foreground text-sm leading-snug">
-              {experience.title}
-            </h3>
-            <p className="text-[13px] text-muted-foreground truncate leading-relaxed">
-              {experience.location}
-            </p>
-          </div>
+              <div className="space-y-0">
+                {day.experiences.map(renderListRow)}
+              </div>
+            </div>
+          ))}
         </div>
+      );
+    }
+
+    // Owned: show actual trips or generated trip
+    if (activeTripMode && Object.keys(generatedTrip).length > 0) {
+      return (
+        <div className="space-y-6 px-4 py-4">
+          {Object.entries(generatedTrip)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([dayKey, dayExps]) => (
+              <div key={dayKey}>
+                <div className="flex items-center gap-2 mb-3">
+                  <CalendarIcon className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {format(new Date(dayKey), "EEEE, MMM d")}
+                  </h3>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
+                  </Badge>
+                </div>
+                <div className="space-y-0">
+                  {dayExps.map(renderListRow)}
+                </div>
+              </div>
+            ))}
+        </div>
+      );
+    }
+
+    // Owned but no trip yet
+    const ownedTrips = ownedItinerary?.trips || [];
+    if (ownedTrips.length === 0) {
+      return (
+        <div className="text-center py-12 px-4">
+          <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground mb-4">No trips created yet</p>
+          <Button onClick={() => setShowCreateTripSheet(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Create trip
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6 px-4 py-4">
+        {ownedTrips.map((trip, idx) => {
+          // Group experiences by date
+          const dayMap: Record<string, LikedExperience[]> = {};
+          (trip.experiences || []).forEach(exp => {
+            const dayKey = exp.scheduledTime ? format(new Date(exp.scheduledTime), "yyyy-MM-dd") : trip.startDate;
+            if (!dayMap[dayKey]) dayMap[dayKey] = [];
+            dayMap[dayKey].push(exp);
+          });
+          return (
+            <div key={trip.id || idx}>
+              <h3 className="text-base font-bold text-foreground mb-3">{trip.name || `Trip ${idx + 1}`}</h3>
+              {Object.entries(dayMap).sort(([a], [b]) => a.localeCompare(b)).map(([dayKey, exps]) => (
+                <div key={dayKey} className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CalendarIcon className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs font-semibold text-foreground">{format(new Date(dayKey), "EEEE, MMM d")}</span>
+                  </div>
+                  <div className="space-y-0">{exps.map(renderListRow)}</div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -1216,112 +616,50 @@ const PublicItinerary = () => {
   return (
     <Wrapper {...wrapperProps}>
       <div className="flex flex-col">
-        {/* Hero Cover Image - Full width with fade into background */}
+        {/* Hero Cover Image */}
         <div className="relative w-full h-[280px] sm:h-[340px] md:h-[400px] lg:h-[440px] overflow-hidden">
           {itinerary.coverImage ? (
-            <img 
-              src={itinerary.coverImage} 
-              alt={itinerary.name} 
-              className="w-full h-full object-cover"
-            />
+            <img src={itinerary.coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
               <span className="text-5xl">🗺️</span>
             </div>
           )}
-          
-          {/* Fade to background at bottom */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-          {/* Subtle top darkening for button contrast */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-transparent" />
 
-          {/* Top buttons overlay */}
+          {/* Top buttons */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-            {/* Back button */}
             <button 
-              onClick={() => {
-                if (window.history.state && window.history.state.idx > 0) {
-                  navigate(-1);
-                } else {
-                  navigate('/itineraries');
-                }
-              }}
-              className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors"
+              onClick={() => window.history.state?.idx > 0 ? navigate(-1) : navigate('/itineraries')}
+              className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg"
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-
-            {/* Right: Share + Like */}
             <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors">
-                    {copied ? <Check className="w-5 h-5 text-foreground" /> : <Share2 className="w-5 h-5 text-foreground" />}
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-popover border-border w-56">
-                  <DropdownMenuItem onClick={handleShare}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Link
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleShareWhatsApp}>
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Share via WhatsApp
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setCopyDialogOpen(true)}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Itinerary
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setShowInviteSheet(true)}>
-                    <Send className="w-4 h-4 mr-2" />
-                    Invite Friends
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowCollaboratorSheet(true)}>
-                    <Users className="w-4 h-4 mr-2" />
-                    Add Collaborators
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleExportCSV}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Export as CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportXLSX}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Export as XLSX
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Like button */}
+              {/* Share button */}
               <button 
-                onClick={async () => {
-                  await handleToggleLike(itinerary.id, 'itinerary', {
-                    id: itinerary.id,
-                    name: itinerary.name,
-                    coverImage: itinerary.coverImage,
-                    creatorName: itinerary.creatorName,
-                  });
-                }}
+                onClick={() => setShowShareSheet(true)}
+                className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg"
+              >
+                <Share2 className="w-5 h-5 text-foreground" />
+              </button>
+              {/* Like */}
+              <button 
+                onClick={() => handleToggleLike(itinerary.id, 'itinerary', { id: itinerary.id, name: itinerary.name })}
                 className={cn(
-                  "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-background transition-colors",
+                  "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg",
                   isItemLiked(itinerary.id, 'itinerary') && "bg-primary/15"
                 )}
               >
-                <Heart className={cn(
-                  "w-5 h-5 transition-all",
-                  isItemLiked(itinerary.id, 'itinerary') 
-                    ? "fill-primary text-primary" 
-                    : "text-foreground"
-                )} />
+                <Heart className={cn("w-5 h-5", isItemLiked(itinerary.id, 'itinerary') ? "fill-primary text-primary" : "text-foreground")} />
               </button>
             </div>
           </div>
 
-          {/* Title text overlaid at bottom of hero, on top of the fade */}
+          {/* Title */}
           <div className="absolute bottom-0 left-0 right-0 px-4 md:px-6 lg:px-8 pb-4">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 line-clamp-2 text-foreground drop-shadow-sm">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-2 line-clamp-2 text-foreground drop-shadow-sm">
               {itinerary.name}
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-[15px]">
@@ -1333,317 +671,367 @@ const PublicItinerary = () => {
                 </span>
               )}
               {itinerary.creatorName && (
-                <span>
-                  by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span>
-                </span>
+                <span>by <span className="text-foreground font-semibold">@{itinerary.creatorName}</span></span>
               )}
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex flex-col lg:flex-row">
-          {/* Experiences */}
-          <div className="flex-1 w-full">
-            {/* Search Bar + Trip Button */}
-            <div className={cn(
-              "px-3 md:px-6 py-3 md:py-4 border-b sticky top-0 backdrop-blur-sm z-10 transition-colors",
-              activeTripMode 
-                ? "bg-cyan-500/10 border-cyan-500/30" 
-                : "bg-background/95 border-border"
-            )}>
-              <div className="flex items-center justify-between gap-3">
-                {!activeTripMode ? (
-                  <div className="flex items-center bg-muted rounded-full px-3 md:px-4 py-2 flex-1 max-w-md">
-                    <Search className="w-4 h-4 text-muted-foreground mr-2 md:mr-3" />
-                    <Input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search experiences..."
-                      className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex-1" />
-                )}
-                
-                <div className="flex items-center gap-2">
-                  {/* Itinerary mode: show "Trip" button */}
-                  {!activeTripMode ? (
-                    <Button className="gap-2" onClick={() => setShowTripSelectorSheet(true)}>
-                      <Rocket className="w-4 h-4" />
-                      Trip
-                    </Button>
-                  ) : (
-                    /* Trip mode: show date range, save, exit */
-                    <>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="gap-1.5 bg-cyan-500/10 border-cyan-500/40 text-cyan-700 dark:text-cyan-400 text-xs hover:bg-cyan-500/20"
-                        onClick={() => {
-                          setShowNewTripDatePicker(true);
-                          setShowTripSelectorSheet(true);
-                        }}
-                      >
-                        <CalendarIcon className="w-3.5 h-3.5" />
-                        {tripStartDate && tripEndDate 
-                          ? `${format(tripStartDate, "MMM d")} – ${format(tripEndDate, "MMM d")}`
-                          : tripStartDate 
-                            ? format(tripStartDate, "MMM d")
-                            : "Dates"}
-                      </Button>
-                      
-                      {/* Save Trip button */}
-                      <Button 
-                        size="sm"
-                        className="gap-1.5 text-xs bg-cyan-600 hover:bg-cyan-700 text-white"
-                        onClick={handleSaveTrip}
-                        disabled={!hasUnsavedChanges}
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        {hasUnsavedChanges ? "Save Trip" : "Saved"}
-                      </Button>
-                      
-                      {/* Exit trip mode */}
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="h-8 px-2 text-muted-foreground hover:text-destructive text-xs"
-                        onClick={handleExitTripMode}
-                      >
-                        <X className="w-4 h-4 mr-1" />
-                        <span className="hidden sm:inline">Exit</span>
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
+        <div className="flex-1 w-full">
+          {/* Search + View Switcher + CTA */}
+          <div className="px-4 py-3 border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-10">
+            {/* Search bar */}
+            <div className="flex items-center bg-muted rounded-full px-3 py-2 mb-3">
+              <Search className="w-4 h-4 text-muted-foreground mr-2" />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search this itinerary"
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+              />
             </div>
 
-            {/* Trip mode active bar */}
-            {activeTripMode && (
-              <div className="px-3 md:px-6 py-2 bg-cyan-500/5 border-b border-cyan-500/20 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-cyan-700 dark:text-cyan-400 font-medium">
-                  <CalendarIcon className="w-3.5 h-3.5" />
-                  <span>Trip Planning Mode — tap ✏️ on cards to change day or time</span>
-                </div>
-                {hasUnsavedChanges && (
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400">Unsaved changes</span>
-                )}
+            {/* View switcher + CTA row */}
+            <div className="flex items-center justify-between">
+              {/* View mode switcher */}
+              <div className="flex items-center bg-muted rounded-lg p-0.5">
+                {([
+                  { mode: 'list' as ViewMode, icon: List, label: 'List' },
+                  { mode: 'icons' as ViewMode, icon: Grid3X3, label: 'Icons' },
+                  { mode: 'trips' as ViewMode, icon: Route, label: 'Trips' },
+                ]).map(({ mode, icon: Icon, label }) => (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      viewMode === mode
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{label}</span>
+                  </button>
+                ))}
               </div>
-            )}
 
-            {/* Experiences Grid */}
-            <div className={cn("p-3 md:p-6 transition-colors", activeTripMode && "bg-muted/20")}>
-              {activeTripMode && Object.keys(generatedTrip).length > 0 ? (
-                /* Trip mode: group by day */
-                <div className="space-y-6">
-                  {Object.entries(generatedTrip)
-                    .sort(([a], [b]) => a.localeCompare(b))
-                    .map(([dayKey, dayExps]) => (
-                      <div key={dayKey}>
-                        <div className="flex items-center gap-2 mb-3">
-                          <CalendarIcon className="w-4 h-4 text-primary" />
-                          <h3 className="text-sm font-semibold text-foreground">
-                            {format(new Date(dayKey), "EEEE, MMM d")}
-                          </h3>
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                            {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                          {dayExps.map(renderExperienceCard)}
-                        </div>
-                      </div>
-                    ))}
-                </div>
+              {/* Primary CTA */}
+              {isOwned ? (
+                <Button size="sm" className="gap-1.5" onClick={() => setShowCreateTripSheet(true)}>
+                  <Rocket className="w-3.5 h-3.5" />
+                  Create trip
+                </Button>
               ) : (
-                /* Normal mode: list view on mobile, grid on desktop */
-                <>
-                  {isMobile ? (
-                    <div className="space-y-1">
-                      {filteredExperiences.slice(0, 20).map((experience) => {
-                        const liked = isItemLiked(experience.id, 'experience');
-                        const schedule = tripScheduleMap.get(experience.id);
-                        const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
-                        const hasImage = !!experience.videoThumbnail;
-                        return (
-                          <button
-                            key={experience.id}
-                            onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
-                            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 active:bg-muted/80 transition-colors text-left"
-                          >
-                            {/* Thumbnail */}
-                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 relative">
-                              {experience.videoThumbnail ? (
-                                <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <MapPin className="w-5 h-5 text-muted-foreground/40" />
-                                </div>
-                              )}
-                              {hasImage && (
-                                <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded bg-black/50 flex items-center justify-center">
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="white" className="w-2.5 h-2.5">
-                                    <path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3zm3.5 6.5L7 8l2 2.5L11 8l2 3H3l2.5-1.5zM5.5 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* Text content */}
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs text-muted-foreground truncate">{experience.location}</span>
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                {experience.category && (
-                                  <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{experience.category}</span>
-                                )}
-                                {slotInfo && (
-                                  <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                                    {slotInfo.emoji} {slotInfo.label}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Right side indicators */}
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {liked && <Heart className="w-3.5 h-3.5 fill-primary text-primary" />}
-                              <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                      {filteredExperiences.slice(0, 10).map(renderExperienceCard)}
-                    </div>
-                  )}
-
-                  {filteredExperiences.length === 0 && searchQuery && (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground text-sm">No experiences in this itinerary match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
-                    </div>
-                  )}
-                </>
+                <Button size="sm" className="gap-1.5" onClick={() => {
+                  if (!isAuthenticated) { setShowAuthModal(true); return; }
+                  setShowAddToItinerarySheet(true);
+                }}>
+                  <Plus className="w-3.5 h-3.5" />
+                  Add to itinerary
+                </Button>
               )}
             </div>
           </div>
+
+          {/* Go-to action banner */}
+          {goToAction && (
+            <div className="px-4 py-2 bg-primary/5 border-b border-primary/10">
+              <button
+                onClick={() => {
+                  navigate(`/itineraries/${goToAction.id}`);
+                  setGoToAction(null);
+                }}
+                className="flex items-center gap-2 text-sm text-primary font-medium w-full"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Go to {goToAction.name}
+                <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+              </button>
+            </div>
+          )}
+
+          {/* Content by view mode */}
+          <div className="pb-4">
+            {viewMode === 'list' && (
+              <div>
+                {filteredExperiences.map(renderListRow)}
+                {filteredExperiences.length === 0 && searchQuery && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+                  </div>
+                )}
+              </div>
+            )}
+            {viewMode === 'icons' && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-4">
+                {filteredExperiences.map(renderIconCard)}
+              </div>
+            )}
+            {viewMode === 'trips' && renderTripsView()}
+          </div>
         </div>
-
-        {/* Copy Dialog */}
-        <CopyItineraryDialog
-          open={copyDialogOpen}
-          onOpenChange={setCopyDialogOpen}
-          sourceItinerary={itinerary}
-          onCopyComplete={handleCopyComplete}
-        />
-
-
-        {/* Trip Selector - Dialog on desktop, Sheet on mobile */}
-        {isMobile ? (
-          <Sheet open={showTripSelectorSheet} onOpenChange={setShowTripSelectorSheet}>
-            <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[90vh] overflow-y-auto">
-              <SheetHeader className="pb-3">
-                <SheetTitle className="flex items-center gap-2">
-                  <Rocket className="w-5 h-5 text-primary" />
-                  {showNewTripDatePicker ? "Select dates" : "Trip"}
-                </SheetTitle>
-                <SheetDescription>
-                  {showNewTripDatePicker 
-                    ? "Pick your travel dates — experiences will be auto-assigned based on their time of day" 
-                    : "View existing trips or create a new one"}
-                </SheetDescription>
-              </SheetHeader>
-              {renderTripSelectorContent()}
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <Dialog open={showTripSelectorSheet} onOpenChange={setShowTripSelectorSheet}>
-            <DialogContent className={cn(
-              "bg-card border-border",
-              showNewTripDatePicker ? "sm:max-w-4xl" : "sm:max-w-lg"
-            )}>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Rocket className="w-5 h-5 text-primary" />
-                  {showNewTripDatePicker ? "Select dates" : "Trip"}
-                </DialogTitle>
-                <DialogDescription>
-                  {showNewTripDatePicker 
-                    ? "Pick your travel dates — experiences will be auto-assigned based on their time of day" 
-                    : "View existing trips or create a new one"}
-                </DialogDescription>
-              </DialogHeader>
-              {renderTripSelectorContent()}
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {/* Invite Friends - Dialog on desktop, Sheet on mobile */}
-        {isMobile ? (
-          <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
-            <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[60vh]">
-              <SheetHeader className="pb-2">
-                <SheetTitle className="flex items-center gap-2">
-                  <Send className="w-5 h-5 text-primary" />
-                  Invite Friends
-                </SheetTitle>
-                <SheetDescription>Share this itinerary with friends via email</SheetDescription>
-              </SheetHeader>
-              {renderInviteContent()}
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <Dialog open={showInviteSheet} onOpenChange={setShowInviteSheet}>
-            <DialogContent className="sm:max-w-md bg-card border-border">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Send className="w-5 h-5 text-primary" />
-                  Invite Friends
-                </DialogTitle>
-                <DialogDescription>Share this itinerary with friends via email</DialogDescription>
-              </DialogHeader>
-              {renderInviteContent()}
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {/* Add Collaborators - Dialog on desktop, Sheet on mobile */}
-        {isMobile ? (
-          <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-            <SheetContent side="bottom" className="bg-card border-border rounded-t-2xl max-h-[60vh]">
-              <SheetHeader className="pb-2">
-                <SheetTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
-                  Add Collaborators
-                </SheetTitle>
-                <SheetDescription>Invite people to edit and plan this trip together</SheetDescription>
-              </SheetHeader>
-              {renderCollaboratorContent()}
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <Dialog open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
-            <DialogContent className="sm:max-w-md bg-card border-border">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
-                  Add Collaborators
-                </DialogTitle>
-                <DialogDescription>Invite people to edit and plan this trip together</DialogDescription>
-              </DialogHeader>
-              {renderCollaboratorContent()}
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
+
+      {/* === SHEETS === */}
+
+      {/* Share Sheet - full-width bottom sheet */}
+      <Sheet open={showShareSheet} onOpenChange={setShowShareSheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh]">
+          <SheetHeader className="pb-3">
+            <SheetTitle>Share</SheetTitle>
+            <SheetDescription>Share this itinerary with others</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-1 pb-4">
+            <button onClick={() => { handleCopyLink(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
+              <span className="font-medium text-sm">{copied ? "Copied!" : "Copy link"}</span>
+            </button>
+            <button onClick={() => { handleShareWhatsApp(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><MessageCircle className="w-4.5 h-4.5 text-foreground" /></div>
+              <span className="font-medium text-sm">Share via WhatsApp</span>
+            </button>
+            <button onClick={() => { setShowShareSheet(false); setShowInviteSheet(true); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Send className="w-4.5 h-4.5 text-foreground" /></div>
+              <span className="font-medium text-sm">Invite friends</span>
+            </button>
+            <button onClick={() => { setShowShareSheet(false); setShowCollaboratorSheet(true); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Users className="w-4.5 h-4.5 text-foreground" /></div>
+              <span className="font-medium text-sm">Add collaborators</span>
+            </button>
+            <div className="h-px bg-border/50 mx-3 my-1" />
+            <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
+              <span className="font-medium text-sm">Export as CSV</span>
+            </button>
+            <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
+              <span className="font-medium text-sm">Export as XLSX</span>
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Add to Itinerary Sheet - Spotify-style */}
+      <Sheet open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] overflow-hidden flex flex-col">
+          <SheetHeader className="pb-2 shrink-0">
+            <SheetTitle>Add to itinerary</SheetTitle>
+            <SheetDescription>Save this itinerary to your collection</SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {/* New itinerary option */}
+            {showNewItineraryInput ? (
+              <div className="flex gap-2 p-3 border-b border-border/30">
+                <Input
+                  value={newItineraryName}
+                  onChange={(e) => setNewItineraryName(e.target.value)}
+                  placeholder="Itinerary name..."
+                  className="h-11 flex-1"
+                  style={{ fontSize: '16px' }}
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddToNewItinerary()}
+                />
+                <Button className="h-11 px-5" onClick={handleAddToNewItinerary} disabled={!newItineraryName.trim()}>
+                  Create
+                </Button>
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setShowNewItineraryInput(false)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowNewItineraryInput(true)}
+                className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-primary" />
+                </div>
+                <span className="font-semibold text-sm text-primary">New itinerary</span>
+              </button>
+            )}
+
+            {/* Search */}
+            <div className="px-4 py-2">
+              <div className="flex items-center bg-muted rounded-lg px-3 py-2">
+                <Search className="w-4 h-4 text-muted-foreground mr-2" />
+                <Input
+                  type="text"
+                  value={addItinerarySearch}
+                  onChange={(e) => setAddItinerarySearch(e.target.value)}
+                  placeholder="Search your itineraries..."
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+            </div>
+
+            {/* Itinerary list */}
+            <div className="px-2">
+              {filteredItineraries.length > 0 ? (
+                filteredItineraries.map(itin => {
+                  const coverImg = itin.coverImage || itin.experiences?.[0]?.videoThumbnail;
+                  return (
+                    <button
+                      key={itin.id}
+                      onClick={() => handleAddToExistingItinerary(itin)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                    >
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                        {coverImg ? (
+                          <img src={coverImg} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                            <ListPlus className="w-4 h-4 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{itin.name}</p>
+                        <p className="text-xs text-muted-foreground">{itin.experiences.length} experiences</p>
+                      </div>
+                      <span className="text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10">Add</span>
+                    </button>
+                  );
+                })
+              ) : addItinerarySearch.trim() ? (
+                <div className="py-6 px-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    No itineraries match "<span className="font-medium text-foreground">{addItinerarySearch}</span>"
+                  </p>
+                  {/* Suggested quick-adds from all itineraries */}
+                  {itineraries.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Suggested</p>
+                      {itineraries.slice(0, 3).map(itin => (
+                        <button
+                          key={itin.id}
+                          onClick={() => handleAddToExistingItinerary(itin)}
+                          className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted/40 transition-colors text-left"
+                        >
+                          <span className="text-sm font-medium truncate">{itin.name}</span>
+                          <span className="text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10 shrink-0 ml-2">Add</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No itineraries yet. Create one above!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Create Trip Sheet (owned itinerary only) */}
+      <Sheet open={showCreateTripSheet} onOpenChange={setShowCreateTripSheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto">
+          <SheetHeader className="pb-3">
+            <SheetTitle className="flex items-center gap-2">
+              <Rocket className="w-5 h-5 text-primary" />
+              Create trip
+            </SheetTitle>
+            <SheetDescription>
+              Select your travel dates to turn this itinerary into a trip.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col items-center py-3 w-full">
+            <div className="w-full overflow-x-auto flex justify-center pb-2">
+              <Calendar
+                mode="range"
+                selected={{ from: tripStartDate, to: tripEndDate }}
+                onSelect={(range) => {
+                  setTripStartDate(range?.from);
+                  setTripEndDate(range?.to);
+                }}
+                disabled={(date) => date < new Date()}
+                className="p-3 pointer-events-auto"
+                numberOfMonths={1}
+              />
+            </div>
+            {tripStartDate && tripEndDate && (
+              <p className="text-sm text-center text-muted-foreground mb-3">
+                {format(tripStartDate, "MMM d")} – {format(tripEndDate, "MMM d, yyyy")}
+              </p>
+            )}
+            {tripStartDate && !tripEndDate && (
+              <p className="text-sm text-center text-muted-foreground mb-3">Select an end date</p>
+            )}
+            <Button
+              className="w-full gap-2 h-12"
+              disabled={!tripStartDate || isGenerating}
+              onClick={() => {
+                if (tripStartDate) {
+                  setViewMode('trips');
+                  generateTrip(tripStartDate, tripEndDate || tripStartDate);
+                }
+              }}
+            >
+              <Sparkles className="w-4 h-4" />
+              {isGenerating ? "Generating..." : "Generate trip"}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Invite Friends Sheet */}
+      <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh]">
+          <SheetHeader className="pb-2">
+            <SheetTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Invite Friends</SheetTitle>
+            <SheetDescription>Share this itinerary with friends via email</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex gap-2">
+              <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+                <Mail className="w-4 h-4 text-muted-foreground mr-2" />
+                <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }} />
+              </div>
+              <Button disabled={!inviteEmail.trim()} onClick={() => { handleCopyLink(); setInviteEmail(""); }}>
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 gap-2" onClick={handleCopyLink}>
+                <Copy className="w-4 h-4" />{copied ? "Copied!" : "Copy Link"}
+              </Button>
+              <Button variant="outline" className="flex-1 gap-2" onClick={handleShareWhatsApp}>
+                <MessageCircle className="w-4 h-4" />WhatsApp
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Collaborator Sheet */}
+      <Sheet open={showCollaboratorSheet} onOpenChange={setShowCollaboratorSheet}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh]">
+          <SheetHeader className="pb-2">
+            <SheetTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" />Add Collaborators</SheetTitle>
+            <SheetDescription>Invite people to edit and plan this trip together</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex gap-2">
+              <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
+                <UserPlus className="w-4 h-4 text-muted-foreground mr-2" />
+                <Input type="email" placeholder="collaborator@email.com" value={collaboratorEmail} onChange={(e) => setCollaboratorEmail(e.target.value)}
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }} />
+              </div>
+              <Button disabled={!collaboratorEmail.trim()} onClick={() => setCollaboratorEmail("")}>
+                <UserPlus className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Collaborators can add experiences, edit the schedule, and help plan the trip.</p>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </Wrapper>
   );

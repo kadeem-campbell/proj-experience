@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Plus, Layers, Calendar, MapPin, MoreHorizontal, Trash2, Edit2, Loader2 } from "lucide-react";
+import { Plus, Layers, Calendar, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ExternalLink } from "lucide-react";
+import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { MobileShell } from "@/components/MobileShell";
@@ -133,6 +134,7 @@ const MyItinerariesPage = () => {
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
   const isMobile = useIsMobile();
+  const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
 
   // Auto-open create drawer from ?create=true
   useEffect(() => {
@@ -202,6 +204,55 @@ const MyItinerariesPage = () => {
               <Plus className="w-5 h-5 text-primary-foreground" />
             </button>
           </div>
+
+          {/* Updates feed */}
+          {updates.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Updates</span>
+                  {unreadCount > 0 && (
+                    <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} className="text-xs text-primary font-medium">Mark all read</button>
+                )}
+              </div>
+              <div className="space-y-1">
+                {updates.slice(0, 5).map(update => (
+                  <button
+                    key={update.id}
+                    onClick={() => {
+                      markAsRead(update.itineraryId);
+                      navigate(`/itineraries/${update.itineraryId}`);
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors",
+                      !update.read ? "bg-primary/5" : "hover:bg-muted/40"
+                    )}
+                  >
+                    {!update.read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+                    <div className="flex-1 min-w-0">
+                      <p className={cn("text-sm truncate", !update.read ? "font-semibold text-foreground" : "text-muted-foreground")}>
+                        {update.message}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {new Date(update.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 shrink-0" />
+                  </button>
+                ))}
+              </div>
+              {updates.length > 5 && (
+                <p className="text-xs text-muted-foreground text-center mt-2">{updates.length - 5} more updates</p>
+              )}
+            </div>
+          )}
 
           {/* Loading */}
           {isLoading ? (

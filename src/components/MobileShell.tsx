@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Search, ListMusic, User, Settings, HelpCircle, Map, X, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useItineraries } from "@/hooks/useItineraries";
+import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,7 @@ const ProfileSlideMenu = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () => void; isSearchOpen: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { experienceCount } = useItineraries();
+  const { unreadCount } = useItineraryUpdates();
 
   const handleHomeClick = useCallback(() => {
     // Always close search first if it's open
@@ -93,7 +93,7 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   const navItems = [
     { icon: Home, label: "Home", action: handleHomeClick, isActive: location.pathname === "/" && !isSearchOpen, badge: 0 },
     { icon: Search, label: "Search", action: onSearchClick, isActive: isSearchOpen, badge: 0 },
-    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" && !isSearchOpen, badge: experienceCount },
+    { icon: ListMusic, label: "Your Itinerary", action: () => navigate("/my-itineraries"), isActive: location.pathname === "/my-itineraries" && !isSearchOpen, badge: unreadCount },
     { icon: User, label: "Profile", action: () => navigate("/profile"), isActive: location.pathname === "/profile" && !isSearchOpen, badge: 0 },
   ];
 
