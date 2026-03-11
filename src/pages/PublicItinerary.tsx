@@ -1240,9 +1240,9 @@ const PublicItinerary = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Invite Friends Sheet */}
+      {/* Invite Friends Sheet - keyboard aware */}
       <Sheet open={showInviteSheet} onOpenChange={setShowInviteSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh] pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[calc(env(safe-area-inset-bottom,0px)+24px)]" style={{ maxHeight: '100dvh' }}>
           <SheetHeader className="pb-2">
             <SheetTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Invite Friends</SheetTitle>
             <SheetDescription>Share this itinerary with friends via email</SheetDescription>
@@ -1252,7 +1252,9 @@ const PublicItinerary = () => {
               <div className="flex-1 flex items-center bg-muted rounded-lg px-3">
                 <Mail className="w-4 h-4 text-muted-foreground mr-2" />
                 <Input type="email" placeholder="friend@email.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }} />
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm" style={{ fontSize: '16px' }}
+                  onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
+                />
               </div>
               <Button disabled={!inviteEmail.trim()} onClick={() => { handleCopyLink(); setInviteEmail(""); }}>
                 <Send className="w-4 h-4" />
