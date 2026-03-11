@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
-import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check, Sun, Wine, TreePine, Mountain, UtensilsCrossed } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -25,11 +25,11 @@ const mapCities = [
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
-  { label: "Beaches", category: "Beach", icon: Sun },
-  { label: "Nightlife", category: "Nightlife", icon: Wine },
-  { label: "Nature", category: "Wildlife", icon: TreePine },
-  { label: "Adventure", category: "Adventure", icon: Mountain },
-  { label: "Food", category: "Food", icon: UtensilsCrossed },
+  { label: "Beaches", category: "Beach", emoji: "🏖️" },
+  { label: "Nightlife", category: "Nightlife", emoji: "🍸" },
+  { label: "Nature", category: "Wildlife", emoji: "🌴" },
+  { label: "Adventure", category: "Adventure", emoji: "🧗" },
+  { label: "Food", category: "Food", emoji: "🍽️" },
 ];
 
 const rotatingPlaceholders = [
@@ -48,27 +48,23 @@ const CategoryFilterPills = ({
   onCategoryChange: (cat: string) => void;
 }) => {
   return (
-    <div className="px-8 pb-3">
-      <div className="flex justify-center gap-5">
+    <div className="px-4 pb-3">
+      <div className="flex justify-between">
         {filterCategories.map((cat) => {
-          const Icon = cat.icon;
           const isActive = activeCategory === cat.category;
           return (
             <button
               key={cat.label}
               onClick={() => onCategoryChange(isActive ? "" : cat.category)}
-              className="flex flex-col items-center gap-1.5 transition-all active:scale-95"
+              className="flex flex-col items-center gap-1 transition-all active:scale-95"
             >
               <div className={cn(
-                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                "w-14 h-14 rounded-full flex items-center justify-center transition-all",
                 isActive 
-                  ? "bg-primary/15 border-2 border-primary" 
-                  : "bg-muted/60 border border-border/50"
+                  ? "bg-primary/10 ring-2 ring-primary" 
+                  : "bg-muted"
               )}>
-                <Icon className={cn(
-                  "w-5 h-5 transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )} />
+                <span className="text-2xl">{cat.emoji}</span>
               </div>
               <span className={cn(
                 "text-[11px] font-medium transition-colors",
@@ -419,20 +415,20 @@ export const MobileHomeView = () => {
         onSearch={(q) => { setSearchQuery(q); setSearchOpen(false); }}
       />
 
-      {/* Search bar - tappable */}
-      <div className="px-4 pb-2">
+      {/* Search bar - Uber Eats style */}
+      <div className="px-4 pb-3">
         <button
           onClick={() => setSearchOpen(true)}
-          className="w-full flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-xl text-left transition-colors duration-150 active:bg-muted/50"
+          className="w-full flex items-center gap-3 px-4 py-3 bg-muted rounded-full text-left transition-colors duration-150 active:bg-muted/70"
         >
           <Search className="w-5 h-5 text-muted-foreground shrink-0" />
-          <span className="text-sm text-muted-foreground/60 flex-1 truncate">
+          <span className="text-[15px] text-muted-foreground flex-1 truncate">
             {searchQuery || rotatingPlaceholders[placeholderIndex]}
           </span>
           {searchQuery && (
             <button
               onClick={(e) => { e.stopPropagation(); setSearchQuery(""); }}
-              className="p-1 rounded-full hover:bg-muted"
+              className="p-1 rounded-full hover:bg-background/50"
             >
               <span className="text-muted-foreground text-sm">✕</span>
             </button>
