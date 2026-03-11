@@ -846,12 +846,8 @@ const PublicItinerary = () => {
           {!isOwned && socialProof ? (
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <BookmarkCheck className="w-3.5 h-3.5 text-primary/70" />
-                <span>Saved by <span className="font-semibold text-foreground">{socialProof.savedBy}</span> people</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-primary/70" />
-                <span>Trending</span>
+                <Heart className="w-3.5 h-3.5 text-primary/70" />
+                <span>Liked by <span className="font-semibold text-foreground">{socialProof.savedBy}</span> people</span>
               </span>
             </div>
           ) : isOwned ? (
