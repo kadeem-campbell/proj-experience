@@ -896,42 +896,55 @@ const PublicItinerary = () => {
 
             {/* Unified action bar: view switcher + CTA */}
             <div className="flex items-center gap-2">
-              {/* View mode switcher */}
-              <div className="flex items-center bg-muted rounded-lg p-0.5 flex-1">
+              {/* View mode switcher - compact */}
+              <div className="flex items-center bg-muted rounded-lg p-0.5">
                 {([
                   { mode: 'list' as ViewMode, icon: List, label: 'List' },
                   { mode: 'icons' as ViewMode, icon: Grid3X3, label: 'Icons' },
-                  { mode: 'trips' as ViewMode, icon: Route, label: 'Trips' },
                 ]).map(({ mode, icon: Icon, label }) => (
                   <button
                     key={mode}
                     onClick={() => handleViewModeClick(mode)}
                     className={cn(
-                      "flex items-center justify-center gap-1.5 flex-1 px-2 py-2 rounded-md text-xs font-medium transition-all",
+                      "flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all",
                       viewMode === mode
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-3 h-3" />
                     <span>{label}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Primary CTA */}
+              {/* Trips button - separate accent style */}
+              <button
+                onClick={() => handleViewModeClick('trips')}
+                className={cn(
+                  "flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all",
+                  viewMode === 'trips'
+                    ? "bg-accent text-accent-foreground shadow-sm"
+                    : "bg-accent/10 text-accent hover:bg-accent/20"
+                )}
+              >
+                <Route className="w-3 h-3" />
+                <span>Trips</span>
+              </button>
+
+              {/* Primary CTA - most prominent */}
               {isOwned ? (
-                <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => setShowCreateTripSheet(true)}>
-                  <Rocket className="w-3.5 h-3.5" />
+                <Button size="sm" className="gap-1.5 h-[32px] rounded-lg shrink-0 ml-auto text-xs" onClick={() => setShowCreateTripSheet(true)}>
+                  <Rocket className="w-3 h-3" />
                   Create trip
                 </Button>
               ) : (
-                <Button size="sm" className="gap-1.5 h-[34px] rounded-lg shrink-0" onClick={() => {
+                <Button size="sm" className="gap-1.5 h-[32px] rounded-lg shrink-0 ml-auto text-xs" onClick={() => {
                   if (!isAuthenticated) { setShowAuthModal(true); return; }
                   setShowAddToItinerarySheet(true);
                 }}>
-                  <Plus className="w-3.5 h-3.5" />
-                  Add
+                  <Plus className="w-3 h-3" />
+                  Add to Itinerary
                 </Button>
               )}
             </div>
