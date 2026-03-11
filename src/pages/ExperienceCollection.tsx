@@ -59,7 +59,7 @@ const HorizontalScrollRow = ({ title, onTitleClick, children, titleClassName }: 
   return (
     <div className="mb-8">
       <button onClick={onTitleClick} className="mb-4 flex items-center gap-1.5 w-full text-left" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-        <h2 className="text-base font-bold text-foreground truncate">{title}</h2>
+        <h2 className={cn("text-base font-bold truncate", titleClassName || "text-foreground")}>{title}</h2>
       </button>
       <div ref={scrollRef} className="overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
         <div className="inline-flex gap-3 snap-x snap-mandatory" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
