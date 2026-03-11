@@ -30,10 +30,10 @@ const MAX_RECENT_SEARCHES = 8;
 const categories = [
   { icon: catBeaches, label: "Beaches" },
   { icon: catNightlife, label: "Nightlife" },
-  { icon: catSafari, label: "Safari" },
+  { icon: catNature, label: "Nature" },
   { icon: catAdventure, label: "Adventure" },
   { icon: catFood, label: "Food" },
-  { icon: catParty, label: "Party" },
+  { icon: catSafari, label: "Safari" },
 ];
 
 const allItinerariesData = getPopularItineraries();
