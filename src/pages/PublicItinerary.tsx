@@ -130,6 +130,7 @@ const PublicItinerary = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedTrips, setGeneratedTrips] = useState<Array<{ id: string; name: string; days: Record<string, LikedExperience[]> }>>([]);
   const [activeTripIndex, setActiveTripIndex] = useState(0);
+  const [activePresetTripIndex, setActivePresetTripIndex] = useState(0);
   const [showAutoSave, setShowAutoSave] = useState(false);
   const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
   const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
