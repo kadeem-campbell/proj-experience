@@ -1018,8 +1018,8 @@ const PublicItinerary = () => {
                     <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
                   </div>
                 )}
-                {/* External matches - Recommended (only in list/icons, not trips) */}
-                {viewMode !== 'trips' && externalMatches.length > 0 && (
+                {/* External matches - Recommended */}
+                {externalMatches.length > 0 && (
                   <div className="border-t border-border/30 mt-2 pt-3 px-4">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
                       Recommended
