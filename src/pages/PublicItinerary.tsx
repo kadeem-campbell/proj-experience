@@ -630,7 +630,24 @@ const PublicItinerary = () => {
             ))}
           </div>
           <div className="space-y-0">
-            {activePreset.experiences.map((exp, i) => renderListRow(exp, i, activePreset.experiences.length))}
+            {(() => {
+              const q = searchQuery.trim().toLowerCase();
+              const tripExps = q
+                ? activePreset.experiences.filter(exp =>
+                    exp.title?.toLowerCase().includes(q) ||
+                    exp.location?.toLowerCase().includes(q) ||
+                    exp.category?.toLowerCase().includes(q)
+                  )
+                : activePreset.experiences;
+              if (tripExps.length === 0 && q) {
+                return (
+                  <div className="text-center py-6">
+                    <p className="text-muted-foreground text-sm">No experiences match "<span className="font-medium text-foreground">{searchQuery}</span>"</p>
+                  </div>
+                );
+              }
+              return tripExps.map((exp, i) => renderListRow(exp, i, tripExps.length));
+            })()}
           </div>
         </div>
       );
