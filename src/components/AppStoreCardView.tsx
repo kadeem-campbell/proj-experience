@@ -83,7 +83,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
           <div className="absolute top-3 right-3 flex gap-2">
             <button
               onClick={handleLikeClick}
-              className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-black/30 flex items-center justify-center"
+              className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-2xl border border-white/15 flex items-center justify-center shadow-lg"
             >
               <Heart 
                 className={cn(
