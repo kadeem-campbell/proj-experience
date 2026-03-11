@@ -232,13 +232,13 @@ const CollectionPage = () => {
         {/* Divider + continued discovery */}
         {remainingSections.length > 0 && (
           <>
-            <div className="px-4 pt-4 pb-2">
+            <div className="px-4 pt-8 pb-4">
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-border/60" />
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                <div className="flex-1 h-px" style={{ backgroundColor: 'hsl(0 0% 12% / 0.25)' }} />
+                <span className="text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: 'hsl(0 0% 12%)' }}>
                   More itineraries to explore
                 </span>
-                <div className="flex-1 h-px bg-border/60" />
+                <div className="flex-1 h-px" style={{ backgroundColor: 'hsl(0 0% 12% / 0.25)' }} />
               </div>
             </div>
 

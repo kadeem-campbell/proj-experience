@@ -59,6 +59,8 @@ All colors MUST be HSL.
     --experience-color: 346 82% 51%;
     --itinerary-color: 0 0% 12%;
     --social-color: 162 73% 46%;
+    --explore-itinerary: 0 0% 12%;
+    --explore-experience: 210 70% 50%;
 
     /* Section backgrounds */
     --itinerary-bg: 0 0% 97%;
