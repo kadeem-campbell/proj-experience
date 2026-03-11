@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Compass, Map, Share2, MapPinned, Sparkles, Search, Check } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -21,122 +21,54 @@ const mapCities = [
   { name: "Addis Ababa", available: false, launchDate: "June 2026" },
 ];
 
-
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
-const discoverySlides = [
-  {
-    icon: Compass,
-    title: "Discover experiences",
-    subtitle: "Find the best things to do in your city",
-    colorClass: "bg-experience-color",
-    textClass: "text-experience-color",
-    bgClass: "bg-experience-color/10",
-    ctas: [
-      { label: "Find Experiences", primary: true, route: "/experiences" },
-    ],
-  },
-  {
-    icon: Map,
-    title: "Explore itineraries",
-    subtitle: "Plan your perfect trip with local guides",
-    colorClass: "bg-itinerary-color",
-    textClass: "text-itinerary-color",
-    bgClass: "bg-itinerary-color/10",
-    ctas: [
-      { label: "Explore Itineraries", primary: true, route: "/itineraries" },
-    ],
-  },
-  {
-    icon: MapPinned,
-    title: "Create an itinerary",
-    subtitle: "Build and share your own travel plans",
-    colorClass: "bg-social-color",
-    textClass: "text-social-color",
-    bgClass: "bg-social-color/10",
-    ctas: [
-      { label: "Create Itinerary", primary: true, route: "/itineraries?create=true" },
-    ],
-  },
+const filterCategories = [
+  { label: "Beaches", category: "Beach" },
+  { label: "Nightlife", category: "Nightlife" },
+  { label: "Wildlife", category: "Wildlife" },
+  { label: "Adventure", category: "Adventure" },
+  { label: "Food", category: "Food" },
+  { label: "Culture", category: "Culture" },
+  { label: "Water Sports", category: "Water Sports" },
 ];
 
-const DiscoveryCard = () => {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const navigate = useNavigate();
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
+const rotatingPlaceholders = [
+  "Search food tours",
+  "Find the best beaches",
+  "Discover hidden gems",
+  "Explore nightlife spots",
+  "Find cultural experiences",
+  "Search sunset activities",
+];
 
-  const slide = discoverySlides[activeSlide];
-  const Icon = slide.icon;
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-  const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 40) {
-      if (diff > 0 && activeSlide < discoverySlides.length - 1) {
-        setActiveSlide(activeSlide + 1);
-      } else if (diff < 0 && activeSlide > 0) {
-        setActiveSlide(activeSlide - 1);
-      }
-    }
-  };
-
+const CategoryFilterPills = ({ 
+  activeCategory, 
+  onCategoryChange 
+}: { 
+  activeCategory: string; 
+  onCategoryChange: (cat: string) => void;
+}) => {
   return (
-    <div
-      className="mx-4 mt-1 mb-0 py-5 px-4 rounded-2xl relative overflow-hidden"
-      style={{
-        background: `linear-gradient(to bottom, hsl(var(--muted)), hsl(var(--background)))`,
-      }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Progress bars */}
-      <div className="flex gap-1.5 mb-5">
-        {discoverySlides.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => setActiveSlide(i)}
-            className={cn(
-              "h-1 flex-1 rounded-full transition-colors",
-              i === activeSlide ? s.colorClass : "bg-foreground/15"
-            )}
-          />
-        ))}
-      </div>
-
-        {/* Content - centered */}
-        <div className="flex flex-col items-center text-center gap-3 mb-4">
-          <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", slide.bgClass)}>
-            <Icon className={cn("w-5 h-5", slide.textClass)} />
-          </div>
-          <div>
-            <h3 className="text-[17px] font-bold text-foreground">{slide.title}</h3>
-            <p className="text-sm text-muted-foreground">{slide.subtitle}</p>
-          </div>
-        </div>
-
-        {/* CTAs - centered */}
-        <div className="flex gap-2 justify-center">
-          {slide.ctas.map((cta, i) => (
+    <div className="px-4 pb-3">
+      <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+        <div className="inline-flex gap-2">
+          {filterCategories.map((cat) => (
             <button
-              key={i}
-              onClick={() => navigate(cta.route)}
+              key={cat.label}
+              onClick={() => onCategoryChange(activeCategory === cat.category ? "" : cat.category)}
               className={cn(
-                "px-5 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95",
-                cta.primary
-                  ? cn(slide.colorClass, "text-white")
-                  : "bg-muted text-foreground"
+                "whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all active:scale-95",
+                activeCategory === cat.category
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-transparent border border-border text-muted-foreground"
               )}
+              style={{ height: '36px' }}
             >
-              {cta.label}
+              {cat.label}
             </button>
           ))}
+        </div>
       </div>
     </div>
   );
@@ -335,6 +267,17 @@ const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
 const allItinerariesData = getPopularItineraries();
 const allExpsData = allExperiences;
 
+// Category label map for row titles
+const categoryLabelMap: Record<string, string> = {
+  "Beach": "Beaches",
+  "Nightlife": "Nightlife",
+  "Wildlife": "Wildlife",
+  "Adventure": "Adventures",
+  "Food": "Food spots",
+  "Culture": "Cultural experiences",
+  "Water Sports": "Water sports",
+};
+
 export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -342,6 +285,16 @@ export const MobileHomeView = () => {
   const [cityDrawerOpen, setCityDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [activeCategory, setActiveCategory] = useState("");
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  // Rotating placeholder
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex(prev => (prev + 1) % rotatingPlaceholders.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Sync from URL params
   useEffect(() => {
@@ -362,9 +315,26 @@ export const MobileHomeView = () => {
   }, [selectedCity]);
 
   const experiences = useMemo(() => {
-    if (!selectedCity) return allExpsData;
-    return allExpsData.filter(e => matchesCity(e.location || "", selectedCity));
+    let filtered = allExpsData;
+    if (selectedCity) {
+      filtered = filtered.filter(e => matchesCity(e.location || "", selectedCity));
+    }
+    return filtered;
   }, [selectedCity]);
+
+  // Category-filtered experiences
+  const categoryExperiences = useMemo(() => {
+    if (!activeCategory) return experiences;
+    return experiences.filter(e => e.category === activeCategory);
+  }, [experiences, activeCategory]);
+
+  // Category-filtered itineraries (filter by whether they contain experiences of that category)
+  const categoryItineraries = useMemo(() => {
+    if (!activeCategory) return itineraries;
+    return itineraries.filter(it => 
+      it.experiences?.some((e: any) => e.category === activeCategory)
+    );
+  }, [itineraries, activeCategory]);
 
   // Search filtering - flexible matching
   const normalizeText = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
@@ -382,18 +352,18 @@ export const MobileHomeView = () => {
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
     if (terms.length === 0) return [];
-    return experiences.filter(e => {
+    return categoryExperiences.filter(e => {
       const fields = [e.title, e.location, e.category, e.creator].map(f => normalizeText(f || "")).join(" ");
       return terms.some(term => termMatches(term, fields));
     });
-  }, [searchQuery, experiences]);
+  }, [searchQuery, categoryExperiences]);
 
   const filteredItineraries = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
     if (terms.length === 0) return [];
-    return itineraries.filter(it => {
+    return categoryItineraries.filter(it => {
       const fields = [it.name, it.creatorName].map(f => normalizeText(f || "")).join(" ");
       const expMatch = it.experiences?.some((exp: any) => {
         const ef = [exp.title, exp.location, exp.category].map((f: string) => normalizeText(f || "")).join(" ");
@@ -401,15 +371,18 @@ export const MobileHomeView = () => {
       });
       return terms.some(term => termMatches(term, fields)) || expMatch;
     });
-  }, [searchQuery, itineraries]);
+  }, [searchQuery, categoryItineraries]);
 
   const hasSearchResults = searchQuery.trim().length > 0;
 
-  const adventureExperiences = useMemo(() => experiences.filter(e => e.category === "Adventure").slice(0, 10), [experiences]);
-  const foodExperiences = useMemo(() => experiences.filter(e => e.category === "Food").slice(0, 10), [experiences]);
-  const beachExperiences = useMemo(() => experiences.filter(e => e.category === "Beach").slice(0, 10), [experiences]);
-
   const cityLabel = selectedCity || "your city";
+  const catLabel = activeCategory ? categoryLabelMap[activeCategory] || activeCategory : "";
+
+  // Row title helper
+  const rowTitle = (base: string, catOverride?: string) => {
+    if (activeCategory && catOverride) return catOverride;
+    return base;
+  };
 
   const headerContent = selectedCity ? (
     <button
@@ -440,7 +413,7 @@ export const MobileHomeView = () => {
         >
           <Search className="w-5 h-5 text-muted-foreground shrink-0" />
           <span className="text-sm text-muted-foreground/60 flex-1 truncate">
-            {searchQuery || "Find experiences, food, or places"}
+            {searchQuery || rotatingPlaceholders[placeholderIndex]}
           </span>
           {searchQuery && (
             <button
@@ -452,6 +425,9 @@ export const MobileHomeView = () => {
           )}
         </button>
       </div>
+
+      {/* Category filter pills */}
+      <CategoryFilterPills activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
 
       {/* City selector drawer */}
       <Drawer open={cityDrawerOpen} onOpenChange={setCityDrawerOpen}>
@@ -544,104 +520,103 @@ export const MobileHomeView = () => {
         </div>
       ) : (
       <>
-      {/* Discovery card */}
-      <DiscoveryCard />
-
-      {/* Alternating content */}
-      {itineraries.length > 0 && (
+      {/* Alternating content - filtered by category */}
+      {categoryItineraries.length > 0 && (
         <HorizontalScrollRow 
-          title={selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss"}
+          title={rowTitle(
+            selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss",
+            `${catLabel} you can't miss`
+          )}
           variant="itinerary"
           onTitleClick={() => navigate("/itineraries")}
         >
-          {itineraries.slice(0, 6).map((itinerary) => (
+          {categoryItineraries.slice(0, 6).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
           ))}
         </HorizontalScrollRow>
       )}
 
-      {experiences.length > 0 && (
+      {categoryExperiences.length > 0 && (
         <HorizontalScrollRow 
-          title={`Available in ${cityLabel} next weekend`}
+          title={rowTitle(
+            `Available in ${cityLabel} next weekend`,
+            `${catLabel} available next weekend`
+          )}
           variant="experience"
           onTitleClick={() => navigate("/experiences")}
         >
-          {experiences.slice(0, 8).map((experience) => (
+          {categoryExperiences.slice(0, 8).map((experience) => (
             <MobileExperienceCard key={experience.id} experience={experience} />
           ))}
         </HorizontalScrollRow>
       )}
 
-      {itineraries.length > 3 && (
+      {categoryItineraries.length > 3 && (
         <HorizontalScrollRow 
-          title="Curated by locals"
+          title={rowTitle("Curated by locals", `${catLabel} curated by locals`)}
           variant="itinerary"
           onTitleClick={() => navigate("/itineraries")}
         >
-          {itineraries.slice(3, 9).map((itinerary) => (
+          {categoryItineraries.slice(3, 9).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
           ))}
         </HorizontalScrollRow>
       )}
 
-      {adventureExperiences.length > 0 && (
+      {categoryExperiences.length > 8 && (
         <HorizontalScrollRow 
-          title="Adventure awaits"
+          title={rowTitle("Adventure awaits", `More ${catLabel}`)}
           variant="experience"
-          onTitleClick={() => navigate("/experiences?tag=Adventure")}
+          onTitleClick={() => navigate(activeCategory ? `/experiences?tag=${activeCategory}` : "/experiences?tag=Adventure")}
         >
-          {adventureExperiences.map((experience) => (
+          {categoryExperiences.slice(8, 18).map((experience) => (
             <MobileExperienceCard key={experience.id} experience={experience} />
           ))}
         </HorizontalScrollRow>
       )}
 
-      {itineraries.length > 1 && (
+      {categoryItineraries.length > 1 && !activeCategory && (
         <HorizontalScrollRow 
           title="Weekend getaways"
           variant="itinerary"
           onTitleClick={() => navigate("/itineraries")}
         >
-          {itineraries.slice(1, 7).map((itinerary) => (
+          {categoryItineraries.slice(1, 7).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
           ))}
         </HorizontalScrollRow>
       )}
 
-      {foodExperiences.length > 0 && (
+      {categoryExperiences.length > 18 && (
         <HorizontalScrollRow 
-          title="Taste the local flavors"
+          title={rowTitle("Taste the local flavors", `Even more ${catLabel}`)}
           variant="experience"
-          onTitleClick={() => navigate("/experiences?tag=Food")}
+          onTitleClick={() => navigate(activeCategory ? `/experiences?tag=${activeCategory}` : "/experiences?tag=Food")}
         >
-          {foodExperiences.map((experience) => (
+          {categoryExperiences.slice(18, 28).map((experience) => (
             <MobileExperienceCard key={experience.id} experience={experience} />
           ))}
         </HorizontalScrollRow>
       )}
 
-      {itineraries.length > 2 && (
+      {categoryItineraries.length > 2 && !activeCategory && (
         <HorizontalScrollRow 
           title="Popular this week"
           variant="itinerary"
           onTitleClick={() => navigate("/itineraries")}
         >
-          {itineraries.slice(2, 8).map((itinerary) => (
+          {categoryItineraries.slice(2, 8).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
           ))}
         </HorizontalScrollRow>
       )}
 
-      {beachExperiences.length > 0 && (
-        <HorizontalScrollRow 
-          title="Beach vibes"
-          variant="experience"
-          onTitleClick={() => navigate("/experiences?tag=Beaches")}
-        >
-          {beachExperiences.map((experience) => (
-            <MobileExperienceCard key={experience.id} experience={experience} />
-          ))}
-        </HorizontalScrollRow>
+      {/* No results for category */}
+      {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
+        <div className="text-center py-12 px-4">
+          <p className="text-sm text-muted-foreground">No {catLabel.toLowerCase()} found</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">Try a different category</p>
+        </div>
       )}
       </>
       )}
