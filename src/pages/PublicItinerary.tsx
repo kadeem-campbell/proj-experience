@@ -232,17 +232,28 @@ const PublicItinerary = () => {
     return itineraries.filter(i => i.name.toLowerCase().includes(q));
   }, [itineraries, addItinerarySearch]);
 
-  // --- Preset public trip examples ---
+  // --- Preset public trip examples (2 trips, named first-to-last activity) ---
   const publicTripExamples = useMemo(() => {
-    if (isOwned || !itinerary) return [];
+    if (!itinerary) return [];
     const exps = itinerary.experiences;
-    const perDay = Math.ceil(exps.length / 3);
-    return [
-      { label: "Day 1", experiences: exps.slice(0, perDay) },
-      { label: "Day 2", experiences: exps.slice(perDay, perDay * 2) },
-      { label: "Day 3", experiences: exps.slice(perDay * 2) },
-    ].filter(d => d.experiences.length > 0);
-  }, [isOwned, itinerary]);
+    if (exps.length === 0) return [];
+    const mid = Math.ceil(exps.length / 2);
+    const trip1Exps = exps.slice(0, mid);
+    const trip2Exps = exps.slice(mid);
+    const trips = [
+      { 
+        label: `${trip1Exps[0]?.title || 'Start'} to ${trip1Exps[trip1Exps.length - 1]?.title || 'End'}`,
+        experiences: trip1Exps 
+      },
+    ];
+    if (trip2Exps.length > 0) {
+      trips.push({
+        label: `${trip2Exps[0]?.title || 'Start'} to ${trip2Exps[trip2Exps.length - 1]?.title || 'End'}`,
+        experiences: trip2Exps
+      });
+    }
+    return trips;
+  }, [itinerary]);
 
   // Loading / not found states
   if (!itinerary && itinerariesLoading) {
