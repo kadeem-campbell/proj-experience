@@ -882,9 +882,12 @@ const PublicItinerary = () => {
             value={collaboratorEmail}
             onChange={(e) => setCollaboratorEmail(e.target.value)}
             className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-10 text-sm"
+            style={{ fontSize: '16px' }}
+            onFocus={(e) => {
+              setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && collaboratorEmail.trim()) {
-                toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
                 setCollaboratorEmail("");
               }
             }}
@@ -893,7 +896,6 @@ const PublicItinerary = () => {
         <Button
           disabled={!collaboratorEmail.trim()}
           onClick={() => {
-            toast({ title: "Collaborator invited!", description: `${collaboratorEmail} will receive an invite to join.` });
             setCollaboratorEmail("");
           }}
         >
