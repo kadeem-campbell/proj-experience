@@ -294,15 +294,8 @@ export const MobileSearchOverlay = ({
 
   return (
     <div
-      className="fixed inset-0 z-[55] bg-background flex flex-col animate-in fade-in duration-150"
-      style={{ height: '100dvh' }}
-      onTouchMove={(e) => {
-        // Allow scrolling only within the scrollable content area
-        const scrollable = e.currentTarget.querySelector('.search-scroll-area');
-        if (scrollable && !scrollable.contains(e.target as Node)) {
-          e.preventDefault();
-        }
-      }}
+      className="fixed inset-0 z-[55] bg-background animate-in fade-in duration-150"
+      style={{ height: '100dvh', display: 'flex', flexDirection: 'column', touchAction: 'none' }}
     >
       {/* Search input - fixed at top, matching homepage pill style */}
       <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3 shrink-0">
