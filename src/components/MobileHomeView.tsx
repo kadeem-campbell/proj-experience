@@ -49,7 +49,7 @@ const CategoryFilterPills = ({
 }) => {
   return (
     <div className="px-4 pb-3">
-      <div className="flex justify-between">
+      <div className="flex justify-center gap-6">
         {filterCategories.map((cat) => {
           const Icon = cat.icon;
           const isActive = activeCategory === cat.category;
