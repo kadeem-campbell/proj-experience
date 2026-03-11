@@ -612,9 +612,7 @@ const PublicItinerary = () => {
     setTimeout(() => setShowAutoSave(false), 2000);
   };
 
-  // Browse public trips state
-  const [showBrowsePublicTrips, setShowBrowsePublicTrips] = useState(false);
-  const [previewingPublicTrip, setPreviewingPublicTrip] = useState<{ itinerary: typeof publicItinerariesData[0]; tripIdx: number } | null>(null);
+
 
   // Trips view - day-separated
   const renderTripsView = () => {
