@@ -157,14 +157,8 @@ export const ShareDrawer = ({ title, url, children, onExportCSV, onExportXLSX, o
   const shareText = `Check out: ${title}`;
 
   const handleTriggerClick = async () => {
-    if (isMobile && navigator.share) {
-      try {
-        await navigator.share({ title, url: shareUrl });
-        return;
-      } catch (e) {
-        // Fall through to drawer
-      }
-    }
+    // Don't use navigator.share on mobile — always show our custom drawer
+    // navigator.share causes issues when combined with other share actions
     setOpen(true);
   };
 
