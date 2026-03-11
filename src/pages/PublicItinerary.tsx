@@ -872,16 +872,26 @@ const PublicItinerary = () => {
         <div className="flex-1 w-full">
           {/* Search + View Switcher + CTA */}
           <div className="px-4 py-3 border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-10">
-            {/* Search bar */}
-            <div className="flex items-center bg-muted rounded-full px-3 py-2 mb-3">
-              <Search className="w-4 h-4 text-muted-foreground mr-2" />
+            {/* Search bar - matching homepage style */}
+            <div className="flex items-center bg-muted rounded-full px-4 py-2.5 mb-3">
+              <Search className="w-4 h-4 text-muted-foreground mr-2.5 shrink-0" />
               <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search this itinerary"
-                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-[15px]"
+                style={{ fontSize: '16px' }}
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="p-1 rounded-full shrink-0"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
             </div>
 
             {/* Unified action bar: view switcher + CTA */}
