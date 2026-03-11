@@ -232,7 +232,7 @@ const CollectionPage = () => {
         {/* Divider + continued discovery */}
         {remainingSections.length > 0 && (
           <>
-            <div className="mt-10 rounded-2xl mx-3 overflow-hidden pb-8" style={{ backgroundColor: '#811b25' }}>
+            <div className="mt-10 pb-8 [&_h3]:text-white [&_p]:text-white/60 [&_.text-foreground]:text-white [&_.text-muted-foreground]:text-white/60" style={{ backgroundColor: '#811b25' }}>
               <div className="py-4 px-4 text-center">
                 <span className="text-xs uppercase tracking-wider text-white/80">
                   More itineraries to explore
@@ -244,7 +244,7 @@ const CollectionPage = () => {
                   key={section.key}
                   title={section.title}
                   onTitleClick={() => navigate(`/itinerary-collections/${section.key}`)}
-                  titleClassName="text-white/90"
+                  titleClassName="text-white"
                 >
                   {section.items.map((it: any) => (
                     <MobileItineraryCard key={it.id} itinerary={it} />
