@@ -885,39 +885,46 @@ const PublicItinerary = () => {
 
       {/* === SHEETS === */}
 
-      {/* Share Sheet - full-width bottom sheet */}
+      {/* Share Sheet - compact horizontal layout like reference */}
       <Sheet open={showShareSheet} onOpenChange={setShowShareSheet}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[60vh]">
-          <SheetHeader className="pb-3">
-            <SheetTitle>Share</SheetTitle>
-            <SheetDescription>Share this itinerary with others</SheetDescription>
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[env(safe-area-inset-bottom,16px)]">
+          <SheetHeader className="pb-2">
+            <SheetTitle className="text-center">Share</SheetTitle>
+            <SheetDescription className="sr-only">Share this itinerary</SheetDescription>
           </SheetHeader>
-          <div className="space-y-1 pb-4">
-            <button onClick={() => { handleCopyLink(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Copy className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">{copied ? "Copied!" : "Copy link"}</span>
-            </button>
-            <button onClick={() => { handleShareWhatsApp(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><MessageCircle className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Share via WhatsApp</span>
-            </button>
-            <button onClick={() => { setShowShareSheet(false); setShowInviteSheet(true); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Send className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Invite friends</span>
-            </button>
-            <button onClick={() => { setShowShareSheet(false); setShowCollaboratorSheet(true); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Users className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Add collaborators</span>
-            </button>
-            <div className="h-px bg-border/50 mx-3 my-1" />
-            <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Download className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Export as CSV</span>
-            </button>
-            <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="w-full flex items-center gap-4 p-3.5 rounded-xl hover:bg-muted/50 active:bg-muted transition-colors text-left">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><Download className="w-4.5 h-4.5 text-foreground" /></div>
-              <span className="font-medium text-sm">Export as XLSX</span>
-            </button>
+          <div className="px-2 pb-4 space-y-3">
+            {/* Top row: icon grid */}
+            <div className="grid grid-cols-5 gap-1">
+              {[
+                { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); } },
+                { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); } },
+                { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setShowInviteSheet(true); } },
+                { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setShowCollaboratorSheet(true); } },
+                { label: "Email", icon: Mail, action: () => { 
+                  const shareUrl = `${window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app'}/itineraries/${itinerary.id}`;
+                  window.open(`mailto:?subject=${encodeURIComponent(itinerary.name)}&body=${encodeURIComponent(shareUrl)}`, '_blank');
+                  setShowShareSheet(false);
+                }},
+              ].map((opt) => (
+                <button key={opt.label} onClick={opt.action} className="flex flex-col items-center gap-1.5 p-2 rounded-xl active:bg-muted transition-colors">
+                  <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center">
+                    <opt.icon className="w-4.5 h-4.5 text-foreground" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground text-center leading-tight whitespace-pre-line">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+            {/* Export row */}
+            <div className="flex gap-2">
+              <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
+                <Download className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-medium">CSV</span>
+              </button>
+              <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
+                <Download className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-medium">XLSX</span>
+              </button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
