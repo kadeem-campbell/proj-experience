@@ -134,15 +134,15 @@ export const ExperienceCard = ({
             className={cn(
               "absolute top-2.5 right-2.5 flex items-center justify-center rounded-full transition-all duration-200 active:scale-90",
               isMobile ? "w-7 h-7" : "w-8 h-8",
-              "bg-black/20 backdrop-blur-xl border border-black/30",
-              "hover:bg-black/30",
-              liked && "bg-black/30"
+              "bg-white/10 backdrop-blur-2xl border border-white/15 shadow-lg",
+              "hover:bg-white/20",
+              liked && "bg-white/20"
             )}
           >
             <Heart 
               className={cn(
                 "w-4 h-4 transition-all duration-200",
-                liked ? "fill-white text-white scale-110" : "text-white/90"
+                liked ? "fill-primary text-primary scale-110" : "text-white/90"
               )} 
             />
           </button>
