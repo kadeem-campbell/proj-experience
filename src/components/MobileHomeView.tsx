@@ -32,6 +32,14 @@ const filterCategories = [
   { label: "Food", category: "Food", emoji: "🍽️" },
 ];
 
+const rotatingPlaceholders = [
+  "Search the best beaches",
+  "Search cultural experiences",
+  "Search food tours",
+  "Search hidden gems",
+  "Search sunset spots",
+];
+
 const CategoryFilterPills = ({ 
   activeCategory, 
   onCategoryChange 
