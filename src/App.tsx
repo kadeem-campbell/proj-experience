@@ -69,6 +69,8 @@ const App = () => (
           <Route path="/itinerary-collections/:slug" element={<Collection />} />
           {/* Legacy collection support */}
           <Route path="/collections/:slug" element={<Collection />} />
+          {/* Experience collection pages */}
+          <Route path="/experience-collections/:slug" element={<ExperienceCollection />} />
           <Route path="/experiences" element={<Experiences />} />
           <Route path="/trip/:id" element={<Trip />} />
           <Route path="/profile" element={<Profile />} />
