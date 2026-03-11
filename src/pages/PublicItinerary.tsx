@@ -455,77 +455,92 @@ const PublicItinerary = () => {
   // --- Render functions ---
 
   // Clean list row (Requirement #1)
-  const renderListRow = (experience: LikedExperience) => {
+  const renderListRow = (experience: LikedExperience, idx?: number, total?: number) => {
     const liked = isItemLiked(experience.id, 'experience');
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
     const price = experience.price ? `$${experience.price} avg` : null;
     const warning = dragWarnings.get(experience.id);
+    const showReorder = isOwned && idx !== undefined && total !== undefined && !searchQuery.trim();
 
-    // Build metadata line: Location · Category · [time icon] · $49 avg
     const metaParts: string[] = [];
     if (experience.location) metaParts.push(experience.location);
     if (experience.category) metaParts.push(experience.category);
 
     return (
-      <button
-        key={experience.id}
-        onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
-        className="w-full flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left border-b border-border/30 last:border-b-0"
-      >
-        {/* Thumbnail - clean, no overlay */}
-        <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-          {experience.videoThumbnail ? (
-            <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-muted-foreground/40" />
-            </div>
-          )}
-        </div>
-        
-        {/* Text content */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
-          <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
-            <span>{metaParts.join(' · ')}</span>
-            {slotInfo && (
-              <>
-                <span className="opacity-40">·</span>
-                <span className="inline-flex items-center">{slotInfo.icon}</span>
-              </>
-            )}
-            {price && (
-              <>
-                <span className="opacity-40">·</span>
-                <span>{price}</span>
-              </>
+      <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
+        {/* Reorder controls for owned */}
+        {showReorder && (
+          <div className="flex flex-col gap-0.5 pl-2 shrink-0">
+            <button
+              onClick={() => handleListReorder(experience.id, 'up')}
+              disabled={idx === 0}
+              className={cn("p-0.5 rounded", idx === 0 ? "opacity-20" : "active:bg-muted")}
+            >
+              <ChevronUp className="w-3 h-3 text-muted-foreground" />
+            </button>
+            <button
+              onClick={() => handleListReorder(experience.id, 'down')}
+              disabled={idx === (total - 1)}
+              className={cn("p-0.5 rounded", idx === (total - 1) ? "opacity-20" : "active:bg-muted")}
+            >
+              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+            </button>
+          </div>
+        )}
+        <button
+          onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+          className={cn("flex-1 flex items-center gap-3 py-3 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left", showReorder ? "px-2" : "px-4")}
+        >
+          <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
+            {experience.videoThumbnail ? (
+              <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-muted-foreground/40" />
+              </div>
             )}
           </div>
-          {warning && (
-            <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
-              <AlertTriangle className="w-2.5 h-2.5" />
-              <span>{warning}</span>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
+            <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
+              <span>{metaParts.join(' · ')}</span>
+              {slotInfo && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span className="inline-flex items-center">{slotInfo.icon}</span>
+                </>
+              )}
+              {price && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span>{price}</span>
+                </>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Right side */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={async (e) => {
-              e.preventDefault(); e.stopPropagation();
-              if ('vibrate' in navigator) navigator.vibrate(10);
-              await handleToggleLike(experience.id, 'experience', {
-                id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail,
-              });
-            }}
-            className="p-1"
-          >
-            <Heart className={cn("w-4 h-4 transition-all", liked ? "fill-primary text-primary" : "text-muted-foreground/30")} />
-          </button>
-          <ChevronRight className="w-4 h-4 text-muted-foreground/20" />
-        </div>
-      </button>
+            {warning && (
+              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
+                <AlertTriangle className="w-2.5 h-2.5" />
+                <span>{warning}</span>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={async (e) => {
+                e.preventDefault(); e.stopPropagation();
+                if ('vibrate' in navigator) navigator.vibrate(10);
+                await handleToggleLike(experience.id, 'experience', {
+                  id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail,
+                });
+              }}
+              className="p-1"
+            >
+              <Heart className={cn("w-4 h-4 transition-all", liked ? "fill-primary text-primary" : "text-muted-foreground/30")} />
+            </button>
+            <ChevronRight className="w-4 h-4 text-muted-foreground/20" />
+          </div>
+        </button>
+      </div>
     );
   };
 
