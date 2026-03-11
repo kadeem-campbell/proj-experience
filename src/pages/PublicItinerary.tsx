@@ -182,10 +182,28 @@ const PublicItinerary = () => {
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
 
-  // Filter experiences
+  // Custom order for list/icons (separate from trips)
+  const [customOrder, setCustomOrder] = useState<string[] | null>(null);
+
+  // Initialize custom order when itinerary loads
+  useEffect(() => {
+    if (itinerary && !customOrder) {
+      setCustomOrder(itinerary.experiences.map(e => e.id));
+    }
+  }, [itinerary]);
+
+  // Filter and order experiences for list/icons
   const filteredExperiences = useMemo(() => {
     if (!itinerary) return [];
-    const exps = itinerary.experiences;
+    let exps = [...itinerary.experiences];
+    // Apply custom order
+    if (customOrder) {
+      exps.sort((a, b) => {
+        const ai = customOrder.indexOf(a.id);
+        const bi = customOrder.indexOf(b.id);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      });
+    }
     if (!searchQuery.trim()) return exps;
     const q = searchQuery.toLowerCase();
     return exps.filter(e =>
@@ -193,7 +211,21 @@ const PublicItinerary = () => {
       e.location?.toLowerCase().includes(q) ||
       e.category?.toLowerCase().includes(q)
     );
-  }, [itinerary, searchQuery]);
+  }, [itinerary, searchQuery, customOrder]);
+
+  // Reorder in list/icons view
+  const handleListReorder = useCallback((expId: string, direction: 'up' | 'down') => {
+    setCustomOrder(prev => {
+      if (!prev) return prev;
+      const order = [...prev];
+      const idx = order.indexOf(expId);
+      if (idx < 0) return prev;
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= order.length) return prev;
+      [order[idx], order[targetIdx]] = [order[targetIdx], order[idx]];
+      return order;
+    });
+  }, []);
 
   // Filtered itineraries for add-to-itinerary search
   const filteredItineraries = useMemo(() => {
