@@ -83,12 +83,12 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
           <div className="absolute top-3 right-3 flex gap-2">
             <button
               onClick={handleLikeClick}
-              className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-2xl border border-white/20 flex items-center justify-center shadow-lg"
+              className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-black/30 flex items-center justify-center"
             >
               <Heart 
                 className={cn(
                   "w-4.5 h-4.5 transition-colors",
-                  liked ? "fill-destructive text-destructive" : "text-white/90"
+                  liked ? "fill-white text-white" : "text-white/90"
                 )} 
               />
             </button>
@@ -99,7 +99,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
                 experienceData={experienceData}
                 onAdd={handleAddSuccess}
               >
-              <div className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-2xl border border-white/20 flex items-center justify-center shadow-lg cursor-pointer hover:bg-white/25 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-xl border border-black/30 flex items-center justify-center cursor-pointer hover:bg-black/30 transition-colors">
                   <Plus className="w-4 h-4 text-white/90" />
                 </div>
               </ItinerarySelector>

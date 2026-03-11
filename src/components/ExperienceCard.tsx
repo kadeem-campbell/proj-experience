@@ -132,16 +132,17 @@ export const ExperienceCard = ({
             onClick={handleLikeClick}
             onTouchEnd={handleLikeClick}
             className={cn(
-              "absolute top-2.5 right-2.5 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 active:scale-90",
-              "bg-white/15 backdrop-blur-2xl border border-white/20 shadow-lg",
-              "hover:bg-white/25",
-              liked && "bg-white/25"
+              "absolute top-2.5 right-2.5 flex items-center justify-center rounded-full transition-all duration-200 active:scale-90",
+              isMobile ? "w-7 h-7" : "w-8 h-8",
+              "bg-black/20 backdrop-blur-xl border border-black/30",
+              "hover:bg-black/30",
+              liked && "bg-black/30"
             )}
           >
             <Heart 
               className={cn(
                 "w-4 h-4 transition-all duration-200",
-                liked ? "fill-primary text-primary scale-110" : "text-white/90"
+                liked ? "fill-white text-white scale-110" : "text-white/90"
               )} 
             />
           </button>
@@ -157,9 +158,10 @@ export const ExperienceCard = ({
               onAdd={handleAddSuccess}
             >
               <button className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
-                "bg-white/15 backdrop-blur-2xl border border-white/20 shadow-lg",
-                "hover:bg-white/25"
+                "rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
+                isMobile ? "w-7 h-7" : "w-8 h-8",
+                "bg-black/20 backdrop-blur-xl border border-black/30",
+                "hover:bg-black/30"
               )}>
                 <Plus className="w-4 h-4 text-white/90" />
               </button>

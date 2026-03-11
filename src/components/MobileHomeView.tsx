@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check, Umbrella, Music, TreePine, Mountain, UtensilsCrossed } from "lucide-react";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -24,13 +24,11 @@ const mapCities = [
 const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
-  { label: "Beaches", category: "Beach" },
-  { label: "Nightlife", category: "Nightlife" },
-  { label: "Wildlife", category: "Wildlife" },
-  { label: "Adventure", category: "Adventure" },
-  { label: "Food", category: "Food" },
-  { label: "Culture", category: "Culture" },
-  { label: "Water Sports", category: "Water Sports" },
+  { label: "Beaches", category: "Beach", icon: Umbrella },
+  { label: "Nightlife", category: "Nightlife", icon: Music },
+  { label: "Wildlife", category: "Wildlife", icon: TreePine },
+  { label: "Adventure", category: "Adventure", icon: Mountain },
+  { label: "Food", category: "Food", icon: UtensilsCrossed },
 ];
 
 const rotatingPlaceholders = [
@@ -51,24 +49,36 @@ const CategoryFilterPills = ({
 }) => {
   return (
     <div className="px-4 pb-3">
-      <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-        <div className="inline-flex gap-2">
-          {filterCategories.map((cat) => (
+      <div className="flex justify-between">
+        {filterCategories.map((cat) => {
+          const Icon = cat.icon;
+          const isActive = activeCategory === cat.category;
+          return (
             <button
               key={cat.label}
-              onClick={() => onCategoryChange(activeCategory === cat.category ? "" : cat.category)}
-              className={cn(
-                "whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all active:scale-95",
-                activeCategory === cat.category
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-transparent border border-border text-muted-foreground"
-              )}
-              style={{ height: '36px' }}
+              onClick={() => onCategoryChange(isActive ? "" : cat.category)}
+              className="flex flex-col items-center gap-1.5 transition-all active:scale-95"
             >
-              {cat.label}
+              <div className={cn(
+                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                isActive 
+                  ? "bg-primary/15 border-2 border-primary" 
+                  : "bg-muted/60 border border-border/50"
+              )}>
+                <Icon className={cn(
+                  "w-5 h-5 transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )} />
+              </div>
+              <span className={cn(
+                "text-[11px] font-medium transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground"
+              )}>
+                {cat.label}
+              </span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -151,10 +161,11 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
           </div>
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all active:scale-90",
-          liked ? "bg-white/25" : "bg-white/15 border border-white/20 hover:bg-white/25"
+          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-xl transition-all active:scale-90",
+          "bg-black/20 border border-black/30",
+          liked ? "bg-black/30" : "hover:bg-black/30"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-white/90")} />
+          <Heart className={cn("w-4 h-4", liked ? "fill-white text-white" : "text-white/90")} />
         </button>
       </div>
       <div className="mt-2 space-y-0.5">
@@ -203,10 +214,11 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <div className="w-full h-full bg-gradient-to-br from-experience-color/20 to-experience-color/5" />
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all active:scale-90",
-          liked ? "bg-white/25" : "bg-white/15 border border-white/20 hover:bg-white/25"
+          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-xl transition-all active:scale-90",
+          "bg-black/20 border border-black/30",
+          liked ? "bg-black/30" : "hover:bg-black/30"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-white/90")} />
+          <Heart className={cn("w-4 h-4", liked ? "fill-white text-white" : "text-white/90")} />
         </button>
         <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
           <ItinerarySelector
