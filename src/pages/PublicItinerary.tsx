@@ -98,7 +98,7 @@ const timeSlotConfig: Record<TimeSlot, { label: string; emoji: string; icon: Rea
 };
 
 const PublicItinerary = () => {
-  const { id } = useParams();
+  const { slug: id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
