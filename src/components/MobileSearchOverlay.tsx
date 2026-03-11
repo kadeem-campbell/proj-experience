@@ -32,7 +32,7 @@ const categories = [
   { icon: catNature, label: "Nature" },
   { icon: catAdventure, label: "Adventure" },
   { icon: catFood, label: "Food" },
-  { icon: catSafari, label: "Safari" },
+  { icon: catNature, label: "Safari" },
 ];
 
 const allItinerariesData = getPopularItineraries();
