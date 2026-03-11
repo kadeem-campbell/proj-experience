@@ -147,7 +147,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
       onClick={() => navigate(`/itineraries/${itinerary.id}`)}
     >
       <div className="relative aspect-[3/2.5] rounded-xl overflow-hidden bg-muted">
