@@ -204,10 +204,11 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <div className="w-full h-full bg-gradient-to-br from-experience-color/20 to-experience-color/5" />
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all active:scale-90",
-          liked ? "bg-white/25" : "bg-white/15 border border-white/20 hover:bg-white/25"
+          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-xl transition-all active:scale-90",
+          "bg-black/20 border border-black/30",
+          liked ? "bg-black/30" : "hover:bg-black/30"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-white/90")} />
+          <Heart className={cn("w-4 h-4", liked ? "fill-white text-white" : "text-white/90")} />
         </button>
         <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
           <ItinerarySelector

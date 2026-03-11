@@ -158,9 +158,10 @@ export const ExperienceCard = ({
               onAdd={handleAddSuccess}
             >
               <button className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
-                "bg-white/15 backdrop-blur-2xl border border-white/20 shadow-lg",
-                "hover:bg-white/25"
+                "rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
+                isMobile ? "w-7 h-7" : "w-8 h-8",
+                "bg-black/20 backdrop-blur-xl border border-black/30",
+                "hover:bg-black/30"
               )}>
                 <Plus className="w-4 h-4 text-white/90" />
               </button>
