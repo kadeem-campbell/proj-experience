@@ -322,7 +322,8 @@ export const MobileSearchOverlay = ({
       </div>
 
       {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      <div className="flex-1 overflow-y-auto overscroll-contain" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style>{`.search-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
         {hasQuery ? (
           <>
             {/* Featured Itineraries row */}
