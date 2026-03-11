@@ -88,7 +88,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
               <Heart 
                 className={cn(
                   "w-4.5 h-4.5 transition-colors",
-                  liked ? "fill-destructive text-destructive" : "text-white/90"
+                  liked ? "fill-white text-white" : "text-white/90"
                 )} 
               />
             </button>
