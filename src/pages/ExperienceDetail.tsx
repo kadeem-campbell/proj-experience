@@ -270,17 +270,23 @@ export default function ExperienceDetail() {
 
   // Instant lookup - no loading state needed for cached data
   const experience = useMemo(() => {
-    // New SEO-friendly URL format: /experience/:location/:slug
-    if (locationParam && slug) {
-      const slugKey = `${locationParam}/${slug}`;
-      if (experienceMapBySlug.has(slugKey)) {
-        return experienceMapBySlug.get(slugKey);
+    // New URL format: /experiences/:slug
+    if (slug) {
+      if (experienceMapBySlug.has(slug)) {
+        return experienceMapBySlug.get(slug);
+      }
+    }
+    
+    // Legacy URL format: /experience/:location/:legacySlug
+    if (locationParam && legacySlug) {
+      // Try matching by title slug
+      if (experienceMapBySlug.has(legacySlug)) {
+        return experienceMapBySlug.get(legacySlug);
       }
     }
     
     // Legacy URL format: /experience/:id
     if (id) {
-      // Check pre-computed map first (instant)
       if (experienceMapById.has(id)) {
         return experienceMapById.get(id);
       }
@@ -310,7 +316,7 @@ export default function ExperienceDetail() {
     }
     
     return null;
-  }, [id, locationParam, slug, itineraries]);
+  }, [id, locationParam, legacySlug, slug, itineraries]);
 
   // Check if experience is in active itinerary
   const inItinerary = isInItinerary(experience?.id || '');

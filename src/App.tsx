@@ -40,9 +40,10 @@ const App = () => (
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Search />} />
-          {/* SEO-friendly URL: /experience/location/slug */}
-          <Route path="/experience/:location/:slug" element={<ExperienceDetail />} />
+          {/* Single experience - slug-based */}
+          <Route path="/experiences/:slug" element={<ExperienceDetail />} />
           {/* Legacy URL support */}
+          <Route path="/experience/:location/:legacySlug" element={<ExperienceDetail />} />
           <Route path="/experience/:id" element={<ExperienceDetail />} />
           <Route path="/creators" element={<Creators />} />
           <Route path="/create-experience" element={<CreateExperience />} />
@@ -58,9 +59,14 @@ const App = () => (
           <Route path="/search" element={<Search />} />
           <Route path="/discover" element={<Search />} />
           <Route path="/social-finder" element={<SocialFinder />} />
-          <Route path="/itineraries/:id" element={<PublicItinerary />} />
+          {/* Single itinerary - slug-based */}
+          <Route path="/itineraries/:slug" element={<PublicItinerary />} />
+          {/* Legacy */}
           <Route path="/public-itinerary/:id" element={<PublicItinerary />} />
           <Route path="/itineraries" element={<Itineraries />} />
+          {/* Collection pages */}
+          <Route path="/itinerary-collections/:slug" element={<Collection />} />
+          {/* Legacy collection support */}
           <Route path="/collections/:slug" element={<Collection />} />
           <Route path="/experiences" element={<Experiences />} />
           <Route path="/trip/:id" element={<Trip />} />
