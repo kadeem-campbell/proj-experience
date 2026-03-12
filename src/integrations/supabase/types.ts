@@ -177,6 +177,45 @@ export type Database = {
           },
         ]
       }
+      creators: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          social_links: Json | null
+          updated_at: string | null
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          social_links?: Json | null
+          updated_at?: string | null
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          social_links?: Json | null
+          updated_at?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
       experiences: {
         Row: {
           best_time: string | null
@@ -184,6 +223,7 @@ export type Database = {
           city_id: string | null
           created_at: string | null
           creator: string
+          creator_id: string | null
           description: string | null
           duration: string | null
           faqs: Json | null
@@ -193,6 +233,7 @@ export type Database = {
           id: string
           instagram_embed: string | null
           is_active: boolean | null
+          like_count: number | null
           location: string
           meeting_points: Json | null
           price: string | null
@@ -203,6 +244,7 @@ export type Database = {
           updated_at: string | null
           video_thumbnail: string | null
           video_url: string | null
+          view_count: number | null
           views: string | null
           weather: string | null
         }
@@ -212,6 +254,7 @@ export type Database = {
           city_id?: string | null
           created_at?: string | null
           creator?: string
+          creator_id?: string | null
           description?: string | null
           duration?: string | null
           faqs?: Json | null
@@ -221,6 +264,7 @@ export type Database = {
           id?: string
           instagram_embed?: string | null
           is_active?: boolean | null
+          like_count?: number | null
           location?: string
           meeting_points?: Json | null
           price?: string | null
@@ -231,6 +275,7 @@ export type Database = {
           updated_at?: string | null
           video_thumbnail?: string | null
           video_url?: string | null
+          view_count?: number | null
           views?: string | null
           weather?: string | null
         }
@@ -240,6 +285,7 @@ export type Database = {
           city_id?: string | null
           created_at?: string | null
           creator?: string
+          creator_id?: string | null
           description?: string | null
           duration?: string | null
           faqs?: Json | null
@@ -249,6 +295,7 @@ export type Database = {
           id?: string
           instagram_embed?: string | null
           is_active?: boolean | null
+          like_count?: number | null
           location?: string
           meeting_points?: Json | null
           price?: string | null
@@ -259,6 +306,7 @@ export type Database = {
           updated_at?: string | null
           video_thumbnail?: string | null
           video_url?: string | null
+          view_count?: number | null
           views?: string | null
           weather?: string | null
         }
@@ -270,6 +318,13 @@ export type Database = {
             referencedRelation: "cities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "experiences_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
         ]
       }
       itineraries: {
@@ -278,6 +333,7 @@ export type Database = {
           collaborators: string[] | null
           cover_image: string | null
           created_at: string | null
+          creator_id: string | null
           experiences: Json | null
           id: string
           is_public: boolean | null
@@ -294,6 +350,7 @@ export type Database = {
           collaborators?: string[] | null
           cover_image?: string | null
           created_at?: string | null
+          creator_id?: string | null
           experiences?: Json | null
           id?: string
           is_public?: boolean | null
@@ -310,6 +367,7 @@ export type Database = {
           collaborators?: string[] | null
           cover_image?: string | null
           created_at?: string | null
+          creator_id?: string | null
           experiences?: Json | null
           id?: string
           is_public?: boolean | null
@@ -321,7 +379,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "itineraries_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -352,6 +418,75 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      public_itineraries: {
+        Row: {
+          city_id: string | null
+          cover_image: string | null
+          created_at: string | null
+          creator_id: string | null
+          description: string | null
+          experiences: Json | null
+          id: string
+          is_active: boolean | null
+          like_count: number | null
+          name: string
+          slug: string
+          tag: string | null
+          trips: Json | null
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          city_id?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          experiences?: Json | null
+          id?: string
+          is_active?: boolean | null
+          like_count?: number | null
+          name: string
+          slug: string
+          tag?: string | null
+          trips?: Json | null
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          city_id?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          experiences?: Json | null
+          id?: string
+          is_active?: boolean | null
+          like_count?: number | null
+          name?: string
+          slug?: string
+          tag?: string | null
+          trips?: Json | null
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_itineraries_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_itineraries_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_likes: {
         Row: {
