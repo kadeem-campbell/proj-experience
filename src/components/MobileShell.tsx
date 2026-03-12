@@ -185,7 +185,7 @@ const CitySelectorSheet = ({
   </Sheet>
 );
 
-// City button - Map icon default, Tanzania flag + airport code when active
+// City button - Map icon default, Tanzania flag with code underneath when active
 const CityButton = ({ selectedCity, onTap }: { selectedCity: string; onTap: () => void }) => {
   const code = selectedCity ? cityCodeMap[selectedCity] : "";
   const isActive = !!selectedCity;
@@ -193,17 +193,17 @@ const CityButton = ({ selectedCity, onTap }: { selectedCity: string; onTap: () =
   return (
     <button
       onClick={onTap}
-      className="w-9 h-9 rounded-full flex items-center justify-center relative overflow-hidden transition-all"
+      className="flex flex-col items-center justify-center gap-0.5 transition-all"
     >
       {isActive ? (
-        <div className="w-full h-full rounded-full relative overflow-hidden shadow-sm">
-          <TanzaniaFlag className="absolute inset-0 w-full h-full" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[10px] font-extrabold text-white tracking-wider drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-              {code}
-            </span>
+        <>
+          <div className="w-7 h-7 rounded-full relative overflow-hidden shadow-sm">
+            <TanzaniaFlag className="absolute inset-0 w-full h-full" />
           </div>
-        </div>
+          <span className="text-[8px] font-bold text-foreground tracking-wide leading-none">
+            {code}
+          </span>
+        </>
       ) : (
         <Map className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
       )}
