@@ -205,6 +205,7 @@ export const MobileSearchOverlay = ({
 }: MobileSearchOverlayProps) => {
   const navigate = useNavigate();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState("");
 
   const savedScrollRef = useRef(0);
 
