@@ -36,7 +36,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
     id: row.slug || row.id,
     name: row.name,
     slug: row.slug,
-    experiences: Array.isArray(row.experiences) ? row.experiences : [],
+    experiences: Array.isArray(row.experiences) ? row.experiences : (typeof row.experiences === 'string' ? JSON.parse(row.experiences) : []),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     isPublic: true,
