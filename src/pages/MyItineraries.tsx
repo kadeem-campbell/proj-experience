@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart } from "lucide-react";
+import { AuthModal } from "@/components/AuthModal";
 import { slugify } from "@/utils/slugUtils";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { useItineraries } from "@/hooks/useItineraries";
@@ -237,6 +238,8 @@ const MyItinerariesPage = () => {
   // Count of added experiences
   const addedCount = addedIds.size;
 
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   if (!isAuthenticated) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
     return (
@@ -245,11 +248,12 @@ const MyItinerariesPage = () => {
           <Layers className="w-16 h-16 text-muted-foreground/30 mb-4" />
           <h2 className="text-xl font-bold mb-2">Your Itineraries</h2>
           <p className="text-sm text-muted-foreground text-center mb-6">Create and manage your travel itineraries</p>
-          <Button onClick={() => navigate('/auth')} className="rounded-full px-8 mb-3">
+          <Button onClick={() => setShowAuthModal(true)} className="rounded-full px-8 mb-3">
             <Plus className="w-4 h-4 mr-2" />
             Create Itinerary
           </Button>
           <p className="text-xs text-muted-foreground">Sign in to get started</p>
+          <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
         </div>
       </Wrapper>
     );

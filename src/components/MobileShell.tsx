@@ -4,12 +4,26 @@ import { Home, Search, ListMusic, User, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 const cityCodeMap: Record<string, string> = {
   "Zanzibar": "ZNZ",
   "Dar es Salaam": "DAR",
 };
+
+const availableCities = [
+  { name: "Zanzibar", code: "ZNZ" },
+  { name: "Dar es Salaam", code: "DAR" },
+];
+
+const comingSoonCities = [
+  { name: "Nairobi", date: "Apr 2026" },
+  { name: "Kigali", date: "May 2026" },
+  { name: "Kampala", date: "May 2026" },
+  { name: "Entebbe", date: "Jun 2026" },
+  { name: "Addis Ababa", date: "Jun 2026" },
+];
 
 // Persist city globally via localStorage
 const getPersistedCity = (): string => {
@@ -18,6 +32,19 @@ const getPersistedCity = (): string => {
 const persistCity = (city: string) => {
   try { if (city) localStorage.setItem("swam_selected_city", city); else localStorage.removeItem("swam_selected_city"); } catch {}
 };
+
+// Real Tanzania flag SVG as inline component (from hatscripts/circle-flags)
+const TanzaniaFlag = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className={className}>
+    <mask id="tz-mask"><circle cx="256" cy="256" r="256" fill="#fff" /></mask>
+    <g mask="url(#tz-mask)">
+      <path fill="#ffda44" d="M399 0 0 399v45l68 68h45l399-399V68L444 0z" />
+      <path fill="#333" d="M444 0 0 444v68h68L512 68V0z" />
+      <path fill="#338af3" d="m113 512 399-399v399z" />
+      <path fill="#6da544" d="M0 399V0h399z" />
+    </g>
+  </svg>
+);
 
 // Fixed bottom navigation bar
 const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () => void; isSearchOpen: boolean }) => {
@@ -87,30 +114,95 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   );
 };
 
-// City button - Map icon default, flat-vector Tanzania flag + airport code when active
-const CityButton = ({ selectedCity }: { selectedCity: string }) => {
-  const navigate = useNavigate();
+// City selector sheet - slides in from right
+const CitySelectorSheet = ({ 
+  open, onOpenChange, selectedCity, onCityChange 
+}: { 
+  open: boolean; onOpenChange: (v: boolean) => void; selectedCity: string; onCityChange: (city: string) => void;
+}) => (
+  <Sheet open={open} onOpenChange={onOpenChange}>
+    <SheetContent side="right" className="w-[320px] p-0 border-l border-border">
+      <div className="px-5 pt-6 pb-4">
+        <h2 className="text-lg font-bold text-foreground mb-1">Select city</h2>
+        <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
+        
+        <div className="space-y-2 mb-6">
+          {availableCities.map((city) => {
+            const isSelected = selectedCity === city.name;
+            return (
+              <button
+                key={city.name}
+                onClick={() => {
+                  onCityChange(isSelected ? "" : city.name);
+                }}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left active:scale-[0.98]",
+                  isSelected
+                    ? "bg-primary/10 border border-primary/30"
+                    : "bg-card border border-border/60"
+                )}
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-sm">
+                  <TanzaniaFlag className="w-full h-full" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={cn("font-semibold text-sm", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
+                  <p className="text-xs text-muted-foreground">{city.code}</p>
+                </div>
+                {isSelected && (
+                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mb-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Coming soon</p>
+        </div>
+        <div className="space-y-1.5">
+          {comingSoonCities.map((city) => (
+            <div
+              key={city.name}
+              className="flex items-center gap-3 p-3 rounded-xl opacity-50"
+            >
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                <Map className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">{city.name}</p>
+              </div>
+              <span className="text-[10px] text-muted-foreground">{city.date}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </SheetContent>
+  </Sheet>
+);
+
+// City button - Map icon default, Tanzania flag + airport code when active
+const CityButton = ({ selectedCity, onTap }: { selectedCity: string; onTap: () => void }) => {
   const code = selectedCity ? cityCodeMap[selectedCity] : "";
   const isActive = !!selectedCity;
 
   return (
     <button
-      onClick={() => navigate("/map")}
+      onClick={onTap}
       className="w-9 h-9 rounded-full flex items-center justify-center relative overflow-hidden transition-all"
     >
       {isActive ? (
-        <div className="w-full h-full rounded-full bg-muted flex flex-col items-center justify-center relative">
-          {/* Flat-vector Tanzania flag colors as background bands */}
-          <div className="absolute inset-0 rounded-full overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[35%] bg-[hsl(152,72%,42%)]" />
-            <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-[hsl(199,100%,44%)]" />
-            <div className="absolute top-[30%] left-0 right-0 h-[40%] bg-[hsl(0,0%,10%)]" />
-            <div className="absolute top-[28%] left-0 right-0 h-[3px] bg-[hsl(47,97%,53%)]" />
-            <div className="absolute top-[68%] left-0 right-0 h-[3px] bg-[hsl(47,97%,53%)]" />
+        <div className="w-full h-full rounded-full relative overflow-hidden shadow-sm">
+          <TanzaniaFlag className="absolute inset-0 w-full h-full" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[10px] font-extrabold text-white tracking-wider drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              {code}
+            </span>
           </div>
-          <span className="relative z-10 text-[11px] font-extrabold text-white tracking-wider drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
-            {code}
-          </span>
         </div>
       ) : (
         <Map className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
@@ -124,10 +216,12 @@ const MobileTopBar = ({
   selectedCity,
   hideAvatar = false,
   notFixed = false,
+  onCityTap,
 }: {
   selectedCity: string;
   hideAvatar?: boolean;
   notFixed?: boolean;
+  onCityTap: () => void;
 }) => {
   const navigate = useNavigate();
 
@@ -141,7 +235,7 @@ const MobileTopBar = ({
           <button onClick={() => navigate('/')} className="text-[22px] tracking-[-0.03em] text-foreground" style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}>
             swam<span className="text-primary font-extrabold">.app</span>
           </button>
-          <CityButton selectedCity={selectedCity} />
+          <CityButton selectedCity={selectedCity} onTap={onCityTap} />
         </div>
       </div>
     </div>
@@ -198,13 +292,14 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
     navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
   }, [navigate, location.pathname]);
 
-  // Scroll to top on route change, except homepage
+  // Scroll to top on ALL route changes (every tab switch)
   useEffect(() => {
-    if (location.pathname !== '/') {
-      window.scrollTo(0, 0);
-      document.querySelector('main')?.scrollTo(0, 0);
-    }
+    window.scrollTo(0, 0);
+    document.querySelector('main')?.scrollTo(0, 0);
   }, [location.pathname]);
+
+  // City selector sheet state
+  const [citySelectorOpen, setCitySelectorOpen] = useState(false);
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
@@ -218,11 +313,19 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
         onCityChange={handleCityChange}
       />
 
+      <CitySelectorSheet
+        open={citySelectorOpen}
+        onOpenChange={setCitySelectorOpen}
+        selectedCity={selectedCity}
+        onCityChange={handleCityChange}
+      />
+
       {!hideTopBar && (
         <MobileTopBar
           selectedCity={selectedCity}
           hideAvatar={hideAvatar}
           notFixed={notFixed}
+          onCityTap={() => setCitySelectorOpen(true)}
         />
       )}
 
