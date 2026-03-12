@@ -14,10 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          emoji: string | null
+          icon_image: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          emoji?: string | null
+          icon_image?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          emoji?: string | null
+          icon_image?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
+      cities: {
+        Row: {
+          airport_code: string | null
+          country: string
+          cover_image: string | null
+          created_at: string | null
+          flag_emoji: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          airport_code?: string | null
+          country?: string
+          cover_image?: string | null
+          created_at?: string | null
+          flag_emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          airport_code?: string | null
+          country?: string
+          cover_image?: string | null
+          created_at?: string | null
+          flag_emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      collection_items: {
+        Row: {
+          collection_id: string
+          created_at: string | null
+          id: string
+          item_id: string
+          item_type: string
+          position: number | null
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string | null
+          id?: string
+          item_id: string
+          item_type?: string
+          position?: number | null
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          city_id: string | null
+          collection_type: string
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          tag: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          city_id?: string | null
+          collection_type?: string
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          tag?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          city_id?: string | null
+          collection_type?: string
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          tag?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       experiences: {
         Row: {
           best_time: string | null
           category: string
+          city_id: string | null
           created_at: string | null
           creator: string
           description: string | null
@@ -45,6 +209,7 @@ export type Database = {
         Insert: {
           best_time?: string | null
           category?: string
+          city_id?: string | null
           created_at?: string | null
           creator?: string
           description?: string | null
@@ -72,6 +237,7 @@ export type Database = {
         Update: {
           best_time?: string | null
           category?: string
+          city_id?: string | null
           created_at?: string | null
           creator?: string
           description?: string | null
@@ -96,7 +262,15 @@ export type Database = {
           views?: string | null
           weather?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "experiences_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       itineraries: {
         Row: {
