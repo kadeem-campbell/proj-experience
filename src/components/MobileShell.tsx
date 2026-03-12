@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, ReactNode } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Home, Search, ListMusic, User, MapPin } from "lucide-react";
+import { Home, Search, ListMusic, User, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
@@ -87,25 +87,7 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   );
 };
 
-// Tanzania flag SVG circle background
-const TanzaniaFlagCircle = () => (
-  <svg viewBox="0 0 36 36" className="w-full h-full absolute inset-0">
-    <clipPath id="tzCircle"><circle cx="18" cy="18" r="18" /></clipPath>
-    <g clipPath="url(#tzCircle)">
-      {/* Green top-left triangle */}
-      <polygon points="0,0 36,0 0,36" fill="#1EB53A" />
-      {/* Blue bottom-right triangle */}
-      <polygon points="36,0 36,36 0,36" fill="#00A3DD" />
-      {/* Black diagonal stripe */}
-      <polygon points="0,28 0,36 8,36 36,8 36,0 28,0" fill="#000" />
-      {/* Yellow borders of black stripe */}
-      <polygon points="0,24 0,28 28,0 24,0" fill="#FCD116" />
-      <polygon points="8,36 12,36 36,12 36,8" fill="#FCD116" />
-    </g>
-  </svg>
-);
-
-// City button - Map icon when unselected, Tanzania flag + code when selected
+// City button - Map icon default, flat-vector Tanzania flag + airport code when active
 const CityButton = ({ selectedCity }: { selectedCity: string }) => {
   const navigate = useNavigate();
   const code = selectedCity ? cityCodeMap[selectedCity] : "";
@@ -114,20 +96,24 @@ const CityButton = ({ selectedCity }: { selectedCity: string }) => {
   return (
     <button
       onClick={() => navigate("/map")}
-      className={cn(
-        "w-9 h-9 rounded-full flex items-center justify-center relative overflow-hidden transition-all",
-        isActive ? "ring-2 ring-primary" : ""
-      )}
+      className="w-9 h-9 rounded-full flex items-center justify-center relative overflow-hidden transition-all"
     >
       {isActive ? (
-        <>
-          <TanzaniaFlagCircle />
-          <span className="relative z-10 text-[10px] font-extrabold text-white tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+        <div className="w-full h-full rounded-full bg-muted flex flex-col items-center justify-center relative">
+          {/* Flat-vector Tanzania flag colors as background bands */}
+          <div className="absolute inset-0 rounded-full overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[35%] bg-[hsl(152,72%,42%)]" />
+            <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-[hsl(199,100%,44%)]" />
+            <div className="absolute top-[30%] left-0 right-0 h-[40%] bg-[hsl(0,0%,10%)]" />
+            <div className="absolute top-[28%] left-0 right-0 h-[3px] bg-[hsl(47,97%,53%)]" />
+            <div className="absolute top-[68%] left-0 right-0 h-[3px] bg-[hsl(47,97%,53%)]" />
+          </div>
+          <span className="relative z-10 text-[11px] font-extrabold text-white tracking-wider drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">
             {code}
           </span>
-        </>
+        </div>
       ) : (
-        <MapPin className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
+        <Map className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
       )}
     </button>
   );
