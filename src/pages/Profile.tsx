@@ -11,6 +11,7 @@ import { useItineraries } from "@/hooks/useItineraries";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { supabase } from "@/integrations/supabase/client";
 import { MobileShell } from "@/components/MobileShell";
+import { AuthModal } from "@/components/AuthModal";
 import { 
   Camera, Check, Heart, MapPin, Loader2, User, Mail, AtSign, 
   Layers, Settings, LogOut, ChevronRight
