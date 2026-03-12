@@ -179,6 +179,46 @@ const PublicItinerary = () => {
   const itinerary = publicItinerary || ownedItinerary;
   const isOwned = !!ownedItinerary && !publicItinerary;
 
+  // Load DB trips for owned itineraries into generatedTrips format
+  useEffect(() => {
+    if (isOwned && ownedItinerary?.trips && ownedItinerary.trips.length > 0 && generatedTrips.length === 0) {
+      const converted = ownedItinerary.trips.map((trip: any) => {
+        // Convert Trip format (experiences array with scheduledTime) to days format
+        const days: Record<string, LikedExperience[]> = {};
+        if (trip.startDate) {
+          const start = new Date(trip.startDate);
+          const end = trip.endDate ? new Date(trip.endDate) : start;
+          const numDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+          for (let d = 0; d < numDays; d++) {
+            const dayKey = format(addDays(start, d), "yyyy-MM-dd");
+            days[dayKey] = [];
+          }
+          // Place experiences into their scheduled days
+          (trip.experiences || []).forEach((exp: LikedExperience) => {
+            if (exp.scheduledTime) {
+              const dayKey = format(new Date(exp.scheduledTime), "yyyy-MM-dd");
+              if (days[dayKey]) {
+                days[dayKey].push(exp);
+              } else {
+                days[dayKey] = [exp];
+              }
+            } else {
+              // Unscheduled - put in first available day
+              const firstDay = Object.keys(days).sort()[0];
+              if (firstDay) days[firstDay].push(exp);
+            }
+          });
+        } else {
+          // No dates - put all in a single day
+          const dayKey = format(new Date(), "yyyy-MM-dd");
+          days[dayKey] = trip.experiences || [];
+        }
+        return { id: trip.id, name: trip.name, days };
+      });
+      setGeneratedTrips(converted);
+    }
+  }, [isOwned, ownedItinerary]);
+
   const itineraryLocation = useMemo(() => {
     if (!itinerary) return '';
     const locations = itinerary.experiences.map(e => e.location).filter(Boolean);
