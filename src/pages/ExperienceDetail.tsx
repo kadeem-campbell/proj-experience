@@ -930,11 +930,8 @@ export default function ExperienceDetail() {
 
                 {/* Prices per person */}
                 <div className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="w-5 h-5 text-primary" />
-                    <p className="text-sm font-semibold">Prices per person</p>
-                  </div>
-                  <span className="text-2xl font-bold text-foreground">{(experience.price || "$15 - $75").replace(/^\$/, '')}</span>
+                  <p className="text-sm font-semibold mb-2">Prices per person</p>
+                  <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
                 </div>
 
                 {/* In Your Itineraries */}
