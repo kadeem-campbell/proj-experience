@@ -937,10 +937,7 @@ export default function ExperienceDetail() {
                     <DollarSign className="w-5 h-5 text-primary" />
                     <p className="text-sm font-semibold">Prices per person</p>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
-                    <span className="text-sm text-muted-foreground">average</span>
-                  </div>
+                  <span className="text-2xl font-bold text-foreground">{(experience.price || "$15 - $75").replace(/^\$/, '')}</span>
                 </div>
 
                 {/* In Your Itineraries */}
