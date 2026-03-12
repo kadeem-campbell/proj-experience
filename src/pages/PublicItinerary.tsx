@@ -179,6 +179,46 @@ const PublicItinerary = () => {
   const itinerary = publicItinerary || ownedItinerary;
   const isOwned = !!ownedItinerary && !publicItinerary;
 
+  // Load DB trips for owned itineraries into generatedTrips format
+  useEffect(() => {
+    if (isOwned && ownedItinerary?.trips && ownedItinerary.trips.length > 0 && generatedTrips.length === 0) {
+      const converted = ownedItinerary.trips.map((trip: any) => {
+        // Convert Trip format (experiences array with scheduledTime) to days format
+        const days: Record<string, LikedExperience[]> = {};
+        if (trip.startDate) {
+          const start = new Date(trip.startDate);
+          const end = trip.endDate ? new Date(trip.endDate) : start;
+          const numDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+          for (let d = 0; d < numDays; d++) {
+            const dayKey = format(addDays(start, d), "yyyy-MM-dd");
+            days[dayKey] = [];
+          }
+          // Place experiences into their scheduled days
+          (trip.experiences || []).forEach((exp: LikedExperience) => {
+            if (exp.scheduledTime) {
+              const dayKey = format(new Date(exp.scheduledTime), "yyyy-MM-dd");
+              if (days[dayKey]) {
+                days[dayKey].push(exp);
+              } else {
+                days[dayKey] = [exp];
+              }
+            } else {
+              // Unscheduled - put in first available day
+              const firstDay = Object.keys(days).sort()[0];
+              if (firstDay) days[firstDay].push(exp);
+            }
+          });
+        } else {
+          // No dates - put all in a single day
+          const dayKey = format(new Date(), "yyyy-MM-dd");
+          days[dayKey] = trip.experiences || [];
+        }
+        return { id: trip.id, name: trip.name, days };
+      });
+      setGeneratedTrips(converted);
+    }
+  }, [isOwned, ownedItinerary]);
+
   const itineraryLocation = useMemo(() => {
     if (!itinerary) return '';
     const locations = itinerary.experiences.map(e => e.location).filter(Boolean);
@@ -721,18 +761,12 @@ const PublicItinerary = () => {
         <div className="text-center py-12 px-4">
           <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground mb-2">No trips yet</p>
-          <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch or use an existing public trip as a starting point.</p>
+          <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch to start planning.</p>
           <div className="flex flex-col gap-2 max-w-[240px] mx-auto">
             <Button onClick={() => { setTripStartDate(undefined); setTripEndDate(undefined); setShowCreateTripSheet(true); }} className="gap-2 w-full">
               <Plus className="w-4 h-4" />
               Create trip
             </Button>
-            {browsablePublicTrips.length > 0 && (
-              <Button variant="outline" onClick={() => setShowBrowsePublicTrips(true)} className="gap-2 w-full">
-                <Globe className="w-4 h-4" />
-                Browse public trips
-              </Button>
-            )}
           </div>
         </div>
       );

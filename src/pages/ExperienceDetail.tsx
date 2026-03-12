@@ -621,11 +621,8 @@ export default function ExperienceDetail() {
 
             {/* Prices per person */}
             <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
-              <div className="flex items-center gap-2 mb-2">
-                <DollarSign className="w-5 h-5 text-primary" />
-                <h3 className="text-base font-semibold">Prices per person</h3>
-              </div>
-              <span className="text-2xl font-bold text-foreground">{(experience.price || "15 - 75").replace(/\$/g, '')}</span>
+              <h3 className="text-base font-semibold mb-2">Prices per person</h3>
+              <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
             </div>
 
             {/* Social Video Embeds */}
@@ -933,11 +930,8 @@ export default function ExperienceDetail() {
 
                 {/* Prices per person */}
                 <div className="rounded-2xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="w-5 h-5 text-primary" />
-                    <p className="text-sm font-semibold">Prices per person</p>
-                  </div>
-                  <span className="text-2xl font-bold text-foreground">{(experience.price || "$15 - $75").replace(/^\$/, '')}</span>
+                  <p className="text-sm font-semibold mb-2">Prices per person</p>
+                  <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
                 </div>
 
                 {/* In Your Itineraries */}
