@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
+import { usePublicItineraries, usePopularItineraries, useFaveItineraries } from "@/hooks/usePublicItineraries";
 import { ArrowLeft, Search, Users, Heart, Layers } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";

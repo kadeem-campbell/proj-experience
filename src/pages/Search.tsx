@@ -12,7 +12,7 @@ import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { Button } from "@/components/ui/button";
 import { City, cities as browseDataCities } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { allExperiences } from "@/hooks/useExperiencesData";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { Compass, Map, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 

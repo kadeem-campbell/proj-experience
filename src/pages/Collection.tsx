@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
-import { publicItinerariesData } from "@/data/itinerariesData";
+import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { ArrowLeft, Layers, Heart, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";

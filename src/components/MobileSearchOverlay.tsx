@@ -3,8 +3,8 @@ import { Search, X, Layers, Heart, MapPin, Plus, SlidersHorizontal, Check } from
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
 import { useNavigate } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
-import { allExperiences } from "@/hooks/useExperiencesData";
-import { getPopularItineraries } from "@/data/itinerariesData";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
+import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { cn } from "@/lib/utils";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
