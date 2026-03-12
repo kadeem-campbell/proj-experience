@@ -242,27 +242,43 @@ export const MobileSearchOverlay = ({
 
   const q = normalize(searchQuery);
   const terms = q.split(" ").filter(t => t.length > 1);
-  const hasQuery = terms.length > 0;
+  const hasQuery = terms.length > 0 || activeCategory !== "";
 
   const liveExperiences = useMemo(() => {
-    if (!hasQuery) return [];
-    return allExpsData.filter(e => {
-      const fields = normalize([e.title, e.location, e.category, e.creator].join(" "));
-      return terms.some(t => termMatch(t, fields));
-    });
-  }, [q]);
+    let filtered = allExpsData;
+    if (activeCategory) {
+      const mappedCat = categoryToSearchCategory[activeCategory] || activeCategory;
+      filtered = filtered.filter(e => e.category === mappedCat);
+    }
+    if (terms.length > 0) {
+      filtered = filtered.filter(e => {
+        const fields = normalize([e.title, e.location, e.category, e.creator].join(" "));
+        return terms.some(t => termMatch(t, fields));
+      });
+    }
+    return filtered;
+  }, [q, activeCategory]);
 
   const liveItineraries = useMemo(() => {
-    if (!hasQuery) return [];
-    return allItinerariesData.filter(it => {
-      const fields = normalize([it.name, it.creatorName].join(" "));
-      const expMatch = it.experiences?.some((exp: any) => {
-        const ef = normalize([exp.title, exp.location, exp.category].join(" "));
-        return terms.some(t => termMatch(t, ef));
+    let filtered = allItinerariesData;
+    if (activeCategory) {
+      const mappedCat = categoryToSearchCategory[activeCategory] || activeCategory;
+      filtered = filtered.filter(it =>
+        it.experiences?.some((exp: any) => exp.category === mappedCat)
+      );
+    }
+    if (terms.length > 0) {
+      filtered = filtered.filter(it => {
+        const fields = normalize([it.name, it.creatorName].join(" "));
+        const expMatch = it.experiences?.some((exp: any) => {
+          const ef = normalize([exp.title, exp.location, exp.category].join(" "));
+          return terms.some(t => termMatch(t, ef));
+        });
+        return terms.some(t => termMatch(t, fields)) || expMatch;
       });
-      return terms.some(t => termMatch(t, fields)) || expMatch;
-    });
-  }, [q]);
+    }
+    return filtered;
+  }, [q, activeCategory]);
 
   // More from the same category as top result
   const relatedExperiences = useMemo(() => {
