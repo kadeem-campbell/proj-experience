@@ -614,7 +614,7 @@ export default function ExperienceDetail() {
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                 <CloudSun className="w-4 h-4 text-primary" />
-                <span className="font-medium">{experience.weather || `Best: ${experience.bestTime}`}</span>
+                <span className="font-medium">{(experience.weather || `Best: ${experience.bestTime}`).replace(/[^\w\s,°·\-–—.]/g, '').trim()}</span>
               </div>
             </div>
 
