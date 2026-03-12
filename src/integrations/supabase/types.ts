@@ -89,6 +89,45 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_experiences: {
+        Row: {
+          collection_id: string
+          created_at: string | null
+          display_order: number | null
+          experience_id: string
+          id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string | null
+          display_order?: number | null
+          experience_id: string
+          id?: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          experience_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_experiences_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_experiences_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_items: {
         Row: {
           collection_id: string
@@ -138,6 +177,7 @@ export type Database = {
           slug: string
           tag: string | null
           updated_at: string | null
+          url: string | null
         }
         Insert: {
           city_id?: string | null
@@ -152,6 +192,7 @@ export type Database = {
           slug: string
           tag?: string | null
           updated_at?: string | null
+          url?: string | null
         }
         Update: {
           city_id?: string | null
@@ -166,6 +207,7 @@ export type Database = {
           slug?: string
           tag?: string | null
           updated_at?: string | null
+          url?: string | null
         }
         Relationships: [
           {
@@ -250,6 +292,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "experience_faqs_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      experience_photos: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          display_order: number | null
+          experience_id: string
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          experience_id: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          experience_id?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_photos_experience_id_fkey"
             columns: ["experience_id"]
             isOneToOne: false
             referencedRelation: "experiences"
@@ -433,6 +516,48 @@ export type Database = {
           },
         ]
       }
+      itinerary_experiences: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          experience_id: string
+          id: string
+          itinerary_id: string | null
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          experience_id: string
+          id?: string
+          itinerary_id?: string | null
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          experience_id?: string
+          id?: string
+          itinerary_id?: string | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_experiences_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itinerary_experiences_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "public_itineraries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -479,6 +604,7 @@ export type Database = {
           tag: string | null
           trips: Json | null
           updated_at: string | null
+          url: string | null
           view_count: number | null
         }
         Insert: {
@@ -496,6 +622,7 @@ export type Database = {
           tag?: string | null
           trips?: Json | null
           updated_at?: string | null
+          url?: string | null
           view_count?: number | null
         }
         Update: {
@@ -513,6 +640,7 @@ export type Database = {
           tag?: string | null
           trips?: Json | null
           updated_at?: string | null
+          url?: string | null
           view_count?: number | null
         }
         Relationships: [
