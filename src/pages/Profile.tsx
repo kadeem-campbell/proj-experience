@@ -83,7 +83,7 @@ const ProfilePage = () => {
               Sign in with Google, Apple, or email
             </p>
 
-            <AuthModalComponent open={showAuthModal} onOpenChange={setShowAuthModal} />
+            <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
           </div>
         </MobileShell>
       );
