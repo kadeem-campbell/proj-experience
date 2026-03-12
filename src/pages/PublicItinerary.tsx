@@ -136,6 +136,7 @@ const PublicItinerary = () => {
   const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
   const [showBrowsePublicTrips, setShowBrowsePublicTrips] = useState(false);
   const [previewingPublicTrip, setPreviewingPublicTrip] = useState<{ itinerary: typeof publicItinerariesData[0]; tripIdx: number } | null>(null);
+  const [showEditTripDates, setShowEditTripDates] = useState(false);
   
   // Auth
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -235,7 +236,7 @@ const PublicItinerary = () => {
     return itineraries.filter(i => i.name.toLowerCase().includes(q));
   }, [itineraries, addItinerarySearch]);
 
-  // --- Preset public trip examples (2 trips, named first-to-last activity) ---
+  // --- Preset public trip examples (2 trips per public itinerary, named first-to-last) ---
   const publicTripExamples = useMemo(() => {
     if (!itinerary) return [];
     const exps = itinerary.experiences;
@@ -245,18 +246,35 @@ const PublicItinerary = () => {
     const trip2Exps = exps.slice(mid);
     const trips = [
       { 
-        label: `${trip1Exps[0]?.title || 'Start'} to ${trip1Exps[trip1Exps.length - 1]?.title || 'End'}`,
+        label: `${trip1Exps[0]?.title || 'Start'} – ${trip1Exps[trip1Exps.length - 1]?.title || 'End'}`,
         experiences: trip1Exps 
       },
     ];
     if (trip2Exps.length > 0) {
       trips.push({
-        label: `${trip2Exps[0]?.title || 'Start'} to ${trip2Exps[trip2Exps.length - 1]?.title || 'End'}`,
+        label: `${trip2Exps[0]?.title || 'Start'} – ${trip2Exps[trip2Exps.length - 1]?.title || 'End'}`,
         experiences: trip2Exps
       });
     }
     return trips;
   }, [itinerary]);
+
+  // Browse public trips: generate 2 trips per public itinerary, only include those with enough experiences
+  const browsablePublicTrips = useMemo(() => {
+    return publicItinerariesData
+      .filter(pub => pub.experiences.length >= 4) // need enough for 2 trips
+      .map(pub => {
+        const exps = pub.experiences;
+        const mid = Math.ceil(exps.length / 2);
+        return {
+          itinerary: pub,
+          trips: [
+            { label: `${exps[0]?.title || 'Start'} – ${exps[mid - 1]?.title || 'End'}`, experiences: exps.slice(0, mid) },
+            { label: `${exps[mid]?.title || 'Start'} – ${exps[exps.length - 1]?.title || 'End'}`, experiences: exps.slice(mid) },
+          ],
+        };
+      });
+  }, []);
 
   // Loading / not found states
   if (!itinerary && itinerariesLoading) {
@@ -414,7 +432,11 @@ const PublicItinerary = () => {
       }
     }
     const tripId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7);
-    const tripName = `${format(startDate, "MMM d")}${endDate ? ` – ${format(endDate, "MMM d")}` : ''}`;
+    // Name trip by first and last experience
+    const allTripExps = Object.values(tripDays).flat();
+    const firstName = allTripExps[0]?.title || 'Start';
+    const lastName = allTripExps[allTripExps.length - 1]?.title || 'End';
+    const tripName = `${firstName} – ${lastName}`;
     setTimeout(() => {
       setGeneratedTrips(prev => {
         const next = [...prev, { id: tripId, name: tripName, days: tripDays }];
@@ -685,180 +707,177 @@ const PublicItinerary = () => {
       );
     }
 
-    // OWNED: show generated trips with actual dates, or empty state
-    if (generatedTrips.length > 0 && activeTripIndex >= 0 && activeTripIndex < generatedTrips.length) {
-      const activeTrip = generatedTrips[activeTripIndex];
-      const sortedDays = Object.entries(activeTrip.days).sort(([a], [b]) => a.localeCompare(b));
+    // OWNED: show trip switcher always when trips exist
+    const hasTrips = generatedTrips.length > 0;
+    const hasActiveTrip = hasTrips && activeTripIndex >= 0 && activeTripIndex < generatedTrips.length;
+    const activeTrip = hasActiveTrip ? generatedTrips[activeTripIndex] : null;
+    const sortedDays = activeTrip ? Object.entries(activeTrip.days).sort(([a], [b]) => a.localeCompare(b)) : [];
+    const tripDateRange = sortedDays.length > 0
+      ? { start: new Date(sortedDays[0][0]), end: new Date(sortedDays[sortedDays.length - 1][0]) }
+      : null;
+
+    if (!hasTrips) {
       return (
-        <div className="px-4 py-4">
-          {/* Auto-save banner */}
-          {showAutoSave && (
-            <div className="flex items-center gap-2 px-3 py-2 mb-3 rounded-lg bg-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
-              <Check className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs text-primary font-medium">Auto-saved</span>
-            </div>
-          )}
-          
-          {/* Trip switcher with deselect + delete */}
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
-            {generatedTrips.map((trip, idx) => (
-              <div key={trip.id} className="shrink-0 flex items-center gap-0.5">
-                <button
-                  onClick={() => setActiveTripIndex(idx === activeTripIndex ? -1 : idx)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-l-full text-xs font-medium transition-colors",
-                    idx === activeTripIndex
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {trip.name}
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm(`Delete trip "${trip.name}"?`)) handleDeleteTrip(idx);
-                  }}
-                  className={cn(
-                    "px-1.5 py-1.5 rounded-r-full text-xs transition-colors",
-                    idx === activeTripIndex
-                      ? "bg-primary/80 text-primary-foreground hover:bg-destructive"
-                      : "bg-muted text-muted-foreground/60 hover:bg-destructive/20 hover:text-destructive"
-                  )}
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Days with actual calendar dates */}
-          <div className="space-y-6">
-            {sortedDays.map(([dayKey, dayExps]) => (
-              <div key={dayKey}>
-                <div className="flex items-center gap-2 mb-3">
-                  <CalendarIcon className="w-4 h-4 text-primary" />
-                  <h3 className="text-sm font-semibold text-foreground">
-                    {format(new Date(dayKey), "d MMMM")}
-                  </h3>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                    {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
-                  </Badge>
-                </div>
-                <div className="space-y-0">
-                  {dayExps.map((exp, expIdx) => {
-                    const warning = dragWarnings.get(exp.id);
-                    const isMoving = movingExp?.id === exp.id && movingExp?.fromDay === dayKey;
-                    return (
-                      <div key={exp.id} className="relative">
-                        <div className="flex items-center gap-2 py-2.5 px-3 border-b border-border/20 last:border-b-0">
-                          {/* Move handle area */}
-                          <div className="flex flex-col gap-0.5 shrink-0">
-                            <button
-                              onClick={() => handleReorderInDay(dayKey, exp.id, 'up')}
-                              disabled={expIdx === 0}
-                              className={cn("p-0.5 rounded", expIdx === 0 ? "opacity-20" : "active:bg-muted")}
-                            >
-                              <ChevronUp className="w-3 h-3 text-muted-foreground" />
-                            </button>
-                            <button
-                              onClick={() => handleReorderInDay(dayKey, exp.id, 'down')}
-                              disabled={expIdx === dayExps.length - 1}
-                              className={cn("p-0.5 rounded", expIdx === dayExps.length - 1 ? "opacity-20" : "active:bg-muted")}
-                            >
-                              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-                            </button>
-                          </div>
-
-                          {/* Thumbnail */}
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
-                            {exp.videoThumbnail ? (
-                              <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <MapPin className="w-3.5 h-3.5 text-muted-foreground/40" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Text */}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium text-foreground truncate">{exp.title}</h4>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {[exp.location, exp.category].filter(Boolean).join(' · ')}
-                            </p>
-                            {warning && (
-                              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
-                                <AlertTriangle className="w-2.5 h-2.5" />
-                                <span>{warning}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Move to different day button */}
-                          {sortedDays.length > 1 && (
-                            <button
-                              onClick={() => setMovingExp(isMoving ? null : { id: exp.id, fromDay: dayKey })}
-                              className={cn(
-                                "p-1.5 rounded-md transition-colors shrink-0",
-                                isMoving ? "bg-primary/10 text-primary" : "text-muted-foreground/40 active:bg-muted"
-                              )}
-                            >
-                              <ArrowUpDown className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Move-to-day picker */}
-                        {isMoving && (
-                          <div className="bg-muted/50 border-b border-border/20 px-4 py-2">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Move to</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {sortedDays
-                                .filter(([dk]) => dk !== dayKey)
-                                .map(([dk]) => (
-                                  <button
-                                    key={dk}
-                                    onClick={() => {
-                                      handleMoveExperience(exp.id, dayKey, dk);
-                                      setMovingExp(null);
-                                    }}
-                                    className="text-xs font-medium px-2.5 py-1 rounded-md bg-background border border-border/50 text-foreground hover:bg-primary/5 hover:border-primary/20 active:bg-primary/10 transition-colors"
-                                  >
-                                    {format(new Date(dk), "d MMM")}
-                                  </button>
-                                ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+        <div className="text-center py-12 px-4">
+          <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground mb-2">No trips yet</p>
+          <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch or use an existing public trip as a starting point.</p>
+          <div className="flex flex-col gap-2 max-w-[240px] mx-auto">
+            <Button onClick={() => { setTripStartDate(undefined); setTripEndDate(undefined); setShowCreateTripSheet(true); }} className="gap-2 w-full">
+              <Plus className="w-4 h-4" />
+              Create trip
+            </Button>
+            {browsablePublicTrips.length > 0 && (
+              <Button variant="outline" onClick={() => setShowBrowsePublicTrips(true)} className="gap-2 w-full">
+                <Globe className="w-4 h-4" />
+                Browse public trips
+              </Button>
+            )}
           </div>
         </div>
       );
     }
 
-    // Owned: no trip selected or no trips yet - show empty state
     return (
-      <div className="text-center py-12 px-4">
-        <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground mb-2">
-          {generatedTrips.length > 0 ? "No trip selected" : "No trips yet"}
-        </p>
-        <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch or use an existing public trip as a starting point.</p>
-        <div className="flex flex-col gap-2 max-w-[240px] mx-auto">
-          <Button onClick={() => setShowCreateTripSheet(true)} className="gap-2 w-full">
-            <Plus className="w-4 h-4" />
-            Create trip
-          </Button>
-          <Button variant="outline" onClick={() => setShowBrowsePublicTrips(true)} className="gap-2 w-full">
-            <Globe className="w-4 h-4" />
-            Browse public trips
-          </Button>
+      <div className="px-4 py-4">
+        {showAutoSave && (
+          <div className="flex items-center gap-2 px-3 py-2 mb-3 rounded-lg bg-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
+            <Check className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs text-primary font-medium">Auto-saved</span>
+          </div>
+        )}
+        
+        {/* Trip switcher - always visible */}
+        <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+          {generatedTrips.map((trip, idx) => {
+            const isActive = idx === activeTripIndex;
+            return (
+              <div key={trip.id} className="shrink-0 flex items-center">
+                <button
+                  onClick={() => setActiveTripIndex(isActive ? -1 : idx)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-l-full text-xs font-medium transition-colors max-w-[180px] truncate",
+                    isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {trip.name}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete "${trip.name}"?`)) handleDeleteTrip(idx);
+                  }}
+                  className={cn(
+                    "px-1.5 py-1.5 rounded-r-full text-xs transition-colors",
+                    isActive ? "bg-primary/80 text-primary-foreground hover:bg-destructive" : "bg-muted text-muted-foreground/60 hover:bg-destructive/20 hover:text-destructive"
+                  )}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            );
+          })}
         </div>
+
+        {!hasActiveTrip && (
+          <div className="text-center py-8">
+            <p className="text-xs text-muted-foreground">Tap a trip above to view it</p>
+          </div>
+        )}
+
+        {hasActiveTrip && activeTrip && (
+          <>
+            {/* Editable date range */}
+            {tripDateRange && (
+              <button
+                onClick={() => {
+                  setTripStartDate(tripDateRange.start);
+                  setTripEndDate(tripDateRange.end);
+                  setShowEditTripDates(true);
+                }}
+                className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-muted/50 w-full text-left group transition-colors hover:bg-muted/80"
+              >
+                <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground">
+                  {format(tripDateRange.start, "d MMM")} – {format(tripDateRange.end, "d MMM yyyy")}
+                </span>
+                <Edit2 className="w-3 h-3 text-muted-foreground/40 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            )}
+
+            <div className="space-y-6">
+              {sortedDays.map(([dayKey, dayExps]) => (
+                <div key={dayKey}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <CalendarIcon className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">{format(new Date(dayKey), "d MMMM")}</h3>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
+                    </Badge>
+                  </div>
+                  <div className="space-y-0">
+                    {dayExps.map((exp, expIdx) => {
+                      const warning = dragWarnings.get(exp.id);
+                      const isMoving = movingExp?.id === exp.id && movingExp?.fromDay === dayKey;
+                      return (
+                        <div key={exp.id} className="relative">
+                          <div className="flex items-center gap-2 py-2.5 px-3 border-b border-border/20 last:border-b-0">
+                            <div className="flex flex-col gap-0.5 shrink-0">
+                              <button onClick={() => handleReorderInDay(dayKey, exp.id, 'up')} disabled={expIdx === 0} className={cn("p-0.5 rounded", expIdx === 0 ? "opacity-20" : "active:bg-muted")}>
+                                <ChevronUp className="w-3 h-3 text-muted-foreground" />
+                              </button>
+                              <button onClick={() => handleReorderInDay(dayKey, exp.id, 'down')} disabled={expIdx === dayExps.length - 1} className={cn("p-0.5 rounded", expIdx === dayExps.length - 1 ? "opacity-20" : "active:bg-muted")}>
+                                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                              </button>
+                            </div>
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                              {exp.videoThumbnail ? (
+                                <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3.5 h-3.5 text-muted-foreground/40" /></div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-medium text-foreground truncate">{exp.title}</h4>
+                              <p className="text-xs text-muted-foreground truncate">{[exp.location, exp.category].filter(Boolean).join(' · ')}</p>
+                              {warning && (
+                                <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
+                                  <AlertTriangle className="w-2.5 h-2.5" /><span>{warning}</span>
+                                </div>
+                              )}
+                            </div>
+                            {sortedDays.length > 1 && (
+                              <button
+                                onClick={() => setMovingExp(isMoving ? null : { id: exp.id, fromDay: dayKey })}
+                                className={cn("p-1.5 rounded-md transition-colors shrink-0", isMoving ? "bg-primary/10 text-primary" : "text-muted-foreground/40 active:bg-muted")}
+                              >
+                                <ArrowUpDown className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                          {isMoving && (
+                            <div className="bg-muted/50 border-b border-border/20 px-4 py-2">
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Move to</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {sortedDays.filter(([dk]) => dk !== dayKey).map(([dk]) => (
+                                  <button key={dk} onClick={() => { handleMoveExperience(exp.id, dayKey, dk); setMovingExp(null); }}
+                                    className="text-xs font-medium px-2.5 py-1 rounded-md bg-background border border-border/50 text-foreground hover:bg-primary/5 hover:border-primary/20 active:bg-primary/10 transition-colors"
+                                  >
+                                    {format(new Date(dk), "d MMM")}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     );
   };
@@ -1013,7 +1032,7 @@ const PublicItinerary = () => {
 
               {/* Primary CTA - most prominent */}
               {isOwned ? (
-                <Button size="sm" className="gap-1.5 h-[32px] rounded-lg shrink-0 ml-auto text-xs" onClick={() => setShowCreateTripSheet(true)}>
+                <Button size="sm" className="gap-1.5 h-[32px] rounded-lg shrink-0 ml-auto text-xs" onClick={() => { setTripStartDate(undefined); setTripEndDate(undefined); setShowCreateTripSheet(true); }}>
                   <Rocket className="w-3 h-3" />
                   Create trip
                 </Button>
@@ -1348,7 +1367,7 @@ const PublicItinerary = () => {
         </DrawerContent>
       </Drawer>
 
-      {/* Browse Public Trips Drawer */}
+      {/* Browse Public Trips Drawer - shows trips from public itineraries */}
       <Drawer open={showBrowsePublicTrips} onOpenChange={setShowBrowsePublicTrips}>
         <DrawerContent className="max-h-[75vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
           <DrawerHeader className="pb-2 shrink-0">
@@ -1356,7 +1375,7 @@ const PublicItinerary = () => {
               <Globe className="w-5 h-5 text-primary" />
               Browse public trips
             </DrawerTitle>
-            <DrawerDescription>Choose a public itinerary to use as a starting point</DrawerDescription>
+            <DrawerDescription>Choose a trip from an existing public itinerary</DrawerDescription>
           </DrawerHeader>
           <div className="flex-1 overflow-y-auto min-h-0 px-2 pb-4">
             {previewingPublicTrip ? (
@@ -1368,80 +1387,173 @@ const PublicItinerary = () => {
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Back to list
                 </button>
-                <h3 className="font-semibold text-sm mb-3">{previewingPublicTrip.itinerary.name}</h3>
-                <div className="space-y-4">
-                  {(() => {
-                    const exps = previewingPublicTrip.itinerary.experiences;
-                    const perDay = 4;
-                    const days: typeof exps[] = [];
-                    for (let i = 0; i < exps.length; i += perDay) {
-                      days.push(exps.slice(i, i + perDay));
-                    }
-                    return days.map((dayExps, dayIdx) => (
-                      <div key={dayIdx}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <CalendarIcon className="w-3.5 h-3.5 text-primary" />
-                          <span className="text-xs font-semibold text-foreground">Day {dayIdx + 1}</span>
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{dayExps.length}</Badge>
-                        </div>
-                        {dayExps.map((exp) => (
-                          <div key={exp.id} className="flex items-center gap-3 py-2 px-2 border-b border-border/20">
-                            <div className="w-8 h-8 rounded-md overflow-hidden bg-muted shrink-0">
-                              {exp.videoThumbnail ? (
-                                <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3 h-3 text-muted-foreground/40" /></div>
-                              )}
+                <h3 className="font-semibold text-sm mb-1">{previewingPublicTrip.itinerary.name}</h3>
+                {/* Show the specific trip's experiences */}
+                {(() => {
+                  const pubData = browsablePublicTrips.find(b => b.itinerary.id === previewingPublicTrip.itinerary.id);
+                  const trip = pubData?.trips[previewingPublicTrip.tripIdx];
+                  if (!trip) return null;
+                  const perDay = 4;
+                  const days: typeof trip.experiences[] = [];
+                  for (let i = 0; i < trip.experiences.length; i += perDay) {
+                    days.push(trip.experiences.slice(i, i + perDay));
+                  }
+                  return (
+                    <>
+                      <p className="text-xs text-muted-foreground mb-3">{trip.label}</p>
+                      <div className="space-y-4">
+                        {days.map((dayExps, dayIdx) => (
+                          <div key={dayIdx}>
+                            <div className="flex items-center gap-2 mb-2">
+                              <CalendarIcon className="w-3.5 h-3.5 text-primary" />
+                              <span className="text-xs font-semibold text-foreground">Day {dayIdx + 1}</span>
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{dayExps.length}</Badge>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium truncate">{exp.title}</p>
-                              <p className="text-[10px] text-muted-foreground truncate">{exp.location}</p>
-                            </div>
+                            {dayExps.map((exp) => (
+                              <div key={exp.id} className="flex items-center gap-3 py-2 px-2 border-b border-border/20">
+                                <div className="w-8 h-8 rounded-md overflow-hidden bg-muted shrink-0">
+                                  {exp.videoThumbnail ? (
+                                    <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3 h-3 text-muted-foreground/40" /></div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium truncate">{exp.title}</p>
+                                  <p className="text-[10px] text-muted-foreground truncate">{exp.location}</p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         ))}
                       </div>
-                    ));
-                  })()}
-                </div>
-                <Button
-                  className="w-full gap-2 mt-4"
-                  onClick={() => {
-                    setShowBrowsePublicTrips(false);
-                    setPreviewingPublicTrip(null);
-                    // Open create trip sheet so user picks dates, then we'll map the public trip
-                    setShowCreateTripSheet(true);
-                  }}
-                >
-                  <Plus className="w-4 h-4" />
-                  Use this trip – pick dates
-                </Button>
+                      <Button
+                        className="w-full gap-2 mt-4"
+                        onClick={() => {
+                          setShowBrowsePublicTrips(false);
+                          setPreviewingPublicTrip(null);
+                          setTripStartDate(undefined);
+                          setTripEndDate(undefined);
+                          setShowCreateTripSheet(true);
+                        }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        Use this trip – pick dates
+                      </Button>
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <div className="space-y-1">
-                {publicItinerariesData.map((pub) => (
-                  <button
-                    key={pub.id}
-                    onClick={() => setPreviewingPublicTrip({ itinerary: pub, tripIdx: 0 })}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
-                  >
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
-                      {pub.coverImage ? (
-                        <img src={pub.coverImage} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                          <Route className="w-4 h-4 text-primary/40" />
-                        </div>
-                      )}
+                {browsablePublicTrips.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-muted-foreground">No public trips available</p>
+                  </div>
+                ) : (
+                  browsablePublicTrips.map(({ itinerary: pub, trips }) => (
+                    <div key={pub.id}>
+                      <div className="px-2 pt-3 pb-1">
+                        <p className="text-xs font-semibold text-foreground truncate">{pub.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{pub.experiences.length} experiences</p>
+                      </div>
+                      {trips.map((trip, tripIdx) => (
+                        <button
+                          key={tripIdx}
+                          onClick={() => setPreviewingPublicTrip({ itinerary: pub, tripIdx })}
+                          className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                        >
+                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-muted shrink-0">
+                            {pub.coverImage ? (
+                              <img src={pub.coverImage} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                                <Route className="w-3 h-3 text-primary/40" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{trip.label}</p>
+                            <p className="text-[10px] text-muted-foreground">{trip.experiences.length} activities</p>
+                          </div>
+                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 shrink-0" />
+                        </button>
+                      ))}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{pub.name}</p>
-                      <p className="text-xs text-muted-foreground">{pub.experiences.length} experiences</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground/30 shrink-0" />
-                  </button>
-                ))}
+                  ))
+                )}
               </div>
             )}
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Edit Trip Dates Drawer */}
+      <Drawer open={showEditTripDates} onOpenChange={setShowEditTripDates}>
+        <DrawerContent className="max-h-[85vh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-3">
+            <DrawerTitle className="flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 text-primary" />
+              Adjust dates
+            </DrawerTitle>
+            <DrawerDescription>Change the date range for this trip</DrawerDescription>
+          </DrawerHeader>
+          <div className="flex flex-col items-center py-3 w-full px-4">
+            <div className="w-full overflow-x-auto flex justify-center pb-2">
+              <Calendar
+                mode="range"
+                selected={{ from: tripStartDate, to: tripEndDate }}
+                onSelect={(range) => {
+                  setTripStartDate(range?.from);
+                  setTripEndDate(range?.to);
+                }}
+                className="p-3 pointer-events-auto"
+                numberOfMonths={1}
+              />
+            </div>
+            {tripStartDate && tripEndDate && (
+              <p className="text-sm text-center text-muted-foreground mb-3">
+                {format(tripStartDate, "d MMMM")} – {format(tripEndDate, "d MMMM yyyy")}
+              </p>
+            )}
+            <Button
+              className="w-full gap-2 h-12"
+              disabled={!tripStartDate || !tripEndDate}
+              onClick={() => {
+                if (!tripStartDate || !tripEndDate || activeTripIndex < 0) return;
+                // Remap existing experiences to new date range
+                const activeTrip = generatedTrips[activeTripIndex];
+                const oldDays = Object.entries(activeTrip.days).sort(([a], [b]) => a.localeCompare(b));
+                const allExps = oldDays.flatMap(([, exps]) => exps);
+                const numDays = Math.max(1, Math.ceil((tripEndDate.getTime() - tripStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+                const perDay = Math.max(1, Math.ceil(allExps.length / numDays));
+                const newDays: Record<string, LikedExperience[]> = {};
+                for (let d = 0; d < numDays; d++) {
+                  const dk = format(addDays(tripStartDate, d), "yyyy-MM-dd");
+                  newDays[dk] = allExps.slice(d * perDay, (d + 1) * perDay);
+                }
+                // Put any remaining into last day
+                const lastKey = format(addDays(tripStartDate, numDays - 1), "yyyy-MM-dd");
+                const assigned = Object.values(newDays).flat().length;
+                if (assigned < allExps.length) {
+                  newDays[lastKey] = [...(newDays[lastKey] || []), ...allExps.slice(assigned)];
+                }
+                // Update trip name
+                const firstName = allExps[0]?.title || 'Start';
+                const lastName = allExps[allExps.length - 1]?.title || 'End';
+                setGeneratedTrips(prev => {
+                  const updated = [...prev];
+                  updated[activeTripIndex] = { ...updated[activeTripIndex], name: `${firstName} – ${lastName}`, days: newDays };
+                  return updated;
+                });
+                setShowEditTripDates(false);
+                setShowAutoSave(true);
+                setTimeout(() => setShowAutoSave(false), 2000);
+              }}
+            >
+              <Check className="w-4 h-4" />
+              Update dates
+            </Button>
           </div>
         </DrawerContent>
       </Drawer>
