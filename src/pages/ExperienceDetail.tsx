@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { MobileShell } from "@/components/MobileShell";
+import { useDbExperiences, DbExperience } from "@/hooks/useDbExperiences";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -390,6 +391,7 @@ export default function ExperienceDetail() {
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
+  const { data: dbExperiences } = useDbExperiences();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [justAdded, setJustAdded] = useState(false);
@@ -405,6 +407,54 @@ export default function ExperienceDetail() {
   };
 
   const experience = useMemo(() => {
+    // Helper: convert DB experience to the format this page expects
+    const fromDb = (db: DbExperience) => ({
+      id: db.id,
+      title: db.title,
+      creator: db.creator,
+      videoThumbnail: db.video_thumbnail,
+      videoUrl: db.video_url,
+      category: db.category,
+      location: db.location,
+      description: db.description,
+      duration: db.duration,
+      groupSize: db.group_size,
+      rating: db.rating,
+      price: db.price,
+      highlights: db.highlights,
+      gallery: db.gallery.length > 0 ? db.gallery : [db.video_thumbnail],
+      bestTime: db.best_time,
+      weather: db.weather,
+      meetingPoints: db.meeting_points,
+      faqs: db.faqs,
+      tiktokVideos: db.tiktok_videos,
+      instagramEmbed: db.instagram_embed,
+      socialLinks: db.social_links,
+    });
+
+    // Try to find in DB first (by slug match on title)
+    if (dbExperiences && dbExperiences.length > 0) {
+      if (slug) {
+        const dbMatch = dbExperiences.find(e => slugify(e.title) === slug);
+        if (dbMatch) return fromDb(dbMatch);
+      }
+      if (locationParam && legacySlug) {
+        const dbMatch = dbExperiences.find(e => slugify(e.title) === legacySlug);
+        if (dbMatch) return fromDb(dbMatch);
+      }
+      if (id) {
+        const dbMatch = dbExperiences.find(e => e.id === id);
+        if (dbMatch) return fromDb(dbMatch);
+        // Also try matching old numeric IDs by title
+        const mockMatch = experienceMapById.get(id);
+        if (mockMatch) {
+          const dbByTitle = dbExperiences.find(e => e.title === mockMatch.title);
+          if (dbByTitle) return fromDb(dbByTitle);
+        }
+      }
+    }
+
+    // Fallback to mock data
     if (slug) {
       if (experienceMapBySlug.has(slug)) return experienceMapBySlug.get(slug);
     }
@@ -432,7 +482,7 @@ export default function ExperienceDetail() {
       }
     }
     return null;
-  }, [id, locationParam, legacySlug, slug, itineraries]);
+  }, [id, locationParam, legacySlug, slug, itineraries, dbExperiences]);
 
   const liked = experience ? (isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked) : false;
 
