@@ -431,7 +431,11 @@ const PublicItinerary = () => {
       }
     }
     const tripId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7);
-    const tripName = `${format(startDate, "MMM d")}${endDate ? ` – ${format(endDate, "MMM d")}` : ''}`;
+    // Name trip by first and last experience
+    const allTripExps = Object.values(tripDays).flat();
+    const firstName = allTripExps[0]?.title || 'Start';
+    const lastName = allTripExps[allTripExps.length - 1]?.title || 'End';
+    const tripName = `${firstName} – ${lastName}`;
     setTimeout(() => {
       setGeneratedTrips(prev => {
         const next = [...prev, { id: tripId, name: tripName, days: tripDays }];
