@@ -931,19 +931,16 @@ export default function ExperienceDetail() {
                   </p>
                 </div>
 
-                {/* Average Market Prices */}
+                {/* Prices per person */}
                 <div className="rounded-2xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="w-5 h-5 text-primary" />
-                    <p className="text-sm font-semibold">Average Market Prices</p>
+                    <p className="text-sm font-semibold">Prices per person</p>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
-                    <span className="text-sm text-muted-foreground">per person</span>
+                    <span className="text-sm text-muted-foreground">average</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    Prices from local providers — for reference only
-                  </p>
                 </div>
 
                 {/* In Your Itineraries */}
