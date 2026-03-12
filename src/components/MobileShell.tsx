@@ -216,10 +216,12 @@ const MobileTopBar = ({
   selectedCity,
   hideAvatar = false,
   notFixed = false,
+  onCityTap,
 }: {
   selectedCity: string;
   hideAvatar?: boolean;
   notFixed?: boolean;
+  onCityTap: () => void;
 }) => {
   const navigate = useNavigate();
 
@@ -233,7 +235,7 @@ const MobileTopBar = ({
           <button onClick={() => navigate('/')} className="text-[22px] tracking-[-0.03em] text-foreground" style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}>
             swam<span className="text-primary font-extrabold">.app</span>
           </button>
-          <CityButton selectedCity={selectedCity} />
+          <CityButton selectedCity={selectedCity} onTap={onCityTap} />
         </div>
       </div>
     </div>
