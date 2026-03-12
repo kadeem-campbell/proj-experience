@@ -33,11 +33,7 @@ const rotatingPlaceholders = [
   "Search sunset spots",
 ];
 
-// City airport codes + flag
-const cityDisplayMap: Record<string, string> = {
-  "Zanzibar": "🇹🇿 ZNZ",
-  "Dar es Salaam": "🇹🇿 DAR",
-};
+// Removed cityDisplayMap - now handled by MobileShell globe button
 
 const CategoryFilterPills = ({ 
   activeCategory, 
