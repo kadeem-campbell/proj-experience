@@ -364,6 +364,29 @@ export const MobileSearchOverlay = ({
       {/* Scrollable content area */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain search-scroll-area search-scroll-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
         <style>{`.search-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
+        
+        {/* Category pills - always visible */}
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat.label;
+            return (
+              <button
+                key={cat.label}
+                onClick={() => handleCategoryClick(cat.label)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                <img src={cat.icon} alt={cat.label} className="w-4 h-4 object-contain" />
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+
         {hasQuery ? (
           <>
             {/* Featured Itineraries row */}
