@@ -19,10 +19,10 @@ import { MobileShell } from "@/components/MobileShell";
 const filterCategories = [
   { label: "Beaches", category: "Beach", icon: catBeaches },
   { label: "Nightlife", category: "Nightlife", icon: catNightlife },
-  { label: "Nature", category: "Wildlife", icon: catNature },
+  { label: "Nature", category: "Nature", icon: catNature },
   { label: "Adventure", category: "Adventure", icon: catAdventure },
   { label: "Food", category: "Food", icon: catFood },
-  { label: "Safari", category: "Wildlife", icon: catSafari },
+  { label: "Safari", category: "Safari", icon: catSafari },
 ];
 
 const rotatingPlaceholders = [
@@ -316,17 +316,30 @@ export const MobileHomeView = () => {
     return filtered;
   }, [selectedCity, allExpsData]);
 
+  // Category matching: Nature matches "Nature" and "Wildlife", Safari matches "Safari" and "Wildlife"
+  const matchesCategory = useCallback((expCategory: string, filterCategory: string) => {
+    if (!filterCategory) return true;
+    const norm = expCategory?.toLowerCase() || '';
+    const filter = filterCategory.toLowerCase();
+    if (norm === filter) return true;
+    // Nature filter also matches Wildlife that isn't explicitly Safari
+    if (filter === 'nature' && norm === 'wildlife') return true;
+    // Safari filter matches Safari category
+    if (filter === 'safari' && norm === 'safari') return true;
+    return false;
+  }, []);
+
   const categoryExperiences = useMemo(() => {
     if (!activeCategory) return experiences;
-    return experiences.filter(e => e.category === activeCategory);
-  }, [experiences, activeCategory]);
+    return experiences.filter(e => matchesCategory(e.category, activeCategory));
+  }, [experiences, activeCategory, matchesCategory]);
 
   const categoryItineraries = useMemo(() => {
     if (!activeCategory) return itineraries;
     return itineraries.filter(it => 
-      it.experiences?.some((e: any) => e.category === activeCategory)
+      it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory))
     );
-  }, [itineraries, activeCategory]);
+  }, [itineraries, activeCategory, matchesCategory]);
 
   const normalizeText = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
   const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");

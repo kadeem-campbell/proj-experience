@@ -680,6 +680,7 @@ export default function ExperienceDetail() {
               experienceTitle={experience.title}
               location={experience.location}
               tiktokVideos={experience.tiktokVideos || []}
+              instagramEmbed={experience.instagramEmbed}
               className="mb-6"
             />
 
@@ -867,6 +868,7 @@ export default function ExperienceDetail() {
                 experienceTitle={experience.title}
                 location={experience.location}
                 tiktokVideos={experience.tiktokVideos || []}
+                instagramEmbed={experience.instagramEmbed}
                 className="mb-6"
               />
 
