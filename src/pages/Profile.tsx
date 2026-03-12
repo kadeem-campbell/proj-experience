@@ -95,7 +95,7 @@ const ProfilePage = () => {
           <h1 className="text-2xl font-bold mb-2">Sign in to view your profile</h1>
           <p className="text-muted-foreground mb-6">Access your liked experiences and itineraries</p>
           <Button onClick={() => setShowAuthModal(true)}>Sign In</Button>
-          <AuthModalComponent open={showAuthModal} onOpenChange={setShowAuthModal} />
+          <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
         </div>
       </MainLayout>
     );
