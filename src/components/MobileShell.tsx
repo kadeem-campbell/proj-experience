@@ -178,11 +178,30 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Global city state from URL
-  const selectedCity = searchParams.get("city") || "";
+  // Global city state: URL param takes priority, fallback to localStorage
+  const urlCity = searchParams.get("city") || "";
+  const [selectedCity, setSelectedCity] = useState(() => urlCity || getPersistedCity());
 
-  // Callback when search changes the city
+  // Sync from URL → state + localStorage when URL changes
+  useEffect(() => {
+    if (urlCity) {
+      setSelectedCity(urlCity);
+      persistCity(urlCity);
+    }
+  }, [urlCity]);
+
+  // On mount, if localStorage has a city but URL doesn't, keep showing it
+  useEffect(() => {
+    const persisted = getPersistedCity();
+    if (persisted && !urlCity) {
+      setSelectedCity(persisted);
+    }
+  }, [location.pathname]);
+
+  // Callback when search or map changes the city
   const handleCityChange = useCallback((city: string) => {
+    setSelectedCity(city);
+    persistCity(city);
     const params = new URLSearchParams(window.location.search);
     if (city) {
       params.set("city", city);
