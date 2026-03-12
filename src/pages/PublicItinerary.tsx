@@ -136,6 +136,7 @@ const PublicItinerary = () => {
   const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
   const [showBrowsePublicTrips, setShowBrowsePublicTrips] = useState(false);
   const [previewingPublicTrip, setPreviewingPublicTrip] = useState<{ itinerary: typeof publicItinerariesData[0]; tripIdx: number } | null>(null);
+  const [showEditTripDates, setShowEditTripDates] = useState(false);
   
   // Auth
   const [showAuthModal, setShowAuthModal] = useState(false);
