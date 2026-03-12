@@ -216,6 +216,47 @@ export type Database = {
         }
         Relationships: []
       }
+      experience_faqs: {
+        Row: {
+          answer: string
+          created_at: string | null
+          display_order: number | null
+          experience_id: string
+          id: string
+          is_active: boolean | null
+          question: string
+          updated_at: string | null
+        }
+        Insert: {
+          answer: string
+          created_at?: string | null
+          display_order?: number | null
+          experience_id: string
+          id?: string
+          is_active?: boolean | null
+          question: string
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: string
+          created_at?: string | null
+          display_order?: number | null
+          experience_id?: string
+          id?: string
+          is_active?: boolean | null
+          question?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_faqs_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       experiences: {
         Row: {
           best_time: string | null
@@ -238,6 +279,7 @@ export type Database = {
           meeting_points: Json | null
           price: string | null
           rating: number | null
+          slug: string | null
           social_links: Json | null
           tiktok_videos: Json | null
           title: string
@@ -269,6 +311,7 @@ export type Database = {
           meeting_points?: Json | null
           price?: string | null
           rating?: number | null
+          slug?: string | null
           social_links?: Json | null
           tiktok_videos?: Json | null
           title: string
@@ -300,6 +343,7 @@ export type Database = {
           meeting_points?: Json | null
           price?: string | null
           rating?: number | null
+          slug?: string | null
           social_links?: Json | null
           tiktok_videos?: Json | null
           title?: string

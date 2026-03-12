@@ -19,10 +19,10 @@ import { MobileShell } from "@/components/MobileShell";
 const filterCategories = [
   { label: "Beaches", category: "Beach", icon: catBeaches },
   { label: "Nightlife", category: "Nightlife", icon: catNightlife },
-  { label: "Nature", category: "Wildlife", icon: catNature },
+  { label: "Nature", category: "Nature", icon: catNature },
   { label: "Adventure", category: "Adventure", icon: catAdventure },
   { label: "Food", category: "Food", icon: catFood },
-  { label: "Safari", category: "Wildlife", icon: catSafari },
+  { label: "Safari", category: "Safari", icon: catSafari },
 ];
 
 const rotatingPlaceholders = [

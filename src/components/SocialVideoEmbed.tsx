@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ExternalLink, Play, Video, X } from "lucide-react";
+import { Play, Video, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 export interface TikTokVideo {
   videoId: string;
@@ -20,7 +20,7 @@ interface SocialVideoEmbedProps {
   experienceTitle: string;
   location: string;
   tiktokVideos?: TikTokVideo[];
-  instagramVideos?: InstagramVideo[];
+  instagramEmbed?: string;
   className?: string;
 }
 
@@ -30,10 +30,17 @@ export const SocialVideoEmbed = ({
   experienceTitle, 
   location, 
   tiktokVideos = [], 
-  instagramVideos = [],
+  instagramEmbed,
   className 
 }: SocialVideoEmbedProps) => {
   const [activeVideo, setActiveVideo] = useState<TikTokVideo | null>(null);
+  const [showInstagram, setShowInstagram] = useState(false);
+
+  const hasTikTok = tiktokVideos.length > 0;
+  const hasInstagram = !!instagramEmbed && instagramEmbed.trim() !== '';
+
+  // Don't render if no embeds available
+  if (!hasTikTok && !hasInstagram) return null;
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -54,7 +61,6 @@ export const SocialVideoEmbed = ({
             className="flex-shrink-0 relative group cursor-pointer snap-start"
           >
             <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-foreground/90 to-foreground/70 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative")}>
-              {/* TikTok logo accent */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#25F4EE] via-[#FE2C55] to-[#25F4EE]" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
               
@@ -71,54 +77,26 @@ export const SocialVideoEmbed = ({
           </button>
         ))}
 
-        {/* TikTok search — only if no specific videos */}
-        {tiktokVideos.length === 0 && (
+        {/* Instagram embed card — only if embed link exists */}
+        {hasInstagram && (
           <button
-            onClick={() => window.open(
-              `https://www.tiktok.com/search?q=${encodeURIComponent(`${experienceTitle} ${location}`)}`, 
-              '_blank'
-            )}
+            onClick={() => setShowInstagram(true)}
             className="flex-shrink-0 relative group cursor-pointer snap-start"
           >
-            <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-[hsl(var(--primary)/0.8)] via-[hsl(var(--accent)/0.6)] to-[hsl(var(--primary))] flex flex-col items-center justify-center gap-3 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98]")}>
-              <div className="w-10 h-10 rounded-full bg-background/20 backdrop-blur flex items-center justify-center">
-                <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground" />
+            <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] flex flex-col items-center justify-center gap-3 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98]")}>
+              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                <Play className="w-5 h-5 text-white fill-white" />
               </div>
               <div className="text-center px-2">
-                <p className="text-primary-foreground font-semibold text-xs">TikTok</p>
-                <p className="text-primary-foreground/80 text-[10px]">Search Videos</p>
+                <p className="text-white font-semibold text-xs">Instagram</p>
+                <p className="text-white/80 text-[10px]">Watch Reel</p>
               </div>
-            </div>
-            <div className="absolute top-2 right-2 p-1 rounded-full bg-foreground/20 backdrop-blur">
-              <ExternalLink className="w-2.5 h-2.5 text-primary-foreground" />
             </div>
           </button>
         )}
-
-        {/* Instagram placeholder */}
-        <button
-          onClick={() => window.open(
-            `https://www.instagram.com/explore/tags/${encodeURIComponent(experienceTitle.replace(/\s+/g, '').toLowerCase())}`, 
-            '_blank'
-          )}
-          className="flex-shrink-0 relative group cursor-pointer snap-start"
-        >
-          <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-[hsl(var(--accent))] via-[hsl(var(--primary)/0.7)] to-[hsl(var(--secondary))] flex flex-col items-center justify-center gap-3 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98]")}>
-            <div className="w-10 h-10 rounded-full bg-background/20 backdrop-blur flex items-center justify-center">
-              <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground" />
-            </div>
-            <div className="text-center px-2">
-              <p className="text-primary-foreground font-semibold text-xs">Instagram</p>
-              <p className="text-primary-foreground/80 text-[10px]">Explore Reels</p>
-            </div>
-          </div>
-          <div className="absolute top-2 right-2 p-1 rounded-full bg-foreground/20 backdrop-blur">
-            <ExternalLink className="w-2.5 h-2.5 text-primary-foreground" />
-          </div>
-        </button>
       </div>
 
-      {/* Bottom sheet drawer for full TikTok video playback */}
+      {/* TikTok embed drawer */}
       <Drawer open={!!activeVideo} onOpenChange={(open) => !open && setActiveVideo(null)}>
         <DrawerContent className="max-h-[85vh] overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-2 pb-3">
@@ -151,6 +129,40 @@ export const SocialVideoEmbed = ({
                   allowFullScreen
                   scrolling="no"
                   sandbox="allow-scripts allow-same-origin allow-popups"
+                />
+              </div>
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
+
+      {/* Instagram embed drawer */}
+      <Drawer open={showInstagram} onOpenChange={setShowInstagram}>
+        <DrawerContent className="max-h-[85vh] overflow-hidden">
+          <div className="flex items-center justify-between px-4 pt-2 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] flex items-center justify-center">
+                <Play className="w-3 h-3 text-white fill-white ml-0.5" />
+              </div>
+              <p className="text-sm font-semibold">Instagram</p>
+            </div>
+            <button 
+              onClick={() => setShowInstagram(false)}
+              className="p-1.5 rounded-full bg-muted hover:bg-muted/80"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+          {hasInstagram && (
+            <div className="w-full flex justify-center px-4 pb-6 overflow-hidden">
+              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '400px', minHeight: '500px' }}>
+                <iframe
+                  src={instagramEmbed}
+                  className="border-0"
+                  style={{ width: '100%', height: '600px' }}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  scrolling="no"
                 />
               </div>
             </div>
