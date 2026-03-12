@@ -16,6 +16,8 @@ interface MobileSearchOverlayProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onSearch: (query: string) => void;
+  initialCity?: string;
+  onCityChange?: (city: string) => void;
 }
 
 const categoryToSearchCategory: Record<string, string> = {
