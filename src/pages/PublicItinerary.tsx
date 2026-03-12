@@ -761,18 +761,12 @@ const PublicItinerary = () => {
         <div className="text-center py-12 px-4">
           <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-sm text-muted-foreground mb-2">No trips yet</p>
-          <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch or use an existing public trip as a starting point.</p>
+          <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch to start planning.</p>
           <div className="flex flex-col gap-2 max-w-[240px] mx-auto">
             <Button onClick={() => { setTripStartDate(undefined); setTripEndDate(undefined); setShowCreateTripSheet(true); }} className="gap-2 w-full">
               <Plus className="w-4 h-4" />
               Create trip
             </Button>
-            {browsablePublicTrips.length > 0 && (
-              <Button variant="outline" onClick={() => setShowBrowsePublicTrips(true)} className="gap-2 w-full">
-                <Globe className="w-4 h-4" />
-                Browse public trips
-              </Button>
-            )}
           </div>
         </div>
       );
