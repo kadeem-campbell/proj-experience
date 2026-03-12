@@ -733,28 +733,31 @@ export default function ExperienceDetail() {
             </div>
           )}
           
-          <button 
-            onClick={handleGoBack}
-            className="absolute top-4 left-4 p-2.5 rounded-full bg-background/80 backdrop-blur-md hover:bg-background transition-colors z-10"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          
-          <ShareDrawer title={experience.title} url={shareUrl}>
-            <button className="absolute top-4 right-16 p-2.5 rounded-full bg-background/80 backdrop-blur-md hover:bg-background transition-colors z-10">
-              <Share2 className="w-5 h-5 text-foreground" />
+          {/* Top buttons - exact same as itinerary */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+            <button 
+              onClick={handleGoBack}
+              className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-          </ShareDrawer>
-
-          <button
-            onClick={handleLikeClick}
-            className={cn(
-              "absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md hover:bg-background transition-colors z-10",
-              liked ? "bg-primary/20" : "bg-background/80"
-            )}
-          >
-            <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
-          </button>
+            <div className="flex items-center gap-2">
+              <ShareDrawer title={experience.title} url={shareUrl}>
+                <button className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <Share2 className="w-5 h-5 text-foreground" />
+                </button>
+              </ShareDrawer>
+              <button
+                onClick={handleLikeClick}
+                className={cn(
+                  "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg",
+                  liked && "bg-primary/15"
+                )}
+              >
+                <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
+              </button>
+            </div>
+          </div>
           
           {socialProof.trending && (
             <Badge variant="secondary" className="absolute top-4 left-1/2 -translate-x-1/2 gap-1 text-xs bg-background/80 backdrop-blur-md text-primary border-0 z-10">
