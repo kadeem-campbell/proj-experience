@@ -553,8 +553,8 @@ export default function ExperienceDetail() {
           <div className="px-4 py-4">
             {/* Category badge with icon + rating */}
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <Badge className="bg-foreground text-background border-0 font-medium flex items-center gap-1.5">
-                {categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}
+              <Badge variant="outline" className="border-border font-medium flex items-center gap-1.5 bg-card">
+                {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
                 {experience.category}
               </Badge>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
