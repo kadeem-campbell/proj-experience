@@ -235,7 +235,7 @@ const PublicItinerary = () => {
     return itineraries.filter(i => i.name.toLowerCase().includes(q));
   }, [itineraries, addItinerarySearch]);
 
-  // --- Preset public trip examples (2 trips, named first-to-last activity) ---
+  // --- Preset public trip examples (2 trips per public itinerary, named first-to-last) ---
   const publicTripExamples = useMemo(() => {
     if (!itinerary) return [];
     const exps = itinerary.experiences;
@@ -245,18 +245,35 @@ const PublicItinerary = () => {
     const trip2Exps = exps.slice(mid);
     const trips = [
       { 
-        label: `${trip1Exps[0]?.title || 'Start'} to ${trip1Exps[trip1Exps.length - 1]?.title || 'End'}`,
+        label: `${trip1Exps[0]?.title || 'Start'} – ${trip1Exps[trip1Exps.length - 1]?.title || 'End'}`,
         experiences: trip1Exps 
       },
     ];
     if (trip2Exps.length > 0) {
       trips.push({
-        label: `${trip2Exps[0]?.title || 'Start'} to ${trip2Exps[trip2Exps.length - 1]?.title || 'End'}`,
+        label: `${trip2Exps[0]?.title || 'Start'} – ${trip2Exps[trip2Exps.length - 1]?.title || 'End'}`,
         experiences: trip2Exps
       });
     }
     return trips;
   }, [itinerary]);
+
+  // Browse public trips: generate 2 trips per public itinerary, only include those with enough experiences
+  const browsablePublicTrips = useMemo(() => {
+    return publicItinerariesData
+      .filter(pub => pub.experiences.length >= 4) // need enough for 2 trips
+      .map(pub => {
+        const exps = pub.experiences;
+        const mid = Math.ceil(exps.length / 2);
+        return {
+          itinerary: pub,
+          trips: [
+            { label: `${exps[0]?.title || 'Start'} – ${exps[mid - 1]?.title || 'End'}`, experiences: exps.slice(0, mid) },
+            { label: `${exps[mid]?.title || 'Start'} – ${exps[exps.length - 1]?.title || 'End'}`, experiences: exps.slice(mid) },
+          ],
+        };
+      });
+  }, []);
 
   // Loading / not found states
   if (!itinerary && itinerariesLoading) {
