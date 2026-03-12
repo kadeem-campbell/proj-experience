@@ -105,16 +105,44 @@ const ProfilePage = () => {
     if (!user?.id) return;
     setSaving(true);
     try {
+      const trimmedUsername = username.trim().toLowerCase();
+      if (trimmedUsername && trimmedUsername.length < 3) {
+        toast({ title: "Username must be at least 3 characters", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      // Check username uniqueness
+      if (trimmedUsername) {
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', trimmedUsername)
+          .neq('id', user.id)
+          .maybeSingle();
+        if (existing) {
+          toast({ title: "Username already taken", variant: "destructive" });
+          setSaving(false);
+          return;
+        }
+      }
       const { error } = await supabase
         .from('profiles')
         .update({
-          username: username.trim() || null,
+          username: trimmedUsername || null,
           full_name: fullName.trim() || null,
           avatar_url: avatarUrl || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('profiles_username_unique')) {
+          toast({ title: "Username already taken", variant: "destructive" });
+        } else {
+          throw error;
+        }
+        setSaving(false);
+        return;
+      }
       await refreshProfile?.();
       setIsEditing(false);
       toast({ title: "Profile updated" });

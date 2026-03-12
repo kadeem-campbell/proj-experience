@@ -187,21 +187,42 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
       return;
     }
 
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      setError("Username can only contain letters, numbers, and underscores");
+      return;
+    }
+
     setIsLoading(true);
     try {
+      // Check username uniqueness
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username.trim().toLowerCase())
+        .maybeSingle();
+
+      if (existingUser) {
+        setError("This username is already taken. Try another one.");
+        setIsLoading(false);
+        return;
+      }
+
       // Check if user is already signed in (OAuth flow)
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        // OAuth user - update profile with username
+        // OAuth user - update profile with username (don't save email to profile)
         const { error: updateError } = await supabase.from("profiles").upsert({
           id: session.user.id,
-          username: username,
-          email: session.user.email,
+          username: username.trim().toLowerCase(),
         });
 
         if (updateError) {
-          setError("Failed to save username. Please try again.");
+          if (updateError.message.includes("profiles_username_unique")) {
+            setError("This username is already taken. Try another one.");
+          } else {
+            setError("Failed to save username. Please try again.");
+          }
           setIsLoading(false);
           return;
         }
