@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      experiences: {
+        Row: {
+          best_time: string | null
+          category: string
+          created_at: string | null
+          creator: string
+          description: string | null
+          duration: string | null
+          faqs: Json | null
+          gallery: Json | null
+          group_size: string | null
+          highlights: Json | null
+          id: string
+          instagram_embed: string | null
+          is_active: boolean | null
+          location: string
+          meeting_points: Json | null
+          price: string | null
+          rating: number | null
+          social_links: Json | null
+          tiktok_videos: Json | null
+          title: string
+          updated_at: string | null
+          video_thumbnail: string | null
+          video_url: string | null
+          views: string | null
+          weather: string | null
+        }
+        Insert: {
+          best_time?: string | null
+          category?: string
+          created_at?: string | null
+          creator?: string
+          description?: string | null
+          duration?: string | null
+          faqs?: Json | null
+          gallery?: Json | null
+          group_size?: string | null
+          highlights?: Json | null
+          id?: string
+          instagram_embed?: string | null
+          is_active?: boolean | null
+          location?: string
+          meeting_points?: Json | null
+          price?: string | null
+          rating?: number | null
+          social_links?: Json | null
+          tiktok_videos?: Json | null
+          title: string
+          updated_at?: string | null
+          video_thumbnail?: string | null
+          video_url?: string | null
+          views?: string | null
+          weather?: string | null
+        }
+        Update: {
+          best_time?: string | null
+          category?: string
+          created_at?: string | null
+          creator?: string
+          description?: string | null
+          duration?: string | null
+          faqs?: Json | null
+          gallery?: Json | null
+          group_size?: string | null
+          highlights?: Json | null
+          id?: string
+          instagram_embed?: string | null
+          is_active?: boolean | null
+          location?: string
+          meeting_points?: Json | null
+          price?: string | null
+          rating?: number | null
+          social_links?: Json | null
+          tiktok_videos?: Json | null
+          title?: string
+          updated_at?: string | null
+          video_thumbnail?: string | null
+          video_url?: string | null
+          views?: string | null
+          weather?: string | null
+        }
+        Relationships: []
+      }
       itineraries: {
         Row: {
           active_trip_id: string | null
