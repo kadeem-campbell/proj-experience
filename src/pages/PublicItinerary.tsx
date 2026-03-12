@@ -707,180 +707,177 @@ const PublicItinerary = () => {
       );
     }
 
-    // OWNED: show generated trips with actual dates, or empty state
-    if (generatedTrips.length > 0 && activeTripIndex >= 0 && activeTripIndex < generatedTrips.length) {
-      const activeTrip = generatedTrips[activeTripIndex];
-      const sortedDays = Object.entries(activeTrip.days).sort(([a], [b]) => a.localeCompare(b));
+    // OWNED: show trip switcher always when trips exist
+    const hasTrips = generatedTrips.length > 0;
+    const hasActiveTrip = hasTrips && activeTripIndex >= 0 && activeTripIndex < generatedTrips.length;
+    const activeTrip = hasActiveTrip ? generatedTrips[activeTripIndex] : null;
+    const sortedDays = activeTrip ? Object.entries(activeTrip.days).sort(([a], [b]) => a.localeCompare(b)) : [];
+    const tripDateRange = sortedDays.length > 0
+      ? { start: new Date(sortedDays[0][0]), end: new Date(sortedDays[sortedDays.length - 1][0]) }
+      : null;
+
+    if (!hasTrips) {
       return (
-        <div className="px-4 py-4">
-          {/* Auto-save banner */}
-          {showAutoSave && (
-            <div className="flex items-center gap-2 px-3 py-2 mb-3 rounded-lg bg-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
-              <Check className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs text-primary font-medium">Auto-saved</span>
-            </div>
-          )}
-          
-          {/* Trip switcher with deselect + delete */}
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
-            {generatedTrips.map((trip, idx) => (
-              <div key={trip.id} className="shrink-0 flex items-center gap-0.5">
-                <button
-                  onClick={() => setActiveTripIndex(idx === activeTripIndex ? -1 : idx)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-l-full text-xs font-medium transition-colors",
-                    idx === activeTripIndex
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {trip.name}
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm(`Delete trip "${trip.name}"?`)) handleDeleteTrip(idx);
-                  }}
-                  className={cn(
-                    "px-1.5 py-1.5 rounded-r-full text-xs transition-colors",
-                    idx === activeTripIndex
-                      ? "bg-primary/80 text-primary-foreground hover:bg-destructive"
-                      : "bg-muted text-muted-foreground/60 hover:bg-destructive/20 hover:text-destructive"
-                  )}
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Days with actual calendar dates */}
-          <div className="space-y-6">
-            {sortedDays.map(([dayKey, dayExps]) => (
-              <div key={dayKey}>
-                <div className="flex items-center gap-2 mb-3">
-                  <CalendarIcon className="w-4 h-4 text-primary" />
-                  <h3 className="text-sm font-semibold text-foreground">
-                    {format(new Date(dayKey), "d MMMM")}
-                  </h3>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                    {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
-                  </Badge>
-                </div>
-                <div className="space-y-0">
-                  {dayExps.map((exp, expIdx) => {
-                    const warning = dragWarnings.get(exp.id);
-                    const isMoving = movingExp?.id === exp.id && movingExp?.fromDay === dayKey;
-                    return (
-                      <div key={exp.id} className="relative">
-                        <div className="flex items-center gap-2 py-2.5 px-3 border-b border-border/20 last:border-b-0">
-                          {/* Move handle area */}
-                          <div className="flex flex-col gap-0.5 shrink-0">
-                            <button
-                              onClick={() => handleReorderInDay(dayKey, exp.id, 'up')}
-                              disabled={expIdx === 0}
-                              className={cn("p-0.5 rounded", expIdx === 0 ? "opacity-20" : "active:bg-muted")}
-                            >
-                              <ChevronUp className="w-3 h-3 text-muted-foreground" />
-                            </button>
-                            <button
-                              onClick={() => handleReorderInDay(dayKey, exp.id, 'down')}
-                              disabled={expIdx === dayExps.length - 1}
-                              className={cn("p-0.5 rounded", expIdx === dayExps.length - 1 ? "opacity-20" : "active:bg-muted")}
-                            >
-                              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-                            </button>
-                          </div>
-
-                          {/* Thumbnail */}
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
-                            {exp.videoThumbnail ? (
-                              <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <MapPin className="w-3.5 h-3.5 text-muted-foreground/40" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Text */}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium text-foreground truncate">{exp.title}</h4>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {[exp.location, exp.category].filter(Boolean).join(' · ')}
-                            </p>
-                            {warning && (
-                              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
-                                <AlertTriangle className="w-2.5 h-2.5" />
-                                <span>{warning}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Move to different day button */}
-                          {sortedDays.length > 1 && (
-                            <button
-                              onClick={() => setMovingExp(isMoving ? null : { id: exp.id, fromDay: dayKey })}
-                              className={cn(
-                                "p-1.5 rounded-md transition-colors shrink-0",
-                                isMoving ? "bg-primary/10 text-primary" : "text-muted-foreground/40 active:bg-muted"
-                              )}
-                            >
-                              <ArrowUpDown className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Move-to-day picker */}
-                        {isMoving && (
-                          <div className="bg-muted/50 border-b border-border/20 px-4 py-2">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Move to</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {sortedDays
-                                .filter(([dk]) => dk !== dayKey)
-                                .map(([dk]) => (
-                                  <button
-                                    key={dk}
-                                    onClick={() => {
-                                      handleMoveExperience(exp.id, dayKey, dk);
-                                      setMovingExp(null);
-                                    }}
-                                    className="text-xs font-medium px-2.5 py-1 rounded-md bg-background border border-border/50 text-foreground hover:bg-primary/5 hover:border-primary/20 active:bg-primary/10 transition-colors"
-                                  >
-                                    {format(new Date(dk), "d MMM")}
-                                  </button>
-                                ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+        <div className="text-center py-12 px-4">
+          <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground mb-2">No trips yet</p>
+          <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch or use an existing public trip as a starting point.</p>
+          <div className="flex flex-col gap-2 max-w-[240px] mx-auto">
+            <Button onClick={() => { setTripStartDate(undefined); setTripEndDate(undefined); setShowCreateTripSheet(true); }} className="gap-2 w-full">
+              <Plus className="w-4 h-4" />
+              Create trip
+            </Button>
+            {browsablePublicTrips.length > 0 && (
+              <Button variant="outline" onClick={() => setShowBrowsePublicTrips(true)} className="gap-2 w-full">
+                <Globe className="w-4 h-4" />
+                Browse public trips
+              </Button>
+            )}
           </div>
         </div>
       );
     }
 
-    // Owned: no trip selected or no trips yet - show empty state
     return (
-      <div className="text-center py-12 px-4">
-        <Route className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground mb-2">
-          {generatedTrips.length > 0 ? "No trip selected" : "No trips yet"}
-        </p>
-        <p className="text-xs text-muted-foreground/60 mb-5">Create a trip from scratch or use an existing public trip as a starting point.</p>
-        <div className="flex flex-col gap-2 max-w-[240px] mx-auto">
-          <Button onClick={() => setShowCreateTripSheet(true)} className="gap-2 w-full">
-            <Plus className="w-4 h-4" />
-            Create trip
-          </Button>
-          <Button variant="outline" onClick={() => setShowBrowsePublicTrips(true)} className="gap-2 w-full">
-            <Globe className="w-4 h-4" />
-            Browse public trips
-          </Button>
+      <div className="px-4 py-4">
+        {showAutoSave && (
+          <div className="flex items-center gap-2 px-3 py-2 mb-3 rounded-lg bg-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
+            <Check className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs text-primary font-medium">Auto-saved</span>
+          </div>
+        )}
+        
+        {/* Trip switcher - always visible */}
+        <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+          {generatedTrips.map((trip, idx) => {
+            const isActive = idx === activeTripIndex;
+            return (
+              <div key={trip.id} className="shrink-0 flex items-center">
+                <button
+                  onClick={() => setActiveTripIndex(isActive ? -1 : idx)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-l-full text-xs font-medium transition-colors max-w-[180px] truncate",
+                    isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {trip.name}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete "${trip.name}"?`)) handleDeleteTrip(idx);
+                  }}
+                  className={cn(
+                    "px-1.5 py-1.5 rounded-r-full text-xs transition-colors",
+                    isActive ? "bg-primary/80 text-primary-foreground hover:bg-destructive" : "bg-muted text-muted-foreground/60 hover:bg-destructive/20 hover:text-destructive"
+                  )}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            );
+          })}
         </div>
+
+        {!hasActiveTrip && (
+          <div className="text-center py-8">
+            <p className="text-xs text-muted-foreground">Tap a trip above to view it</p>
+          </div>
+        )}
+
+        {hasActiveTrip && activeTrip && (
+          <>
+            {/* Editable date range */}
+            {tripDateRange && (
+              <button
+                onClick={() => {
+                  setTripStartDate(tripDateRange.start);
+                  setTripEndDate(tripDateRange.end);
+                  setShowEditTripDates(true);
+                }}
+                className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-muted/50 w-full text-left group transition-colors hover:bg-muted/80"
+              >
+                <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground">
+                  {format(tripDateRange.start, "d MMM")} – {format(tripDateRange.end, "d MMM yyyy")}
+                </span>
+                <Edit2 className="w-3 h-3 text-muted-foreground/40 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            )}
+
+            <div className="space-y-6">
+              {sortedDays.map(([dayKey, dayExps]) => (
+                <div key={dayKey}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <CalendarIcon className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">{format(new Date(dayKey), "d MMMM")}</h3>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {dayExps.length} {dayExps.length === 1 ? 'activity' : 'activities'}
+                    </Badge>
+                  </div>
+                  <div className="space-y-0">
+                    {dayExps.map((exp, expIdx) => {
+                      const warning = dragWarnings.get(exp.id);
+                      const isMoving = movingExp?.id === exp.id && movingExp?.fromDay === dayKey;
+                      return (
+                        <div key={exp.id} className="relative">
+                          <div className="flex items-center gap-2 py-2.5 px-3 border-b border-border/20 last:border-b-0">
+                            <div className="flex flex-col gap-0.5 shrink-0">
+                              <button onClick={() => handleReorderInDay(dayKey, exp.id, 'up')} disabled={expIdx === 0} className={cn("p-0.5 rounded", expIdx === 0 ? "opacity-20" : "active:bg-muted")}>
+                                <ChevronUp className="w-3 h-3 text-muted-foreground" />
+                              </button>
+                              <button onClick={() => handleReorderInDay(dayKey, exp.id, 'down')} disabled={expIdx === dayExps.length - 1} className={cn("p-0.5 rounded", expIdx === dayExps.length - 1 ? "opacity-20" : "active:bg-muted")}>
+                                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                              </button>
+                            </div>
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                              {exp.videoThumbnail ? (
+                                <img src={exp.videoThumbnail} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center"><MapPin className="w-3.5 h-3.5 text-muted-foreground/40" /></div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-medium text-foreground truncate">{exp.title}</h4>
+                              <p className="text-xs text-muted-foreground truncate">{[exp.location, exp.category].filter(Boolean).join(' · ')}</p>
+                              {warning && (
+                                <div className="flex items-center gap-1 mt-0.5 text-[10px] text-amber-600">
+                                  <AlertTriangle className="w-2.5 h-2.5" /><span>{warning}</span>
+                                </div>
+                              )}
+                            </div>
+                            {sortedDays.length > 1 && (
+                              <button
+                                onClick={() => setMovingExp(isMoving ? null : { id: exp.id, fromDay: dayKey })}
+                                className={cn("p-1.5 rounded-md transition-colors shrink-0", isMoving ? "bg-primary/10 text-primary" : "text-muted-foreground/40 active:bg-muted")}
+                              >
+                                <ArrowUpDown className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                          {isMoving && (
+                            <div className="bg-muted/50 border-b border-border/20 px-4 py-2">
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Move to</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {sortedDays.filter(([dk]) => dk !== dayKey).map(([dk]) => (
+                                  <button key={dk} onClick={() => { handleMoveExperience(exp.id, dayKey, dk); setMovingExp(null); }}
+                                    className="text-xs font-medium px-2.5 py-1 rounded-md bg-background border border-border/50 text-foreground hover:bg-primary/5 hover:border-primary/20 active:bg-primary/10 transition-colors"
+                                  >
+                                    {format(new Date(dk), "d MMM")}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     );
   };
