@@ -38,7 +38,7 @@ const ProfilePage = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   if (!isAuthenticated) {
-    const AuthModalComponent = require("@/components/AuthModal").AuthModal;
+    
     if (isMobile) {
       return (
         <MobileShell>
