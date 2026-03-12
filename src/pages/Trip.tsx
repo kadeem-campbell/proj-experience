@@ -28,7 +28,7 @@ import { Itinerary, Trip as TripType, useItineraries } from "@/hooks/useItinerar
 import { LikedExperience, TimeSlot } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
 import { SpinUpModal } from "@/components/SpinUpModal";
-import { publicItinerariesData } from "@/data/itinerariesData";
+import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useToast } from "@/hooks/use-toast";
 import { TripSelector } from "@/components/TripSelector";
 import {

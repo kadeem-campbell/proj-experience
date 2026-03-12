@@ -31,7 +31,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
-import { publicItinerariesData } from "@/data/itinerariesData";
+import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { LikedExperience, TimeSlot } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
 import { 
