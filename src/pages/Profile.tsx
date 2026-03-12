@@ -14,7 +14,7 @@ import { MobileShell } from "@/components/MobileShell";
 import { AuthModal } from "@/components/AuthModal";
 import { 
   Camera, Check, Heart, MapPin, Loader2, User, Mail, AtSign, 
-  Layers, Settings, LogOut, ChevronRight
+  Layers, LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";

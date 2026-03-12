@@ -35,10 +35,10 @@ const MAX_RECENT_SEARCHES = 8;
 const filterCategories = [
   { label: "Beaches", category: "Beach" },
   { label: "Nightlife", category: "Nightlife" },
-  { label: "Nature", category: "Wildlife" },
+  { label: "Nature", category: "Nature" },
   { label: "Adventure", category: "Adventure" },
   { label: "Food", category: "Food" },
-  { label: "Safari", category: "Wildlife" },
+  { label: "Safari", category: "Safari" },
 ];
 
 const filterLocations = [
