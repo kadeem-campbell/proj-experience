@@ -526,26 +526,27 @@ export default function ExperienceDetail() {
             {/* Back button */}
             <button 
               onClick={handleGoBack}
-              className="absolute top-4 left-4 p-2 rounded-full bg-background/70 backdrop-blur-xl z-10"
+              className="absolute top-3 left-3 p-2.5 rounded-full bg-background/70 backdrop-blur-xl z-10"
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            {/* Share button */}
-            <ShareDrawer title={experience.title} url={shareUrl}>
-              <button className="absolute top-4 right-14 p-2 rounded-full bg-background/70 backdrop-blur-xl z-10">
-                <Share2 className="w-5 h-5 text-foreground" />
+            {/* Share & Like - right side, same row */}
+            <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+              <ShareDrawer title={experience.title} url={shareUrl}>
+                <button className="p-2.5 rounded-full bg-background/70 backdrop-blur-xl">
+                  <Share2 className="w-5 h-5 text-foreground" />
+                </button>
+              </ShareDrawer>
+              <button
+                onClick={handleLikeClick}
+                className={cn(
+                  "p-2.5 rounded-full backdrop-blur-xl transition-all active:scale-90",
+                  liked ? "bg-primary/20" : "bg-background/70"
+                )}
+              >
+                <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
               </button>
-            </ShareDrawer>
-            {/* Like button */}
-            <button
-              onClick={handleLikeClick}
-              className={cn(
-                "absolute top-4 right-4 p-2 rounded-full backdrop-blur-xl z-10 transition-all active:scale-90",
-                liked ? "bg-primary/20" : "bg-background/70"
-              )}
-            >
-              <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
-            </button>
+            </div>
           </div>
 
           {/* Content */}
