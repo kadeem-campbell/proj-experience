@@ -195,7 +195,7 @@ const SearchPage = () => {
     return null;
   });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const experiences = allExperiences;
+  const experiences = useExperiencesData();
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(18);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
