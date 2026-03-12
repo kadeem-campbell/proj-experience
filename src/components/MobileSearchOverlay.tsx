@@ -16,6 +16,8 @@ interface MobileSearchOverlayProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onSearch: (query: string) => void;
+  initialCity?: string;
+  onCityChange?: (city: string) => void;
 }
 
 const categoryToSearchCategory: Record<string, string> = {
@@ -177,6 +179,8 @@ export const MobileSearchOverlay = ({
   searchQuery,
   onSearchChange,
   onSearch,
+  initialCity,
+  onCityChange,
 }: MobileSearchOverlayProps) => {
   const navigate = useNavigate();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -184,6 +188,16 @@ export const MobileSearchOverlay = ({
   const [showFilters, setShowFilters] = useState(false);
   const [typeFilter, setTypeFilter] = useState<"all" | "experiences" | "itineraries">("all");
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+
+  // Pre-select city location filter from global city state
+  useEffect(() => {
+    if (isOpen && initialCity) {
+      setSelectedLocations(prev => {
+        if (prev.includes(initialCity)) return prev;
+        return [initialCity];
+      });
+    }
+  }, [isOpen, initialCity]);
 
   const savedScrollRef = useRef(0);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -298,9 +312,15 @@ export const MobileSearchOverlay = ({
   };
 
   const toggleLocation = (loc: string) => {
-    setSelectedLocations(prev =>
-      prev.includes(loc) ? prev.filter(l => l !== loc) : [...prev, loc]
-    );
+    setSelectedLocations(prev => {
+      const isRemoving = prev.includes(loc);
+      const newLocs = isRemoving ? prev.filter(l => l !== loc) : [loc]; // Only keep one location (the newly selected)
+      // Update global city state
+      if (onCityChange) {
+        onCityChange(isRemoving ? "" : loc);
+      }
+      return newLocs;
+    });
   };
 
   const toggleCategory = (label: string) => {

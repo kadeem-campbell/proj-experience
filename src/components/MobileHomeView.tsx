@@ -33,11 +33,7 @@ const rotatingPlaceholders = [
   "Search sunset spots",
 ];
 
-// City airport codes + flag
-const cityDisplayMap: Record<string, string> = {
-  "Zanzibar": "🇹🇿 ZNZ",
-  "Dar es Salaam": "🇹🇿 DAR",
-};
+// Removed cityDisplayMap - now handled by MobileShell globe button
 
 const CategoryFilterPills = ({ 
   activeCategory, 
@@ -377,19 +373,8 @@ export const MobileHomeView = () => {
     return base;
   };
 
-  // City header tag with flag + airport code
-  const headerContent = selectedCity ? (
-    <button
-      onClick={() => handleCityChange("")}
-      className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold"
-    >
-      {cityDisplayMap[selectedCity] || selectedCity}
-      <span className="ml-0.5 text-primary/60">✕</span>
-    </button>
-  ) : undefined;
-
   return (
-    <MobileShell headerContent={headerContent} hideAvatar notFixed>
+    <MobileShell hideAvatar notFixed>
       {/* Search bar */}
       <div className="px-4 pb-3">
         <button

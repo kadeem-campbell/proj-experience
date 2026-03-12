@@ -1,10 +1,15 @@
 import { useState, useCallback, useEffect, ReactNode } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Search, ListMusic, User, Map } from "lucide-react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Home, Search, ListMusic, User, Globe } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { cn } from "@/lib/utils";
+
+const cityCodeMap: Record<string, string> = {
+  "Zanzibar": "ZNZ",
+  "Dar es Salaam": "DAR",
+};
 
 // Fixed bottom navigation bar
 const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () => void; isSearchOpen: boolean }) => {
@@ -14,7 +19,6 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
 
   const handleNavClick = useCallback((targetPath: string, isCurrentlyActive: boolean) => {
     if (isCurrentlyActive) {
-      // Already on this tab - scroll to top
       window.scrollTo({ top: 0, behavior: "smooth" });
       document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -24,7 +28,7 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
 
   const handleHomeClick = useCallback(() => {
     if (isSearchOpen) {
-      onSearchClick(); // close search
+      onSearchClick();
       return;
     }
     const isHome = location.pathname === "/" && !location.search;
@@ -37,10 +41,7 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   }, [location.pathname, location.search, navigate, isSearchOpen, onSearchClick]);
 
   const handleSearchClick = useCallback(() => {
-    if (isSearchOpen) {
-      // Already in search - just scroll to top of search results
-      return;
-    }
+    if (isSearchOpen) return;
     onSearchClick();
   }, [isSearchOpen, onSearchClick]);
 
@@ -78,13 +79,50 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   );
 };
 
-// Top header bar - swam.app goes HOME, not profile menu
-const MobileTopBar = ({ 
-  headerContent,
+// City globe button - replaces map icon, same size
+const CityGlobeButton = ({ selectedCity }: { selectedCity: string }) => {
+  const navigate = useNavigate();
+  const code = selectedCity ? cityCodeMap[selectedCity] : "";
+  const isActive = !!selectedCity;
+
+  return (
+    <button
+      onClick={() => navigate("/map")}
+      className={cn(
+        "w-9 h-9 rounded-full flex items-center justify-center relative overflow-hidden transition-all",
+        isActive ? "bg-primary" : "bg-muted"
+      )}
+    >
+      {/* Globe icon in background */}
+      <Globe
+        className={cn(
+          "w-7 h-7 absolute",
+          isActive ? "text-primary-foreground/20" : "text-muted-foreground/30"
+        )}
+        strokeWidth={1.2}
+      />
+      {/* Airport code on top */}
+      {isActive ? (
+        <span className="relative z-10 text-[10px] font-extrabold text-primary-foreground tracking-wide">
+          {code}
+        </span>
+      ) : (
+        <Globe
+          className="w-5 h-5 relative z-10 text-muted-foreground"
+          strokeWidth={2}
+        />
+      )}
+    </button>
+  );
+};
+
+// Top header bar
+const MobileTopBar = ({
+  selectedCity,
   hideAvatar = false,
   notFixed = false,
-}: { 
-  headerContent?: ReactNode;
+}: {
+  selectedCity: string;
   hideAvatar?: boolean;
   notFixed?: boolean;
 }) => {
@@ -100,15 +138,7 @@ const MobileTopBar = ({
           <button onClick={() => navigate('/')} className="text-[22px] tracking-[-0.03em] text-foreground" style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}>
             swam<span className="text-primary font-extrabold">.app</span>
           </button>
-          <div className="flex items-center gap-2">
-            {headerContent}
-            <button 
-              onClick={() => navigate("/map")} 
-              className="w-9 h-9 rounded-full bg-[#f5f5f5] flex items-center justify-center"
-            >
-              <Map className="w-5 h-5 text-[#121212]" strokeWidth={2.2} />
-            </button>
-          </div>
+          <CityGlobeButton selectedCity={selectedCity} />
         </div>
       </div>
     </div>
@@ -126,11 +156,27 @@ interface MobileShellProps {
 
 export const MobileShell = ({ children, headerContent, hideTopBar = false, hideAvatar = false, notFixed = false, className }: MobileShellProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Scroll to top on route change, except homepage which preserves position
-  const location = useLocation();
+  // Global city state from URL
+  const selectedCity = searchParams.get("city") || "";
+
+  // Callback when search changes the city
+  const handleCityChange = useCallback((city: string) => {
+    const params = new URLSearchParams(window.location.search);
+    if (city) {
+      params.set("city", city);
+    } else {
+      params.delete("city");
+    }
+    const newSearch = params.toString();
+    navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
+  }, [navigate, location.pathname]);
+
+  // Scroll to top on route change, except homepage
   useEffect(() => {
     if (location.pathname !== '/') {
       window.scrollTo(0, 0);
@@ -146,17 +192,18 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onSearch={(q) => { setSearchQuery(q); setMobileSearchOpen(false); navigate("/?q=" + encodeURIComponent(q)); }}
+        initialCity={selectedCity}
+        onCityChange={handleCityChange}
       />
 
       {!hideTopBar && (
-        <MobileTopBar 
-          headerContent={headerContent}
+        <MobileTopBar
+          selectedCity={selectedCity}
           hideAvatar={hideAvatar}
           notFixed={notFixed}
         />
       )}
 
-      {/* Content area */}
       <div className={cn(!hideTopBar && !notFixed && "pt-[72px]", "pb-20")}>
         {children}
       </div>
