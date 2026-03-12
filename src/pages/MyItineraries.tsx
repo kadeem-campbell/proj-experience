@@ -244,8 +244,12 @@ const MyItinerariesPage = () => {
         <div className="flex flex-col items-center justify-center px-6 pt-20">
           <Layers className="w-16 h-16 text-muted-foreground/30 mb-4" />
           <h2 className="text-xl font-bold mb-2">Your Itineraries</h2>
-          <p className="text-sm text-muted-foreground text-center mb-6">Sign in to create and manage your travel itineraries</p>
-          <Button onClick={() => navigate('/auth')} className="rounded-full px-8">Sign In</Button>
+          <p className="text-sm text-muted-foreground text-center mb-6">Create and manage your travel itineraries</p>
+          <Button onClick={() => navigate('/auth')} className="rounded-full px-8 mb-3">
+            <Plus className="w-4 h-4 mr-2" />
+            Create Itinerary
+          </Button>
+          <p className="text-xs text-muted-foreground">Sign in to get started</p>
         </div>
       </Wrapper>
     );
