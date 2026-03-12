@@ -282,6 +282,8 @@ export const MobileHomeView = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeCategory, setActiveCategory] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const { data: allItinerariesData = [] } = usePopularItineraries();
+  const allExpsData = useExperiencesData();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -304,7 +306,7 @@ export const MobileHomeView = () => {
   const itineraries = useMemo(() => {
     if (!selectedCity) return allItinerariesData;
     return allItinerariesData.filter(it => itineraryMatchesCity(it, selectedCity));
-  }, [selectedCity]);
+  }, [selectedCity, allItinerariesData]);
 
   const experiences = useMemo(() => {
     let filtered = allExpsData;
@@ -312,7 +314,7 @@ export const MobileHomeView = () => {
       filtered = filtered.filter(e => matchesCity(e.location || "", selectedCity));
     }
     return filtered;
-  }, [selectedCity]);
+  }, [selectedCity, allExpsData]);
 
   const categoryExperiences = useMemo(() => {
     if (!activeCategory) return experiences;
