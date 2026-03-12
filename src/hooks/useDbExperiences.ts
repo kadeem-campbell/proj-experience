@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface DbExperience {
   id: string;
   title: string;
+  slug: string;
   creator: string;
   description: string;
   category: string;
@@ -24,6 +25,10 @@ export interface DbExperience {
   instagram_embed: string;
   social_links: Record<string, string>;
   views: string;
+  like_count: number;
+  view_count: number;
+  city_id: string | null;
+  creator_id: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
