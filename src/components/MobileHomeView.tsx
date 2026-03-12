@@ -263,8 +263,7 @@ const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
   return itinerary.experiences?.some((e: any) => matchesCity(e.location || "", city)) || false;
 };
 
-const allItinerariesData = getPopularItineraries();
-const allExpsData = allExperiences;
+// Data now fetched inside component via hooks
 
 const categoryLabelMap: Record<string, string> = {
   "Beach": "Beaches",
