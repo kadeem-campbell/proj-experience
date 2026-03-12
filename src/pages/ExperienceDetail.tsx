@@ -526,34 +526,35 @@ export default function ExperienceDetail() {
             {/* Back button */}
             <button 
               onClick={handleGoBack}
-              className="absolute top-4 left-4 p-2 rounded-full bg-background/70 backdrop-blur-xl z-10"
+              className="absolute top-3 left-3 p-2.5 rounded-full bg-background/70 backdrop-blur-xl z-10"
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            {/* Share button */}
-            <ShareDrawer title={experience.title} url={shareUrl}>
-              <button className="absolute top-4 right-14 p-2 rounded-full bg-background/70 backdrop-blur-xl z-10">
-                <Share2 className="w-5 h-5 text-foreground" />
+            {/* Share & Like - right side, same row */}
+            <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+              <ShareDrawer title={experience.title} url={shareUrl}>
+                <button className="p-2.5 rounded-full bg-background/70 backdrop-blur-xl">
+                  <Share2 className="w-5 h-5 text-foreground" />
+                </button>
+              </ShareDrawer>
+              <button
+                onClick={handleLikeClick}
+                className={cn(
+                  "p-2.5 rounded-full backdrop-blur-xl transition-all active:scale-90",
+                  liked ? "bg-primary/20" : "bg-background/70"
+                )}
+              >
+                <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
               </button>
-            </ShareDrawer>
-            {/* Like button */}
-            <button
-              onClick={handleLikeClick}
-              className={cn(
-                "absolute top-4 right-4 p-2 rounded-full backdrop-blur-xl z-10 transition-all active:scale-90",
-                liked ? "bg-primary/20" : "bg-background/70"
-              )}
-            >
-              <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
-            </button>
+            </div>
           </div>
 
           {/* Content */}
           <div className="px-4 py-4">
             {/* Category badge with icon + rating */}
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <Badge className="bg-foreground text-background border-0 font-medium flex items-center gap-1.5">
-                {categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}
+              <Badge variant="outline" className="border-border font-medium flex items-center gap-1.5 bg-card">
+                {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
                 {experience.category}
               </Badge>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -613,23 +614,20 @@ export default function ExperienceDetail() {
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                 <CloudSun className="w-4 h-4 text-primary" />
-                <span className="font-medium">{experience.weather || `Best: ${experience.bestTime}`}</span>
+                <span className="font-medium">{(experience.weather || `Best: ${experience.bestTime}`).replace(/[^\w\s,°·\-–—.]/g, '').trim()}</span>
               </div>
             </div>
 
-            {/* Average Prices - NOT booking, market prices */}
+            {/* Prices per person */}
             <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="w-5 h-5 text-primary" />
-                <h3 className="text-base font-semibold">Average Market Prices</h3>
+                <h3 className="text-base font-semibold">Prices per person</h3>
               </div>
-              <div className="flex items-baseline gap-2 mb-1.5">
+              <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
-                <span className="text-sm text-muted-foreground">per person</span>
+                <span className="text-sm text-muted-foreground">average</span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                These are typical prices from local providers. We don't process bookings — prices are for reference only and may vary by season.
-              </p>
             </div>
 
             {/* Social Video Embeds */}
@@ -679,25 +677,30 @@ export default function ExperienceDetail() {
               </div>
             </div>
 
-            {/* FAQ Section */}
-            <FAQSection faqs={experience.faqs || []} experienceId={experience.id} />
-
-            {/* Creator */}
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-8">
-              <Avatar className="w-12 h-12">
-                <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                  {experience.creator?.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-medium">@{experience.creator}</p>
-                <p className="text-sm text-muted-foreground">Experience Creator</p>
-              </div>
-              <div className="flex items-center gap-1 text-sm">
-                <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                <span className="font-medium">{experience.rating}</span>
+            {/* Creators */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-3">Creators</h2>
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+                <Avatar className="w-12 h-12">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                    {experience.creator?.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-medium">@{experience.creator}</p>
+                  <p className="text-sm text-muted-foreground">Creator</p>
+                </div>
+                <div className="flex items-center gap-1 text-sm">
+                  <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                  <span className="font-medium">{experience.rating}</span>
+                </div>
               </div>
             </div>
+
+            {/* FAQ Section - at bottom */}
+            <FAQSection faqs={experience.faqs || []} experienceId={experience.id} />
+
+            <div className="h-8" />
           </div>
         </div>
       </MobileShell>
@@ -770,8 +773,8 @@ export default function ExperienceDetail() {
               {/* Desktop Title */}
               <div className="mb-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <Badge className="bg-foreground text-background border-0 font-medium text-sm flex items-center gap-1.5">
-                    {categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}
+                  <Badge variant="outline" className="border-border font-medium text-sm flex items-center gap-1.5 bg-card">
+                    {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
                     {experience.category}
                   </Badge>
                   <div className="flex items-center gap-1 text-sm">
@@ -803,7 +806,7 @@ export default function ExperienceDetail() {
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                   <CloudSun className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{experience.weather || `Best: ${experience.bestTime}`}</span>
+                  <span className="font-medium">{(experience.weather || `Best: ${experience.bestTime}`).replace(/[^\w\s,°·\-–—.]/g, '').trim()}</span>
                 </div>
               </div>
 
@@ -854,25 +857,28 @@ export default function ExperienceDetail() {
                 </div>
               </div>
 
-              {/* FAQ */}
-              <FAQSection faqs={experience.faqs || []} experienceId={experience.id} />
-
-              {/* Creator */}
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-6">
-                <Avatar className="w-12 h-12">
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                    {experience.creator?.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="font-medium">@{experience.creator}</p>
-                  <p className="text-sm text-muted-foreground">Experience Creator</p>
-                </div>
-                <div className="flex items-center gap-1 text-sm">
-                  <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                  <span className="font-medium">{experience.rating}</span>
+              {/* Creators */}
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-3">Creators</h2>
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+                  <Avatar className="w-12 h-12">
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                      {experience.creator?.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-medium">@{experience.creator}</p>
+                    <p className="text-sm text-muted-foreground">Creator</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm">
+                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                    <span className="font-medium">{experience.rating}</span>
+                  </div>
                 </div>
               </div>
+
+              {/* FAQ - at bottom */}
+              <FAQSection faqs={experience.faqs || []} experienceId={experience.id} />
             </div>
 
             {/* Right sidebar */}
@@ -925,19 +931,16 @@ export default function ExperienceDetail() {
                   </p>
                 </div>
 
-                {/* Average Market Prices */}
+                {/* Prices per person */}
                 <div className="rounded-2xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="w-5 h-5 text-primary" />
-                    <p className="text-sm font-semibold">Average Market Prices</p>
+                    <p className="text-sm font-semibold">Prices per person</p>
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
-                    <span className="text-sm text-muted-foreground">per person</span>
+                    <span className="text-sm text-muted-foreground">average</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    Prices from local providers — for reference only
-                  </p>
                 </div>
 
                 {/* In Your Itineraries */}
