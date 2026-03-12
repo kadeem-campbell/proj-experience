@@ -46,8 +46,7 @@ const filterLocations = [
   { label: "🇹🇿 Dar es Salaam", value: "Dar es Salaam" },
 ];
 
-const allItinerariesData = getPopularItineraries();
-const allExpsData = allExperiences;
+// Data now fetched inside component via hooks
 
 const normalize = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
 const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");
