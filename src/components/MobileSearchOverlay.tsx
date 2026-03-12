@@ -23,6 +23,15 @@ interface MobileSearchOverlayProps {
   onSearch: (query: string) => void;
 }
 
+const categoryToSearchCategory: Record<string, string> = {
+  "Beaches": "Beach",
+  "Nightlife": "Nightlife",
+  "Nature": "Wildlife",
+  "Adventure": "Adventure",
+  "Food": "Food",
+  "Safari": "Wildlife",
+};
+
 const RECENT_SEARCHES_KEY = "guiduuid_recent_searches";
 const MAX_RECENT_SEARCHES = 8;
 
