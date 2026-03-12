@@ -254,7 +254,10 @@ const SearchPage = () => {
     return () => observer.disconnect();
   }, [visibleCount, experiences.length]);
 
-  if (isMobile) return (
+  // On mobile: "/" shows homepage, "/search" shows search overlay
+  const isSearchRoute = window.location.pathname === '/search' || window.location.pathname === '/discover';
+  
+  if (isMobile && isSearchRoute) return (
     <MobileSearchOverlay
       isOpen={true}
       onClose={() => navigate(-1)}
@@ -262,6 +265,10 @@ const SearchPage = () => {
       onSearchChange={setSearchQuery}
       onSearch={(q) => setSearchQuery(q)}
     />
+  );
+
+  if (isMobile) return (
+    <MobileHomeView />
   );
 
   const handleCitySelect = (city: City | null) => { setSelectedCity(city); setSelectedCategory(null); };
