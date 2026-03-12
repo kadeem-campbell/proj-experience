@@ -23,10 +23,10 @@ interface MobileSearchOverlayProps {
 const categoryToSearchCategory: Record<string, string> = {
   "Beaches": "Beach",
   "Nightlife": "Nightlife",
-  "Nature": "Wildlife",
+  "Nature": "Nature",
   "Adventure": "Adventure",
   "Food": "Food",
-  "Safari": "Wildlife",
+  "Safari": "Safari",
 };
 
 const RECENT_SEARCHES_KEY = "guiduuid_recent_searches";
@@ -35,10 +35,10 @@ const MAX_RECENT_SEARCHES = 8;
 const filterCategories = [
   { label: "Beaches", category: "Beach" },
   { label: "Nightlife", category: "Nightlife" },
-  { label: "Nature", category: "Wildlife" },
+  { label: "Nature", category: "Nature" },
   { label: "Adventure", category: "Adventure" },
   { label: "Food", category: "Food" },
-  { label: "Safari", category: "Wildlife" },
+  { label: "Safari", category: "Safari" },
 ];
 
 const filterLocations = [

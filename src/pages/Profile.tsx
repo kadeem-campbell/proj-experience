@@ -14,7 +14,7 @@ import { MobileShell } from "@/components/MobileShell";
 import { AuthModal } from "@/components/AuthModal";
 import { 
   Camera, Check, Heart, MapPin, Loader2, User, Mail, AtSign, 
-  Layers, Settings, LogOut, ChevronRight
+  Layers, LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -105,16 +105,44 @@ const ProfilePage = () => {
     if (!user?.id) return;
     setSaving(true);
     try {
+      const trimmedUsername = username.trim().toLowerCase();
+      if (trimmedUsername && trimmedUsername.length < 3) {
+        toast({ title: "Username must be at least 3 characters", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+      // Check username uniqueness
+      if (trimmedUsername) {
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', trimmedUsername)
+          .neq('id', user.id)
+          .maybeSingle();
+        if (existing) {
+          toast({ title: "Username already taken", variant: "destructive" });
+          setSaving(false);
+          return;
+        }
+      }
       const { error } = await supabase
         .from('profiles')
         .update({
-          username: username.trim() || null,
+          username: trimmedUsername || null,
           full_name: fullName.trim() || null,
           avatar_url: avatarUrl || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('profiles_username_unique')) {
+          toast({ title: "Username already taken", variant: "destructive" });
+        } else {
+          throw error;
+        }
+        setSaving(false);
+        return;
+      }
       await refreshProfile?.();
       setIsEditing(false);
       toast({ title: "Profile updated" });
@@ -242,22 +270,6 @@ const ProfilePage = () => {
             </button>
           </div>
 
-          {/* Quick links */}
-          <div className="space-y-1 mb-6">
-            {[
-              { icon: Settings, label: "Settings", action: () => {} },
-            ].map(({ icon: Icon, label, action }) => (
-              <button
-                key={label}
-                onClick={action}
-                className="w-full flex items-center gap-3 p-3.5 rounded-xl hover:bg-muted/50 active:scale-[0.99] transition-all"
-              >
-                <Icon className="w-5 h-5 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground flex-1 text-left">{label}</span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
 
           {/* Sign out */}
           <button
