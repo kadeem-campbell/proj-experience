@@ -13,21 +13,21 @@ import {
   Users, 
   Clock, 
   Star, 
-  Copy,
+  Heart,
   MessageCircle,
   Flame,
   TrendingUp,
   Sparkles,
   ChevronRight,
+  ChevronDown,
   Calendar,
-  Zap
+  Zap,
+  CloudSun,
+  DollarSign,
+  HelpCircle,
+  Send,
+  ThumbsUp
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { publicItinerariesData } from "@/data/itinerariesData";
@@ -35,7 +35,15 @@ import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
+import { useUserLikes } from "@/hooks/useUserLikes";
+import { useAuth } from "@/hooks/useAuth";
 import { slugify, generateExperienceUrl, generateExperienceSlug } from "@/utils/slugUtils";
+import catBeaches from "@/assets/cat-beaches.png";
+import catNightlife from "@/assets/cat-nightlife.png";
+import catNature from "@/assets/cat-nature.png";
+import catAdventure from "@/assets/cat-adventure.png";
+import catFood from "@/assets/cat-food.png";
+import catSafari from "@/assets/cat-safari.png";
 
 // Mock data
 import partyImage from "@/assets/party-experience.jpg";
@@ -44,6 +52,17 @@ import foodImage from "@/assets/food-experience.jpg";
 import wildlifeImage from "@/assets/wildlife-experience.jpg";
 import jetskiImage from "@/assets/jetski-experience.jpg";
 import adventureImage from "@/assets/adventure-experience.jpg";
+
+const categoryIconMap: Record<string, string> = {
+  "Beach": catBeaches,
+  "Adventure": catAdventure,
+  "Party": catNightlife,
+  "Wildlife": catSafari,
+  "Food": catFood,
+  "Water Sports": catAdventure,
+  "Nightlife": catNightlife,
+  "Culture": catNature,
+};
 
 const mockExperiences = [
   {
@@ -57,12 +76,18 @@ const mockExperiences = [
     duration: "1.5 hours",
     groupSize: "2-8 people",
     rating: 4.9,
+    price: "$25 - $60",
     highlights: ["Walk on the ocean floor", "No diving experience needed", "See tropical fish up close", "Professional guides & equipment"],
     gallery: [beachImage, jetskiImage, adventureImage],
     bestTime: "Morning",
+    weather: "☀️ Sunny, 28°C avg",
     meetingPoints: [
       { name: "Nungwi Beach", type: "Main Location" },
       { name: "Kendwa Pier", type: "Alternative" }
+    ],
+    faqs: [
+      { q: "Do I need to know how to swim?", a: "No! The helmet keeps your head above water and you walk on the ocean floor.", likes: 12 },
+      { q: "What should I bring?", a: "Just a swimsuit and towel. All equipment is provided.", likes: 8 },
     ],
     tiktokVideos: [
       {
@@ -84,13 +109,16 @@ const mockExperiences = [
     duration: "2 hours",
     groupSize: "4-8 people",
     rating: 4.8,
+    price: "$30 - $80",
     highlights: ["Crystal clear waters", "Professional guides", "Photo opportunities", "Beginner friendly"],
     gallery: [jetskiImage, beachImage, adventureImage, partyImage],
     bestTime: "Morning",
+    weather: "🌤️ Warm, 30°C avg",
     meetingPoints: [
       { name: "Coco Beach Marina", type: "Main Location" },
       { name: "Ocean Road Pier", type: "Alternative" }
-    ]
+    ],
+    faqs: [],
   },
   {
     id: "2",
@@ -104,12 +132,15 @@ const mockExperiences = [
     duration: "5 hours",
     groupSize: "10-100 people",
     rating: 4.7,
+    price: "$15 - $50",
     highlights: ["World-class DJs", "Beach setting", "Tropical cocktails", "Unforgettable atmosphere"],
     gallery: [partyImage, beachImage, foodImage, jetskiImage],
     bestTime: "Evening",
+    weather: "🌙 Cool breeze, 25°C",
     meetingPoints: [
       { name: "Nungwi Beach Club", type: "Main Venue" }
-    ]
+    ],
+    faqs: [],
   },
   {
     id: "3",
@@ -118,17 +149,20 @@ const mockExperiences = [
     videoThumbnail: wildlifeImage,
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     category: "Wildlife",
-    location: "Serengeti",
-    description: "Guided safari through the Serengeti with expert rangers. Witness the incredible wildlife of East Africa.",
+    location: "Zanzibar",
+    description: "Guided safari through incredible landscapes with expert rangers. Witness the amazing wildlife of East Africa.",
     duration: "6 hours",
     groupSize: "2-6 people",
     rating: 4.9,
+    price: "$80 - $200",
     highlights: ["Big Five sightings", "Expert guides", "Premium vehicles", "Sunrise views"],
     gallery: [wildlifeImage, adventureImage, beachImage, foodImage],
     bestTime: "Morning",
+    weather: "🌅 Dry season best",
     meetingPoints: [
-      { name: "Seronera Airstrip", type: "Main pickup" }
-    ]
+      { name: "Jozani Forest", type: "Main route" }
+    ],
+    faqs: [],
   },
   {
     id: "4",
@@ -141,12 +175,15 @@ const mockExperiences = [
     duration: "3 hours",
     groupSize: "4-10 people",
     rating: 4.6,
+    price: "$10 - $35",
     highlights: ["Authentic cuisine", "Spice markets", "Local secrets", "Cultural immersion"],
     gallery: [foodImage, partyImage, beachImage, wildlifeImage],
     bestTime: "Afternoon",
+    weather: "🌤️ Warm, 29°C avg",
     meetingPoints: [
       { name: "Forodhani Gardens", type: "Main spot" }
-    ]
+    ],
+    faqs: [],
   },
   {
     id: "5",
@@ -160,12 +197,15 @@ const mockExperiences = [
     duration: "4 hours",
     groupSize: "2-12 people",
     rating: 4.7,
+    price: "$5 - $20",
     highlights: ["White sand beaches", "Crystal clear water", "Relaxation", "Snorkeling spots"],
     gallery: [beachImage, jetskiImage, partyImage, adventureImage],
     bestTime: "Morning",
+    weather: "☀️ Sunny, 31°C avg",
     meetingPoints: [
       { name: "Kendwa Rocks Beach", type: "Main beach" }
-    ]
+    ],
+    faqs: [],
   },
   {
     id: "6",
@@ -174,17 +214,20 @@ const mockExperiences = [
     videoThumbnail: adventureImage,
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
     category: "Adventure",
-    location: "Mount Kilimanjaro",
-    description: "Challenge yourself with a guided climb and breathtaking views. Conquer the roof of Africa.",
+    location: "Zanzibar",
+    description: "Challenge yourself with a guided climb and breathtaking views. Experience the heights of East Africa.",
     duration: "8 hours",
     groupSize: "1-5 people",
     rating: 4.8,
+    price: "$40 - $120",
     highlights: ["Summit views", "Expert guides", "Achievement", "Stunning landscapes"],
     gallery: [adventureImage, wildlifeImage, beachImage, foodImage],
     bestTime: "Morning",
+    weather: "🌤️ Cool at summit, 15°C",
     meetingPoints: [
-      { name: "Machame Gate", type: "Main route" }
-    ]
+      { name: "Local guide meetup", type: "Main route" }
+    ],
+    faqs: [],
   }
 ];
 
@@ -201,19 +244,16 @@ const getDefaultImage = (category: string) => {
   return imageMap[category] || jetskiImage;
 };
 
-// Pre-compute all experiences for instant lookup by ID and by slug
 const buildExperienceMap = () => {
   const byId = new Map<string, any>();
   const bySlug = new Map<string, any>();
   
-  // Add mock experiences with full details
   mockExperiences.forEach(exp => {
     byId.set(exp.id, exp);
     const titleSlug = slugify(exp.title);
     bySlug.set(titleSlug, exp);
   });
   
-  // Add experiences from public itineraries
   publicItinerariesData.forEach(itinerary => {
     itinerary.experiences.forEach(exp => {
       if (!byId.has(exp.id)) {
@@ -228,10 +268,13 @@ const buildExperienceMap = () => {
           duration: "3 hours",
           groupSize: "2-10 people",
           rating: 4.7,
+          price: "$15 - $75",
           highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
           gallery: [exp.videoThumbnail || getDefaultImage(exp.category)],
           bestTime: "Flexible",
-          meetingPoints: [{ name: exp.location, type: "Main Location" }]
+          weather: "🌤️ Tropical climate",
+          meetingPoints: [{ name: exp.location, type: "Main Location" }],
+          faqs: [],
         };
         byId.set(exp.id, fullExp);
         const titleSlug = slugify(exp.title);
@@ -245,21 +288,114 @@ const buildExperienceMap = () => {
   return { byId, bySlug };
 };
 
-// Build once at module load
 const { byId: experienceMapById, bySlug: experienceMapBySlug } = buildExperienceMap();
 
+// FAQ Component
+const FAQSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: string }) => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [showAskForm, setShowAskForm] = useState(false);
+  const [newQuestion, setNewQuestion] = useState("");
+  const [localFaqs, setLocalFaqs] = useState(faqs || []);
+
+  const handleAsk = () => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+    setShowAskForm(true);
+  };
+
+  const handleSubmitQuestion = () => {
+    if (!newQuestion.trim()) return;
+    setLocalFaqs(prev => [...prev, { q: newQuestion.trim(), a: "", likes: 0, pending: true }]);
+    setNewQuestion("");
+    setShowAskForm(false);
+  };
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">FAQ</h2>
+        <button
+          onClick={handleAsk}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium active:scale-95 transition-transform"
+        >
+          <HelpCircle className="w-3.5 h-3.5" />
+          Ask
+        </button>
+      </div>
+
+      {showAskForm && (
+        <div className="mb-4 p-3 rounded-xl bg-muted/50 border border-border">
+          <textarea
+            value={newQuestion}
+            onChange={(e) => setNewQuestion(e.target.value)}
+            placeholder="Ask a question about this experience..."
+            className="w-full bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground resize-none"
+            rows={2}
+            style={{ fontSize: '16px' }}
+          />
+          <div className="flex justify-end gap-2 mt-2">
+            <button onClick={() => setShowAskForm(false)} className="text-xs text-muted-foreground">Cancel</button>
+            <button onClick={handleSubmitQuestion} className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+              <Send className="w-3 h-3" />
+              Submit
+            </button>
+          </div>
+        </div>
+      )}
+
+      {localFaqs.length > 0 ? (
+        <div className="space-y-3">
+          {localFaqs.map((faq: any, index: number) => (
+            <div key={index} className="p-3.5 rounded-xl bg-card border border-border">
+              <div className="flex items-start gap-2">
+                <HelpCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">{faq.q}</p>
+                  {faq.a ? (
+                    <p className="text-sm text-muted-foreground mt-1.5">{faq.a}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground/60 mt-1 italic">Awaiting answer from the community</p>
+                  )}
+                  <div className="flex items-center gap-3 mt-2">
+                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      <ThumbsUp className="w-3 h-3" />
+                      {faq.likes || 0}
+                    </button>
+                    {isAuthenticated && !faq.a && (
+                      <button className="text-xs text-primary font-medium">Answer</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-6 px-4 rounded-xl bg-muted/30 border border-border/50">
+          <MessageCircle className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">No questions yet</p>
+          <p className="text-xs text-muted-foreground/60 mt-0.5">Be the first to ask!</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function ExperienceDetail() {
-  // Support /experiences/:slug, legacy /experience/:location/:legacySlug, and /experience/:id
   const { id, location: locationParam, legacySlug, slug } = useParams();
   const navigate = useNavigate();
-  const { itineraries, removeExperience, isInItinerary } = useItineraries();
+  const { itineraries, isInItinerary } = useItineraries();
+  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
+  const { isAuthenticated } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
+  const [localLiked, setLocalLiked] = useState(false);
   const isMobile = useIsMobile();
 
-  // Smart back navigation - go to referrer or default to experiences
   const handleGoBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
@@ -268,60 +404,51 @@ export default function ExperienceDetail() {
     }
   };
 
-  // Instant lookup - no loading state needed for cached data
   const experience = useMemo(() => {
-    // New URL format: /experiences/:slug
     if (slug) {
-      if (experienceMapBySlug.has(slug)) {
-        return experienceMapBySlug.get(slug);
-      }
+      if (experienceMapBySlug.has(slug)) return experienceMapBySlug.get(slug);
     }
-    
-    // Legacy URL format: /experience/:location/:legacySlug
     if (locationParam && legacySlug) {
-      // Try matching by title slug
-      if (experienceMapBySlug.has(legacySlug)) {
-        return experienceMapBySlug.get(legacySlug);
-      }
+      if (experienceMapBySlug.has(legacySlug)) return experienceMapBySlug.get(legacySlug);
     }
-    
-    // Legacy URL format: /experience/:id
     if (id) {
-      if (experienceMapById.has(id)) {
-        return experienceMapById.get(id);
-      }
-      
-      // Fallback: check user's itineraries
+      if (experienceMapById.has(id)) return experienceMapById.get(id);
       for (const userItinerary of itineraries) {
         const userExp = userItinerary.experiences.find(exp => exp.id === id);
         if (userExp) {
           return {
-            id: userExp.id,
-            title: userExp.title,
-            creator: userExp.creator,
+            id: userExp.id, title: userExp.title, creator: userExp.creator,
             videoThumbnail: userExp.videoThumbnail || getDefaultImage(userExp.category),
-            category: userExp.category,
-            location: userExp.location,
+            category: userExp.category, location: userExp.location,
             description: `Experience the best of ${userExp.location} with this amazing ${userExp.category?.toLowerCase() || 'local'} experience.`,
-            duration: "3 hours",
-            groupSize: "2-10 people",
-            rating: 4.7,
+            duration: "3 hours", groupSize: "2-10 people", rating: 4.7, price: "$15 - $75",
             highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
             gallery: [userExp.videoThumbnail || getDefaultImage(userExp.category)],
-            bestTime: "Flexible",
-            meetingPoints: [{ name: userExp.location, type: "Main Location" }]
+            bestTime: "Flexible", weather: "🌤️ Tropical climate",
+            meetingPoints: [{ name: userExp.location, type: "Main Location" }],
+            faqs: [],
           };
         }
       }
     }
-    
     return null;
   }, [id, locationParam, legacySlug, slug, itineraries]);
 
-  // Check if experience is in active itinerary
-  const inItinerary = isInItinerary(experience?.id || '');
+  const liked = experience ? (isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked) : false;
 
-  // Generate consistent social proof numbers based on id
+  const handleLikeClick = async () => {
+    if (!experience) return;
+    if ('vibrate' in navigator) navigator.vibrate(10);
+    if (isAuthenticated) {
+      await toggleDbLike(experience.id, 'experience', {
+        id: experience.id, title: experience.title,
+        videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category
+      });
+    } else {
+      setLocalLiked(!localLiked);
+    }
+  };
+
   const socialProof = useMemo(() => {
     const expId = experience?.id || id || '';
     if (!expId) return { added: 0, planning: 0, trending: false };
@@ -332,7 +459,6 @@ export default function ExperienceDetail() {
     return { added, planning, trending };
   }, [experience?.id, id]);
 
-  // Generate SEO-friendly share URL
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
@@ -345,18 +471,6 @@ export default function ExperienceDetail() {
     }
     return () => { document.title = 'Experience East Africa'; };
   }, [experience]);
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: experience?.title, url: shareUrl });
-      } catch {
-        await navigator.clipboard.writeText(shareUrl);
-      }
-    } else {
-      await navigator.clipboard.writeText(shareUrl);
-    }
-  };
 
   if (!experience) {
     if (isMobile) {
@@ -382,13 +496,14 @@ export default function ExperienceDetail() {
   }
 
   const gallery = experience.gallery || [experience.videoThumbnail];
+  const categoryIcon = categoryIconMap[experience.category];
 
-  // Mobile: wrap with MobileShell
+  // Mobile
   if (isMobile) {
     return (
       <MobileShell hideTopBar>
         <div className="bg-background overflow-y-auto">
-          {/* Photo Gallery at Top */}
+          {/* Photo Gallery - NO rounded edges */}
           <div className="relative">
             {gallery.length > 1 ? (
               <PhotoGallery images={gallery} title={experience.title} />
@@ -415,26 +530,39 @@ export default function ExperienceDetail() {
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            {/* Share button - uses ShareDrawer */}
+            {/* Share button */}
             <ShareDrawer title={experience.title} url={shareUrl}>
-              <button 
-                className="absolute top-4 right-4 p-2 rounded-full bg-background/70 backdrop-blur-xl z-10"
-              >
+              <button className="absolute top-4 right-14 p-2 rounded-full bg-background/70 backdrop-blur-xl z-10">
                 <Share2 className="w-5 h-5 text-foreground" />
               </button>
             </ShareDrawer>
+            {/* Like button */}
+            <button
+              onClick={handleLikeClick}
+              className={cn(
+                "absolute top-4 right-4 p-2 rounded-full backdrop-blur-xl z-10 transition-all active:scale-90",
+                liked ? "bg-primary/20" : "bg-background/70"
+              )}
+            >
+              <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
+            </button>
           </div>
 
           {/* Content */}
           <div className="px-4 py-4">
-            {/* Title & meta */}
+            {/* Category badge with icon + rating */}
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <Badge className="bg-foreground text-background border-0 font-medium">
+              <Badge className="bg-foreground text-background border-0 font-medium flex items-center gap-1.5">
+                {categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}
                 {experience.category}
               </Badge>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                 <span className="font-medium text-foreground">{experience.rating}</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span><strong className="text-foreground">{socialProof.added}</strong> added</span>
               </div>
             </div>
 
@@ -444,18 +572,14 @@ export default function ExperienceDetail() {
               <span>{experience.location}</span>
             </div>
 
-            {/* Add to Itinerary CTA - moved to top */}
+            {/* Add to Itinerary CTA */}
             <div className="mb-6">
               <ItinerarySelector
                 experienceId={experience.id}
                 experienceData={{
-                  id: experience.id,
-                  title: experience.title,
-                  creator: experience.creator,
-                  videoThumbnail: experience.videoThumbnail,
-                  category: experience.category,
-                  location: experience.location,
-                  price: "",
+                  id: experience.id, title: experience.title, creator: experience.creator,
+                  videoThumbnail: experience.videoThumbnail, category: experience.category,
+                  location: experience.location, price: experience.price || "",
                 }}
                 onAdd={() => {
                   setJustAdded(true);
@@ -477,7 +601,7 @@ export default function ExperienceDetail() {
               </ItinerarySelector>
             </div>
 
-            {/* Quick Info Pills */}
+            {/* Quick Info Pills - updated with weather + category icon */}
             <div className="flex flex-wrap gap-2 mb-6">
               <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                 <Clock className="w-4 h-4 text-primary" />
@@ -488,9 +612,24 @@ export default function ExperienceDetail() {
                 <span className="font-medium">{experience.groupSize}</span>
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span className="font-medium">Best: {experience.bestTime}</span>
+                <CloudSun className="w-4 h-4 text-primary" />
+                <span className="font-medium">{experience.weather || `Best: ${experience.bestTime}`}</span>
               </div>
+            </div>
+
+            {/* Average Prices - NOT booking, market prices */}
+            <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+                <h3 className="text-base font-semibold">Average Market Prices</h3>
+              </div>
+              <div className="flex items-baseline gap-2 mb-1.5">
+                <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
+                <span className="text-sm text-muted-foreground">per person</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                These are typical prices from local providers. We don't process bookings — prices are for reference only and may vary by season.
+              </p>
             </div>
 
             {/* Social Video Embeds */}
@@ -540,6 +679,9 @@ export default function ExperienceDetail() {
               </div>
             </div>
 
+            {/* FAQ Section */}
+            <FAQSection faqs={experience.faqs || []} experienceId={experience.id} />
+
             {/* Creator */}
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-8">
               <Avatar className="w-12 h-12">
@@ -565,7 +707,7 @@ export default function ExperienceDetail() {
   // Desktop
   return (
     <div className="min-h-screen bg-background overflow-y-auto w-full">
-        {/* Media Section at Top with overlaid buttons - like mobile */}
+        {/* Media Section - no rounded edges */}
         <div className="relative">
           {gallery.length > 1 ? (
             <div className="aspect-[3/1] overflow-hidden">
@@ -586,15 +728,10 @@ export default function ExperienceDetail() {
             </div>
           ) : (
             <div className="relative aspect-[3/1] overflow-hidden bg-muted">
-              <img 
-                src={gallery[0]} 
-                alt={experience.title} 
-                className="w-full h-full object-cover"
-              />
+              <img src={gallery[0]} alt={experience.title} className="w-full h-full object-cover" />
             </div>
           )}
           
-          {/* Overlaid Back button */}
           <button 
             onClick={handleGoBack}
             className="absolute top-4 left-4 p-2.5 rounded-full bg-background/80 backdrop-blur-md hover:bg-background transition-colors z-10"
@@ -602,14 +739,22 @@ export default function ExperienceDetail() {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           
-          {/* Overlaid Share button */}
           <ShareDrawer title={experience.title} url={shareUrl}>
-            <button className="absolute top-4 right-4 p-2.5 rounded-full bg-background/80 backdrop-blur-md hover:bg-background transition-colors z-10">
+            <button className="absolute top-4 right-16 p-2.5 rounded-full bg-background/80 backdrop-blur-md hover:bg-background transition-colors z-10">
               <Share2 className="w-5 h-5 text-foreground" />
             </button>
           </ShareDrawer>
+
+          <button
+            onClick={handleLikeClick}
+            className={cn(
+              "absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md hover:bg-background transition-colors z-10",
+              liked ? "bg-primary/20" : "bg-background/80"
+            )}
+          >
+            <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
+          </button>
           
-          {/* Trending badge on image */}
           {socialProof.trending && (
             <Badge variant="secondary" className="absolute top-4 left-1/2 -translate-x-1/2 gap-1 text-xs bg-background/80 backdrop-blur-md text-primary border-0 z-10">
               <Flame className="w-3 h-3" />
@@ -618,15 +763,15 @@ export default function ExperienceDetail() {
           )}
         </div>
 
-        {/* Main Content - Desktop: Two-column layout */}
+        {/* Desktop two-column layout */}
         <main className="max-w-6xl mx-auto px-6 py-6">
           <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-8">
-            {/* Left column - main content */}
             <div>
-              {/* Desktop Title Section */}
-              <div className="hidden lg:block mb-5">
+              {/* Desktop Title */}
+              <div className="mb-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <Badge className="bg-foreground text-background border-0 font-medium text-sm">
+                  <Badge className="bg-foreground text-background border-0 font-medium text-sm flex items-center gap-1.5">
+                    {categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}
                     {experience.category}
                   </Badge>
                   <div className="flex items-center gap-1 text-sm">
@@ -646,24 +791,6 @@ export default function ExperienceDetail() {
                 </div>
               </div>
 
-              {/* Mobile-only title section */}
-              <div className="lg:hidden mb-4">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <Badge className="bg-foreground text-background border-0 font-medium">
-                    {experience.category}
-                  </Badge>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                    <span className="font-medium text-foreground">{experience.rating}</span>
-                  </div>
-                </div>
-                <h1 className="text-2xl font-bold tracking-tight mb-2">{experience.title}</h1>
-                <div className="flex items-center gap-1.5 text-muted-foreground mb-4">
-                  <MapPin className="w-4 h-4" />
-                  <span>{experience.location}</span>
-                </div>
-              </div>
-
               {/* Quick Info Pills */}
               <div className="flex flex-wrap gap-2 mb-6">
                 <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
@@ -675,20 +802,17 @@ export default function ExperienceDetail() {
                   <span className="font-medium">{experience.groupSize}</span>
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span className="font-medium">Best: {experience.bestTime}</span>
+                  <CloudSun className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{experience.weather || `Best: ${experience.bestTime}`}</span>
                 </div>
               </div>
 
               {/* Description */}
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-3">About this experience</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  {experience.description}
-                </p>
+                <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
               </div>
 
-              {/* Social Video Embeds */}
               <SocialVideoEmbed 
                 experienceTitle={experience.title}
                 location={experience.location}
@@ -716,10 +840,7 @@ export default function ExperienceDetail() {
                 <h2 className="text-lg font-semibold mb-3">Where to find it</h2>
                 <div className="space-y-2">
                   {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border"
-                    >
+                    <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                         <MapPin className="w-4 h-4 text-primary" />
                       </div>
@@ -732,6 +853,9 @@ export default function ExperienceDetail() {
                   ))}
                 </div>
               </div>
+
+              {/* FAQ */}
+              <FAQSection faqs={experience.faqs || []} experienceId={experience.id} />
 
               {/* Creator */}
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border mb-6">
@@ -751,21 +875,17 @@ export default function ExperienceDetail() {
               </div>
             </div>
 
-            {/* Right column - sticky sidebar with actions */}
+            {/* Right sidebar */}
             <div className="hidden lg:block">
-              <div className="sticky top-4 space-y-4">
+              <div className="sticky top-4 space-y-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
                 {/* Add to Itinerary CTA */}
                 <div className="rounded-2xl border border-border bg-card p-5">
                   <ItinerarySelector
                     experienceId={experience.id}
                     experienceData={{
-                      id: experience.id,
-                      title: experience.title,
-                      creator: experience.creator,
-                      videoThumbnail: experience.videoThumbnail,
-                      category: experience.category,
-                      location: experience.location,
-                      price: "",
+                      id: experience.id, title: experience.title, creator: experience.creator,
+                      videoThumbnail: experience.videoThumbnail, category: experience.category,
+                      location: experience.location, price: experience.price || "",
                     }}
                     onAdd={() => {
                       setJustAdded(true);
@@ -785,8 +905,38 @@ export default function ExperienceDetail() {
                       </span>
                     </Button>
                   </ItinerarySelector>
+                  
+                  {/* Like button */}
+                  <button
+                    onClick={handleLikeClick}
+                    className={cn(
+                      "w-full mt-3 h-11 rounded-xl font-medium text-sm flex items-center justify-center gap-2 border transition-all",
+                      liked
+                        ? "bg-primary/5 border-primary/20 text-primary"
+                        : "bg-card border-border text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Heart className={cn("w-4 h-4", liked && "fill-primary")} />
+                    {liked ? "Liked" : "Like"}
+                  </button>
+
                   <p className="text-center text-xs text-muted-foreground mt-2.5">
                     <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this
+                  </p>
+                </div>
+
+                {/* Average Market Prices */}
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                    <p className="text-sm font-semibold">Average Market Prices</p>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
+                    <span className="text-sm text-muted-foreground">per person</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    Prices from local providers — for reference only
                   </p>
                 </div>
 
@@ -817,7 +967,7 @@ export default function ExperienceDetail() {
                   </div>
                 )}
 
-                {/* Live Planning Indicator */}
+                {/* Live Planning */}
                 <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4">
                   <div className="flex items-center gap-3">
                     <div className="relative">
@@ -833,20 +983,6 @@ export default function ExperienceDetail() {
                       <p className="text-xs text-muted-foreground">Join them and build your trip</p>
                     </div>
                   </div>
-                </div>
-
-                {/* Indicative Pricing */}
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
-                    Typical prices
-                  </p>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-foreground">$15 - $75</span>
-                    <span className="text-sm text-muted-foreground">per person</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    Prices vary by provider and season
-                  </p>
                 </div>
               </div>
             </div>
