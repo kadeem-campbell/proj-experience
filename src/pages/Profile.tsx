@@ -34,46 +34,55 @@ const ProfilePage = () => {
   const [fullName, setFullName] = useState(userProfile?.full_name || "");
   const [avatarUrl, setAvatarUrl] = useState(userProfile?.avatar_url || "");
 
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   if (!isAuthenticated) {
+    const AuthModalComponent = require("@/components/AuthModal").AuthModal;
     if (isMobile) {
       return (
         <MobileShell>
-          <div className="px-4 pt-4">
-            {/* Guest profile header */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                <User className="w-10 h-10 text-muted-foreground/40" />
+          <div className="px-5 pt-6">
+            {/* Enticing guest profile */}
+            <div className="text-center mb-6">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-4">
+                <User className="w-12 h-12 text-primary/40" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Guest</h1>
-                <p className="text-sm text-muted-foreground">Sign in to unlock your profile</p>
-              </div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Your Profile</h1>
+              <p className="text-sm text-muted-foreground">Sign in to save your adventures</p>
             </div>
 
-            {/* Blurred liked content preview */}
-            <div className="relative mb-6">
-              <div className="blur-sm pointer-events-none select-none">
-                <h3 className="text-base font-bold text-foreground mb-3">Your Liked Content</h3>
-                <div className="grid grid-cols-3 gap-3 mb-3">
-                  {[1,2,3].map(i => (
-                    <div key={i} className="aspect-square rounded-xl bg-muted" />
-                  ))}
+            {/* Feature preview cards */}
+            <div className="space-y-3 mb-8">
+              {[
+                { icon: Heart, label: "Saved Experiences", desc: "Keep track of places you love", count: "0" },
+                { icon: Layers, label: "Your Itineraries", desc: "Build and share travel plans", count: "0" },
+                { icon: MapPin, label: "Places Visited", desc: "Map your travel journey", count: "0" },
+              ].map(({ icon: Icon, label, desc, count }) => (
+                <div key={label} className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/60">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{label}</p>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                  <span className="text-lg font-bold text-muted-foreground/30">{count}</span>
                 </div>
-                <h3 className="text-base font-bold text-foreground mb-3">Your Itineraries</h3>
-                <div className="space-y-2">
-                  {[1,2].map(i => (
-                    <div key={i} className="h-16 rounded-xl bg-muted" />
-                  ))}
-                </div>
-              </div>
-              {/* Login overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/60 backdrop-blur-[2px] rounded-2xl">
-                <Heart className="w-10 h-10 text-muted-foreground/30 mb-3" />
-                <p className="text-sm font-semibold text-foreground mb-1">Login to access your likes & itineraries</p>
-                <p className="text-xs text-muted-foreground mb-4 text-center px-4">Your saved experiences and travel plans will appear here</p>
-                <Button onClick={() => navigate('/auth')} className="rounded-full px-8">Sign In</Button>
-              </div>
+              ))}
             </div>
+
+            {/* CTA */}
+            <Button 
+              onClick={() => setShowAuthModal(true)} 
+              className="w-full h-14 rounded-2xl text-base font-semibold"
+            >
+              Get Started
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Sign in with Google, Apple, or email
+            </p>
+
+            <AuthModalComponent open={showAuthModal} onOpenChange={setShowAuthModal} />
           </div>
         </MobileShell>
       );
@@ -84,7 +93,8 @@ const ProfilePage = () => {
           <User className="w-16 h-16 text-muted-foreground mb-4" />
           <h1 className="text-2xl font-bold mb-2">Sign in to view your profile</h1>
           <p className="text-muted-foreground mb-6">Access your liked experiences and itineraries</p>
-          <Button onClick={() => navigate('/auth')}>Sign In</Button>
+          <Button onClick={() => setShowAuthModal(true)}>Sign In</Button>
+          <AuthModalComponent open={showAuthModal} onOpenChange={setShowAuthModal} />
         </div>
       </MainLayout>
     );
