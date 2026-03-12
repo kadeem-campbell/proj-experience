@@ -196,6 +196,7 @@ const SearchPage = () => {
   });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const experiences = useExperiencesData();
+  const { data: popularItinerariesForSearch = [] } = usePopularItineraries();
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(18);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
