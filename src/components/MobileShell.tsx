@@ -292,13 +292,14 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
     navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
   }, [navigate, location.pathname]);
 
-  // Scroll to top on route change, except homepage
+  // Scroll to top on ALL route changes (every tab switch)
   useEffect(() => {
-    if (location.pathname !== '/') {
-      window.scrollTo(0, 0);
-      document.querySelector('main')?.scrollTo(0, 0);
-    }
+    window.scrollTo(0, 0);
+    document.querySelector('main')?.scrollTo(0, 0);
   }, [location.pathname]);
+
+  // City selector sheet state
+  const [citySelectorOpen, setCitySelectorOpen] = useState(false);
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
@@ -312,11 +313,19 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
         onCityChange={handleCityChange}
       />
 
+      <CitySelectorSheet
+        open={citySelectorOpen}
+        onOpenChange={setCitySelectorOpen}
+        selectedCity={selectedCity}
+        onCityChange={handleCityChange}
+      />
+
       {!hideTopBar && (
         <MobileTopBar
           selectedCity={selectedCity}
           hideAvatar={hideAvatar}
           notFixed={notFixed}
+          onCityTap={() => setCitySelectorOpen(true)}
         />
       )}
 
