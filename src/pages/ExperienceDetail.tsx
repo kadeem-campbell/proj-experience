@@ -618,19 +618,16 @@ export default function ExperienceDetail() {
               </div>
             </div>
 
-            {/* Average Prices - NOT booking, market prices */}
+            {/* Prices per person */}
             <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="w-5 h-5 text-primary" />
-                <h3 className="text-base font-semibold">Average Market Prices</h3>
+                <h3 className="text-base font-semibold">Prices per person</h3>
               </div>
-              <div className="flex items-baseline gap-2 mb-1.5">
+              <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
-                <span className="text-sm text-muted-foreground">per person</span>
+                <span className="text-sm text-muted-foreground">average</span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                These are typical prices from local providers. We don't process bookings — prices are for reference only and may vary by season.
-              </p>
             </div>
 
             {/* Social Video Embeds */}
