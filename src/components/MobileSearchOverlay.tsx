@@ -290,15 +290,19 @@ export const MobileSearchOverlay = ({
       .slice(0, 10);
   }, [liveExperiences, hasQuery]);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Just dismiss keyboard on Enter — don't close overlay
     if (searchQuery.trim()) {
       addToRecentSearches(searchQuery);
-      onSearch(searchQuery);
-      window.scrollTo({ top: 0 });
-      document.querySelector('main')?.scrollTo({ top: 0 });
-      onClose();
     }
+    inputRef.current?.blur();
+  };
+
+  const handleCategoryClick = (label: string) => {
+    setActiveCategory(prev => prev === label ? "" : label);
   };
 
   const handleQuickSearch = (query: string) => {
