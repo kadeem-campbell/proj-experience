@@ -458,16 +458,27 @@ export const MobileSearchOverlay = ({
             <div className="mb-6">
               <h3 className="text-base font-bold text-foreground mb-3">Search by category</h3>
               <div className="grid grid-cols-3 gap-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.label}
-                    onClick={() => handleQuickSearch(cat.label)}
-                    className="flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg bg-background border border-border hover:bg-muted/40 transition-colors duration-150"
-                  >
-                    <img src={cat.icon} alt={cat.label} className="w-8 h-8 object-contain" />
-                    <span className="text-[11px] font-medium text-foreground truncate">{cat.label}</span>
-                  </button>
-                ))}
+                {categories.map((cat) => {
+                  const isActive = activeCategory === cat.label;
+                  return (
+                    <button
+                      key={cat.label}
+                      onClick={() => handleCategoryClick(cat.label)}
+                      className={cn(
+                        "flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg transition-colors duration-150",
+                        isActive 
+                          ? "bg-primary/10 border-2 border-primary" 
+                          : "bg-background border border-border hover:bg-muted/40"
+                      )}
+                    >
+                      <img src={cat.icon} alt={cat.label} className="w-8 h-8 object-contain" />
+                      <span className={cn(
+                        "text-[11px] font-medium truncate",
+                        isActive ? "text-primary" : "text-foreground"
+                      )}>{cat.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
