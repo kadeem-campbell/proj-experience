@@ -37,7 +37,7 @@ export interface DbExperience {
 const fetchExperiences = async (): Promise<DbExperience[]> => {
   const { data, error } = await supabase
     .from("experiences")
-    .select("*")
+    .select("*, experience_faqs(*)")
     .eq("is_active", true);
 
   if (error) {
@@ -45,33 +45,49 @@ const fetchExperiences = async (): Promise<DbExperience[]> => {
     return [];
   }
 
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    title: row.title,
-    creator: row.creator,
-    description: row.description || "",
-    category: row.category,
-    location: row.location,
-    price: row.price || "",
-    duration: row.duration || "",
-    group_size: row.group_size || "",
-    rating: Number(row.rating) || 4.7,
-    weather: row.weather || "",
-    best_time: row.best_time || "",
-    video_thumbnail: row.video_thumbnail || "",
-    video_url: row.video_url || "",
-    gallery: Array.isArray(row.gallery) ? row.gallery : [],
-    highlights: Array.isArray(row.highlights) ? row.highlights : [],
-    meeting_points: Array.isArray(row.meeting_points) ? row.meeting_points : [],
-    faqs: Array.isArray(row.faqs) ? row.faqs : [],
-    tiktok_videos: Array.isArray(row.tiktok_videos) ? row.tiktok_videos : [],
-    instagram_embed: row.instagram_embed || "",
-    social_links: row.social_links && typeof row.social_links === "object" ? row.social_links : {},
-    views: row.views || "0",
-    is_active: row.is_active,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-  }));
+  return (data || []).map((row: any) => {
+    // Prefer experience_faqs table, fall back to JSONB faqs column
+    const faqsFromTable = Array.isArray(row.experience_faqs) && row.experience_faqs.length > 0
+      ? row.experience_faqs
+          .filter((f: any) => f.is_active)
+          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+          .map((f: any) => ({ q: f.question, a: f.answer, likes: 0 }))
+      : null;
+    const faqsFallback = Array.isArray(row.faqs) ? row.faqs : [];
+
+    return {
+      id: row.id,
+      title: row.title,
+      slug: row.slug || '',
+      creator: row.creator,
+      description: row.description || "",
+      category: row.category,
+      location: row.location,
+      price: row.price || "",
+      duration: row.duration || "",
+      group_size: row.group_size || "",
+      rating: Number(row.rating) || 4.7,
+      weather: row.weather || "",
+      best_time: row.best_time || "",
+      video_thumbnail: row.video_thumbnail || "",
+      video_url: row.video_url || "",
+      gallery: Array.isArray(row.gallery) ? row.gallery : [],
+      highlights: Array.isArray(row.highlights) ? row.highlights : [],
+      meeting_points: Array.isArray(row.meeting_points) ? row.meeting_points : [],
+      faqs: faqsFromTable || faqsFallback,
+      tiktok_videos: Array.isArray(row.tiktok_videos) ? row.tiktok_videos : [],
+      instagram_embed: row.instagram_embed || "",
+      social_links: row.social_links && typeof row.social_links === "object" ? row.social_links : {},
+      views: row.views || "0",
+      like_count: row.like_count || 0,
+      view_count: row.view_count || 0,
+      city_id: row.city_id,
+      creator_id: row.creator_id,
+      is_active: row.is_active,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    };
+  });
 };
 
 export const useDbExperiences = () => {
