@@ -9,12 +9,6 @@ import { cn } from "@/lib/utils";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-import catBeaches from "@/assets/cat-beaches.png";
-import catNightlife from "@/assets/cat-nightlife.png";
-import catNature from "@/assets/cat-nature.png";
-import catAdventure from "@/assets/cat-adventure.png";
-import catFood from "@/assets/cat-food.png";
-import catSafari from "@/assets/cat-safari.png";
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -36,20 +30,22 @@ const categoryToSearchCategory: Record<string, string> = {
 const RECENT_SEARCHES_KEY = "guiduuid_recent_searches";
 const MAX_RECENT_SEARCHES = 8;
 
-const categories = [
-  { icon: catBeaches, label: "Beaches" },
-  { icon: catNightlife, label: "Nightlife" },
-  { icon: catNature, label: "Nature" },
-  { icon: catAdventure, label: "Adventure" },
-  { icon: catFood, label: "Food" },
-  { icon: catSafari, label: "Safari" },
+const filterCategories = [
+  { label: "Beaches", category: "Beach" },
+  { label: "Nightlife", category: "Nightlife" },
+  { label: "Nature", category: "Wildlife" },
+  { label: "Adventure", category: "Adventure" },
+  { label: "Food", category: "Food" },
+  { label: "Safari", category: "Wildlife" },
+];
+
+const filterLocations = [
+  { label: "🇹🇿 Zanzibar", value: "Zanzibar" },
+  { label: "🇹🇿 Dar es Salaam", value: "Dar es Salaam" },
 ];
 
 const allItinerariesData = getPopularItineraries();
 const allExpsData = allExperiences;
-
-// Extract unique locations
-const allLocations = [...new Set(allExpsData.map(e => e.location).filter(Boolean))].sort();
 
 const normalize = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
 const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");
@@ -60,30 +56,7 @@ const termMatch = (term: string, field: string) => {
   return field.split(" ").some(w => w.startsWith(term) || (s.length > 2 && w.startsWith(s)));
 };
 
-// Horizontal scroll row for search results
-const SearchHorizontalRow = ({ title, variant = "default", children }: {
-  title: string;
-  variant?: "itinerary" | "experience" | "default";
-  children: React.ReactNode;
-}) => {
-  return (
-    <div className="py-3">
-      <div className="mb-2 flex items-center gap-1.5 px-4">
-        <h2 className="text-[15px] font-bold text-foreground">{title}</h2>
-      </div>
-      <div
-        className="overflow-x-auto scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-      >
-        <div className="inline-flex gap-3 snap-x snap-mandatory px-4">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Itinerary card for search results
+// Vertical card for search results - itinerary
 const SearchItineraryCard = ({ itinerary, onNavigate }: { itinerary: any; onNavigate: () => void }) => {
   const [localLiked, setLocalLiked] = useState(false);
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -108,7 +81,7 @@ const SearchItineraryCard = ({ itinerary, onNavigate }: { itinerary: any; onNavi
   };
 
   return (
-    <div className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
+    <div className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
@@ -136,7 +109,7 @@ const SearchItineraryCard = ({ itinerary, onNavigate }: { itinerary: any; onNavi
   );
 };
 
-// Experience card for search results
+// Vertical card for search results - experience
 const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onNavigate: () => void }) => {
   const [localLiked, setLocalLiked] = useState(false);
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -159,7 +132,7 @@ const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onN
   };
 
   return (
-    <div className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
+    <div className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
           <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover" />
@@ -213,6 +186,7 @@ export const MobileSearchOverlay = ({
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
 
   const savedScrollRef = useRef(0);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -262,7 +236,9 @@ export const MobileSearchOverlay = ({
       });
     }
     if (selectedLocations.length > 0) {
-      filtered = filtered.filter(e => selectedLocations.includes(e.location));
+      filtered = filtered.filter(e =>
+        selectedLocations.some(loc => (e.location || '').toLowerCase().includes(loc.toLowerCase()))
+      );
     }
     return filtered;
   }, [q, activeCategory, selectedLocations]);
@@ -287,21 +263,13 @@ export const MobileSearchOverlay = ({
     }
     if (selectedLocations.length > 0) {
       filtered = filtered.filter(it =>
-        it.experiences?.some((exp: any) => selectedLocations.includes(exp.location))
+        it.experiences?.some((exp: any) =>
+          selectedLocations.some(loc => (exp.location || '').toLowerCase().includes(loc.toLowerCase()))
+        )
       );
     }
     return filtered;
   }, [q, activeCategory, selectedLocations]);
-
-  // More from the same category as top result
-  const relatedExperiences = useMemo(() => {
-    if (!hasQuery || liveExperiences.length === 0) return [];
-    const firstCategory = liveExperiences[0]?.category;
-    if (!firstCategory) return [];
-    return allExpsData
-      .filter(e => e.category === firstCategory && !liveExperiences.find(le => le.id === e.id))
-      .slice(0, 10);
-  }, [liveExperiences, hasQuery]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -313,11 +281,6 @@ export const MobileSearchOverlay = ({
     inputRef.current?.blur();
   };
 
-  const handleCategoryClick = (label: string) => {
-    setActiveCategory(prev => prev === label ? "" : label);
-  };
-
-  // History items now stay in search overlay and just set the query
   const handleQuickSearch = (query: string) => {
     onSearchChange(query);
     addToRecentSearches(query);
@@ -340,14 +303,19 @@ export const MobileSearchOverlay = ({
     );
   };
 
-  const activeFilterCount = (typeFilter !== "all" ? 1 : 0) + selectedLocations.length;
+  const toggleCategory = (label: string) => {
+    setActiveCategory(prev => prev === label ? "" : label);
+  };
 
-  // The display keyword for "see all results"
-  const displayKeyword = searchQuery.trim() || activeCategory || "";
+  const activeFilterCount = (typeFilter !== "all" ? 1 : 0) + selectedLocations.length + (activeCategory ? 1 : 0);
 
-  // Should we show experiences/itineraries based on type filter
   const showExperiences = typeFilter === "all" || typeFilter === "experiences";
   const showItineraries = typeFilter === "all" || typeFilter === "itineraries";
+
+  // Scroll to top helper
+  const scrollToTop = () => {
+    scrollAreaRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (!isOpen) return null;
 
@@ -356,199 +324,185 @@ export const MobileSearchOverlay = ({
       className="fixed inset-0 z-[55] bg-background animate-in fade-in duration-150"
       style={{ height: '100dvh', display: 'flex', flexDirection: 'column', touchAction: 'none' }}
     >
-      {/* Search input + filter button */}
-      <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3 shrink-0">
-        <form onSubmit={handleSubmit}>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center bg-muted rounded-full px-4 py-3">
-              <Search className="w-5 h-5 text-muted-foreground mr-2.5 shrink-0" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Find experiences, food, or places"
-                autoFocus
-                className="flex-1 bg-transparent border-0 outline-none text-base text-foreground placeholder:text-muted-foreground/50"
-                style={{ fontSize: '16px', WebkitAppearance: 'none' }}
-              />
-              {searchQuery && (
-                <button type="button" onClick={() => onSearchChange("")} className="p-1.5 rounded-full shrink-0" style={{ WebkitTapHighlightColor: 'transparent' }}>
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
-              )}
+      {/* Fixed header: search + filter */}
+      <div className="shrink-0">
+        <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-3">
+          <form onSubmit={handleSubmit}>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0 flex items-center bg-muted rounded-full px-4 py-3">
+                <Search className="w-5 h-5 text-muted-foreground mr-2.5 shrink-0" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Find experiences, food, or places"
+                  autoFocus
+                  className="flex-1 min-w-0 bg-transparent border-0 outline-none text-base text-foreground placeholder:text-muted-foreground/50"
+                  style={{ fontSize: '16px', WebkitAppearance: 'none' }}
+                />
+                {searchQuery && (
+                  <button type="button" onClick={() => onSearchChange("")} className="p-1 rounded-full shrink-0" style={{ WebkitTapHighlightColor: 'transparent' }}>
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+              {/* Filter button */}
+              <button
+                type="button"
+                onClick={() => setShowFilters(!showFilters)}
+                className={cn(
+                  "relative p-3 rounded-full shrink-0 transition-colors",
+                  showFilters || activeFilterCount > 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                )}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <SlidersHorizontal className="w-5 h-5" />
+                {activeFilterCount > 0 && (
+                  <span className="absolute -top-1 -right-1 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center min-w-[18px] h-[18px]">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+              <button type="button" onClick={onClose} className="text-sm font-medium text-primary shrink-0" style={{ WebkitTapHighlightColor: 'transparent' }}>
+                Cancel
+              </button>
             </div>
-            {/* Filter button */}
-            <button
-              type="button"
-              onClick={() => setShowFilters(!showFilters)}
-              className={cn(
-                "relative p-3 rounded-full shrink-0 transition-colors",
-                showFilters || activeFilterCount > 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              )}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <SlidersHorizontal className="w-5 h-5" />
-              {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center min-w-[18px] h-[18px]">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-            <button type="button" onClick={onClose} className="text-sm font-medium text-primary px-1 py-1 shrink-0" style={{ WebkitTapHighlightColor: 'transparent' }}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
 
-      {/* Filter panel */}
-      {showFilters && (
-        <div className="px-4 pb-3 shrink-0 border-b border-border/30 animate-in slide-in-from-top-2 duration-200">
-          {/* Type filter */}
-          <div className="mb-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Show</p>
-            <div className="flex gap-2">
-              {(["all", "experiences", "itineraries"] as const).map(type => (
-                <button
-                  key={type}
-                  onClick={() => setTypeFilter(type)}
-                  className={cn(
-                    "px-3.5 py-1.5 rounded-full text-xs font-medium transition-all capitalize",
-                    typeFilter === type
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {type === "all" ? "All" : type === "experiences" ? "Experiences" : "Itineraries"}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Location filter */}
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Location</p>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1" style={{ scrollbarWidth: 'none' }}>
-              {allLocations.map(loc => {
-                const isActive = selectedLocations.includes(loc);
-                return (
+        {/* Filter panel */}
+        {showFilters && (
+          <div className="px-4 pb-3 border-b border-border/30 animate-in slide-in-from-top-2 duration-200">
+            {/* Type filter */}
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Show</p>
+              <div className="flex gap-2">
+                {(["all", "experiences", "itineraries"] as const).map(type => (
                   <button
-                    key={loc}
-                    onClick={() => toggleLocation(loc)}
+                    key={type}
+                    onClick={() => setTypeFilter(type)}
                     className={cn(
-                      "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0",
-                      isActive
+                      "px-3.5 py-1.5 rounded-full text-xs font-medium transition-all capitalize",
+                      typeFilter === type
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground"
                     )}
                   >
-                    {isActive && <Check className="w-3 h-3" />}
-                    {loc}
+                    {type === "all" ? "All" : type === "experiences" ? "Experiences" : "Itineraries"}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
-          {activeFilterCount > 0 && (
-            <button
-              onClick={() => { setTypeFilter("all"); setSelectedLocations([]); }}
-              className="mt-2 text-xs text-primary font-medium"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Scrollable content area */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain search-scroll-area search-scroll-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
-        <style>{`.search-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
-        
-        {/* Category pills - always visible, no images in results mode */}
-        <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-          {categories.map((cat) => {
-            const isActive = activeCategory === cat.label;
-            return (
+            {/* Location filter */}
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Location</p>
+              <div className="flex gap-2">
+                {filterLocations.map(loc => {
+                  const isActive = selectedLocations.includes(loc.value);
+                  return (
+                    <button
+                      key={loc.value}
+                      onClick={() => toggleLocation(loc.value)}
+                      className={cn(
+                        "flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {isActive && <Check className="w-3 h-3" />}
+                      {loc.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Category filter */}
+            <div className="mb-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Category</p>
+              <div className="flex flex-wrap gap-2">
+                {filterCategories.map(cat => {
+                  const isActive = activeCategory === cat.label;
+                  return (
+                    <button
+                      key={cat.label}
+                      onClick={() => toggleCategory(cat.label)}
+                      className={cn(
+                        "px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {activeFilterCount > 0 && (
               <button
-                key={cat.label}
-                onClick={() => handleCategoryClick(cat.label)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                )}
+                onClick={() => { setTypeFilter("all"); setSelectedLocations([]); setActiveCategory(""); }}
+                className="mt-1 text-xs text-primary font-medium"
               >
-                {!hasQuery && <img src={cat.icon} alt={cat.label} className="w-4 h-4 object-contain" />}
-                {cat.label}
+                Clear filters
               </button>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Scrollable content area - vertical infinite scroll */}
+      <div
+        ref={scrollAreaRef}
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+      >
+        <style>{`.search-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
 
         {hasQuery ? (
-          <>
-            {/* Itineraries row */}
+          <div className="px-4 pb-8">
+            {/* Itineraries section */}
             {showItineraries && liveItineraries.length > 0 && (
-              <SearchHorizontalRow title="Itineraries" variant="itinerary">
-                {liveItineraries.map(it => (
-                  <SearchItineraryCard
-                    key={it.id}
-                    itinerary={it}
-                    onNavigate={() => handleNavigate(`/itineraries/${it.id}`)}
-                  />
-                ))}
-              </SearchHorizontalRow>
+              <div className="py-3">
+                <h2 className="text-[15px] font-bold text-foreground mb-3">Itineraries</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {liveItineraries.map(it => (
+                    <SearchItineraryCard
+                      key={it.id}
+                      itinerary={it}
+                      onNavigate={() => handleNavigate(`/itineraries/${it.id}`)}
+                    />
+                  ))}
+                </div>
+              </div>
             )}
 
-            {/* Experiences row */}
+            {/* Experiences section */}
             {showExperiences && liveExperiences.length > 0 && (
-              <SearchHorizontalRow title="Experiences" variant="experience">
-                {liveExperiences.map(exp => (
-                  <SearchExperienceCard
-                    key={exp.id}
-                    experience={exp}
-                    onNavigate={() => handleNavigate(`/experiences/${slugify(exp.title)}`)}
-                  />
-                ))}
-              </SearchHorizontalRow>
-            )}
-
-            {/* Related - more from same category */}
-            {showExperiences && relatedExperiences.length > 0 && (
-              <SearchHorizontalRow title={`More ${liveExperiences[0]?.category || 'Like This'}`} variant="experience">
-                {relatedExperiences.map(exp => (
-                  <SearchExperienceCard
-                    key={exp.id}
-                    experience={exp}
-                    onNavigate={() => handleNavigate(`/experiences/${slugify(exp.title)}`)}
-                  />
-                ))}
-              </SearchHorizontalRow>
+              <div className="py-3">
+                <h2 className="text-[15px] font-bold text-foreground mb-3">Experiences</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {liveExperiences.map(exp => (
+                    <SearchExperienceCard
+                      key={exp.id}
+                      experience={exp}
+                      onNavigate={() => handleNavigate(`/experiences/${slugify(exp.title)}`)}
+                    />
+                  ))}
+                </div>
+              </div>
             )}
 
             {liveExperiences.length === 0 && liveItineraries.length === 0 && (
               <div className="text-center py-12 px-4">
                 <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">No results for "{displayKeyword}"</p>
+                <p className="text-sm text-muted-foreground">No results found</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Try adjusting your search or filters</p>
               </div>
             )}
-
-            {(liveExperiences.length > 0 || liveItineraries.length > 0) && displayKeyword && (
-              <div className="px-4 pb-6 pt-2">
-                <button
-                  onClick={() => {
-                    if (displayKeyword) {
-                      addToRecentSearches(displayKeyword);
-                    }
-                  }}
-                  className="w-full py-3 text-center text-sm font-medium text-primary"
-                >
-                  See all results for "{displayKeyword}"
-                </button>
-              </div>
-            )}
-          </>
+          </div>
         ) : (
           <div className="px-4">
             {recentSearches.length > 0 && (
@@ -572,6 +526,27 @@ export const MobileSearchOverlay = ({
                 </div>
               </div>
             )}
+
+            {/* Show all content when no query - vertical grid */}
+            <div className="py-3">
+              <h2 className="text-[15px] font-bold text-foreground mb-3">Explore</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {(showExperiences ? allExpsData.slice(0, 8) : []).map(exp => (
+                  <SearchExperienceCard
+                    key={exp.id}
+                    experience={exp}
+                    onNavigate={() => handleNavigate(`/experiences/${slugify(exp.title)}`)}
+                  />
+                ))}
+                {(showItineraries ? allItinerariesData.slice(0, 4) : []).map(it => (
+                  <SearchItineraryCard
+                    key={it.id}
+                    itinerary={it}
+                    onNavigate={() => handleNavigate(`/itineraries/${it.id}`)}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

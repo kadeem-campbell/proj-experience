@@ -1,12 +1,13 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
-import { Heart, Plus, Layers, MapPin, Map, Share2, MapPinned, Sparkles, Search, Check, ChevronRight } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Search, Check, ChevronRight } from "lucide-react";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
 import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
+import catSafari from "@/assets/cat-safari.png";
 import { getPopularItineraries } from "@/data/itinerariesData";
 import { allExperiences } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -14,20 +15,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
-import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
-
-const mapCities = [
-  { name: "Zanzibar", available: true },
-  { name: "Dar es Salaam", available: true },
-  { name: "Nairobi", available: false, launchDate: "April 2026" },
-  { name: "Kigali", available: false, launchDate: "May 2026" },
-  { name: "Kampala", available: false, launchDate: "May 2026" },
-  { name: "Entebbe", available: false, launchDate: "June 2026" },
-  { name: "Addis Ababa", available: false, launchDate: "June 2026" },
-];
-
-const cities = ["Zanzibar", "Dar es Salaam", "Nairobi", "Kigali", "Kampala"];
 
 const filterCategories = [
   { label: "Beaches", category: "Beach", icon: catBeaches },
@@ -35,6 +22,7 @@ const filterCategories = [
   { label: "Nature", category: "Wildlife", icon: catNature },
   { label: "Adventure", category: "Adventure", icon: catAdventure },
   { label: "Food", category: "Food", icon: catFood },
+  { label: "Safari", category: "Wildlife", icon: catSafari },
 ];
 
 const rotatingPlaceholders = [
@@ -44,6 +32,12 @@ const rotatingPlaceholders = [
   "Search hidden gems",
   "Search sunset spots",
 ];
+
+// City airport codes + flag
+const cityDisplayMap: Record<string, string> = {
+  "Zanzibar": "🇹🇿 ZNZ",
+  "Dar es Salaam": "🇹🇿 DAR",
+};
 
 const CategoryFilterPills = ({ 
   activeCategory, 
@@ -64,12 +58,12 @@ const CategoryFilterPills = ({
               className="flex flex-col items-center gap-1 transition-all active:scale-95"
             >
               <div className={cn(
-                "w-[60px] h-[60px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
+                "w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
                 isActive 
                   ? "ring-2 ring-primary bg-primary/5" 
                   : "bg-muted"
               )}>
-                <img src={cat.icon} alt={cat.label} className="w-11 h-11 object-contain" />
+                <img src={cat.icon} alt={cat.label} className="w-9 h-9 object-contain" />
               </div>
               <span className={cn(
                 "text-[11px] font-medium transition-colors",
@@ -89,17 +83,13 @@ const CategoryFilterPills = ({
 const HorizontalScrollRow = ({ 
   title, 
   onTitleClick,
-  variant = "default",
   children 
 }: { 
   title: string;
   onTitleClick?: () => void;
-  variant?: "itinerary" | "experience" | "default";
   children: React.ReactNode;
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  
 
   return (
     <div className="py-5 mb-2">
@@ -259,12 +249,10 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   );
 };
 
-
-// Static alias map - defined once outside component
+// Static alias map
 const cityAliases: Record<string, string[]> = {
   "Zanzibar": ["Zanzibar", "Stone Town", "Kendwa", "Nungwi", "Paje", "Jambiani"],
   "Dar es Salaam": ["Dar es Salaam", "Dar Es Salaam", "Dar"],
-  "Nairobi": ["Nairobi"],
 };
 
 const matchesCity = (location: string, city: string): boolean => {
@@ -279,11 +267,9 @@ const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
   return itinerary.experiences?.some((e: any) => matchesCity(e.location || "", city)) || false;
 };
 
-// Pre-compute all data once at module level
 const allItinerariesData = getPopularItineraries();
 const allExpsData = allExperiences;
 
-// Category label map for row titles
 const categoryLabelMap: Record<string, string> = {
   "Beach": "Beaches",
   "Nightlife": "Nightlife",
@@ -298,13 +284,10 @@ export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "");
-  const [cityDrawerOpen, setCityDrawerOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeCategory, setActiveCategory] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
-  // Rotating placeholder
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderIndex(prev => (prev + 1) % rotatingPlaceholders.length);
@@ -312,7 +295,6 @@ export const MobileHomeView = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Sync from URL params
   useEffect(() => {
     const q = searchParams.get("q");
     setSearchQuery(q || "");
@@ -322,7 +304,6 @@ export const MobileHomeView = () => {
 
   const handleCityChange = useCallback((city: string) => {
     setSelectedCity(city);
-    setCityDrawerOpen(false);
   }, []);
 
   const itineraries = useMemo(() => {
@@ -338,13 +319,11 @@ export const MobileHomeView = () => {
     return filtered;
   }, [selectedCity]);
 
-  // Category-filtered experiences
   const categoryExperiences = useMemo(() => {
     if (!activeCategory) return experiences;
     return experiences.filter(e => e.category === activeCategory);
   }, [experiences, activeCategory]);
 
-  // Category-filtered itineraries (filter by whether they contain experiences of that category)
   const categoryItineraries = useMemo(() => {
     if (!activeCategory) return itineraries;
     return itineraries.filter(it => 
@@ -352,7 +331,6 @@ export const MobileHomeView = () => {
     );
   }, [itineraries, activeCategory]);
 
-  // Search filtering - flexible matching
   const normalizeText = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
   const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");
   
@@ -394,34 +372,25 @@ export const MobileHomeView = () => {
   const cityLabel = selectedCity || "your city";
   const catLabel = activeCategory ? categoryLabelMap[activeCategory] || activeCategory : "";
 
-  // Row title helper
   const rowTitle = (base: string, catOverride?: string) => {
     if (activeCategory && catOverride) return catOverride;
     return base;
   };
 
+  // City header tag with flag + airport code
   const headerContent = selectedCity ? (
     <button
       onClick={() => handleCityChange("")}
       className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold"
     >
-      <MapPin className="w-3 h-3" />
-      {selectedCity}
+      {cityDisplayMap[selectedCity] || selectedCity}
       <span className="ml-0.5 text-primary/60">✕</span>
     </button>
   ) : undefined;
 
   return (
     <MobileShell headerContent={headerContent} hideAvatar notFixed>
-      <MobileSearchOverlay
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearch={(q) => { setSearchQuery(q); setSearchOpen(false); }}
-      />
-
-      {/* Search bar - Uber Eats style */}
+      {/* Search bar */}
       <div className="px-4 pb-3">
         <button
           onClick={() => navigate("/search")}
@@ -444,54 +413,6 @@ export const MobileHomeView = () => {
 
       {/* Category filter pills */}
       <CategoryFilterPills activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
-
-      {/* City selector drawer */}
-      <Drawer open={cityDrawerOpen} onOpenChange={setCityDrawerOpen}>
-        <DrawerContent className="bg-card border-border">
-          <div className="px-5 pt-4 pb-8">
-            <h2 className="text-lg font-bold text-foreground mb-1">Choose a city</h2>
-            <p className="text-sm text-muted-foreground mb-5">Select a city to explore experiences</p>
-            <div className="space-y-2.5">
-              {mapCities.map((city) => (
-                <button
-                  key={city.name}
-                  disabled={!city.available}
-                  onClick={() => city.available && handleCityChange(selectedCity === city.name ? "" : city.name)}
-                  className={cn(
-                    "w-full flex items-center gap-3 p-4 rounded-2xl transition-all text-left",
-                    city.available
-                      ? selectedCity === city.name
-                        ? "bg-primary/10 border border-primary/30"
-                        : "bg-background border border-border/60 active:scale-[0.98]"
-                      : "bg-muted/40 border border-border/30 opacity-60"
-                  )}
-                >
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                    city.available ? "bg-primary/10" : "bg-muted"
-                  )}>
-                    <MapPin className={cn("w-5 h-5", city.available ? "text-primary" : "text-muted-foreground")} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className={cn("text-[15px] font-semibold", city.available ? "text-foreground" : "text-muted-foreground")}>
-                      {city.name}
-                    </h3>
-                    {!city.available && city.launchDate && (
-                      <p className="text-xs text-muted-foreground mt-0.5">Coming {city.launchDate}</p>
-                    )}
-                    {city.available && (
-                      <p className="text-xs text-primary mt-0.5">Available now</p>
-                    )}
-                  </div>
-                  {city.available && selectedCity === city.name && (
-                    <Check className="w-5 h-5 text-primary shrink-0" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
 
       {/* Search results */}
       {hasSearchResults ? (
@@ -536,14 +457,13 @@ export const MobileHomeView = () => {
         </div>
       ) : (
       <>
-      {/* Alternating content - filtered by category */}
+      {/* Alternating content */}
       {categoryItineraries.length > 0 && (
         <HorizontalScrollRow 
           title={rowTitle(
             selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss",
             `${catLabel} you can't miss`
           )}
-          variant="itinerary"
           onTitleClick={() => navigate("/itinerary-collections/attractions-you-cant-miss")}
         >
           {categoryItineraries.slice(0, 6).map((itinerary) => (
@@ -558,7 +478,6 @@ export const MobileHomeView = () => {
             `Available in ${cityLabel} next weekend`,
             `${catLabel} available next weekend`
           )}
-          variant="experience"
           onTitleClick={() => navigate("/experience-collections/available-next-weekend")}
         >
           {categoryExperiences.slice(0, 8).map((experience) => (
@@ -570,7 +489,6 @@ export const MobileHomeView = () => {
       {categoryItineraries.length > 3 && (
         <HorizontalScrollRow 
           title={rowTitle("Curated by locals", `${catLabel} curated by locals`)}
-          variant="itinerary"
           onTitleClick={() => navigate("/itinerary-collections/curated-by-locals")}
         >
           {categoryItineraries.slice(3, 9).map((itinerary) => (
@@ -582,7 +500,6 @@ export const MobileHomeView = () => {
       {categoryExperiences.length > 8 && (
         <HorizontalScrollRow 
           title={rowTitle("Adventure awaits", `More ${catLabel}`)}
-          variant="experience"
           onTitleClick={() => navigate("/experience-collections/adventure-awaits")}
         >
           {categoryExperiences.slice(8, 18).map((experience) => (
@@ -594,7 +511,6 @@ export const MobileHomeView = () => {
       {categoryItineraries.length > 1 && !activeCategory && (
         <HorizontalScrollRow 
           title="Weekend getaways"
-          variant="itinerary"
           onTitleClick={() => navigate("/itinerary-collections/weekend-getaways")}
         >
           {categoryItineraries.slice(1, 7).map((itinerary) => (
@@ -606,7 +522,6 @@ export const MobileHomeView = () => {
       {categoryExperiences.length > 18 && (
         <HorizontalScrollRow 
           title={rowTitle("Taste the local flavors", `Even more ${catLabel}`)}
-          variant="experience"
           onTitleClick={() => navigate("/experience-collections/taste-local-flavors")}
         >
           {categoryExperiences.slice(18, 28).map((experience) => (
@@ -618,7 +533,6 @@ export const MobileHomeView = () => {
       {categoryItineraries.length > 2 && !activeCategory && (
         <HorizontalScrollRow 
           title="Popular this week"
-          variant="itinerary"
           onTitleClick={() => navigate("/itinerary-collections/popular-this-week")}
         >
           {categoryItineraries.slice(2, 8).map((itinerary) => (
@@ -627,7 +541,6 @@ export const MobileHomeView = () => {
         </HorizontalScrollRow>
       )}
 
-      {/* No results for category */}
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
         <div className="text-center py-12 px-4">
           <p className="text-sm text-muted-foreground">No {catLabel.toLowerCase()} found</p>
