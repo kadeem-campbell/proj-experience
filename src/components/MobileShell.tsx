@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, ReactNode } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Home, Search, ListMusic, User, Globe } from "lucide-react";
+import { Home, Search, ListMusic, User, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
@@ -9,6 +9,14 @@ import { cn } from "@/lib/utils";
 const cityCodeMap: Record<string, string> = {
   "Zanzibar": "ZNZ",
   "Dar es Salaam": "DAR",
+};
+
+// Persist city globally via localStorage
+const getPersistedCity = (): string => {
+  try { return localStorage.getItem("swam_selected_city") || ""; } catch { return ""; }
+};
+const persistCity = (city: string) => {
+  try { if (city) localStorage.setItem("swam_selected_city", city); else localStorage.removeItem("swam_selected_city"); } catch {}
 };
 
 // Fixed bottom navigation bar
@@ -79,8 +87,26 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
   );
 };
 
-// City globe button - replaces map icon, same size
-const CityGlobeButton = ({ selectedCity }: { selectedCity: string }) => {
+// Tanzania flag SVG circle background
+const TanzaniaFlagCircle = () => (
+  <svg viewBox="0 0 36 36" className="w-full h-full absolute inset-0">
+    <clipPath id="tzCircle"><circle cx="18" cy="18" r="18" /></clipPath>
+    <g clipPath="url(#tzCircle)">
+      {/* Green top-left triangle */}
+      <polygon points="0,0 36,0 0,36" fill="#1EB53A" />
+      {/* Blue bottom-right triangle */}
+      <polygon points="36,0 36,36 0,36" fill="#00A3DD" />
+      {/* Black diagonal stripe */}
+      <polygon points="0,28 0,36 8,36 36,8 36,0 28,0" fill="#000" />
+      {/* Yellow borders of black stripe */}
+      <polygon points="0,24 0,28 28,0 24,0" fill="#FCD116" />
+      <polygon points="8,36 12,36 36,12 36,8" fill="#FCD116" />
+    </g>
+  </svg>
+);
+
+// City button - Map icon when unselected, Tanzania flag + code when selected
+const CityButton = ({ selectedCity }: { selectedCity: string }) => {
   const navigate = useNavigate();
   const code = selectedCity ? cityCodeMap[selectedCity] : "";
   const isActive = !!selectedCity;
@@ -90,27 +116,18 @@ const CityGlobeButton = ({ selectedCity }: { selectedCity: string }) => {
       onClick={() => navigate("/map")}
       className={cn(
         "w-9 h-9 rounded-full flex items-center justify-center relative overflow-hidden transition-all",
-        isActive ? "bg-primary" : "bg-muted"
+        isActive ? "ring-2 ring-primary" : ""
       )}
     >
-      {/* Globe icon in background */}
-      <Globe
-        className={cn(
-          "w-7 h-7 absolute",
-          isActive ? "text-primary-foreground/20" : "text-muted-foreground/30"
-        )}
-        strokeWidth={1.2}
-      />
-      {/* Airport code on top */}
       {isActive ? (
-        <span className="relative z-10 text-[10px] font-extrabold text-primary-foreground tracking-wide">
-          {code}
-        </span>
+        <>
+          <TanzaniaFlagCircle />
+          <span className="relative z-10 text-[10px] font-extrabold text-white tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            {code}
+          </span>
+        </>
       ) : (
-        <Globe
-          className="w-5 h-5 relative z-10 text-muted-foreground"
-          strokeWidth={2}
-        />
+        <MapPin className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
       )}
     </button>
   );
