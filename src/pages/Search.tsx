@@ -7,7 +7,7 @@ import { FixedSearchHeader } from "@/components/FixedSearchHeader";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { MobileHomeView } from "@/components/MobileHomeView";
 import { useItineraries } from "@/hooks/useItineraries";
-import { getPopularItineraries, publicItinerariesData } from "@/data/itinerariesData";
+import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 
 import { Button } from "@/components/ui/button";
 import { City, cities as browseDataCities } from "@/data/browseData";
