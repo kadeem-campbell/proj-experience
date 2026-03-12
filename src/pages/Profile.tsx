@@ -38,11 +38,42 @@ const ProfilePage = () => {
     if (isMobile) {
       return (
         <MobileShell>
-          <div className="flex flex-col items-center justify-center px-6 pt-20">
-            <User className="w-16 h-16 text-muted-foreground/30 mb-4" />
-            <h2 className="text-xl font-bold mb-2">Your Profile</h2>
-            <p className="text-sm text-muted-foreground text-center mb-6">Sign in to manage your profile and see your liked content</p>
-            <Button onClick={() => navigate('/auth')} className="rounded-full px-8">Sign In</Button>
+          <div className="px-4 pt-4">
+            {/* Guest profile header */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                <User className="w-10 h-10 text-muted-foreground/40" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">Guest</h1>
+                <p className="text-sm text-muted-foreground">Sign in to unlock your profile</p>
+              </div>
+            </div>
+
+            {/* Blurred liked content preview */}
+            <div className="relative mb-6">
+              <div className="blur-sm pointer-events-none select-none">
+                <h3 className="text-base font-bold text-foreground mb-3">Your Liked Content</h3>
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="aspect-square rounded-xl bg-muted" />
+                  ))}
+                </div>
+                <h3 className="text-base font-bold text-foreground mb-3">Your Itineraries</h3>
+                <div className="space-y-2">
+                  {[1,2].map(i => (
+                    <div key={i} className="h-16 rounded-xl bg-muted" />
+                  ))}
+                </div>
+              </div>
+              {/* Login overlay */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/60 backdrop-blur-[2px] rounded-2xl">
+                <Heart className="w-10 h-10 text-muted-foreground/30 mb-3" />
+                <p className="text-sm font-semibold text-foreground mb-1">Login to access your likes & itineraries</p>
+                <p className="text-xs text-muted-foreground mb-4 text-center px-4">Your saved experiences and travel plans will appear here</p>
+                <Button onClick={() => navigate('/auth')} className="rounded-full px-8">Sign In</Button>
+              </div>
+            </div>
           </div>
         </MobileShell>
       );
