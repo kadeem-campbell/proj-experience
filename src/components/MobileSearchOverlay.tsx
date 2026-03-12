@@ -179,6 +179,8 @@ export const MobileSearchOverlay = ({
   searchQuery,
   onSearchChange,
   onSearch,
+  initialCity,
+  onCityChange,
 }: MobileSearchOverlayProps) => {
   const navigate = useNavigate();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -186,6 +188,16 @@ export const MobileSearchOverlay = ({
   const [showFilters, setShowFilters] = useState(false);
   const [typeFilter, setTypeFilter] = useState<"all" | "experiences" | "itineraries">("all");
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+
+  // Pre-select city location filter from global city state
+  useEffect(() => {
+    if (isOpen && initialCity) {
+      setSelectedLocations(prev => {
+        if (prev.includes(initialCity)) return prev;
+        return [initialCity];
+      });
+    }
+  }, [isOpen, initialCity]);
 
   const savedScrollRef = useRef(0);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
