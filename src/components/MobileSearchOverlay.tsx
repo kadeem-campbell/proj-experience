@@ -187,6 +187,8 @@ export const MobileSearchOverlay = ({
   const [showFilters, setShowFilters] = useState(false);
   const [typeFilter, setTypeFilter] = useState<"all" | "experiences" | "itineraries">("all");
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const { data: allItinerariesData = [] } = usePopularItineraries();
+  const allExpsData = useExperiencesData();
 
   // Pre-select city location filter from global city state
   useEffect(() => {

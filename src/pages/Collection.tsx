@@ -142,14 +142,15 @@ const CollectionPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: publicItinerariesList = [] } = usePublicItineraries();
 
   const collection = slug ? collectionDefinitions[slug] : null;
 
   const { featuredItems, remainingSections } = useMemo(() => {
     if (!collection) return { featuredItems: [], remainingSections: [] };
-    const featured = collection.filter(publicItinerariesData);
+    const featured = collection.filter(publicItinerariesList);
     const featuredIds = new Set(featured.map((i: any) => i.id));
-    const remaining = publicItinerariesData.filter((i: any) => !featuredIds.has(i.id));
+    const remaining = publicItinerariesList.filter((i: any) => !featuredIds.has(i.id));
 
     // Build other sections from remaining
     const sections: { key: string; title: string; items: any[] }[] = [];

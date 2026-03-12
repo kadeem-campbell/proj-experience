@@ -137,11 +137,14 @@ const ItinerariesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { data: allPublicItineraries = [] } = usePublicItineraries();
+  const { data: popularItineraries = [] } = usePopularItineraries();
+  const { data: faveItineraries = [] } = useFaveItineraries();
   
   const getBaseItineraries = () => {
-    if (filter === 'popular') return getPopularItineraries();
-    if (filter === 'fave') return getFaveItineraries();
-    return publicItinerariesData;
+    if (filter === 'popular') return popularItineraries;
+    if (filter === 'fave') return faveItineraries;
+    return allPublicItineraries;
   };
 
   const allItineraries = getBaseItineraries();

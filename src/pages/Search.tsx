@@ -334,7 +334,8 @@ const SearchPage = () => {
     return filterByQuery(experience, searchQuery.trim().toLowerCase());
   });
 
-  const filteredItineraries = getPopularItineraries().filter((itinerary) => {
+  const { data: popularItinerariesForSearch = [] } = usePopularItineraries();
+  const filteredItineraries = popularItinerariesForSearch.filter((itinerary) => {
     if (selectedCity) {
       const cityName = selectedCity.name.toLowerCase();
       const nameMatch = itinerary.name.toLowerCase().includes(cityName);
