@@ -773,30 +773,29 @@ export default function ExperienceDetail() {
             <div>
               {/* Desktop Title */}
               <div className="mb-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <Badge variant="outline" className="border-border font-medium text-sm flex items-center gap-1.5 bg-card">
-                    {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
-                    {experience.category}
-                  </Badge>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                    <span className="font-medium">{experience.rating}</span>
-                  </div>
-                  <span className="text-muted-foreground text-sm">•</span>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <TrendingUp className="w-4 h-4" />
-                    <span><strong className="text-foreground">{socialProof.added}</strong> added this</span>
-                  </div>
-                </div>
                 <h1 className="text-3xl font-bold tracking-tight mb-2">{experience.title}</h1>
-                <div className="flex items-center gap-1.5 text-muted-foreground">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-3">
                   <MapPin className="w-4 h-4" />
                   <span className="text-base">{experience.location}</span>
                 </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                    <span className="text-sm font-semibold">{experience.rating}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <TrendingUp className="w-4 h-4" />
+                    <span><strong className="text-foreground">{socialProof.added}</strong> added</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Quick Info Pills */}
+              {/* Info Pills */}
               <div className="flex flex-wrap gap-2 mb-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                  {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
+                  <span className="font-medium">{experience.category}</span>
+                </div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                   <Clock className="w-4 h-4 text-primary" />
                   <span className="font-medium">{experience.duration}</span>
@@ -807,7 +806,7 @@ export default function ExperienceDetail() {
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                   <CloudSun className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{(experience.weather || `Best: ${experience.bestTime}`).replace(/[^\w\s,°·\-–—.]/g, '').trim()}</span>
+                  <span className="font-medium">{(experience.weather || experience.bestTime || "Tropical").replace(/[^\w\s,°\-–.]/g, '').trim()}</span>
                 </div>
               </div>
 
