@@ -257,6 +257,13 @@ const SearchPage = () => {
   // On mobile: "/" shows homepage, "/search" shows search overlay
   const isSearchRoute = window.location.pathname === '/search' || window.location.pathname === '/discover';
   
+  // Reset search query when entering search route fresh
+  useEffect(() => {
+    if (isMobile && isSearchRoute) {
+      setSearchQuery("");
+    }
+  }, [isSearchRoute, isMobile]);
+  
   if (isMobile && isSearchRoute) return (
     <MobileSearchOverlay
       isOpen={true}

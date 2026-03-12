@@ -23,6 +23,15 @@ interface MobileSearchOverlayProps {
   onSearch: (query: string) => void;
 }
 
+const categoryToSearchCategory: Record<string, string> = {
+  "Beaches": "Beach",
+  "Nightlife": "Nightlife",
+  "Nature": "Wildlife",
+  "Adventure": "Adventure",
+  "Food": "Food",
+  "Safari": "Wildlife",
+};
+
 const RECENT_SEARCHES_KEY = "guiduuid_recent_searches";
 const MAX_RECENT_SEARCHES = 8;
 
@@ -196,6 +205,7 @@ export const MobileSearchOverlay = ({
 }: MobileSearchOverlayProps) => {
   const navigate = useNavigate();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState("");
 
   const savedScrollRef = useRef(0);
 
@@ -232,27 +242,43 @@ export const MobileSearchOverlay = ({
 
   const q = normalize(searchQuery);
   const terms = q.split(" ").filter(t => t.length > 1);
-  const hasQuery = terms.length > 0;
+  const hasQuery = terms.length > 0 || activeCategory !== "";
 
   const liveExperiences = useMemo(() => {
-    if (!hasQuery) return [];
-    return allExpsData.filter(e => {
-      const fields = normalize([e.title, e.location, e.category, e.creator].join(" "));
-      return terms.some(t => termMatch(t, fields));
-    });
-  }, [q]);
+    let filtered = allExpsData;
+    if (activeCategory) {
+      const mappedCat = categoryToSearchCategory[activeCategory] || activeCategory;
+      filtered = filtered.filter(e => e.category === mappedCat);
+    }
+    if (terms.length > 0) {
+      filtered = filtered.filter(e => {
+        const fields = normalize([e.title, e.location, e.category, e.creator].join(" "));
+        return terms.some(t => termMatch(t, fields));
+      });
+    }
+    return filtered;
+  }, [q, activeCategory]);
 
   const liveItineraries = useMemo(() => {
-    if (!hasQuery) return [];
-    return allItinerariesData.filter(it => {
-      const fields = normalize([it.name, it.creatorName].join(" "));
-      const expMatch = it.experiences?.some((exp: any) => {
-        const ef = normalize([exp.title, exp.location, exp.category].join(" "));
-        return terms.some(t => termMatch(t, ef));
+    let filtered = allItinerariesData;
+    if (activeCategory) {
+      const mappedCat = categoryToSearchCategory[activeCategory] || activeCategory;
+      filtered = filtered.filter(it =>
+        it.experiences?.some((exp: any) => exp.category === mappedCat)
+      );
+    }
+    if (terms.length > 0) {
+      filtered = filtered.filter(it => {
+        const fields = normalize([it.name, it.creatorName].join(" "));
+        const expMatch = it.experiences?.some((exp: any) => {
+          const ef = normalize([exp.title, exp.location, exp.category].join(" "));
+          return terms.some(t => termMatch(t, ef));
+        });
+        return terms.some(t => termMatch(t, fields)) || expMatch;
       });
-      return terms.some(t => termMatch(t, fields)) || expMatch;
-    });
-  }, [q]);
+    }
+    return filtered;
+  }, [q, activeCategory]);
 
   // More from the same category as top result
   const relatedExperiences = useMemo(() => {
@@ -264,15 +290,19 @@ export const MobileSearchOverlay = ({
       .slice(0, 10);
   }, [liveExperiences, hasQuery]);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Just dismiss keyboard on Enter — don't close overlay
     if (searchQuery.trim()) {
       addToRecentSearches(searchQuery);
-      onSearch(searchQuery);
-      window.scrollTo({ top: 0 });
-      document.querySelector('main')?.scrollTo({ top: 0 });
-      onClose();
     }
+    inputRef.current?.blur();
+  };
+
+  const handleCategoryClick = (label: string) => {
+    setActiveCategory(prev => prev === label ? "" : label);
   };
 
   const handleQuickSearch = (query: string) => {
@@ -308,6 +338,7 @@ export const MobileSearchOverlay = ({
           <div className="flex items-center bg-muted rounded-full px-4 py-3">
             <Search className="w-5 h-5 text-muted-foreground mr-2.5 shrink-0" />
             <input
+              ref={inputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -333,6 +364,29 @@ export const MobileSearchOverlay = ({
       {/* Scrollable content area */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain search-scroll-area search-scroll-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
         <style>{`.search-scroll-hide::-webkit-scrollbar { display: none; }`}</style>
+        
+        {/* Category pills - always visible */}
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat.label;
+            return (
+              <button
+                key={cat.label}
+                onClick={() => handleCategoryClick(cat.label)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                <img src={cat.icon} alt={cat.label} className="w-4 h-4 object-contain" />
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+
         {hasQuery ? (
           <>
             {/* Featured Itineraries row */}
@@ -424,21 +478,7 @@ export const MobileSearchOverlay = ({
               </div>
             )}
 
-            <div className="mb-6">
-              <h3 className="text-base font-bold text-foreground mb-3">Search by category</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.label}
-                    onClick={() => handleQuickSearch(cat.label)}
-                    className="flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg bg-background border border-border hover:bg-muted/40 transition-colors duration-150"
-                  >
-                    <img src={cat.icon} alt={cat.label} className="w-8 h-8 object-contain" />
-                    <span className="text-[11px] font-medium text-foreground truncate">{cat.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Categories are now shown as pills above, no duplicate grid needed */}
           </div>
         )}
       </div>
