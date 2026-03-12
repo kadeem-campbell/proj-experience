@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { publicItinerariesData, getPopularItineraries, getFaveItineraries } from "@/data/itinerariesData";
+import { usePublicItineraries, usePopularItineraries, useFaveItineraries } from "@/hooks/usePublicItineraries";
 import { ArrowLeft, Search, Users, Heart, Layers } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
@@ -137,11 +137,14 @@ const ItinerariesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { data: allPublicItineraries = [] } = usePublicItineraries();
+  const { data: popularItineraries = [] } = usePopularItineraries();
+  const { data: faveItineraries = [] } = useFaveItineraries();
   
   const getBaseItineraries = () => {
-    if (filter === 'popular') return getPopularItineraries();
-    if (filter === 'fave') return getFaveItineraries();
-    return publicItinerariesData;
+    if (filter === 'popular') return popularItineraries;
+    if (filter === 'fave') return faveItineraries;
+    return allPublicItineraries;
   };
 
   const allItineraries = getBaseItineraries();

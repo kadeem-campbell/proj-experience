@@ -31,7 +31,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
-import { publicItinerariesData } from "@/data/itinerariesData";
+import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { LikedExperience, TimeSlot } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
 import { 
@@ -96,6 +96,7 @@ const PublicItinerary = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
+  const { data: publicItinerariesData = [] } = usePublicItineraries();
   const [searchQuery, setSearchQuery] = useState("");
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
     try {
@@ -135,7 +136,7 @@ const PublicItinerary = () => {
   const [dragWarnings, setDragWarnings] = useState<Map<string, string>>(new Map());
   const [movingExp, setMovingExp] = useState<{ id: string; fromDay: string } | null>(null);
   const [showBrowsePublicTrips, setShowBrowsePublicTrips] = useState(false);
-  const [previewingPublicTrip, setPreviewingPublicTrip] = useState<{ itinerary: typeof publicItinerariesData[0]; tripIdx: number } | null>(null);
+  const [previewingPublicTrip, setPreviewingPublicTrip] = useState<{ itinerary: any; tripIdx: number } | null>(null);
   const [showEditTripDates, setShowEditTripDates] = useState(false);
   
   // Auth

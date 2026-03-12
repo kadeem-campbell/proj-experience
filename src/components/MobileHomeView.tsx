@@ -8,8 +8,8 @@ import catNature from "@/assets/cat-nature.png";
 import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
-import { getPopularItineraries } from "@/data/itinerariesData";
-import { allExperiences } from "@/hooks/useExperiencesData";
+import { usePopularItineraries } from "@/hooks/usePublicItineraries";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
@@ -263,8 +263,7 @@ const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
   return itinerary.experiences?.some((e: any) => matchesCity(e.location || "", city)) || false;
 };
 
-const allItinerariesData = getPopularItineraries();
-const allExpsData = allExperiences;
+// Data now fetched inside component via hooks
 
 const categoryLabelMap: Record<string, string> = {
   "Beach": "Beaches",
@@ -283,6 +282,8 @@ export const MobileHomeView = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeCategory, setActiveCategory] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const { data: allItinerariesData = [] } = usePopularItineraries();
+  const allExpsData = useExperiencesData();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -305,7 +306,7 @@ export const MobileHomeView = () => {
   const itineraries = useMemo(() => {
     if (!selectedCity) return allItinerariesData;
     return allItinerariesData.filter(it => itineraryMatchesCity(it, selectedCity));
-  }, [selectedCity]);
+  }, [selectedCity, allItinerariesData]);
 
   const experiences = useMemo(() => {
     let filtered = allExpsData;
@@ -313,7 +314,7 @@ export const MobileHomeView = () => {
       filtered = filtered.filter(e => matchesCity(e.location || "", selectedCity));
     }
     return filtered;
-  }, [selectedCity]);
+  }, [selectedCity, allExpsData]);
 
   const categoryExperiences = useMemo(() => {
     if (!activeCategory) return experiences;

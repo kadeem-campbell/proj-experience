@@ -5,3 +5,4 @@ verify_jwt = false
 
 [functions.send-collaboration-invite]
 verify_jwt = false
+

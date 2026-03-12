@@ -7,12 +7,12 @@ import { FixedSearchHeader } from "@/components/FixedSearchHeader";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { MobileHomeView } from "@/components/MobileHomeView";
 import { useItineraries } from "@/hooks/useItineraries";
-import { getPopularItineraries, publicItinerariesData } from "@/data/itinerariesData";
+import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 
 import { Button } from "@/components/ui/button";
 import { City, cities as browseDataCities } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { allExperiences } from "@/hooks/useExperiencesData";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { Compass, Map, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -195,7 +195,8 @@ const SearchPage = () => {
     return null;
   });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const experiences = allExperiences;
+  const experiences = useExperiencesData();
+  const { data: popularItinerariesForSearch = [] } = usePopularItineraries();
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(18);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -334,7 +335,7 @@ const SearchPage = () => {
     return filterByQuery(experience, searchQuery.trim().toLowerCase());
   });
 
-  const filteredItineraries = getPopularItineraries().filter((itinerary) => {
+  const filteredItineraries = popularItinerariesForSearch.filter((itinerary) => {
     if (selectedCity) {
       const cityName = selectedCity.name.toLowerCase();
       const nameMatch = itinerary.name.toLowerCase().includes(cityName);

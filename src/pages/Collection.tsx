@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
-import { publicItinerariesData } from "@/data/itinerariesData";
+import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { ArrowLeft, Layers, Heart, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -142,14 +142,15 @@ const CollectionPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: publicItinerariesList = [] } = usePublicItineraries();
 
   const collection = slug ? collectionDefinitions[slug] : null;
 
   const { featuredItems, remainingSections } = useMemo(() => {
     if (!collection) return { featuredItems: [], remainingSections: [] };
-    const featured = collection.filter(publicItinerariesData);
+    const featured = collection.filter(publicItinerariesList);
     const featuredIds = new Set(featured.map((i: any) => i.id));
-    const remaining = publicItinerariesData.filter((i: any) => !featuredIds.has(i.id));
+    const remaining = publicItinerariesList.filter((i: any) => !featuredIds.has(i.id));
 
     // Build other sections from remaining
     const sections: { key: string; title: string; items: any[] }[] = [];
