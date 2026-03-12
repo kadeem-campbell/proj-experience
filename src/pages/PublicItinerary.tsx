@@ -1032,7 +1032,7 @@ const PublicItinerary = () => {
 
               {/* Primary CTA - most prominent */}
               {isOwned ? (
-                <Button size="sm" className="gap-1.5 h-[32px] rounded-lg shrink-0 ml-auto text-xs" onClick={() => setShowCreateTripSheet(true)}>
+                <Button size="sm" className="gap-1.5 h-[32px] rounded-lg shrink-0 ml-auto text-xs" onClick={() => { setTripStartDate(undefined); setTripEndDate(undefined); setShowCreateTripSheet(true); }}>
                   <Rocket className="w-3 h-3" />
                   Create trip
                 </Button>
