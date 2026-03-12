@@ -523,54 +523,51 @@ export default function ExperienceDetail() {
                 <img src={gallery[0]} alt={experience.title} className="w-full h-full object-cover" />
               </div>
             )}
-            {/* Back button */}
-            <button 
-              onClick={handleGoBack}
-              className="absolute top-3 left-3 p-2.5 rounded-full bg-background/70 backdrop-blur-xl z-10"
-            >
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
-            {/* Share & Like - right side, same row */}
-            <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
-              <ShareDrawer title={experience.title} url={shareUrl}>
-                <button className="p-2.5 rounded-full bg-background/70 backdrop-blur-xl">
-                  <Share2 className="w-5 h-5 text-foreground" />
-                </button>
-              </ShareDrawer>
-              <button
-                onClick={handleLikeClick}
-                className={cn(
-                  "p-2.5 rounded-full backdrop-blur-xl transition-all active:scale-90",
-                  liked ? "bg-primary/20" : "bg-background/70"
-                )}
+            {/* Top buttons - exact same as itinerary */}
+            <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+              <button 
+                onClick={handleGoBack}
+                className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg"
               >
-                <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
+                <ArrowLeft className="w-5 h-5 text-foreground" />
               </button>
+              <div className="flex items-center gap-2">
+                <ShareDrawer title={experience.title} url={shareUrl}>
+                  <button className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <Share2 className="w-5 h-5 text-foreground" />
+                  </button>
+                </ShareDrawer>
+                <button
+                  onClick={handleLikeClick}
+                  className={cn(
+                    "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg",
+                    liked && "bg-primary/15"
+                  )}
+                >
+                  <Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Content */}
           <div className="px-4 py-4">
-            {/* Category badge with icon + rating */}
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <Badge variant="outline" className="border-border font-medium flex items-center gap-1.5 bg-card">
-                {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
-                {experience.category}
-              </Badge>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight mb-1">{experience.title}</h1>
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-3">
+              <MapPin className="w-4 h-4" />
+              <span>{experience.location}</span>
+            </div>
+
+            {/* Rating + Social - spaced cleanly */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-1.5">
                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                <span className="font-medium text-foreground">{experience.rating}</span>
+                <span className="text-sm font-semibold text-foreground">{experience.rating}</span>
               </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span><strong className="text-foreground">{socialProof.added}</strong> added</span>
               </div>
-            </div>
-
-            <h1 className="text-2xl font-bold tracking-tight mb-2">{experience.title}</h1>
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-4">
-              <MapPin className="w-4 h-4" />
-              <span>{experience.location}</span>
             </div>
 
             {/* Add to Itinerary CTA */}
@@ -602,8 +599,12 @@ export default function ExperienceDetail() {
               </ItinerarySelector>
             </div>
 
-            {/* Quick Info Pills - updated with weather + category icon */}
+            {/* Info Pills - category icon, duration, group, weather unified */}
             <div className="flex flex-wrap gap-2 mb-6">
+              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
+                <span className="font-medium">{experience.category}</span>
+              </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                 <Clock className="w-4 h-4 text-primary" />
                 <span className="font-medium">{experience.duration}</span>
@@ -614,7 +615,7 @@ export default function ExperienceDetail() {
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                 <CloudSun className="w-4 h-4 text-primary" />
-                <span className="font-medium">{(experience.weather || `Best: ${experience.bestTime}`).replace(/[^\w\s,°·\-–—.]/g, '').trim()}</span>
+                <span className="font-medium">{(experience.weather || experience.bestTime || "Tropical").replace(/[^\w\s,°\-–.]/g, '').trim()}</span>
               </div>
             </div>
 
@@ -624,10 +625,7 @@ export default function ExperienceDetail() {
                 <DollarSign className="w-5 h-5 text-primary" />
                 <h3 className="text-base font-semibold">Prices per person</h3>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
-                <span className="text-sm text-muted-foreground">average</span>
-              </div>
+              <span className="text-2xl font-bold text-foreground">{(experience.price || "$15 - $75").replace(/^\$/, '')}</span>
             </div>
 
             {/* Social Video Embeds */}
