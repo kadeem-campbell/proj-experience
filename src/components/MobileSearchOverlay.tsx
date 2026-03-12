@@ -312,9 +312,15 @@ export const MobileSearchOverlay = ({
   };
 
   const toggleLocation = (loc: string) => {
-    setSelectedLocations(prev =>
-      prev.includes(loc) ? prev.filter(l => l !== loc) : [...prev, loc]
-    );
+    setSelectedLocations(prev => {
+      const isRemoving = prev.includes(loc);
+      const newLocs = isRemoving ? prev.filter(l => l !== loc) : [loc]; // Only keep one location (the newly selected)
+      // Update global city state
+      if (onCityChange) {
+        onCityChange(isRemoving ? "" : loc);
+      }
+      return newLocs;
+    });
   };
 
   const toggleCategory = (label: string) => {
