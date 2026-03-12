@@ -773,8 +773,8 @@ export default function ExperienceDetail() {
               {/* Desktop Title */}
               <div className="mb-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <Badge className="bg-foreground text-background border-0 font-medium text-sm flex items-center gap-1.5">
-                    {categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}
+                  <Badge variant="outline" className="border-border font-medium text-sm flex items-center gap-1.5 bg-card">
+                    {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
                     {experience.category}
                   </Badge>
                   <div className="flex items-center gap-1 text-sm">
