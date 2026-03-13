@@ -308,11 +308,9 @@ export default function CreateExperience() {
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="dar-es-salaam">Dar es Salaam</SelectItem>
-                      <SelectItem value="zanzibar">Zanzibar</SelectItem>
-                      <SelectItem value="arusha">Arusha</SelectItem>
-                      <SelectItem value="mwanza">Mwanza</SelectItem>
-                      <SelectItem value="dodoma">Dodoma</SelectItem>
+                      {dbCities.map((city) => (
+                        <SelectItem key={city.id} value={city.name}>{city.flag_emoji} {city.name}, {city.country}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
