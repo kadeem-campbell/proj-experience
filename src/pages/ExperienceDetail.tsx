@@ -38,7 +38,7 @@ import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
-import { slugify, generateExperienceUrl, generateExperienceSlug } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
