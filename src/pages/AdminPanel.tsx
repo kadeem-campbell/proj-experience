@@ -234,6 +234,7 @@ const AdminPanel = () => {
       video_url: exp.video_url || '',
       instagram_embed: exp.instagram_embed || '',
       tiktok_videos: Array.isArray(exp.tiktok_videos) ? exp.tiktok_videos : [],
+      highlights: Array.isArray(exp.highlights) ? exp.highlights : [],
       duration_min: durMin,
       duration_max: durMax,
       group_min: grpMin,
