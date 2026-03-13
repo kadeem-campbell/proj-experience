@@ -516,7 +516,38 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      {/* Description */}
+      {/* Highlights */}
+      <div className="md:col-span-2">
+        <Label className="text-xs text-muted-foreground mb-1">Highlights</Label>
+        <div className="space-y-2">
+          {formData.highlights.map((h, idx) => (
+            <div key={idx} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-xs">
+              <span className="flex-1">{h}</span>
+              <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeHighlight(idx)}><X className="w-3 h-3" /></Button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Add a highlight..."
+              value={newHighlight}
+              onChange={(e) => setNewHighlight(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addHighlight(); } }}
+              className="text-xs"
+            />
+            <Button type="button" variant="outline" size="sm" onClick={addHighlight}>Add</Button>
+          </div>
+          <details className="text-xs">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Bulk add (one per line)</summary>
+            <Textarea
+              placeholder="Paste highlights, one per line..."
+              rows={3}
+              className="mt-1 text-xs"
+              onBlur={(e) => { if (e.target.value.trim()) { addBulkHighlights(e.target.value); e.target.value = ''; } }}
+            />
+          </details>
+        </div>
+      </div>
+
       <div className="md:col-span-2">
         <Label className="text-xs text-muted-foreground mb-1">Description</Label>
         <Textarea placeholder="Description" value={formData.description} onChange={(e) => updateField('description', e.target.value)} rows={3} />
