@@ -303,7 +303,7 @@ export const BulkUploader = () => {
     collections: 'Collections',
   };
 
-  const isLinkTab = (_key: string) => false;
+  
 
   return (
     <div className="space-y-6">
