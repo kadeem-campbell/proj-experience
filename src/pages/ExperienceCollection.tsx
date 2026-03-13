@@ -226,11 +226,53 @@ const ExperienceCollectionPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const experiences = useExperiencesData();
 
-  const collection = slug ? experienceCollectionDefinitions[slug] : null;
+  const staticCollection = slug ? experienceCollectionDefinitions[slug] : null;
 
-  const { featuredItems, remainingSections } = useMemo(() => {
-    if (!collection) return { featuredItems: [], remainingSections: [] };
-    const featured = collection.filter(experiences);
+  const { data: dbCollection } = useQuery({
+    queryKey: ['experience-collection-by-slug', slug],
+    enabled: !!slug,
+    queryFn: async () => {
+      const { data: collectionRow } = await supabase
+        .from('collections')
+        .select('id, name, slug, description, collection_type, is_active')
+        .eq('slug', slug!)
+        .eq('is_active', true)
+        .eq('collection_type', 'experiences')
+        .maybeSingle();
+
+      if (!collectionRow) return null;
+
+      const { data: linkRows } = await (supabase as any)
+        .from('collection_experiences')
+        .select('display_order, experiences(id, title, creator, video_thumbnail, category, location, price, slug)')
+        .eq('collection_id', collectionRow.id)
+        .order('display_order', { ascending: true });
+
+      const items = (linkRows || [])
+        .map((row: any) => row.experiences)
+        .filter(Boolean)
+        .map((exp: any) => ({
+          id: exp.id,
+          title: exp.title,
+          creator: exp.creator,
+          videoThumbnail: exp.video_thumbnail,
+          category: exp.category,
+          location: exp.location,
+          price: exp.price,
+          slug: exp.slug,
+        }));
+
+      return {
+        title: collectionRow.name,
+        description: collectionRow.description || '',
+        items,
+      };
+    },
+  });
+
+  const { featuredItems: staticFeaturedItems, remainingSections: staticRemainingSections } = useMemo(() => {
+    if (!staticCollection) return { featuredItems: [], remainingSections: [] };
+    const featured = staticCollection.filter(experiences);
     const featuredIds = new Set(featured.map((i: any) => i.id));
     const remaining = experiences.filter((i: any) => !featuredIds.has(i.id));
 
@@ -250,9 +292,15 @@ const ExperienceCollectionPage = () => {
     }).slice(0, 4);
 
     return { featuredItems: featured, remainingSections: uniqueSections };
-  }, [collection, slug]);
+  }, [staticCollection, slug, experiences]);
 
-  if (!collection) {
+  const hasCollection = !!dbCollection || !!staticCollection;
+  const collectionTitle = dbCollection?.title || staticCollection?.title || 'Collection';
+  const collectionDescription = dbCollection?.description || staticCollection?.description || '';
+  const featuredItems = dbCollection?.items || staticFeaturedItems;
+  const remainingSections = dbCollection ? [] : staticRemainingSections;
+
+  if (!hasCollection) {
     return isMobile ? (
       <MobileShell hideAvatar>
         <div className="text-center py-16 px-4">

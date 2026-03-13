@@ -476,7 +476,7 @@ export const LinkManager = () => {
               {selectedCollection && (() => {
                 const coll = collections.find(c => c.id === selectedCollection);
                 return coll?.slug ? (
-                  <a href={`${getShareBaseUrl()}/experience-collections/${coll.slug}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`${getShareBaseUrl()}/${coll.collection_type === 'itineraries' ? 'itinerary-collections' : 'experience-collections'}/${coll.slug}`} target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" title="View on site">
                       <ExternalLink className="w-4 h-4" />
                     </Button>
