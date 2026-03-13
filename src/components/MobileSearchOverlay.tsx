@@ -268,7 +268,7 @@ export const MobileSearchOverlay = ({
       );
     }
     return filtered;
-  }, [q, activeCategory, selectedLocations]);
+  }, [allExpsData, activeCategory, selectedLocations, q]);
 
   const liveItineraries = useMemo(() => {
     let filtered = allItinerariesData;
@@ -296,7 +296,7 @@ export const MobileSearchOverlay = ({
       );
     }
     return filtered;
-  }, [q, activeCategory, selectedLocations]);
+  }, [allItinerariesData, activeCategory, selectedLocations, q]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
