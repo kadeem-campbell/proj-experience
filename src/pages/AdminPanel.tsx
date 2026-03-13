@@ -240,6 +240,7 @@ const AdminPanel = () => {
       instagram_embed: exp.instagram_embed || '',
       tiktok_videos: Array.isArray(exp.tiktok_videos) ? exp.tiktok_videos : [],
       highlights: Array.isArray(exp.highlights) ? exp.highlights : [],
+      meeting_points: Array.isArray(exp.meeting_points) ? exp.meeting_points : [],
       duration_min: durMin,
       duration_max: durMax,
       group_min: grpMin,
