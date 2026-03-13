@@ -176,8 +176,7 @@ export const SocialVideoEmbed = ({
                   allow="autoplay; encrypted-media; picture-in-picture"
                   allowFullScreen
                   scrolling="no"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+                  referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>
             </div>

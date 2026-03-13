@@ -49,6 +49,7 @@ const AdminPanel = () => {
     instagram_embed: '',
     tiktok_videos: [] as TikTokVideo[],
     highlights: [] as string[],
+    meeting_points: [] as { name: string; type: string }[],
     duration_min: 1,
     duration_max: 4,
     group_min: 1,
@@ -63,6 +64,7 @@ const AdminPanel = () => {
   const [formData, setFormData] = useState(defaultForm);
   const [newTikTok, setNewTikTok] = useState({ url: '', author: '' });
   const [newHighlight, setNewHighlight] = useState('');
+  const [newMeetingPoint, setNewMeetingPoint] = useState({ name: '', type: '' });
   const [creatorSearch, setCreatorSearch] = useState('');
 
   const { data: categories = [] } = useCategories();
@@ -125,6 +127,7 @@ const AdminPanel = () => {
       instagram_embed: data.instagram_embed,
       tiktok_videos: data.tiktok_videos as any,
       highlights: data.highlights.filter(h => h.trim()) as any,
+      meeting_points: data.meeting_points.filter(mp => mp.name.trim()) as any,
       duration: data.duration_min === data.duration_max ? `${data.duration_min} hours` : `${data.duration_min}-${data.duration_max} hours`,
       group_size: data.group_min === data.group_max ? `${data.group_min} people` : `${data.group_min}-${data.group_max} people`,
       slug,
@@ -237,6 +240,7 @@ const AdminPanel = () => {
       instagram_embed: exp.instagram_embed || '',
       tiktok_videos: Array.isArray(exp.tiktok_videos) ? exp.tiktok_videos : [],
       highlights: Array.isArray(exp.highlights) ? exp.highlights : [],
+      meeting_points: Array.isArray(exp.meeting_points) ? exp.meeting_points : [],
       duration_min: durMin,
       duration_max: durMax,
       group_min: grpMin,
@@ -543,6 +547,76 @@ const AdminPanel = () => {
               rows={3}
               className="mt-1 text-xs"
               onBlur={(e) => { if (e.target.value.trim()) { addBulkHighlights(e.target.value); e.target.value = ''; } }}
+            />
+          </details>
+        </div>
+      </div>
+
+      {/* Meeting Points (Where to find it) */}
+      <div className="md:col-span-2">
+        <Label className="text-xs text-muted-foreground mb-1">Where to find it (Meeting Points)</Label>
+        <div className="space-y-2">
+          {formData.meeting_points.map((mp, idx) => (
+            <div key={idx} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-xs">
+              <span className="flex-1 font-medium">{mp.name}</span>
+              <span className="text-muted-foreground">{mp.type}</span>
+              <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                const updated = { ...formData, meeting_points: formData.meeting_points.filter((_, i) => i !== idx) };
+                setFormData(updated);
+                if (editingId) triggerAutoSave(updated, editingId);
+              }}><X className="w-3 h-3" /></Button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Location name (e.g. Jinja Pier)"
+              value={newMeetingPoint.name}
+              onChange={(e) => setNewMeetingPoint(prev => ({ ...prev, name: e.target.value }))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newMeetingPoint.name.trim()) {
+                  e.preventDefault();
+                  const updated = { ...formData, meeting_points: [...formData.meeting_points, { name: newMeetingPoint.name.trim(), type: newMeetingPoint.type.trim() || 'Location' }] };
+                  setFormData(updated);
+                  setNewMeetingPoint({ name: '', type: '' });
+                  if (editingId) triggerAutoSave(updated, editingId);
+                }
+              }}
+              className="text-xs"
+            />
+            <Input
+              placeholder="Type (e.g. Beach, Dock)"
+              value={newMeetingPoint.type}
+              onChange={(e) => setNewMeetingPoint(prev => ({ ...prev, type: e.target.value }))}
+              className="text-xs w-40"
+            />
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              if (!newMeetingPoint.name.trim()) return;
+              const updated = { ...formData, meeting_points: [...formData.meeting_points, { name: newMeetingPoint.name.trim(), type: newMeetingPoint.type.trim() || 'Location' }] };
+              setFormData(updated);
+              setNewMeetingPoint({ name: '', type: '' });
+              if (editingId) triggerAutoSave(updated, editingId);
+            }}>Add</Button>
+          </div>
+          <details className="text-xs">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Bulk add (one per line — format: name | type)</summary>
+            <Textarea
+              placeholder={"Jinja Pier | Dock\nNile River Launch | Beach\nKampala Office | Pickup Point"}
+              rows={3}
+              className="mt-1 text-xs"
+              onBlur={(e) => {
+                if (e.target.value.trim()) {
+                  const items = e.target.value.split('\n').map(line => {
+                    const [name, type] = line.split('|').map(s => s.trim());
+                    return name ? { name, type: type || 'Location' } : null;
+                  }).filter(Boolean) as { name: string; type: string }[];
+                  if (items.length > 0) {
+                    const updated = { ...formData, meeting_points: [...formData.meeting_points, ...items] };
+                    setFormData(updated);
+                    if (editingId) triggerAutoSave(updated, editingId);
+                  }
+                  e.target.value = '';
+                }
+              }}
             />
           </details>
         </div>
