@@ -124,7 +124,7 @@ const ExperiencesPage = () => {
   const isMobile = useIsMobile();
   const { addExperienceToItinerary, itineraries } = useItineraries();
   
-  const experiences = allExperiences;
+  const experiences = useExperiencesData();
   const addToItinerary = addToId ? itineraries.find(i => i.id === addToId) : null;
   
   const filteredExperiences = experiences.filter((experience) => {
