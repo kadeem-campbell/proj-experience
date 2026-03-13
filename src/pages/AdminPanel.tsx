@@ -48,6 +48,7 @@ const AdminPanel = () => {
     video_url: '',
     instagram_embed: '',
     tiktok_videos: [] as TikTokVideo[],
+    highlights: [] as string[],
     duration_min: 1,
     duration_max: 4,
     group_min: 1,
