@@ -39,6 +39,13 @@ export const SocialVideoEmbed = ({
   const hasTikTok = tiktokVideos.length > 0;
   const hasInstagram = !!instagramEmbed && instagramEmbed.trim() !== '';
 
+  // Normalize Instagram URL to embeddable format
+  const instagramEmbedUrl = hasInstagram
+    ? instagramEmbed!.includes('/embed') 
+      ? instagramEmbed! 
+      : instagramEmbed!.replace(/\/?(\?.*)?$/, '/embed/')
+    : '';
+
   // Don't render if no embeds available
   if (!hasTikTok && !hasInstagram) return null;
 
