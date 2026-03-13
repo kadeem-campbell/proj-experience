@@ -622,6 +622,7 @@ const AdminPanel = () => {
         </div>
       </div>
 
+      <div className="md:col-span-2">
         <Label className="text-xs text-muted-foreground mb-1">Description</Label>
         <Textarea placeholder="Description" value={formData.description} onChange={(e) => updateField('description', e.target.value)} rows={3} />
       </div>
