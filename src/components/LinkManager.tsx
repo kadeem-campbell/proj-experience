@@ -103,7 +103,7 @@ const useCollectionItinLinks = (collectionId: string | null) => useQuery({
     // Fetch itinerary details
     const ids = data.map((d: any) => d.item_id);
     const { data: itins } = await supabase.from('public_itineraries').select('id, name, slug').in('id', ids);
-    const itinMap = new Map((itins || []).map(i => [i.id, i]));
+    const itinMap = new Map<string, { id: string; name: string; slug: string }>((itins || []).map(i => [i.id, i]));
     return data.map((d: any) => {
       const itin = itinMap.get(d.item_id);
       return {
