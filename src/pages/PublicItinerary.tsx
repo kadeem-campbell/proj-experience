@@ -268,7 +268,7 @@ const PublicItinerary = () => {
         e.category?.toLowerCase().includes(q)
       ))
       .slice(0, 6);
-  }, [searchQuery, itinerary]);
+  }, [searchQuery, itinerary, allDbExperiences]);
 
   // Filtered itineraries for add-to-itinerary search
   const filteredItineraries = useMemo(() => {
