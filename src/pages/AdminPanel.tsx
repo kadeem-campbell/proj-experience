@@ -276,6 +276,28 @@ const AdminPanel = () => {
     if (editingId) triggerAutoSave(updated, editingId);
   };
 
+  const addHighlight = () => {
+    if (!newHighlight.trim()) return;
+    const updated = { ...formData, highlights: [...formData.highlights, newHighlight.trim()] };
+    setFormData(updated);
+    setNewHighlight('');
+    if (editingId) triggerAutoSave(updated, editingId);
+  };
+
+  const removeHighlight = (idx: number) => {
+    const updated = { ...formData, highlights: formData.highlights.filter((_, i) => i !== idx) };
+    setFormData(updated);
+    if (editingId) triggerAutoSave(updated, editingId);
+  };
+
+  const addBulkHighlights = (text: string) => {
+    const items = text.split('\n').map(h => h.trim()).filter(Boolean);
+    if (items.length === 0) return;
+    const updated = { ...formData, highlights: [...formData.highlights, ...items] };
+    setFormData(updated);
+    if (editingId) triggerAutoSave(updated, editingId);
+  };
+
   const toggleCreator = (id: string) => {
     const ids = formData.creator_ids.includes(id)
       ? formData.creator_ids.filter(i => i !== id)
@@ -283,6 +305,9 @@ const AdminPanel = () => {
     updateField('creator_ids', ids);
   };
 
+  const filteredCreators = creators.filter(c =>
+    (c.display_name || c.username).toLowerCase().includes(creatorSearch.toLowerCase())
+  );
   const activeCount = experiences.filter((e: any) => e.is_active).length;
 
   // Shared form fields component
