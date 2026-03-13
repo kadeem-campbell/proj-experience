@@ -51,18 +51,6 @@ const TEMPLATES: Record<UploadType, { headers: string[]; example: string[] }> = 
     headers: ['name', 'slug', 'description', 'cover_image', 'collection_type', 'tag'],
     example: ['Beach Vibes', 'beach-vibes', 'Best beaches', 'https://example.com/beach.jpg', 'experiences', 'featured'],
   },
-  itinerary_experiences: {
-    headers: ['itinerary_slug', 'experience_slug', 'display_order', 'notes'],
-    example: ['zanzibar-weekend', 'jet-ski-adventure', '1', 'Must do!'],
-  },
-  collection_experiences: {
-    headers: ['collection_slug', 'experience_slug', 'display_order'],
-    example: ['beach-vibes', 'tropical-beach-paradise', '1'],
-  },
-  collection_itineraries: {
-    headers: ['collection_slug', 'itinerary_slug', 'position'],
-    example: ['beach-vibes', 'zanzibar-weekend', '1'],
-  },
 };
 
 const parseCSV = (text: string): string[][] => {
