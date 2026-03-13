@@ -526,7 +526,7 @@ export const MobileSearchOverlay = ({
                     <SearchExperienceCard
                       key={exp.id}
                       experience={exp}
-                      onNavigate={() => handleNavigate(`/experiences/${slugify(exp.title)}`)}
+                      onNavigate={() => handleNavigate(experiencePath(exp))}
                     />
                   ))}
                 </div>
