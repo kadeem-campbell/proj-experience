@@ -226,12 +226,12 @@ export const BulkUploader = () => {
 
           if (records.length > 0) {
             const tableName = currentTab === 'itineraries' ? 'public_itineraries' : currentTab;
-            const { data, error } = await supabase.from(tableName).insert(records).select('id');
+            const { error } = await (supabase as any).from(tableName).insert(records);
             if (error) {
               // If batch fails, try one by one
               for (let i = 0; i < records.length; i++) {
                 const rowNum = batchStart + i + 2;
-                const { error: singleErr } = await supabase.from(tableName).insert(records[i]);
+                const { error: singleErr } = await (supabase as any).from(tableName).insert(records[i]);
                 if (singleErr) {
                   errors.push(`Row ${rowNum}: ${singleErr.message}`);
                 } else {
