@@ -338,6 +338,42 @@ export const BulkUploader = () => {
           }
           setProgress({ current: i + 1, total: dataRows.length });
         }
+      } else if (currentTab === 'collection_itineraries') {
+        for (let i = 0; i < dataRows.length; i++) {
+          const rowNum = i + 2;
+          const obj: Record<string, any> = {};
+          headers.forEach((h, idx) => { obj[h] = dataRows[i][idx] || ''; });
+
+          const collSlug = obj.collection_slug?.trim();
+          const itinSlug = obj.itinerary_slug?.trim();
+
+          if (!collSlug || !itinSlug) {
+            errors.push(`Row ${rowNum}: Missing collection_slug or itinerary_slug`);
+            processed.push({ title: `${collSlug} → ${itinSlug}`, status: 'error', error: 'Missing slug' });
+            continue;
+          }
+
+          const { data: coll } = await supabase.from('collections').select('id').eq('slug', collSlug).maybeSingle();
+          const { data: itin } = await supabase.from('public_itineraries').select('id').eq('slug', itinSlug).maybeSingle();
+
+          if (!coll) { errors.push(`Row ${rowNum}: Collection "${collSlug}" not found`); processed.push({ title: `${collSlug} → ${itinSlug}`, status: 'error', error: 'Collection not found' }); continue; }
+          if (!itin) { errors.push(`Row ${rowNum}: Itinerary "${itinSlug}" not found`); processed.push({ title: `${collSlug} → ${itinSlug}`, status: 'error', error: 'Itinerary not found' }); continue; }
+
+          const { error } = await (supabase as any).from('collection_items').insert({
+            collection_id: coll.id,
+            item_id: itin.id,
+            item_type: 'itinerary',
+            position: parseInt(obj.position) || 0,
+          });
+          if (error) {
+            errors.push(`Row ${rowNum}: ${error.message}`);
+            processed.push({ title: `${collSlug} → ${itinSlug}`, status: 'error', error: error.message });
+          } else {
+            success++;
+            processed.push({ title: `${collSlug} → ${itinSlug}`, slug: itinSlug, status: 'success' });
+          }
+          setProgress({ current: i + 1, total: dataRows.length });
+        }
       }
 
       setResult({ total: dataRows.length, success, errors, processed });
