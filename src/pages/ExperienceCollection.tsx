@@ -13,6 +13,8 @@ import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { Helmet } from "react-helmet-async";
 import { slugify } from "@/utils/slugUtils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Experience collection definitions
 const experienceCollectionDefinitions: Record<string, { title: string; description: string; filter: (items: any[]) => any[] }> = {
