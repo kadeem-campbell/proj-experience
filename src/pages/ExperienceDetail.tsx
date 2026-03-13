@@ -181,7 +181,6 @@ export default function ExperienceDetail() {
   };
 
   const experience = useMemo(() => {
-    // Helper: convert DB experience to the format this page expects
     const fromDb = (db: DbExperience) => ({
       id: db.id,
       title: db.title,
@@ -206,55 +205,22 @@ export default function ExperienceDetail() {
       socialLinks: db.social_links,
     });
 
-    // Try to find in DB first (by slug match on title)
     if (dbExperiences && dbExperiences.length > 0) {
+      // Match by DB slug field first, then by slugified title, then by ID
       if (slug) {
-        const dbMatch = dbExperiences.find(e => slugify(e.title) === slug);
+        const dbMatch = dbExperiences.find(e => e.slug === slug || slugify(e.title) === slug);
         if (dbMatch) return fromDb(dbMatch);
       }
       if (locationParam && legacySlug) {
-        const dbMatch = dbExperiences.find(e => slugify(e.title) === legacySlug);
+        const dbMatch = dbExperiences.find(e => e.slug === legacySlug || slugify(e.title) === legacySlug);
         if (dbMatch) return fromDb(dbMatch);
       }
       if (id) {
         const dbMatch = dbExperiences.find(e => e.id === id);
         if (dbMatch) return fromDb(dbMatch);
-        // Also try matching old numeric IDs by title
-        const mockMatch = experienceMapById.get(id);
-        if (mockMatch) {
-          const dbByTitle = dbExperiences.find(e => e.title === mockMatch.title);
-          if (dbByTitle) return fromDb(dbByTitle);
-        }
       }
     }
 
-    // Fallback to mock data
-    if (slug) {
-      if (experienceMapBySlug.has(slug)) return experienceMapBySlug.get(slug);
-    }
-    if (locationParam && legacySlug) {
-      if (experienceMapBySlug.has(legacySlug)) return experienceMapBySlug.get(legacySlug);
-    }
-    if (id) {
-      if (experienceMapById.has(id)) return experienceMapById.get(id);
-      for (const userItinerary of itineraries) {
-        const userExp = userItinerary.experiences.find(exp => exp.id === id);
-        if (userExp) {
-          return {
-            id: userExp.id, title: userExp.title, creator: userExp.creator,
-            videoThumbnail: userExp.videoThumbnail || getDefaultImage(userExp.category),
-            category: userExp.category, location: userExp.location,
-            description: `Experience the best of ${userExp.location} with this amazing ${userExp.category?.toLowerCase() || 'local'} experience.`,
-            duration: "3 hours", groupSize: "2-10 people", rating: 4.7, price: "$15 - $75",
-            highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
-            gallery: [userExp.videoThumbnail || getDefaultImage(userExp.category)],
-            bestTime: "Flexible", weather: "🌤️ Tropical climate",
-            meetingPoints: [{ name: userExp.location, type: "Main Location" }],
-            faqs: [],
-          };
-        }
-      }
-    }
     return null;
   }, [id, locationParam, legacySlug, slug, itineraries, dbExperiences]);
 
