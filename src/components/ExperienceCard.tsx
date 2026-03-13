@@ -19,6 +19,7 @@ interface ExperienceCardProps {
   category: string;
   location: string;
   price: string;
+  slug?: string;
   compact?: boolean;
 }
 
