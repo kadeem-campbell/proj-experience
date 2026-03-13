@@ -46,13 +46,9 @@ import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
 
-// Mock data
-import partyImage from "@/assets/party-experience.jpg";
-import beachImage from "@/assets/beach-experience.jpg";
-import foodImage from "@/assets/food-experience.jpg";
-import wildlifeImage from "@/assets/wildlife-experience.jpg";
+// Mock data images removed - all content from DB now
+
 import jetskiImage from "@/assets/jetski-experience.jpg";
-import adventureImage from "@/assets/adventure-experience.jpg";
 
 const categoryIconMap: Record<string, string> = {
   "Beach": catBeaches,
