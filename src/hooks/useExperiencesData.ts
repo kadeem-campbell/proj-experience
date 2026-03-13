@@ -14,7 +14,7 @@ export interface Experience {
   slug?: string;
 }
 
-// Empty fallback for backward compat — DB is the single source of truth
+/** @deprecated DB is the single source of truth – use useExperiencesData() hook */
 export const allExperiences: Experience[] = [];
 
 // Hook that returns DB experiences only
