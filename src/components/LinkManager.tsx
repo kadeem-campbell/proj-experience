@@ -9,7 +9,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, X, Search, Link2, BookOpen, FolderOpen, MapPin } from 'lucide-react';
+import { Plus, X, Search, Link2, BookOpen, FolderOpen, MapPin, ExternalLink } from 'lucide-react';
+import { getShareBaseUrl } from '@/utils/shareUrl';
 
 interface LinkedItem {
   id: string;
