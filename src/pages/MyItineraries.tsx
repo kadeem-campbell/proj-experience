@@ -153,7 +153,7 @@ const MyItinerariesPage = () => {
   const [addModeItineraryName, setAddModeItineraryName] = useState("");
   const [addSearchQuery, setAddSearchQuery] = useState("");
   const [addCategory, setAddCategory] = useState("");
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const experiencesData = useExperiencesData();
 
   // Auto-open create drawer from ?create=true
   useEffect(() => {
