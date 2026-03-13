@@ -106,7 +106,7 @@ const useCollectionItinLinks = (collectionId: string | null) => useQuery({
     const itinMap: Record<string, { id: string; name: string; slug: string }> = {};
     (itins || []).forEach(i => { itinMap[i.id] = i; });
     return data.map((d: any) => {
-      const itin = itinMap.get(d.item_id);
+      const itin = itinMap[d.item_id];
       return {
         id: d.item_id,
         linkId: d.id,
