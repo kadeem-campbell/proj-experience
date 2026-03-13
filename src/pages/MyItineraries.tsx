@@ -233,7 +233,7 @@ const MyItinerariesPage = () => {
       );
     }
     return exps;
-  }, [addCategory, addSearchQuery]);
+  }, [addCategory, addSearchQuery, experiencesData]);
 
   // Count of added experiences
   const addedCount = addedIds.size;
