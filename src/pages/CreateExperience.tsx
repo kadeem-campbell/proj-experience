@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCategories, useCities } from "@/hooks/useAppData";
 
 type FormStep = 'basic' | 'location' | 'media' | 'host' | 'additional' | 'review' | 'auth' | 'confirmation';
 
@@ -20,6 +21,8 @@ export default function CreateExperience() {
   const { user, isAuthenticated, isCreator } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: dbCategories = [] } = useCategories();
+  const { data: dbCities = [] } = useCities();
   const [currentStep, setCurrentStep] = useState<FormStep>('basic');
   const [formData, setFormData] = useState({
     title: '',
@@ -250,13 +253,9 @@ export default function CreateExperience() {
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="water-sports">Water Sports</SelectItem>
-                    <SelectItem value="adventure">Adventure</SelectItem>
-                    <SelectItem value="food">Food & Dining</SelectItem>
-                    <SelectItem value="culture">Culture</SelectItem>
-                    <SelectItem value="wildlife">Wildlife</SelectItem>
-                    <SelectItem value="beach">Beach</SelectItem>
-                    <SelectItem value="nightlife">Nightlife</SelectItem>
+                    {dbCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>{cat.emoji} {cat.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -291,13 +290,16 @@ export default function CreateExperience() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    placeholder="Dar es Salaam"
-                    value={formData.city}
-                    onChange={(e) => setFormData({...formData, city: e.target.value})}
-                    className="mt-2"
-                  />
+                    <Select value={formData.city} onValueChange={(value) => setFormData({...formData, city: value})}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Select city" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dbCities.map((city) => (
+                          <SelectItem key={city.id} value={city.name}>{city.flag_emoji} {city.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                 </div>
                 <div>
                   <Label htmlFor="region">Region</Label>
@@ -306,11 +308,9 @@ export default function CreateExperience() {
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="dar-es-salaam">Dar es Salaam</SelectItem>
-                      <SelectItem value="zanzibar">Zanzibar</SelectItem>
-                      <SelectItem value="arusha">Arusha</SelectItem>
-                      <SelectItem value="mwanza">Mwanza</SelectItem>
-                      <SelectItem value="dodoma">Dodoma</SelectItem>
+                      {dbCities.map((city) => (
+                        <SelectItem key={city.id} value={city.name}>{city.flag_emoji} {city.name}, {city.country}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

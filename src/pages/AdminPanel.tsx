@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,29 +7,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
-import { Plus, Edit, Trash2, Upload, Users, DollarSign, AlertCircle } from 'lucide-react';
-
-interface Experience {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  price: number;
-  category: string;
-  creator: string;
-  video_thumbnail: string;
-  duration_hours: number;
-  max_participants: number;
-  status: string;
-}
+import { Plus, Edit, Trash2, Upload, Users, DollarSign, Search, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCategories, useCities, useCreators } from '@/hooks/useAppData';
+import { BulkUploader } from '@/components/BulkUploader';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const AdminPanel = () => {
-  const { user, isAuthenticated, userProfile } = useAuth();
   const { toast } = useToast();
-  const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -38,346 +27,266 @@ const AdminPanel = () => {
     price: '',
     category: '',
     creator: '',
+    creator_id: '',
+    city_id: '',
     video_thumbnail: '',
-    duration_hours: '',
-    max_participants: '',
+    video_url: '',
+    instagram_embed: '',
+    duration: '',
+    group_size: '',
+    slug: '',
+    best_time: '',
+    weather: '',
+    rating: '4.7',
   });
 
-  const categories = [
-    'Water Sports', 'Food & Dining', 'Wildlife', 'Beach', 'Adventure', 'Nightlife',
-    'Culture', 'Sports', 'Shopping', 'Nature', 'Music', 'Art'
-  ];
+  const { data: categories = [] } = useCategories();
+  const { data: cities = [] } = useCities();
+  const { data: creators = [] } = useCreators();
 
-  // Mock data for now since experiences table doesn't exist
-  useEffect(() => {
-    if (isAuthenticated) {
-      setLoading(true);
-      // Simulate loading
-      setTimeout(() => {
-        setExperiences([
-          {
-            id: '1',
-            title: 'Jet Ski Adventure',
-            description: 'Thrilling jet ski experience',
-            location: 'Coco Beach',
-            price: 75,
-            category: 'Water Sports',
-            creator: 'Beach Adventures',
-            video_thumbnail: '',
-            duration_hours: 2,
-            max_participants: 4,
-            status: 'active'
-          },
-          {
-            id: '2',
-            title: 'Spice Farm Tour',
-            description: 'Explore local spice farms',
-            location: 'Zanzibar',
-            price: 45,
-            category: 'Culture',
-            creator: 'Island Tours',
-            video_thumbnail: '',
-            duration_hours: 4,
-            max_participants: 12,
-            status: 'active'
-          }
-        ]);
-        setLoading(false);
-      }, 500);
-    }
-  }, [isAuthenticated]);
+  const { data: experiences = [], isLoading } = useQuery({
+    queryKey: ['admin-experiences', searchQuery],
+    queryFn: async () => {
+      let q = supabase.from('experiences').select('*').order('created_at', { ascending: false });
+      if (searchQuery) {
+        q = q.or(`title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`);
+      }
+      const { data, error } = await q.limit(500);
+      if (error) { console.error(error); return []; }
+      return data || [];
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const insertMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const slug = data.slug || data.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+      const payload: any = {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        price: data.price,
+        category: data.category,
+        creator: data.creator,
+        creator_id: data.creator_id || null,
+        city_id: data.city_id || null,
+        video_thumbnail: data.video_thumbnail,
+        video_url: data.video_url,
+        instagram_embed: data.instagram_embed,
+        duration: data.duration,
+        group_size: data.group_size,
+        slug,
+        best_time: data.best_time,
+        weather: data.weather,
+        rating: parseFloat(data.rating) || 4.7,
+      };
+      if (editingId) {
+        const { error } = await supabase.from('experiences').update(payload).eq('id', editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('experiences').insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-experiences'] });
+      queryClient.invalidateQueries({ queryKey: ['db-experiences'] });
+      toast({ title: `Experience ${editingId ? 'updated' : 'created'} successfully` });
+      resetForm();
+    },
+    onError: (err: any) => {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('experiences').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-experiences'] });
+      queryClient.invalidateQueries({ queryKey: ['db-experiences'] });
+      toast({ title: 'Experience deleted' });
+    },
+    onError: (err: any) => {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-
-    const newExperience: Experience = {
-      id: Date.now().toString(),
-      title: formData.title,
-      description: formData.description,
-      location: formData.location,
-      price: parseFloat(formData.price),
-      category: formData.category,
-      creator: formData.creator,
-      video_thumbnail: formData.video_thumbnail,
-      duration_hours: parseInt(formData.duration_hours) || 0,
-      max_participants: parseInt(formData.max_participants) || 0,
-      status: 'active'
-    };
-
-    if (editingId) {
-      setExperiences(prev => prev.map(exp => 
-        exp.id === editingId ? { ...newExperience, id: editingId } : exp
-      ));
-    } else {
-      setExperiences(prev => [newExperience, ...prev]);
-    }
-
-    toast({
-      title: "Success",
-      description: `Experience ${editingId ? 'updated' : 'created'} successfully! (Demo mode)`,
-    });
-
-    resetForm();
+    insertMutation.mutate(formData);
   };
 
-  const handleEdit = (experience: Experience) => {
+  const handleEdit = (exp: any) => {
     setFormData({
-      title: experience.title,
-      description: experience.description || '',
-      location: experience.location,
-      price: experience.price.toString(),
-      category: experience.category,
-      creator: experience.creator,
-      video_thumbnail: experience.video_thumbnail || '',
-      duration_hours: experience.duration_hours?.toString() || '',
-      max_participants: experience.max_participants?.toString() || '',
+      title: exp.title || '',
+      description: exp.description || '',
+      location: exp.location || '',
+      price: exp.price || '',
+      category: exp.category || '',
+      creator: exp.creator || '',
+      creator_id: exp.creator_id || '',
+      city_id: exp.city_id || '',
+      video_thumbnail: exp.video_thumbnail || '',
+      video_url: exp.video_url || '',
+      instagram_embed: exp.instagram_embed || '',
+      duration: exp.duration || '',
+      group_size: exp.group_size || '',
+      slug: exp.slug || '',
+      best_time: exp.best_time || '',
+      weather: exp.weather || '',
+      rating: exp.rating?.toString() || '4.7',
     });
-    setEditingId(experience.id);
+    setEditingId(exp.id);
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this experience?')) return;
-    setExperiences(prev => prev.filter(exp => exp.id !== id));
-    toast({
-      title: "Success",
-      description: "Experience deleted successfully! (Demo mode)",
-    });
-  };
-
   const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      location: '',
-      price: '',
-      category: '',
-      creator: '',
-      video_thumbnail: '',
-      duration_hours: '',
-      max_participants: '',
-    });
+    setFormData({ title: '', description: '', location: '', price: '', category: '', creator: '', creator_id: '', city_id: '', video_thumbnail: '', video_url: '', instagram_embed: '', duration: '', group_size: '', slug: '', best_time: '', weather: '', rating: '4.7' });
     setEditingId(null);
     setShowForm(false);
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="pt-24 px-6">
-          <div className="max-w-md mx-auto text-center py-20">
-            <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-            <p className="text-muted-foreground mb-6">
-              Please sign in to access the admin panel.
-            </p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <main className="pt-24 px-6">
+      <main className="pt-24 px-6 pb-20">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">Admin Panel</h1>
-              <p className="text-muted-foreground">Manage experiences and view analytics</p>
-            </div>
-            <Button onClick={() => setShowForm(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Experience
-            </Button>
-          </div>
-
-          {/* Demo Mode Notice */}
-          <Card className="p-4 mb-6 bg-yellow-500/10 border-yellow-500/30">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600" />
+          <Tabs defaultValue="manage">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="font-medium text-yellow-600">Demo Mode</p>
-                <p className="text-sm text-muted-foreground">
-                  Experiences table is not yet set up. Data is stored locally for demonstration.
-                </p>
+                <h1 className="text-3xl font-bold">Admin Panel</h1>
+                <p className="text-muted-foreground">{experiences.length} experiences in database</p>
               </div>
+              <TabsList>
+                <TabsTrigger value="manage">Manage</TabsTrigger>
+                <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
+              </TabsList>
             </div>
-          </Card>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Upload className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Experiences</p>
-                  <p className="text-2xl font-bold">{experiences.length}</p>
-                </div>
+            <TabsContent value="manage">
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card className="p-4 flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg"><Upload className="w-5 h-5 text-primary" /></div>
+                  <div><p className="text-xs text-muted-foreground">Total</p><p className="text-xl font-bold">{experiences.length}</p></div>
+                </Card>
+                <Card className="p-4 flex items-center gap-3">
+                  <div className="p-2 bg-green-500/10 rounded-lg"><Users className="w-5 h-5 text-green-600" /></div>
+                  <div><p className="text-xs text-muted-foreground">Categories</p><p className="text-xl font-bold">{categories.length}</p></div>
+                </Card>
+                <Card className="p-4 flex items-center gap-3">
+                  <div className="p-2 bg-yellow-500/10 rounded-lg"><DollarSign className="w-5 h-5 text-yellow-600" /></div>
+                  <div><p className="text-xs text-muted-foreground">Cities</p><p className="text-xl font-bold">{cities.length}</p></div>
+                </Card>
               </div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-500/10 rounded-lg">
-                  <Users className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Experiences</p>
-                  <p className="text-2xl font-bold">
-                    {experiences.filter(exp => exp.status === 'active').length}
-                  </p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-yellow-500/10 rounded-lg">
-                  <DollarSign className="w-6 h-6 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg. Price</p>
-                  <p className="text-2xl font-bold">
-                    ${experiences.length > 0 ? (experiences.reduce((sum, exp) => sum + exp.price, 0) / experiences.length).toFixed(0) : '0'}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </div>
 
-          {/* Experience Form */}
-          {showForm && (
-            <Card className="p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4">
-                {editingId ? 'Edit Experience' : 'Create New Experience'}
-              </h2>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  placeholder="Experience Title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  required
-                />
-                <Input
-                  placeholder="Location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  required
-                />
-                <Input
-                  placeholder="Price (USD)"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  required
-                />
-                <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  placeholder="Creator/Company"
-                  value={formData.creator}
-                  onChange={(e) => setFormData({...formData, creator: e.target.value})}
-                  required
-                />
-                <Input
-                  placeholder="Duration (hours)"
-                  type="number"
-                  value={formData.duration_hours}
-                  onChange={(e) => setFormData({...formData, duration_hours: e.target.value})}
-                />
-                <Input
-                  placeholder="Max Participants"
-                  type="number"
-                  value={formData.max_participants}
-                  onChange={(e) => setFormData({...formData, max_participants: e.target.value})}
-                />
-                <Input
-                  placeholder="Image URL"
-                  value={formData.video_thumbnail}
-                  onChange={(e) => setFormData({...formData, video_thumbnail: e.target.value})}
-                />
-                <div className="md:col-span-2">
-                  <Textarea
-                    placeholder="Description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows={3}
-                  />
+              {/* Search + Add */}
+              <div className="flex gap-3 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input placeholder="Search experiences..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
                 </div>
-                <div className="md:col-span-2 flex gap-3">
-                  <Button type="submit">
-                    {editingId ? 'Update Experience' : 'Create Experience'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          )}
+                <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2 shrink-0"><Plus className="w-4 h-4" /> Add</Button>
+              </div>
 
-          {/* Experiences List */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">All Experiences</h2>
-            {loading ? (
-              <p>Loading experiences...</p>
-            ) : experiences.length === 0 ? (
-              <p className="text-muted-foreground">No experiences yet. Add your first experience!</p>
-            ) : (
-              <div className="space-y-4">
-                {experiences.map((experience) => (
-                  <div key={experience.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold">{experience.title}</h3>
-                        <Badge variant={experience.status === 'active' ? 'default' : 'secondary'}>
-                          {experience.status}
-                        </Badge>
-                        <Badge variant="outline">{experience.category}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {experience.location} • ${experience.price} • {experience.creator}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {experience.duration_hours}h • Max {experience.max_participants} people
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleEdit(experience)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleDelete(experience.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+              {/* Form */}
+              {showForm && (
+                <Card className="p-6 mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">{editingId ? 'Edit' : 'New'} Experience</h2>
+                    <Button variant="ghost" size="icon" onClick={resetForm}><X className="w-4 h-4" /></Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </Card>
+                  <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input placeholder="Title *" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
+                    <Input placeholder="Slug (auto-generated)" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} />
+
+                    {/* Category dropdown from DB */}
+                    <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
+                      <SelectTrigger><SelectValue placeholder="Category *" /></SelectTrigger>
+                      <SelectContent>
+                        {categories.map((c) => (
+                          <SelectItem key={c.id} value={c.name}>{c.emoji} {c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Creator dropdown from DB */}
+                    <Select value={formData.creator_id} onValueChange={(v) => {
+                      const cr = creators.find(c => c.id === v);
+                      setFormData({...formData, creator_id: v, creator: cr?.display_name || cr?.username || ''});
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Creator" /></SelectTrigger>
+                      <SelectContent>
+                        {creators.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.display_name || c.username}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* City dropdown from DB */}
+                    <Select value={formData.city_id} onValueChange={(v) => {
+                      const city = cities.find(c => c.id === v);
+                      setFormData({...formData, city_id: v, location: city?.name || formData.location});
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="City" /></SelectTrigger>
+                      <SelectContent>
+                        {cities.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.flag_emoji} {c.name}, {c.country}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Input placeholder="Location (text)" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
+                    <Input placeholder="Price e.g. $30 - $80" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
+                    <Input placeholder="Duration e.g. 2 hours" value={formData.duration} onChange={(e) => setFormData({...formData, duration: e.target.value})} />
+                    <Input placeholder="Group Size e.g. 4-8 people" value={formData.group_size} onChange={(e) => setFormData({...formData, group_size: e.target.value})} />
+                    <Input placeholder="Rating" type="number" step="0.1" min="0" max="5" value={formData.rating} onChange={(e) => setFormData({...formData, rating: e.target.value})} />
+                    <Input placeholder="Video Thumbnail URL" value={formData.video_thumbnail} onChange={(e) => setFormData({...formData, video_thumbnail: e.target.value})} />
+                    <Input placeholder="Video URL" value={formData.video_url} onChange={(e) => setFormData({...formData, video_url: e.target.value})} />
+                    <Input placeholder="Instagram Embed URL" value={formData.instagram_embed} onChange={(e) => setFormData({...formData, instagram_embed: e.target.value})} />
+                    <Input placeholder="Best Time" value={formData.best_time} onChange={(e) => setFormData({...formData, best_time: e.target.value})} />
+                    <Input placeholder="Weather" value={formData.weather} onChange={(e) => setFormData({...formData, weather: e.target.value})} />
+                    <div className="md:col-span-2">
+                      <Textarea placeholder="Description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} />
+                    </div>
+                    <div className="md:col-span-2 flex gap-3">
+                      <Button type="submit" disabled={insertMutation.isPending}>{editingId ? 'Update' : 'Create'}</Button>
+                      <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
+                    </div>
+                  </form>
+                </Card>
+              )}
+
+              {/* Experience List */}
+              <Card className="p-4">
+                {isLoading ? <p>Loading...</p> : experiences.length === 0 ? <p className="text-muted-foreground">No experiences found.</p> : (
+                  <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                    {experiences.map((exp: any) => (
+                      <div key={exp.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="font-medium text-sm truncate">{exp.title}</h3>
+                            <Badge variant="outline" className="text-xs shrink-0">{exp.category}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">{exp.location} • {exp.price} • {exp.creator} • /{exp.slug}</p>
+                        </div>
+                        <div className="flex gap-1 shrink-0 ml-2">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(exp)}><Edit className="w-3.5 h-3.5" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { if (confirm('Delete?')) deleteMutation.mutate(exp.id); }}><Trash2 className="w-3.5 h-3.5" /></Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="bulk">
+              <BulkUploader />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>
