@@ -97,10 +97,7 @@ export const SocialMediaIntegration = () => {
 
       {/* Related Experience Finder */}
       {extractedMetadata && (
-        <RelatedExperienceFinder
-          metadata={extractedMetadata}
-          onExperiencesFound={handleExperiencesFound}
-        />
+        <RelatedExperienceFinder />
       )}
 
       {/* Summary */}
