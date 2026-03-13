@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { getShareBaseUrl } from '@/utils/shareUrl';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileSpreadsheet, AlertCircle, Check, Loader2, Download, Link2, ExternalLink, Trash2 } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertCircle, Check, Loader2, Download, ExternalLink, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
