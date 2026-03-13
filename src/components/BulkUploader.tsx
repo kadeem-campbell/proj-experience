@@ -9,7 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 
-type UploadType = 'experiences' | 'categories' | 'cities' | 'creators' | 'itineraries' | 'collections' | 'itinerary_experiences' | 'collection_experiences' | 'collection_itineraries';
+type UploadType = 'experiences' | 'categories' | 'cities' | 'creators' | 'itineraries' | 'collections';
 
 interface ProcessedItem {
   title: string;
