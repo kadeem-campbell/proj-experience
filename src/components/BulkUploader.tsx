@@ -365,9 +365,9 @@ export const BulkUploader = () => {
   };
 
   const getLink = (item: ProcessedItem, tab: UploadType) => {
-    if (tab === 'experiences' && item.slug) return `/experience/${item.slug}`;
-    if (tab === 'itineraries' && item.slug) return `/itinerary/${item.slug}`;
-    if (tab === 'collections' && item.slug) return `/collection/${item.slug}`;
+    if (tab === 'experiences' && item.slug) return `/experiences/${item.slug}`;
+    if (tab === 'itineraries' && item.slug) return `/itineraries/${item.slug}`;
+    if (tab === 'collections' && item.slug) return `/experience-collections/${item.slug}`;
     return null;
   };
 
