@@ -361,7 +361,7 @@ export const LinkManager = () => {
       <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setExpSearch(''); setItinSearch(''); }}>
         <TabsList className="grid grid-cols-3 mb-4">
           <TabsTrigger value="itinerary" className="gap-1.5 text-xs">
-            <Map className="w-3.5 h-3.5" /> Experiences → Itinerary
+            <MapPin className="w-3.5 h-3.5" /> Experiences → Itinerary
           </TabsTrigger>
           <TabsTrigger value="collection-exp" className="gap-1.5 text-xs">
             <FolderOpen className="w-3.5 h-3.5" /> Experiences → Collection
