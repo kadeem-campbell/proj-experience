@@ -31,14 +31,14 @@ import {
 } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-import { publicItinerariesData } from "@/data/itinerariesData"; // fallback for mock experience map
+// DB-driven: no mock data imports needed
 import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
-import { slugify, generateExperienceUrl, generateExperienceSlug } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -46,13 +46,9 @@ import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
 
-// Mock data
-import partyImage from "@/assets/party-experience.jpg";
-import beachImage from "@/assets/beach-experience.jpg";
-import foodImage from "@/assets/food-experience.jpg";
-import wildlifeImage from "@/assets/wildlife-experience.jpg";
+// Mock data images removed - all content from DB now
+
 import jetskiImage from "@/assets/jetski-experience.jpg";
-import adventureImage from "@/assets/adventure-experience.jpg";
 
 const categoryIconMap: Record<string, string> = {
   "Beach": catBeaches,
@@ -65,231 +61,9 @@ const categoryIconMap: Record<string, string> = {
   "Culture": catNature,
 };
 
-const mockExperiences = [
-  {
-    id: "7",
-    title: "Zanzibar Sea Walk",
-    creator: "ChristineNampeera",
-    videoThumbnail: beachImage,
-    category: "Adventure",
-    location: "Zanzibar",
-    description: "Walk on the ocean floor with a special helmet that lets you breathe underwater. An unforgettable experience exploring marine life up close in the crystal-clear waters of Zanzibar.",
-    duration: "1.5 hours",
-    groupSize: "2-8 people",
-    rating: 4.9,
-    price: "$25 - $60",
-    highlights: ["Walk on the ocean floor", "No diving experience needed", "See tropical fish up close", "Professional guides & equipment"],
-    gallery: [beachImage, jetskiImage, adventureImage],
-    bestTime: "Morning",
-    weather: "☀️ Sunny, 28°C avg",
-    meetingPoints: [
-      { name: "Nungwi Beach", type: "Main Location" },
-      { name: "Kendwa Pier", type: "Alternative" }
-    ],
-    faqs: [
-      { q: "Do I need to know how to swim?", a: "No! The helmet keeps your head above water and you walk on the ocean floor.", likes: 12 },
-      { q: "What should I bring?", a: "Just a swimsuit and towel. All equipment is provided.", likes: 8 },
-    ],
-    tiktokVideos: [
-      {
-        videoId: "7571903191340666123",
-        url: "https://www.tiktok.com/@christinenampeera/video/7571903191340666123",
-        author: "@christinenampeera"
-      }
-    ] as TikTokVideo[]
-  },
-  {
-    id: "1",
-    title: "Jet Ski Adventure",
-    creator: "JohnDoe",
-    videoThumbnail: jetskiImage,
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    category: "Water Sports",
-    location: "Dar es Salaam",
-    description: "Experience the thrill of high-speed jet skiing through crystal-clear waters. Perfect for adventure seekers looking for an adrenaline rush on the beautiful coastline.",
-    duration: "2 hours",
-    groupSize: "4-8 people",
-    rating: 4.8,
-    price: "$30 - $80",
-    highlights: ["Crystal clear waters", "Professional guides", "Photo opportunities", "Beginner friendly"],
-    gallery: [jetskiImage, beachImage, adventureImage, partyImage],
-    bestTime: "Morning",
-    weather: "🌤️ Warm, 30°C avg",
-    meetingPoints: [
-      { name: "Coco Beach Marina", type: "Main Location" },
-      { name: "Ocean Road Pier", type: "Alternative" }
-    ],
-    faqs: [],
-  },
-  {
-    id: "2",
-    title: "Beach Party Extravaganza",
-    creator: "BeachVibes",
-    videoThumbnail: partyImage,
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    category: "Party",
-    location: "Zanzibar",
-    description: "All-night beach party with world-class DJs and tropical vibes. Dance under the stars on pristine white sand beaches.",
-    duration: "5 hours",
-    groupSize: "10-100 people",
-    rating: 4.7,
-    price: "$15 - $50",
-    highlights: ["World-class DJs", "Beach setting", "Tropical cocktails", "Unforgettable atmosphere"],
-    gallery: [partyImage, beachImage, foodImage, jetskiImage],
-    bestTime: "Evening",
-    weather: "🌙 Cool breeze, 25°C",
-    meetingPoints: [
-      { name: "Nungwi Beach Club", type: "Main Venue" }
-    ],
-    faqs: [],
-  },
-  {
-    id: "3",
-    title: "Safari Wildlife Experience",
-    creator: "WildlifePro",
-    videoThumbnail: wildlifeImage,
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    category: "Wildlife",
-    location: "Zanzibar",
-    description: "Guided safari through incredible landscapes with expert rangers. Witness the amazing wildlife of East Africa.",
-    duration: "6 hours",
-    groupSize: "2-6 people",
-    rating: 4.9,
-    price: "$80 - $200",
-    highlights: ["Big Five sightings", "Expert guides", "Premium vehicles", "Sunrise views"],
-    gallery: [wildlifeImage, adventureImage, beachImage, foodImage],
-    bestTime: "Morning",
-    weather: "🌅 Dry season best",
-    meetingPoints: [
-      { name: "Jozani Forest", type: "Main route" }
-    ],
-    faqs: [],
-  },
-  {
-    id: "4",
-    title: "Local Food Tasting Tour",
-    creator: "FoodieGuide",
-    videoThumbnail: foodImage,
-    category: "Food",
-    location: "Stone Town",
-    description: "Taste the best local dishes with a culinary expert. Explore the vibrant spice markets and hidden food gems.",
-    duration: "3 hours",
-    groupSize: "4-10 people",
-    rating: 4.6,
-    price: "$10 - $35",
-    highlights: ["Authentic cuisine", "Spice markets", "Local secrets", "Cultural immersion"],
-    gallery: [foodImage, partyImage, beachImage, wildlifeImage],
-    bestTime: "Afternoon",
-    weather: "🌤️ Warm, 29°C avg",
-    meetingPoints: [
-      { name: "Forodhani Gardens", type: "Main spot" }
-    ],
-    faqs: [],
-  },
-  {
-    id: "5",
-    title: "Tropical Beach Paradise",
-    creator: "BeachLover",
-    videoThumbnail: beachImage,
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    category: "Beach",
-    location: "Kendwa",
-    description: "Relax on pristine sands and swim in turquoise waters. Experience the ultimate tropical beach day.",
-    duration: "4 hours",
-    groupSize: "2-12 people",
-    rating: 4.7,
-    price: "$5 - $20",
-    highlights: ["White sand beaches", "Crystal clear water", "Relaxation", "Snorkeling spots"],
-    gallery: [beachImage, jetskiImage, partyImage, adventureImage],
-    bestTime: "Morning",
-    weather: "☀️ Sunny, 31°C avg",
-    meetingPoints: [
-      { name: "Kendwa Rocks Beach", type: "Main beach" }
-    ],
-    faqs: [],
-  },
-  {
-    id: "6",
-    title: "Mountain Climbing Adventure",
-    creator: "AdventureSeeker",
-    videoThumbnail: adventureImage,
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-    category: "Adventure",
-    location: "Zanzibar",
-    description: "Challenge yourself with a guided climb and breathtaking views. Experience the heights of East Africa.",
-    duration: "8 hours",
-    groupSize: "1-5 people",
-    rating: 4.8,
-    price: "$40 - $120",
-    highlights: ["Summit views", "Expert guides", "Achievement", "Stunning landscapes"],
-    gallery: [adventureImage, wildlifeImage, beachImage, foodImage],
-    bestTime: "Morning",
-    weather: "🌤️ Cool at summit, 15°C",
-    meetingPoints: [
-      { name: "Local guide meetup", type: "Main route" }
-    ],
-    faqs: [],
-  }
-];
-
 const getDefaultImage = (category: string) => {
-  const imageMap: { [key: string]: string } = {
-    'water-sports': jetskiImage, 'Water Sports': jetskiImage,
-    'party': partyImage, 'Party': partyImage,
-    'wildlife': wildlifeImage, 'Wildlife': wildlifeImage,
-    'food': foodImage, 'Food': foodImage, 'Food & Dining': foodImage,
-    'beach': beachImage, 'Beach': beachImage,
-    'adventure': adventureImage, 'Adventure': adventureImage,
-    'nightlife': partyImage, 'Nightlife': partyImage
-  };
-  return imageMap[category] || jetskiImage;
+  return jetskiImage;
 };
-
-const buildExperienceMap = () => {
-  const byId = new Map<string, any>();
-  const bySlug = new Map<string, any>();
-  
-  mockExperiences.forEach(exp => {
-    byId.set(exp.id, exp);
-    const titleSlug = slugify(exp.title);
-    bySlug.set(titleSlug, exp);
-  });
-  
-  publicItinerariesData.forEach(itinerary => {
-    itinerary.experiences.forEach(exp => {
-      if (!byId.has(exp.id)) {
-        const fullExp = {
-          id: exp.id,
-          title: exp.title,
-          creator: exp.creator,
-          videoThumbnail: exp.videoThumbnail || getDefaultImage(exp.category),
-          category: exp.category,
-          location: exp.location,
-          description: `Experience the best of ${exp.location} with this amazing ${exp.category.toLowerCase()} experience.`,
-          duration: "3 hours",
-          groupSize: "2-10 people",
-          rating: 4.7,
-          price: "$15 - $75",
-          highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
-          gallery: [exp.videoThumbnail || getDefaultImage(exp.category)],
-          bestTime: "Flexible",
-          weather: "🌤️ Tropical climate",
-          meetingPoints: [{ name: exp.location, type: "Main Location" }],
-          faqs: [],
-        };
-        byId.set(exp.id, fullExp);
-        const titleSlug = slugify(exp.title);
-        if (!bySlug.has(titleSlug)) {
-          bySlug.set(titleSlug, fullExp);
-        }
-      }
-    });
-  });
-  
-  return { byId, bySlug };
-};
-
-const { byId: experienceMapById, bySlug: experienceMapBySlug } = buildExperienceMap();
 
 // FAQ Component
 const FAQSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: string }) => {
@@ -407,7 +181,6 @@ export default function ExperienceDetail() {
   };
 
   const experience = useMemo(() => {
-    // Helper: convert DB experience to the format this page expects
     const fromDb = (db: DbExperience) => ({
       id: db.id,
       title: db.title,
@@ -432,55 +205,22 @@ export default function ExperienceDetail() {
       socialLinks: db.social_links,
     });
 
-    // Try to find in DB first (by slug match on title)
     if (dbExperiences && dbExperiences.length > 0) {
+      // Match by DB slug field first, then by slugified title, then by ID
       if (slug) {
-        const dbMatch = dbExperiences.find(e => slugify(e.title) === slug);
+        const dbMatch = dbExperiences.find(e => e.slug === slug || slugify(e.title) === slug);
         if (dbMatch) return fromDb(dbMatch);
       }
       if (locationParam && legacySlug) {
-        const dbMatch = dbExperiences.find(e => slugify(e.title) === legacySlug);
+        const dbMatch = dbExperiences.find(e => e.slug === legacySlug || slugify(e.title) === legacySlug);
         if (dbMatch) return fromDb(dbMatch);
       }
       if (id) {
         const dbMatch = dbExperiences.find(e => e.id === id);
         if (dbMatch) return fromDb(dbMatch);
-        // Also try matching old numeric IDs by title
-        const mockMatch = experienceMapById.get(id);
-        if (mockMatch) {
-          const dbByTitle = dbExperiences.find(e => e.title === mockMatch.title);
-          if (dbByTitle) return fromDb(dbByTitle);
-        }
       }
     }
 
-    // Fallback to mock data
-    if (slug) {
-      if (experienceMapBySlug.has(slug)) return experienceMapBySlug.get(slug);
-    }
-    if (locationParam && legacySlug) {
-      if (experienceMapBySlug.has(legacySlug)) return experienceMapBySlug.get(legacySlug);
-    }
-    if (id) {
-      if (experienceMapById.has(id)) return experienceMapById.get(id);
-      for (const userItinerary of itineraries) {
-        const userExp = userItinerary.experiences.find(exp => exp.id === id);
-        if (userExp) {
-          return {
-            id: userExp.id, title: userExp.title, creator: userExp.creator,
-            videoThumbnail: userExp.videoThumbnail || getDefaultImage(userExp.category),
-            category: userExp.category, location: userExp.location,
-            description: `Experience the best of ${userExp.location} with this amazing ${userExp.category?.toLowerCase() || 'local'} experience.`,
-            duration: "3 hours", groupSize: "2-10 people", rating: 4.7, price: "$15 - $75",
-            highlights: ["Local expertise", "Authentic experience", "Photo opportunities", "Small groups"],
-            gallery: [userExp.videoThumbnail || getDefaultImage(userExp.category)],
-            bestTime: "Flexible", weather: "🌤️ Tropical climate",
-            meetingPoints: [{ name: userExp.location, type: "Main Location" }],
-            faqs: [],
-          };
-        }
-      }
-    }
     return null;
   }, [id, locationParam, legacySlug, slug, itineraries, dbExperiences]);
 

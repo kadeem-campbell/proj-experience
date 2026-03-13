@@ -39,6 +39,13 @@ export const SocialVideoEmbed = ({
   const hasTikTok = tiktokVideos.length > 0;
   const hasInstagram = !!instagramEmbed && instagramEmbed.trim() !== '';
 
+  // Normalize Instagram URL to embeddable format
+  const instagramEmbedUrl = hasInstagram
+    ? instagramEmbed!.includes('/embed') 
+      ? instagramEmbed! 
+      : instagramEmbed!.replace(/\/?(\?.*)?$/, '/embed/')
+    : '';
+
   // Don't render if no embeds available
   if (!hasTikTok && !hasInstagram) return null;
 
@@ -157,7 +164,7 @@ export const SocialVideoEmbed = ({
             <div className="w-full flex justify-center px-4 pb-6 overflow-hidden">
               <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '400px', minHeight: '500px' }}>
                 <iframe
-                  src={instagramEmbed}
+                  src={instagramEmbedUrl}
                   className="border-0"
                   style={{ width: '100%', height: '600px' }}
                   allow="autoplay; encrypted-media"
