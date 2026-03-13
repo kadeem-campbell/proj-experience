@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getShareBaseUrl } from '@/utils/shareUrl';
 import { Navigation } from '@/components/Navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -590,7 +591,7 @@ const AdminPanel = () => {
                               <Archive className="w-3.5 h-3.5" />
                             </Button>
                             {exp.slug && (
-                              <a href={`/experiences/${exp.slug}`} target="_blank" rel="noopener noreferrer">
+                              <a href={`${getShareBaseUrl()}/experiences/${exp.slug}`} target="_blank" rel="noopener noreferrer">
                                 <Button variant="ghost" size="icon" className="h-8 w-8"><ExternalLink className="w-3.5 h-3.5" /></Button>
                               </a>
                             )}

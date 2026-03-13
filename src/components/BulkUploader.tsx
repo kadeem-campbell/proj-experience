@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { getShareBaseUrl } from '@/utils/shareUrl';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, FileSpreadsheet, AlertCircle, Check, Loader2, Download, Link2, ExternalLink, Trash2 } from 'lucide-react';
@@ -405,9 +406,10 @@ export const BulkUploader = () => {
   };
 
   const getLink = (item: ProcessedItem, tab: UploadType) => {
-    if (tab === 'experiences' && item.slug) return `/experiences/${item.slug}`;
-    if (tab === 'itineraries' && item.slug) return `/itineraries/${item.slug}`;
-    if (tab === 'collections' && item.slug) return `/experience-collections/${item.slug}`;
+    const base = getShareBaseUrl();
+    if (tab === 'experiences' && item.slug) return `${base}/experiences/${item.slug}`;
+    if (tab === 'itineraries' && item.slug) return `${base}/itineraries/${item.slug}`;
+    if (tab === 'collections' && item.slug) return `${base}/experience-collections/${item.slug}`;
     return null;
   };
 
