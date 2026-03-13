@@ -253,13 +253,9 @@ export default function CreateExperience() {
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="water-sports">Water Sports</SelectItem>
-                    <SelectItem value="adventure">Adventure</SelectItem>
-                    <SelectItem value="food">Food & Dining</SelectItem>
-                    <SelectItem value="culture">Culture</SelectItem>
-                    <SelectItem value="wildlife">Wildlife</SelectItem>
-                    <SelectItem value="beach">Beach</SelectItem>
-                    <SelectItem value="nightlife">Nightlife</SelectItem>
+                    {dbCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>{cat.emoji} {cat.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
