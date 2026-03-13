@@ -13,6 +13,8 @@ import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { Helmet } from "react-helmet-async";
 import { slugify } from "@/utils/slugUtils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Experience collection definitions
 const experienceCollectionDefinitions: Record<string, { title: string; description: string; filter: (items: any[]) => any[] }> = {
@@ -224,11 +226,53 @@ const ExperienceCollectionPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const experiences = useExperiencesData();
 
-  const collection = slug ? experienceCollectionDefinitions[slug] : null;
+  const staticCollection = slug ? experienceCollectionDefinitions[slug] : null;
 
-  const { featuredItems, remainingSections } = useMemo(() => {
-    if (!collection) return { featuredItems: [], remainingSections: [] };
-    const featured = collection.filter(experiences);
+  const { data: dbCollection } = useQuery({
+    queryKey: ['experience-collection-by-slug', slug],
+    enabled: !!slug,
+    queryFn: async () => {
+      const { data: collectionRow } = await supabase
+        .from('collections')
+        .select('id, name, slug, description, collection_type, is_active')
+        .eq('slug', slug!)
+        .eq('is_active', true)
+        .eq('collection_type', 'experiences')
+        .maybeSingle();
+
+      if (!collectionRow) return null;
+
+      const { data: linkRows } = await (supabase as any)
+        .from('collection_experiences')
+        .select('display_order, experiences(id, title, creator, video_thumbnail, category, location, price, slug)')
+        .eq('collection_id', collectionRow.id)
+        .order('display_order', { ascending: true });
+
+      const items = (linkRows || [])
+        .map((row: any) => row.experiences)
+        .filter(Boolean)
+        .map((exp: any) => ({
+          id: exp.id,
+          title: exp.title,
+          creator: exp.creator,
+          videoThumbnail: exp.video_thumbnail,
+          category: exp.category,
+          location: exp.location,
+          price: exp.price,
+          slug: exp.slug,
+        }));
+
+      return {
+        title: collectionRow.name,
+        description: collectionRow.description || '',
+        items,
+      };
+    },
+  });
+
+  const { featuredItems: staticFeaturedItems, remainingSections: staticRemainingSections } = useMemo(() => {
+    if (!staticCollection) return { featuredItems: [], remainingSections: [] };
+    const featured = staticCollection.filter(experiences);
     const featuredIds = new Set(featured.map((i: any) => i.id));
     const remaining = experiences.filter((i: any) => !featuredIds.has(i.id));
 
@@ -248,9 +292,15 @@ const ExperienceCollectionPage = () => {
     }).slice(0, 4);
 
     return { featuredItems: featured, remainingSections: uniqueSections };
-  }, [collection, slug]);
+  }, [staticCollection, slug, experiences]);
 
-  if (!collection) {
+  const hasCollection = !!dbCollection || !!staticCollection;
+  const collectionTitle = dbCollection?.title || staticCollection?.title || 'Collection';
+  const collectionDescription = dbCollection?.description || staticCollection?.description || '';
+  const featuredItems = dbCollection?.items || staticFeaturedItems;
+  const remainingSections = dbCollection ? [] : staticRemainingSections;
+
+  if (!hasCollection) {
     return isMobile ? (
       <MobileShell hideAvatar>
         <div className="text-center py-16 px-4">
@@ -272,8 +322,8 @@ const ExperienceCollectionPage = () => {
     return (
       <MobileShell hideAvatar>
         <Helmet>
-          <title>{collection.title} — Curated Experiences | Swam</title>
-          <meta name="description" content={collection.description} />
+          <title>{collectionTitle} — Curated Experiences | Swam</title>
+          <meta name="description" content={collectionDescription} />
           <link rel="canonical" href={`https://guiduuid.lovable.app/experience-collections/${slug}`} />
         </Helmet>
 
@@ -289,10 +339,10 @@ const ExperienceCollectionPage = () => {
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Collection</span>
           </div>
           <h1 className="text-[26px] font-extrabold text-foreground leading-tight tracking-tight">
-            {collection.title}
+            {collectionTitle}
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-            {collection.description}
+            {collectionDescription}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-2">
             {featuredItems.length} experiences
@@ -346,8 +396,8 @@ const ExperienceCollectionPage = () => {
   return (
     <MainLayout>
       <Helmet>
-        <title>{collection.title} — Curated Experiences | Swam</title>
-        <meta name="description" content={collection.description} />
+        <title>{collectionTitle} — Curated Experiences | Swam</title>
+        <meta name="description" content={collectionDescription} />
         <link rel="canonical" href={`https://guiduuid.lovable.app/experience-collections/${slug}`} />
       </Helmet>
 
@@ -362,7 +412,7 @@ const ExperienceCollectionPage = () => {
               </Link>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Collection</p>
-                <h1 className="text-xl lg:text-2xl font-bold">{collection.title}</h1>
+                <h1 className="text-xl lg:text-2xl font-bold">{collectionTitle}</h1>
               </div>
               <span className="text-muted-foreground text-sm">({featuredItems.length})</span>
             </div>
@@ -381,7 +431,7 @@ const ExperienceCollectionPage = () => {
 
         <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
           <div className="max-w-[1600px] mx-auto">
-            <p className="text-muted-foreground mb-6 max-w-2xl">{collection.description}</p>
+            <p className="text-muted-foreground mb-6 max-w-2xl">{collectionDescription}</p>
             <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
               {filteredFeatured.map((exp: any) => (
                 <GridExperienceCard key={exp.id} experience={exp} />

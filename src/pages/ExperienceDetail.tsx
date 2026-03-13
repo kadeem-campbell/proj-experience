@@ -287,6 +287,10 @@ export default function ExperienceDetail() {
 
   const gallery = experience.gallery || [experience.videoThumbnail];
   const categoryIcon = categoryIconMap[experience.category];
+  const creatorNames = (experience.creator || '')
+    .split(/[\n,;|]+/)
+    .map((name: string) => name.replace(/^@/, '').trim())
+    .filter(Boolean);
 
   // Mobile
   if (isMobile) {
@@ -467,7 +471,7 @@ export default function ExperienceDetail() {
             <div className="mb-6">
               <h2 className="text-lg font-semibold mb-3">Creators</h2>
               <div className="space-y-2">
-                {(experience.creator || '').split(',').map((name: string) => name.trim()).filter(Boolean).map((creatorName: string, idx: number) => (
+                {creatorNames.map((creatorName: string, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
                     <Avatar className="w-12 h-12">
                       <AvatarFallback className="bg-primary/10 text-primary font-bold">
@@ -654,7 +658,7 @@ export default function ExperienceDetail() {
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-3">Creators</h2>
                 <div className="space-y-2">
-                  {(experience.creator || '').split(',').map((name: string) => name.trim()).filter(Boolean).map((creatorName: string, idx: number) => (
+                  {creatorNames.map((creatorName: string, idx: number) => (
                     <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
                       <Avatar className="w-12 h-12">
                         <AvatarFallback className="bg-primary/10 text-primary font-bold">
