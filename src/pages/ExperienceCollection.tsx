@@ -2,7 +2,7 @@ import { useState, useRef, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
-import { allExperiences } from "@/hooks/useExperiencesData";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { ArrowLeft, Heart, Plus, Check, Search, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
