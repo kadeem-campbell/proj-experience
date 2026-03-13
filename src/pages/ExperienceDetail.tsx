@@ -653,20 +653,24 @@ export default function ExperienceDetail() {
               {/* Creators */}
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-3">Creators</h2>
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
-                  <Avatar className="w-12 h-12">
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {experience.creator?.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="font-medium">@{experience.creator}</p>
-                    <p className="text-sm text-muted-foreground">Creator</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                    <span className="font-medium">{experience.rating}</span>
-                  </div>
+                <div className="space-y-2">
+                  {(experience.creator || '').split(',').map((name: string) => name.trim()).filter(Boolean).map((creatorName: string, idx: number) => (
+                    <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+                      <Avatar className="w-12 h-12">
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                          {creatorName.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium">@{creatorName}</p>
+                        <p className="text-sm text-muted-foreground">Creator</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                        <span className="font-medium">{experience.rating}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
