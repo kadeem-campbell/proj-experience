@@ -348,7 +348,7 @@ const MyItinerariesPage = () => {
                   return (
                     <div key={exp.id} className="flex items-center border-b border-border/20 last:border-b-0">
                       <div
-                        onClick={() => navigate(`/experiences/${slugify(exp.title)}`)}
+                        onClick={() => navigate(`/experiences/${(exp as any).slug || slugify(exp.title)}`)}
                         className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors cursor-pointer"
                       >
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
