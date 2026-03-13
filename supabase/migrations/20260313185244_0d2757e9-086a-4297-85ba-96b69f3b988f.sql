@@ -1,0 +1,1 @@
+ALTER TABLE experiences ADD CONSTRAINT experiences_slug_unique UNIQUE (slug);
