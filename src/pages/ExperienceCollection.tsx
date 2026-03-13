@@ -322,8 +322,8 @@ const ExperienceCollectionPage = () => {
     return (
       <MobileShell hideAvatar>
         <Helmet>
-          <title>{collection.title} — Curated Experiences | Swam</title>
-          <meta name="description" content={collection.description} />
+          <title>{collectionTitle} — Curated Experiences | Swam</title>
+          <meta name="description" content={collectionDescription} />
           <link rel="canonical" href={`https://guiduuid.lovable.app/experience-collections/${slug}`} />
         </Helmet>
 
