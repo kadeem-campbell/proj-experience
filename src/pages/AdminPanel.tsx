@@ -354,8 +354,9 @@ const AdminPanel = () => {
       </div>
 
       <div>
-        <Label className="text-xs text-muted-foreground mb-1">Location (text)</Label>
-        <Input placeholder="Location" value={formData.location} onChange={(e) => updateField('location', e.target.value)} />
+        <Label className="text-xs text-muted-foreground mb-1">Location</Label>
+        <Input placeholder="Search for a location or type address..." value={formData.location} onChange={(e) => updateField('location', e.target.value)} />
+        <p className="text-[10px] text-muted-foreground mt-0.5">💡 Select a city above to auto-fill, or type a specific address</p>
       </div>
 
       <div>
