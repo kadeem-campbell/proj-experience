@@ -620,6 +620,10 @@ const AdminPanel = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="links">
+              <LinkManager />
+            </TabsContent>
+
             <TabsContent value="bulk">
               <BulkUploader />
             </TabsContent>
