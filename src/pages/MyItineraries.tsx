@@ -216,7 +216,7 @@ const MyItinerariesPage = () => {
 
   // Filtered experiences for add mode
   const addModeExperiences = useMemo(() => {
-    let exps = [...allExperiences];
+    let exps = [...experiencesData];
     if (addCategory) {
       exps = exps.filter(e => {
         const cat = (e.category || '').toLowerCase();
