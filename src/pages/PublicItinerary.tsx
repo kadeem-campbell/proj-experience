@@ -261,7 +261,7 @@ const PublicItinerary = () => {
     if (!searchQuery.trim() || !itinerary) return [];
     const q = searchQuery.toLowerCase();
     const inIds = new Set(itinerary.experiences.map(e => e.id));
-    return allExperiences
+    return allDbExperiences
       .filter(e => !inIds.has(e.id) && (
         e.title?.toLowerCase().includes(q) ||
         e.location?.toLowerCase().includes(q) ||
