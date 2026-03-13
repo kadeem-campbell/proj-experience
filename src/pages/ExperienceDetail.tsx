@@ -287,6 +287,10 @@ export default function ExperienceDetail() {
 
   const gallery = experience.gallery || [experience.videoThumbnail];
   const categoryIcon = categoryIconMap[experience.category];
+  const creatorNames = (experience.creator || '')
+    .split(/[\n,;|]+/)
+    .map((name: string) => name.replace(/^@/, '').trim())
+    .filter(Boolean);
 
   // Mobile
   if (isMobile) {
