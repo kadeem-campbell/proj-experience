@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Play, Video, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
@@ -39,12 +39,18 @@ export const SocialVideoEmbed = ({
   const hasTikTok = tiktokVideos.length > 0;
   const hasInstagram = !!instagramEmbed && instagramEmbed.trim() !== '';
 
-  // Normalize Instagram URL to embeddable format
-  const instagramEmbedUrl = hasInstagram
-    ? instagramEmbed!.includes('/embed') 
-      ? instagramEmbed! 
-      : instagramEmbed!.replace(/\/?(\?.*)?$/, '/embed/')
-    : '';
+  const instagramEmbedUrl = useMemo(() => {
+    if (!hasInstagram) return '';
+
+    const raw = instagramEmbed!.trim();
+    const reelMatch = raw.match(/instagram\.com\/(?:reel|p)\/([^/?#]+)/i);
+    if (reelMatch?.[1]) {
+      return `https://www.instagram.com/reel/${reelMatch[1]}/embed/`;
+    }
+
+    if (raw.includes('/embed')) return raw;
+    return raw.replace(/\/?(\?.*)?$/, '/embed/');
+  }, [hasInstagram, instagramEmbed]);
 
   // Don't render if no embeds available
   if (!hasTikTok && !hasInstagram) return null;
@@ -167,9 +173,11 @@ export const SocialVideoEmbed = ({
                   src={instagramEmbedUrl}
                   className="border-0"
                   style={{ width: '100%', height: '600px' }}
-                  allow="autoplay; encrypted-media"
+                  allow="autoplay; encrypted-media; picture-in-picture"
                   allowFullScreen
                   scrolling="no"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
                 />
               </div>
             </div>

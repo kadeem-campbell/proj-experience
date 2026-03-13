@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, X, Layers, Heart, MapPin, Plus, SlidersHorizontal, Check } from "lucide-react";
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
@@ -146,7 +146,12 @@ const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onN
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-foreground")} />
         </button>
-        <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="absolute top-2 left-2 z-10"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           <ItinerarySelector
             experienceId={experience.id}
             experienceData={{
@@ -155,7 +160,12 @@ const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onN
               location: experience.location || '', price: experience.price || '',
             }}
           >
-            <button className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm bg-white/80 active:scale-90">
+            <button
+              className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm bg-white/80 active:scale-90"
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
               <Plus className="w-4 h-4 text-foreground" />
             </button>
           </ItinerarySelector>
@@ -182,6 +192,7 @@ export const MobileSearchOverlay = ({
   onCityChange,
 }: MobileSearchOverlayProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -189,6 +200,7 @@ export const MobileSearchOverlay = ({
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const { data: allItinerariesData = [] } = usePopularItineraries();
   const allExpsData = useExperiencesData();
+  const isDedicatedSearchRoute = location.pathname === "/search" || location.pathname === "/discover";
 
   // Pre-select city location filter from global city state
   useEffect(() => {
@@ -236,7 +248,7 @@ export const MobileSearchOverlay = ({
 
   const q = normalize(searchQuery);
   const terms = q.split(" ").filter(t => t.length > 1);
-  const hasQuery = terms.length > 0 || activeCategory !== "";
+  const hasQuery = terms.length > 0 || activeCategory !== "" || typeFilter !== "all" || selectedLocations.length > 0;
 
   const liveExperiences = useMemo(() => {
     let filtered = allExpsData;
@@ -256,7 +268,7 @@ export const MobileSearchOverlay = ({
       );
     }
     return filtered;
-  }, [q, activeCategory, selectedLocations]);
+  }, [allExpsData, activeCategory, selectedLocations, q]);
 
   const liveItineraries = useMemo(() => {
     let filtered = allItinerariesData;
@@ -284,7 +296,7 @@ export const MobileSearchOverlay = ({
       );
     }
     return filtered;
-  }, [q, activeCategory, selectedLocations]);
+  }, [allItinerariesData, activeCategory, selectedLocations, q]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -306,9 +318,14 @@ export const MobileSearchOverlay = ({
     localStorage.removeItem(RECENT_SEARCHES_KEY);
   };
 
+  const experiencePath = (experience: any) => `/experiences/${experience.slug || slugify(experience.title || '')}`;
+  const itineraryPath = (itinerary: any) => `/itineraries/${itinerary.slug || itinerary.id}`;
+
   const handleNavigate = (path: string) => {
     addToRecentSearches(searchQuery);
-    onClose();
+    if (!isDedicatedSearchRoute) {
+      onClose();
+    }
     navigate(path);
   };
 
@@ -493,7 +510,7 @@ export const MobileSearchOverlay = ({
                     <SearchItineraryCard
                       key={it.id}
                       itinerary={it}
-                      onNavigate={() => handleNavigate(`/itineraries/${it.id}`)}
+                      onNavigate={() => handleNavigate(itineraryPath(it))}
                     />
                   ))}
                 </div>
@@ -509,7 +526,7 @@ export const MobileSearchOverlay = ({
                     <SearchExperienceCard
                       key={exp.id}
                       experience={exp}
-                      onNavigate={() => handleNavigate(`/experiences/${slugify(exp.title)}`)}
+                      onNavigate={() => handleNavigate(experiencePath(exp))}
                     />
                   ))}
                 </div>
@@ -556,14 +573,14 @@ export const MobileSearchOverlay = ({
                   <SearchExperienceCard
                     key={exp.id}
                     experience={exp}
-                    onNavigate={() => handleNavigate(`/experiences/${slugify(exp.title)}`)}
+                    onNavigate={() => handleNavigate(experiencePath(exp))}
                   />
                 ))}
                 {(showItineraries ? allItinerariesData.slice(0, 4) : []).map(it => (
                   <SearchItineraryCard
                     key={it.id}
                     itinerary={it}
-                    onNavigate={() => handleNavigate(`/itineraries/${it.id}`)}
+                    onNavigate={() => handleNavigate(itineraryPath(it))}
                   />
                 ))}
               </div>

@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { allExperiences } from "@/hooks/useExperiencesData";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays } from "date-fns";
@@ -98,6 +98,7 @@ const PublicItinerary = () => {
   const [copied, setCopied] = useState(false);
   const { data: publicItinerariesData = [] } = usePublicItineraries();
   const [searchQuery, setSearchQuery] = useState("");
+  const allDbExperiences = useExperiencesData();
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('local_likes');
@@ -261,14 +262,14 @@ const PublicItinerary = () => {
     if (!searchQuery.trim() || !itinerary) return [];
     const q = searchQuery.toLowerCase();
     const inIds = new Set(itinerary.experiences.map(e => e.id));
-    return allExperiences
+    return allDbExperiences
       .filter(e => !inIds.has(e.id) && (
         e.title?.toLowerCase().includes(q) ||
         e.location?.toLowerCase().includes(q) ||
         e.category?.toLowerCase().includes(q)
       ))
       .slice(0, 6);
-  }, [searchQuery, itinerary]);
+  }, [searchQuery, itinerary, allDbExperiences]);
 
   // Filtered itineraries for add-to-itinerary search
   const filteredItineraries = useMemo(() => {

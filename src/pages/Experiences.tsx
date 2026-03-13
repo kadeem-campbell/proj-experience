@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Search, Compass, X, Heart, Plus, MapPin } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { allExperiences } from "@/hooks/useExperiencesData";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { MobileShell } from "@/components/MobileShell";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -68,7 +68,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div 
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
-      onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+      onClick={() => navigate(`/experiences/${(experience as any).slug || slugify(experience.title)}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
@@ -124,7 +124,7 @@ const ExperiencesPage = () => {
   const isMobile = useIsMobile();
   const { addExperienceToItinerary, itineraries } = useItineraries();
   
-  const experiences = allExperiences;
+  const experiences = useExperiencesData();
   const addToItinerary = addToId ? itineraries.find(i => i.id === addToId) : null;
   
   const filteredExperiences = experiences.filter((experience) => {

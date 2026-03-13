@@ -2,7 +2,7 @@ import { useState, useRef, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
-import { allExperiences } from "@/hooks/useExperiencesData";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { ArrowLeft, Heart, Plus, Check, Search, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -102,7 +102,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
-      onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+      onClick={() => navigate(`/experiences/${experience.slug || slugify(experience.title)}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
@@ -173,7 +173,7 @@ const GridExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div
       className="cursor-pointer"
-      onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+      onClick={() => navigate(`/experiences/${experience.slug || slugify(experience.title)}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
@@ -222,14 +222,15 @@ const ExperienceCollectionPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
+  const experiences = useExperiencesData();
 
   const collection = slug ? experienceCollectionDefinitions[slug] : null;
 
   const { featuredItems, remainingSections } = useMemo(() => {
     if (!collection) return { featuredItems: [], remainingSections: [] };
-    const featured = collection.filter(allExperiences);
+    const featured = collection.filter(experiences);
     const featuredIds = new Set(featured.map((i: any) => i.id));
-    const remaining = allExperiences.filter((i: any) => !featuredIds.has(i.id));
+    const remaining = experiences.filter((i: any) => !featuredIds.has(i.id));
 
     const sections: { key: string; title: string; items: any[] }[] = [];
     const otherCollections = Object.entries(experienceCollectionDefinitions).filter(([k]) => k !== slug);

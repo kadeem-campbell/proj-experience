@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { allExperiences } from "@/hooks/useExperiencesData";
+import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
@@ -154,6 +154,7 @@ const MyItinerariesPage = () => {
   const [addSearchQuery, setAddSearchQuery] = useState("");
   const [addCategory, setAddCategory] = useState("");
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const experiencesData = useExperiencesData();
 
   // Auto-open create drawer from ?create=true
   useEffect(() => {
@@ -216,7 +217,7 @@ const MyItinerariesPage = () => {
 
   // Filtered experiences for add mode
   const addModeExperiences = useMemo(() => {
-    let exps = [...allExperiences];
+    let exps = [...experiencesData];
     if (addCategory) {
       exps = exps.filter(e => {
         const cat = (e.category || '').toLowerCase();
@@ -233,7 +234,7 @@ const MyItinerariesPage = () => {
       );
     }
     return exps;
-  }, [addCategory, addSearchQuery]);
+  }, [addCategory, addSearchQuery, experiencesData]);
 
   // Count of added experiences
   const addedCount = addedIds.size;
@@ -348,7 +349,7 @@ const MyItinerariesPage = () => {
                   return (
                     <div key={exp.id} className="flex items-center border-b border-border/20 last:border-b-0">
                       <div
-                        onClick={() => navigate(`/experiences/${slugify(exp.title)}`)}
+                        onClick={() => navigate(`/experiences/${(exp as any).slug || slugify(exp.title)}`)}
                         className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors cursor-pointer"
                       >
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">

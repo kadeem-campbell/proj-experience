@@ -19,6 +19,7 @@ interface ExperienceCardProps {
   category: string;
   location: string;
   price: string;
+  slug?: string;
   compact?: boolean;
 }
 
@@ -32,6 +33,7 @@ export const ExperienceCard = ({
   category,
   location,
   price,
+  slug,
   compact = false,
 }: ExperienceCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -75,7 +77,7 @@ export const ExperienceCard = ({
 
   return (
     <Link 
-      to={generateExperienceUrl(location, title)}
+      to={generateExperienceUrl(location, title, slug)}
       className="touch-manipulation block"
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}
