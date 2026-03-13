@@ -318,7 +318,7 @@ export const BulkUploader = () => {
           <TabsList className="grid grid-cols-3 lg:grid-cols-6 mb-4">
             {Object.entries(tabLabel).map(([key, label]) => (
               <TabsTrigger key={key} value={key} className="text-xs px-2">
-                {isLinkTab(key) ? <Link2 className="w-3 h-3 mr-1" /> : <FileSpreadsheet className="w-3 h-3 mr-1" />}
+                <FileSpreadsheet className="w-3 h-3 mr-1" />
                 {label}
               </TabsTrigger>
             ))}
