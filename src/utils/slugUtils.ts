@@ -9,9 +9,9 @@ export const slugify = (text: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
-export const generateExperienceUrl = (location: string, title: string): string => {
-  const titleSlug = slugify(title);
-  return `/experiences/${titleSlug}`;
+export const generateExperienceUrl = (_location: string, title: string, slug?: string): string => {
+  const resolvedSlug = (slug || '').trim() || slugify(title);
+  return `/experiences/${resolvedSlug}`;
 };
 
 export const generateExperienceSlug = (title: string): string => {
