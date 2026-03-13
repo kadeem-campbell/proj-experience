@@ -301,12 +301,9 @@ export const BulkUploader = () => {
     creators: 'Creators',
     itineraries: 'Itineraries',
     collections: 'Collections',
-    itinerary_experiences: 'Link → Itinerary',
-    collection_experiences: 'Link Exp → Collection',
-    collection_itineraries: 'Link Itin → Collection',
   };
 
-  const isLinkTab = (key: string) => key === 'itinerary_experiences' || key === 'collection_experiences' || key === 'collection_itineraries';
+  const isLinkTab = (_key: string) => false;
 
   return (
     <div className="space-y-6">
