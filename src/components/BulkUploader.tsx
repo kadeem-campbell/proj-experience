@@ -383,10 +383,11 @@ export const BulkUploader = () => {
     itineraries: 'Itineraries',
     collections: 'Collections',
     itinerary_experiences: 'Link → Itinerary',
-    collection_experiences: 'Link → Collection',
+    collection_experiences: 'Link Exp → Collection',
+    collection_itineraries: 'Link Itin → Collection',
   };
 
-  const isLinkTab = (key: string) => key === 'itinerary_experiences' || key === 'collection_experiences';
+  const isLinkTab = (key: string) => key === 'itinerary_experiences' || key === 'collection_experiences' || key === 'collection_itineraries';
 
   return (
     <div className="space-y-6">
