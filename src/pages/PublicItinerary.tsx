@@ -97,8 +97,8 @@ const PublicItinerary = () => {
   const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
   const { data: publicItinerariesData = [] } = usePublicItineraries();
+  const [searchQuery, setSearchQuery] = useState("");
   const allDbExperiences = useExperiencesData();
-  const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('local_likes');
       return stored ? new Set(JSON.parse(stored)) : new Set();
