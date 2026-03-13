@@ -412,7 +412,7 @@ const ExperienceCollectionPage = () => {
               </Link>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Collection</p>
-                <h1 className="text-xl lg:text-2xl font-bold">{collection.title}</h1>
+                <h1 className="text-xl lg:text-2xl font-bold">{collectionTitle}</h1>
               </div>
               <span className="text-muted-foreground text-sm">({featuredItems.length})</span>
             </div>
