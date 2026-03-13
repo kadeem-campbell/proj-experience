@@ -339,10 +339,10 @@ const ExperienceCollectionPage = () => {
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Collection</span>
           </div>
           <h1 className="text-[26px] font-extrabold text-foreground leading-tight tracking-tight">
-            {collection.title}
+            {collectionTitle}
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-            {collection.description}
+            {collectionDescription}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-2">
             {featuredItems.length} experiences
