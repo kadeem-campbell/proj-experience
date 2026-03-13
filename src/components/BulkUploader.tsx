@@ -39,8 +39,8 @@ const TEMPLATES: Record<UploadType, { headers: string[]; example: string[] }> = 
     example: ['Zanzibar', 'Tanzania', 'ZNZ', '🇹🇿', '-6.1659', '39.2026', 'https://example.com/znz.jpg'],
   },
   creators: {
-    headers: ['username', 'display_name', 'bio', 'avatar_url', 'is_verified'],
-    example: ['johndoe', 'John Doe', 'Adventure creator', 'https://example.com/avatar.jpg', 'false'],
+    headers: ['username', 'display_name', 'bio', 'avatar_url', 'is_verified', 'instagram', 'tiktok', 'website', 'email'],
+    example: ['johndoe', 'John Doe', 'Adventure creator', 'https://example.com/avatar.jpg', 'false', '@johndoe', '@johndoe', 'https://johndoe.com', 'john@example.com'],
   },
   itineraries: {
     headers: ['name', 'slug', 'description', 'cover_image', 'tag'],
