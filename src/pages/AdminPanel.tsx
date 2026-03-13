@@ -552,7 +552,76 @@ const AdminPanel = () => {
         </div>
       </div>
 
+      {/* Meeting Points (Where to find it) */}
       <div className="md:col-span-2">
+        <Label className="text-xs text-muted-foreground mb-1">Where to find it (Meeting Points)</Label>
+        <div className="space-y-2">
+          {formData.meeting_points.map((mp, idx) => (
+            <div key={idx} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-xs">
+              <span className="flex-1 font-medium">{mp.name}</span>
+              <span className="text-muted-foreground">{mp.type}</span>
+              <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                const updated = { ...formData, meeting_points: formData.meeting_points.filter((_, i) => i !== idx) };
+                setFormData(updated);
+                if (editingId) triggerAutoSave(updated, editingId);
+              }}><X className="w-3 h-3" /></Button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Location name (e.g. Jinja Pier)"
+              value={newMeetingPoint.name}
+              onChange={(e) => setNewMeetingPoint(prev => ({ ...prev, name: e.target.value }))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newMeetingPoint.name.trim()) {
+                  e.preventDefault();
+                  const updated = { ...formData, meeting_points: [...formData.meeting_points, { name: newMeetingPoint.name.trim(), type: newMeetingPoint.type.trim() || 'Location' }] };
+                  setFormData(updated);
+                  setNewMeetingPoint({ name: '', type: '' });
+                  if (editingId) triggerAutoSave(updated, editingId);
+                }
+              }}
+              className="text-xs"
+            />
+            <Input
+              placeholder="Type (e.g. Beach, Dock)"
+              value={newMeetingPoint.type}
+              onChange={(e) => setNewMeetingPoint(prev => ({ ...prev, type: e.target.value }))}
+              className="text-xs w-40"
+            />
+            <Button type="button" variant="outline" size="sm" onClick={() => {
+              if (!newMeetingPoint.name.trim()) return;
+              const updated = { ...formData, meeting_points: [...formData.meeting_points, { name: newMeetingPoint.name.trim(), type: newMeetingPoint.type.trim() || 'Location' }] };
+              setFormData(updated);
+              setNewMeetingPoint({ name: '', type: '' });
+              if (editingId) triggerAutoSave(updated, editingId);
+            }}>Add</Button>
+          </div>
+          <details className="text-xs">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Bulk add (one per line — format: name | type)</summary>
+            <Textarea
+              placeholder={"Jinja Pier | Dock\nNile River Launch | Beach\nKampala Office | Pickup Point"}
+              rows={3}
+              className="mt-1 text-xs"
+              onBlur={(e) => {
+                if (e.target.value.trim()) {
+                  const items = e.target.value.split('\n').map(line => {
+                    const [name, type] = line.split('|').map(s => s.trim());
+                    return name ? { name, type: type || 'Location' } : null;
+                  }).filter(Boolean) as { name: string; type: string }[];
+                  if (items.length > 0) {
+                    const updated = { ...formData, meeting_points: [...formData.meeting_points, ...items] };
+                    setFormData(updated);
+                    if (editingId) triggerAutoSave(updated, editingId);
+                  }
+                  e.target.value = '';
+                }
+              }}
+            />
+          </details>
+        </div>
+      </div>
+
         <Label className="text-xs text-muted-foreground mb-1">Description</Label>
         <Textarea placeholder="Description" value={formData.description} onChange={(e) => updateField('description', e.target.value)} rows={3} />
       </div>
