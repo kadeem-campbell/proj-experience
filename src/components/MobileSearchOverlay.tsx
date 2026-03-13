@@ -510,7 +510,7 @@ export const MobileSearchOverlay = ({
                     <SearchItineraryCard
                       key={it.id}
                       itinerary={it}
-                      onNavigate={() => handleNavigate(`/itineraries/${it.id}`)}
+                      onNavigate={() => handleNavigate(itineraryPath(it))}
                     />
                   ))}
                 </div>
