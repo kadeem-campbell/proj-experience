@@ -122,6 +122,7 @@ const AdminPanel = () => {
       video_url: data.video_url,
       instagram_embed: data.instagram_embed,
       tiktok_videos: data.tiktok_videos as any,
+      highlights: data.highlights.filter(h => h.trim()) as any,
       duration: data.duration_min === data.duration_max ? `${data.duration_min} hours` : `${data.duration_min}-${data.duration_max} hours`,
       group_size: data.group_min === data.group_max ? `${data.group_min} people` : `${data.group_min}-${data.group_max} people`,
       slug,
