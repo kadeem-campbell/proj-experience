@@ -290,13 +290,16 @@ export default function CreateExperience() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    placeholder="Dar es Salaam"
-                    value={formData.city}
-                    onChange={(e) => setFormData({...formData, city: e.target.value})}
-                    className="mt-2"
-                  />
+                    <Select value={formData.city} onValueChange={(value) => setFormData({...formData, city: value})}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Select city" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dbCities.map((city) => (
+                          <SelectItem key={city.id} value={city.name}>{city.flag_emoji} {city.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                 </div>
                 <div>
                   <Label htmlFor="region">Region</Label>
