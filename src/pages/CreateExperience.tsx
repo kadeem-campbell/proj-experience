@@ -21,6 +21,8 @@ export default function CreateExperience() {
   const { user, isAuthenticated, isCreator } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: dbCategories = [] } = useCategories();
+  const { data: dbCities = [] } = useCities();
   const [currentStep, setCurrentStep] = useState<FormStep>('basic');
   const [formData, setFormData] = useState({
     title: '',
