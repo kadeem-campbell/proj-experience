@@ -164,7 +164,7 @@ export const SocialVideoEmbed = ({
             <div className="w-full flex justify-center px-4 pb-6 overflow-hidden">
               <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '400px', minHeight: '500px' }}>
                 <iframe
-                  src={instagramEmbed}
+                  src={instagramEmbedUrl}
                   className="border-0"
                   style={{ width: '100%', height: '600px' }}
                   allow="autoplay; encrypted-media"
