@@ -33,6 +33,7 @@ export const ExperienceCard = ({
   category,
   location,
   price,
+  slug,
   compact = false,
 }: ExperienceCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
