@@ -211,12 +211,18 @@ export const BulkUploader = () => {
               };
             } else if (currentTab === 'creators') {
               itemTitle = obj.display_name || obj.username || `Creator ${rowNum}`;
+              const socialLinks: Record<string, string> = {};
+              if (obj.instagram) socialLinks.instagram = obj.instagram;
+              if (obj.tiktok) socialLinks.tiktok = obj.tiktok;
+              if (obj.website) socialLinks.website = obj.website;
+              if (obj.email) socialLinks.email = obj.email;
               record = {
                 username: obj.username || `creator-${rowNum}`,
                 display_name: obj.display_name || '',
                 bio: obj.bio || '',
                 avatar_url: obj.avatar_url || '',
                 is_verified: obj.is_verified === 'true',
+                social_links: socialLinks,
               };
             } else if (currentTab === 'itineraries') {
               itemTitle = obj.name || `Itinerary ${rowNum}`;
