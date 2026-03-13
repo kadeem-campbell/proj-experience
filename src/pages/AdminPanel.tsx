@@ -48,6 +48,7 @@ const AdminPanel = () => {
     video_url: '',
     instagram_embed: '',
     tiktok_videos: [] as TikTokVideo[],
+    highlights: [] as string[],
     duration_min: 1,
     duration_max: 4,
     group_min: 1,
@@ -61,6 +62,8 @@ const AdminPanel = () => {
 
   const [formData, setFormData] = useState(defaultForm);
   const [newTikTok, setNewTikTok] = useState({ url: '', author: '' });
+  const [newHighlight, setNewHighlight] = useState('');
+  const [creatorSearch, setCreatorSearch] = useState('');
 
   const { data: categories = [] } = useCategories();
   const { data: cities = [] } = useCities();
@@ -121,6 +124,7 @@ const AdminPanel = () => {
       video_url: data.video_url,
       instagram_embed: data.instagram_embed,
       tiktok_videos: data.tiktok_videos as any,
+      highlights: data.highlights.filter(h => h.trim()) as any,
       duration: data.duration_min === data.duration_max ? `${data.duration_min} hours` : `${data.duration_min}-${data.duration_max} hours`,
       group_size: data.group_min === data.group_max ? `${data.group_min} people` : `${data.group_min}-${data.group_max} people`,
       slug,
@@ -232,6 +236,7 @@ const AdminPanel = () => {
       video_url: exp.video_url || '',
       instagram_embed: exp.instagram_embed || '',
       tiktok_videos: Array.isArray(exp.tiktok_videos) ? exp.tiktok_videos : [],
+      highlights: Array.isArray(exp.highlights) ? exp.highlights : [],
       duration_min: durMin,
       duration_max: durMax,
       group_min: grpMin,
@@ -271,6 +276,28 @@ const AdminPanel = () => {
     if (editingId) triggerAutoSave(updated, editingId);
   };
 
+  const addHighlight = () => {
+    if (!newHighlight.trim()) return;
+    const updated = { ...formData, highlights: [...formData.highlights, newHighlight.trim()] };
+    setFormData(updated);
+    setNewHighlight('');
+    if (editingId) triggerAutoSave(updated, editingId);
+  };
+
+  const removeHighlight = (idx: number) => {
+    const updated = { ...formData, highlights: formData.highlights.filter((_, i) => i !== idx) };
+    setFormData(updated);
+    if (editingId) triggerAutoSave(updated, editingId);
+  };
+
+  const addBulkHighlights = (text: string) => {
+    const items = text.split('\n').map(h => h.trim()).filter(Boolean);
+    if (items.length === 0) return;
+    const updated = { ...formData, highlights: [...formData.highlights, ...items] };
+    setFormData(updated);
+    if (editingId) triggerAutoSave(updated, editingId);
+  };
+
   const toggleCreator = (id: string) => {
     const ids = formData.creator_ids.includes(id)
       ? formData.creator_ids.filter(i => i !== id)
@@ -278,6 +305,9 @@ const AdminPanel = () => {
     updateField('creator_ids', ids);
   };
 
+  const filteredCreators = creators.filter(c =>
+    (c.display_name || c.username).toLowerCase().includes(creatorSearch.toLowerCase())
+  );
   const activeCount = experiences.filter((e: any) => e.is_active).length;
 
   // Shared form fields component
@@ -324,8 +354,9 @@ const AdminPanel = () => {
       </div>
 
       <div>
-        <Label className="text-xs text-muted-foreground mb-1">Location (text)</Label>
-        <Input placeholder="Location" value={formData.location} onChange={(e) => updateField('location', e.target.value)} />
+        <Label className="text-xs text-muted-foreground mb-1">Location</Label>
+        <Input placeholder="Search for a location or type address..." value={formData.location} onChange={(e) => updateField('location', e.target.value)} />
+        <p className="text-[10px] text-muted-foreground mt-0.5">💡 Select a city above to auto-fill, or type a specific address</p>
       </div>
 
       <div>
@@ -333,44 +364,55 @@ const AdminPanel = () => {
         <Input placeholder="Rating" type="number" step="0.1" min="0" max="5" value={formData.rating} onChange={(e) => updateField('rating', e.target.value)} />
       </div>
 
-      {/* Creators multi-select dropdown */}
+      {/* Creators multi-select with search */}
       <div className="md:col-span-2">
         <Label className="text-xs text-muted-foreground mb-1">Creators (multi-select)</Label>
+        {/* Selected creators as separate cards */}
         {formData.creator_ids.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             {formData.creator_ids.map(id => {
               const c = creators.find(cr => cr.id === id);
               if (!c) return null;
+              const social = c.social_links || {};
               return (
-                <Badge key={id} variant="secondary" className="gap-1 pr-1">
-                  {c.display_name || c.username}
-                  <button type="button" onClick={() => toggleCreator(id)} className="ml-1 hover:text-destructive"><X className="w-3 h-3" /></button>
-                </Badge>
+                <div key={id} className="flex items-start gap-2.5 p-2.5 border rounded-lg bg-primary/5 border-primary/20">
+                  {c.avatar_url && <img src={c.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover mt-0.5" />}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium truncate">{c.display_name || c.username}</span>
+                      {c.is_verified && <Badge variant="outline" className="text-[10px] px-1">✓</Badge>}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-0.5">
+                      {social.instagram && <span className="text-[10px] text-muted-foreground">📸 {social.instagram}</span>}
+                      {social.tiktok && <span className="text-[10px] text-muted-foreground">🎵 {social.tiktok}</span>}
+                      {social.website && <span className="text-[10px] text-muted-foreground">🌐 {social.website}</span>}
+                    </div>
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-destructive" onClick={() => toggleCreator(id)}>
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
               );
             })}
           </div>
         )}
-        <div className="border rounded-lg max-h-48 overflow-y-auto divide-y">
-          {creators.length === 0 && <p className="p-3 text-xs text-muted-foreground">No creators yet</p>}
-          {creators.map(c => {
-            const social = c.social_links || {};
+        {/* Search + dropdown */}
+        <Input
+          placeholder="Type here to find a creator..."
+          value={creatorSearch}
+          onChange={(e) => setCreatorSearch(e.target.value)}
+          className="mb-1 text-sm"
+        />
+        <div className="border rounded-lg max-h-40 overflow-y-auto divide-y">
+          {filteredCreators.length === 0 && <p className="p-3 text-xs text-muted-foreground">{creatorSearch ? 'No creators found' : 'No creators yet'}</p>}
+          {filteredCreators.map(c => {
             const isSelected = formData.creator_ids.includes(c.id);
+            if (isSelected) return null; // Already shown above
             return (
-              <label key={c.id} className={`flex items-start gap-3 p-3 cursor-pointer hover:bg-muted/40 transition-colors ${isSelected ? 'bg-primary/5' : ''}`}>
-                <Checkbox checked={isSelected} onCheckedChange={() => toggleCreator(c.id)} className="mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    {c.avatar_url && <img src={c.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover" />}
-                    <span className="text-sm font-medium">{c.display_name || c.username}</span>
-                    {c.is_verified && <Badge variant="outline" className="text-[10px] px-1">✓</Badge>}
-                  </div>
-                  {c.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{c.bio}</p>}
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {social.instagram && <span className="text-[10px] text-muted-foreground">📸 {social.instagram}</span>}
-                    {social.tiktok && <span className="text-[10px] text-muted-foreground">🎵 {social.tiktok}</span>}
-                    {social.website && <span className="text-[10px] text-muted-foreground">🌐 {social.website}</span>}
-                  </div>
-                </div>
+              <label key={c.id} className="flex items-center gap-3 p-2.5 cursor-pointer hover:bg-muted/40 transition-colors">
+                <Checkbox checked={false} onCheckedChange={() => toggleCreator(c.id)} />
+                {c.avatar_url && <img src={c.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />}
+                <span className="text-sm">{c.display_name || c.username}</span>
               </label>
             );
           })}
@@ -474,7 +516,38 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      {/* Description */}
+      {/* Highlights */}
+      <div className="md:col-span-2">
+        <Label className="text-xs text-muted-foreground mb-1">Highlights</Label>
+        <div className="space-y-2">
+          {formData.highlights.map((h, idx) => (
+            <div key={idx} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-xs">
+              <span className="flex-1">{h}</span>
+              <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeHighlight(idx)}><X className="w-3 h-3" /></Button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Add a highlight..."
+              value={newHighlight}
+              onChange={(e) => setNewHighlight(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addHighlight(); } }}
+              className="text-xs"
+            />
+            <Button type="button" variant="outline" size="sm" onClick={addHighlight}>Add</Button>
+          </div>
+          <details className="text-xs">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Bulk add (one per line)</summary>
+            <Textarea
+              placeholder="Paste highlights, one per line..."
+              rows={3}
+              className="mt-1 text-xs"
+              onBlur={(e) => { if (e.target.value.trim()) { addBulkHighlights(e.target.value); e.target.value = ''; } }}
+            />
+          </details>
+        </div>
+      </div>
+
       <div className="md:col-span-2">
         <Label className="text-xs text-muted-foreground mb-1">Description</Label>
         <Textarea placeholder="Description" value={formData.description} onChange={(e) => updateField('description', e.target.value)} rows={3} />
