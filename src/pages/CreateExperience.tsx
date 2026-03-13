@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCategories, useCities } from "@/hooks/useAppData";
 
 type FormStep = 'basic' | 'location' | 'media' | 'host' | 'additional' | 'review' | 'auth' | 'confirmation';
 
