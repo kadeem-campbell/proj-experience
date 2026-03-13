@@ -192,6 +192,7 @@ export const MobileSearchOverlay = ({
   onCityChange,
 }: MobileSearchOverlayProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -199,6 +200,7 @@ export const MobileSearchOverlay = ({
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const { data: allItinerariesData = [] } = usePopularItineraries();
   const allExpsData = useExperiencesData();
+  const isDedicatedSearchRoute = location.pathname === "/search" || location.pathname === "/discover";
 
   // Pre-select city location filter from global city state
   useEffect(() => {
@@ -246,7 +248,7 @@ export const MobileSearchOverlay = ({
 
   const q = normalize(searchQuery);
   const terms = q.split(" ").filter(t => t.length > 1);
-  const hasQuery = terms.length > 0 || activeCategory !== "";
+  const hasQuery = terms.length > 0 || activeCategory !== "" || typeFilter !== "all" || selectedLocations.length > 0;
 
   const liveExperiences = useMemo(() => {
     let filtered = allExpsData;
