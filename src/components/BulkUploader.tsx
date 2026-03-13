@@ -8,7 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 
-type UploadType = 'experiences' | 'categories' | 'cities' | 'creators' | 'itineraries' | 'collections' | 'itinerary_experiences' | 'collection_experiences';
+type UploadType = 'experiences' | 'categories' | 'cities' | 'creators' | 'itineraries' | 'collections' | 'itinerary_experiences' | 'collection_experiences' | 'collection_itineraries';
 
 interface ProcessedItem {
   title: string;
@@ -39,8 +39,8 @@ const TEMPLATES: Record<UploadType, { headers: string[]; example: string[] }> = 
     example: ['Zanzibar', 'Tanzania', 'ZNZ', '🇹🇿', '-6.1659', '39.2026', 'https://example.com/znz.jpg'],
   },
   creators: {
-    headers: ['username', 'display_name', 'bio', 'avatar_url', 'is_verified'],
-    example: ['johndoe', 'John Doe', 'Adventure creator', 'https://example.com/avatar.jpg', 'false'],
+    headers: ['username', 'display_name', 'bio', 'avatar_url', 'is_verified', 'instagram', 'tiktok', 'website', 'email'],
+    example: ['johndoe', 'John Doe', 'Adventure creator', 'https://example.com/avatar.jpg', 'false', '@johndoe', '@johndoe', 'https://johndoe.com', 'john@example.com'],
   },
   itineraries: {
     headers: ['name', 'slug', 'description', 'cover_image', 'tag'],
@@ -57,6 +57,10 @@ const TEMPLATES: Record<UploadType, { headers: string[]; example: string[] }> = 
   collection_experiences: {
     headers: ['collection_slug', 'experience_slug', 'display_order'],
     example: ['beach-vibes', 'tropical-beach-paradise', '1'],
+  },
+  collection_itineraries: {
+    headers: ['collection_slug', 'itinerary_slug', 'position'],
+    example: ['beach-vibes', 'zanzibar-weekend', '1'],
   },
 };
 
@@ -211,12 +215,18 @@ export const BulkUploader = () => {
               };
             } else if (currentTab === 'creators') {
               itemTitle = obj.display_name || obj.username || `Creator ${rowNum}`;
+              const socialLinks: Record<string, string> = {};
+              if (obj.instagram) socialLinks.instagram = obj.instagram;
+              if (obj.tiktok) socialLinks.tiktok = obj.tiktok;
+              if (obj.website) socialLinks.website = obj.website;
+              if (obj.email) socialLinks.email = obj.email;
               record = {
                 username: obj.username || `creator-${rowNum}`,
                 display_name: obj.display_name || '',
                 bio: obj.bio || '',
                 avatar_url: obj.avatar_url || '',
                 is_verified: obj.is_verified === 'true',
+                social_links: socialLinks,
               };
             } else if (currentTab === 'itineraries') {
               itemTitle = obj.name || `Itinerary ${rowNum}`;
@@ -328,6 +338,42 @@ export const BulkUploader = () => {
           }
           setProgress({ current: i + 1, total: dataRows.length });
         }
+      } else if (currentTab === 'collection_itineraries') {
+        for (let i = 0; i < dataRows.length; i++) {
+          const rowNum = i + 2;
+          const obj: Record<string, any> = {};
+          headers.forEach((h, idx) => { obj[h] = dataRows[i][idx] || ''; });
+
+          const collSlug = obj.collection_slug?.trim();
+          const itinSlug = obj.itinerary_slug?.trim();
+
+          if (!collSlug || !itinSlug) {
+            errors.push(`Row ${rowNum}: Missing collection_slug or itinerary_slug`);
+            processed.push({ title: `${collSlug} → ${itinSlug}`, status: 'error', error: 'Missing slug' });
+            continue;
+          }
+
+          const { data: coll } = await supabase.from('collections').select('id').eq('slug', collSlug).maybeSingle();
+          const { data: itin } = await supabase.from('public_itineraries').select('id').eq('slug', itinSlug).maybeSingle();
+
+          if (!coll) { errors.push(`Row ${rowNum}: Collection "${collSlug}" not found`); processed.push({ title: `${collSlug} → ${itinSlug}`, status: 'error', error: 'Collection not found' }); continue; }
+          if (!itin) { errors.push(`Row ${rowNum}: Itinerary "${itinSlug}" not found`); processed.push({ title: `${collSlug} → ${itinSlug}`, status: 'error', error: 'Itinerary not found' }); continue; }
+
+          const { error } = await (supabase as any).from('collection_items').insert({
+            collection_id: coll.id,
+            item_id: itin.id,
+            item_type: 'itinerary',
+            position: parseInt(obj.position) || 0,
+          });
+          if (error) {
+            errors.push(`Row ${rowNum}: ${error.message}`);
+            processed.push({ title: `${collSlug} → ${itinSlug}`, status: 'error', error: error.message });
+          } else {
+            success++;
+            processed.push({ title: `${collSlug} → ${itinSlug}`, slug: itinSlug, status: 'success' });
+          }
+          setProgress({ current: i + 1, total: dataRows.length });
+        }
       }
 
       setResult({ total: dataRows.length, success, errors, processed });
@@ -359,9 +405,9 @@ export const BulkUploader = () => {
   };
 
   const getLink = (item: ProcessedItem, tab: UploadType) => {
-    if (tab === 'experiences' && item.slug) return `/experience/${item.slug}`;
-    if (tab === 'itineraries' && item.slug) return `/itinerary/${item.slug}`;
-    if (tab === 'collections' && item.slug) return `/collection/${item.slug}`;
+    if (tab === 'experiences' && item.slug) return `/experiences/${item.slug}`;
+    if (tab === 'itineraries' && item.slug) return `/itineraries/${item.slug}`;
+    if (tab === 'collections' && item.slug) return `/experience-collections/${item.slug}`;
     return null;
   };
 
@@ -373,10 +419,11 @@ export const BulkUploader = () => {
     itineraries: 'Itineraries',
     collections: 'Collections',
     itinerary_experiences: 'Link → Itinerary',
-    collection_experiences: 'Link → Collection',
+    collection_experiences: 'Link Exp → Collection',
+    collection_itineraries: 'Link Itin → Collection',
   };
 
-  const isLinkTab = (key: string) => key === 'itinerary_experiences' || key === 'collection_experiences';
+  const isLinkTab = (key: string) => key === 'itinerary_experiences' || key === 'collection_experiences' || key === 'collection_itineraries';
 
   return (
     <div className="space-y-6">
@@ -388,7 +435,7 @@ export const BulkUploader = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as UploadType); setResult(null); }}>
-          <TabsList className="grid grid-cols-4 lg:grid-cols-8 mb-4">
+          <TabsList className="grid grid-cols-3 lg:grid-cols-9 mb-4">
             {Object.entries(tabLabel).map(([key, label]) => (
               <TabsTrigger key={key} value={key} className="text-xs px-2">
                 {isLinkTab(key) ? <Link2 className="w-3 h-3 mr-1" /> : <FileSpreadsheet className="w-3 h-3 mr-1" />}
