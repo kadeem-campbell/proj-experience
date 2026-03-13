@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-import { publicItinerariesData } from "@/data/itinerariesData"; // fallback for mock experience map
+// DB-driven: no mock data imports needed
 import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
