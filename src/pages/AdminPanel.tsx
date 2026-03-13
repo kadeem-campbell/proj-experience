@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
-import { Plus, Edit, Trash2, Upload, Users, DollarSign, Search, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Users, DollarSign, Search, X, Database, FileSpreadsheet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCategories, useCities, useCreators } from '@/hooks/useAppData';
@@ -148,6 +148,8 @@ const AdminPanel = () => {
     setShowForm(false);
   };
 
+  const activeCount = experiences.filter((e: any) => e.is_active).length;
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -157,12 +159,19 @@ const AdminPanel = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold">Admin Panel</h1>
-                <p className="text-muted-foreground">{experiences.length} experiences in database</p>
+                <p className="text-muted-foreground">Manage experiences and content — Live database</p>
               </div>
               <TabsList>
-                <TabsTrigger value="manage">Manage</TabsTrigger>
-                <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
+                <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Manage</TabsTrigger>
+                <TabsTrigger value="bulk" className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Bulk Upload</TabsTrigger>
               </TabsList>
+            </div>
+
+            {/* Live status banner */}
+            <div className="flex items-center gap-2 p-3 mb-6 rounded-lg bg-green-500/10 border border-green-500/20">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-sm font-medium text-green-700 dark:text-green-400">Live — Connected to database</span>
+              <span className="text-xs text-muted-foreground ml-auto">{experiences.length} experiences loaded</span>
             </div>
 
             <TabsContent value="manage">
@@ -170,15 +179,15 @@ const AdminPanel = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <Card className="p-4 flex items-center gap-3">
                   <div className="p-2 bg-primary/10 rounded-lg"><Upload className="w-5 h-5 text-primary" /></div>
-                  <div><p className="text-xs text-muted-foreground">Total</p><p className="text-xl font-bold">{experiences.length}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Total Experiences</p><p className="text-xl font-bold">{experiences.length}</p></div>
                 </Card>
                 <Card className="p-4 flex items-center gap-3">
                   <div className="p-2 bg-green-500/10 rounded-lg"><Users className="w-5 h-5 text-green-600" /></div>
-                  <div><p className="text-xs text-muted-foreground">Categories</p><p className="text-xl font-bold">{categories.length}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Active</p><p className="text-xl font-bold">{activeCount}</p></div>
                 </Card>
                 <Card className="p-4 flex items-center gap-3">
                   <div className="p-2 bg-yellow-500/10 rounded-lg"><DollarSign className="w-5 h-5 text-yellow-600" /></div>
-                  <div><p className="text-xs text-muted-foreground">Cities</p><p className="text-xl font-bold">{cities.length}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Categories / Cities</p><p className="text-xl font-bold">{categories.length} / {cities.length}</p></div>
                 </Card>
               </div>
 
@@ -188,7 +197,7 @@ const AdminPanel = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input placeholder="Search experiences..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
                 </div>
-                <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2 shrink-0"><Plus className="w-4 h-4" /> Add</Button>
+                <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2 shrink-0"><Plus className="w-4 h-4" /> Add Experience</Button>
               </div>
 
               {/* Form */}
@@ -202,7 +211,6 @@ const AdminPanel = () => {
                     <Input placeholder="Title *" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
                     <Input placeholder="Slug (auto-generated)" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} />
 
-                    {/* Category dropdown from DB */}
                     <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
                       <SelectTrigger><SelectValue placeholder="Category *" /></SelectTrigger>
                       <SelectContent>
@@ -212,7 +220,6 @@ const AdminPanel = () => {
                       </SelectContent>
                     </Select>
 
-                    {/* Creator dropdown from DB */}
                     <Select value={formData.creator_id} onValueChange={(v) => {
                       const cr = creators.find(c => c.id === v);
                       setFormData({...formData, creator_id: v, creator: cr?.display_name || cr?.username || ''});
@@ -225,7 +232,6 @@ const AdminPanel = () => {
                       </SelectContent>
                     </Select>
 
-                    {/* City dropdown from DB */}
                     <Select value={formData.city_id} onValueChange={(v) => {
                       const city = cities.find(c => c.id === v);
                       setFormData({...formData, city_id: v, location: city?.name || formData.location});
@@ -261,6 +267,7 @@ const AdminPanel = () => {
 
               {/* Experience List */}
               <Card className="p-4">
+                <h3 className="font-semibold mb-3">All Experiences ({experiences.length})</h3>
                 {isLoading ? <p>Loading...</p> : experiences.length === 0 ? <p className="text-muted-foreground">No experiences found.</p> : (
                   <div className="space-y-2 max-h-[600px] overflow-y-auto">
                     {experiences.map((exp: any) => (
@@ -268,6 +275,9 @@ const AdminPanel = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="font-medium text-sm truncate">{exp.title}</h3>
+                            <Badge variant={exp.is_active ? 'default' : 'secondary'} className="text-xs shrink-0">
+                              {exp.is_active ? 'active' : 'inactive'}
+                            </Badge>
                             <Badge variant="outline" className="text-xs shrink-0">{exp.category}</Badge>
                           </div>
                           <p className="text-xs text-muted-foreground truncate">{exp.location} • {exp.price} • {exp.creator} • /{exp.slug}</p>
