@@ -364,44 +364,55 @@ const AdminPanel = () => {
         <Input placeholder="Rating" type="number" step="0.1" min="0" max="5" value={formData.rating} onChange={(e) => updateField('rating', e.target.value)} />
       </div>
 
-      {/* Creators multi-select dropdown */}
+      {/* Creators multi-select with search */}
       <div className="md:col-span-2">
         <Label className="text-xs text-muted-foreground mb-1">Creators (multi-select)</Label>
+        {/* Selected creators as separate cards */}
         {formData.creator_ids.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             {formData.creator_ids.map(id => {
               const c = creators.find(cr => cr.id === id);
               if (!c) return null;
+              const social = c.social_links || {};
               return (
-                <Badge key={id} variant="secondary" className="gap-1 pr-1">
-                  {c.display_name || c.username}
-                  <button type="button" onClick={() => toggleCreator(id)} className="ml-1 hover:text-destructive"><X className="w-3 h-3" /></button>
-                </Badge>
+                <div key={id} className="flex items-start gap-2.5 p-2.5 border rounded-lg bg-primary/5 border-primary/20">
+                  {c.avatar_url && <img src={c.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover mt-0.5" />}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium truncate">{c.display_name || c.username}</span>
+                      {c.is_verified && <Badge variant="outline" className="text-[10px] px-1">✓</Badge>}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-0.5">
+                      {social.instagram && <span className="text-[10px] text-muted-foreground">📸 {social.instagram}</span>}
+                      {social.tiktok && <span className="text-[10px] text-muted-foreground">🎵 {social.tiktok}</span>}
+                      {social.website && <span className="text-[10px] text-muted-foreground">🌐 {social.website}</span>}
+                    </div>
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-destructive" onClick={() => toggleCreator(id)}>
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
               );
             })}
           </div>
         )}
-        <div className="border rounded-lg max-h-48 overflow-y-auto divide-y">
-          {creators.length === 0 && <p className="p-3 text-xs text-muted-foreground">No creators yet</p>}
-          {creators.map(c => {
-            const social = c.social_links || {};
+        {/* Search + dropdown */}
+        <Input
+          placeholder="Type here to find a creator..."
+          value={creatorSearch}
+          onChange={(e) => setCreatorSearch(e.target.value)}
+          className="mb-1 text-sm"
+        />
+        <div className="border rounded-lg max-h-40 overflow-y-auto divide-y">
+          {filteredCreators.length === 0 && <p className="p-3 text-xs text-muted-foreground">{creatorSearch ? 'No creators found' : 'No creators yet'}</p>}
+          {filteredCreators.map(c => {
             const isSelected = formData.creator_ids.includes(c.id);
+            if (isSelected) return null; // Already shown above
             return (
-              <label key={c.id} className={`flex items-start gap-3 p-3 cursor-pointer hover:bg-muted/40 transition-colors ${isSelected ? 'bg-primary/5' : ''}`}>
-                <Checkbox checked={isSelected} onCheckedChange={() => toggleCreator(c.id)} className="mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    {c.avatar_url && <img src={c.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover" />}
-                    <span className="text-sm font-medium">{c.display_name || c.username}</span>
-                    {c.is_verified && <Badge variant="outline" className="text-[10px] px-1">✓</Badge>}
-                  </div>
-                  {c.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{c.bio}</p>}
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {social.instagram && <span className="text-[10px] text-muted-foreground">📸 {social.instagram}</span>}
-                    {social.tiktok && <span className="text-[10px] text-muted-foreground">🎵 {social.tiktok}</span>}
-                    {social.website && <span className="text-[10px] text-muted-foreground">🌐 {social.website}</span>}
-                  </div>
-                </div>
+              <label key={c.id} className="flex items-center gap-3 p-2.5 cursor-pointer hover:bg-muted/40 transition-colors">
+                <Checkbox checked={false} onCheckedChange={() => toggleCreator(c.id)} />
+                {c.avatar_url && <img src={c.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />}
+                <span className="text-sm">{c.display_name || c.username}</span>
               </label>
             );
           })}
