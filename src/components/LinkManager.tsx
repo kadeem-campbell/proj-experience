@@ -376,14 +376,26 @@ export const LinkManager = () => {
         <TabsContent value="itinerary">
           <div className="mb-4">
             <Label className="text-xs text-muted-foreground mb-1.5 block">Select Itinerary</Label>
-            <Select value={selectedItinerary || ''} onValueChange={setSelectedItinerary}>
-              <SelectTrigger><SelectValue placeholder="Choose an itinerary..." /></SelectTrigger>
-              <SelectContent>
-                {itineraries.map(i => (
-                  <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2 items-center">
+              <Select value={selectedItinerary || ''} onValueChange={setSelectedItinerary}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder="Choose an itinerary..." /></SelectTrigger>
+                <SelectContent>
+                  {itineraries.map(i => (
+                    <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedItinerary && (() => {
+                const itin = itineraries.find(i => i.id === selectedItinerary);
+                return itin?.slug ? (
+                  <a href={`${getShareBaseUrl()}/itineraries/${itin.slug}`} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" title="View on site">
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  </a>
+                ) : null;
+              })()}
+            </div>
           </div>
           {selectedItinerary && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
