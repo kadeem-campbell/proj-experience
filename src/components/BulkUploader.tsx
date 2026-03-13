@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
-type UploadType = 'experiences' | 'itineraries' | 'collections' | 'itinerary_experiences' | 'collection_experiences';
+type UploadType = 'experiences' | 'categories' | 'cities' | 'creators' | 'itineraries' | 'collections' | 'itinerary_experiences' | 'collection_experiences';
 
 interface UploadResult {
   total: number;
@@ -19,17 +19,29 @@ const TEMPLATES: Record<UploadType, { headers: string[]; example: string[] }> = 
     headers: ['title', 'category', 'location', 'creator', 'description', 'price', 'duration', 'group_size', 'rating', 'video_thumbnail', 'video_url', 'instagram_embed', 'best_time', 'weather'],
     example: ['Jet Ski Adventure', 'Water Sports', 'Zanzibar', 'JohnDoe', 'Amazing jet ski experience', '$30 - $80', '2 hours', '4-8 people', '4.8', 'https://example.com/photo.jpg', '', '', 'Morning', 'Sunny 30°C'],
   },
+  categories: {
+    headers: ['name', 'emoji', 'description', 'display_order'],
+    example: ['Water Sports', '🏄', 'All water activities', '1'],
+  },
+  cities: {
+    headers: ['name', 'country', 'airport_code', 'flag_emoji', 'latitude', 'longitude', 'cover_image'],
+    example: ['Zanzibar', 'Tanzania', 'ZNZ', '🇹🇿', '-6.1659', '39.2026', 'https://example.com/znz.jpg'],
+  },
+  creators: {
+    headers: ['username', 'display_name', 'bio', 'avatar_url', 'is_verified'],
+    example: ['johndoe', 'John Doe', 'Adventure creator', 'https://example.com/avatar.jpg', 'false'],
+  },
   itineraries: {
     headers: ['name', 'slug', 'description', 'cover_image', 'tag'],
     example: ['Zanzibar Weekend', 'zanzibar-weekend', 'Perfect weekend getaway', 'https://example.com/cover.jpg', 'popular'],
   },
   collections: {
     headers: ['name', 'slug', 'description', 'cover_image', 'collection_type', 'tag'],
-    example: ['Beach Vibes', 'beach-vibes', 'Best beaches in Zanzibar', 'https://example.com/beach.jpg', 'experiences', 'featured'],
+    example: ['Beach Vibes', 'beach-vibes', 'Best beaches', 'https://example.com/beach.jpg', 'experiences', 'featured'],
   },
   itinerary_experiences: {
     headers: ['itinerary_slug', 'experience_slug', 'display_order', 'notes'],
-    example: ['zanzibar-weekend', 'jet-ski-adventure', '1', 'Must do first!'],
+    example: ['zanzibar-weekend', 'jet-ski-adventure', '1', 'Must do!'],
   },
   collection_experiences: {
     headers: ['collection_slug', 'experience_slug', 'display_order'],
@@ -44,14 +56,9 @@ const parseCSV = (text: string): string[][] => {
     let current = '';
     let inQuotes = false;
     for (let i = 0; i < line.length; i++) {
-      if (line[i] === '"') {
-        inQuotes = !inQuotes;
-      } else if (line[i] === ',' && !inQuotes) {
-        result.push(current.trim());
-        current = '';
-      } else {
-        current += line[i];
-      }
+      if (line[i] === '"') { inQuotes = !inQuotes; }
+      else if (line[i] === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+      else { current += line[i]; }
     }
     result.push(current.trim());
     return result;
@@ -71,144 +78,99 @@ export const BulkUploader = () => {
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `${type}_template.csv`;
-    a.click();
+    a.href = url; a.download = `${type}_template.csv`; a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploading(true);
     setResult(null);
 
     try {
       const text = await file.text();
       const rows = parseCSV(text);
-      if (rows.length < 2) {
-        toast({ title: 'File must have at least a header row and one data row', variant: 'destructive' });
-        setUploading(false);
-        return;
-      }
+      if (rows.length < 2) { toast({ title: 'Need header + data rows', variant: 'destructive' }); setUploading(false); return; }
 
       const headers = rows[0].map(h => h.toLowerCase().replace(/\s+/g, '_'));
       const dataRows = rows.slice(1);
       const errors: string[] = [];
       let success = 0;
 
-      if (activeTab === 'experiences') {
-        for (let i = 0; i < dataRows.length; i++) {
-          const row = dataRows[i];
+      // Batch insert for direct tables
+      if (['experiences', 'categories', 'cities', 'creators', 'itineraries', 'collections'].includes(activeTab)) {
+        const records = dataRows.map((row, i) => {
           const obj: Record<string, any> = {};
           headers.forEach((h, idx) => { obj[h] = row[idx] || ''; });
-          
-          const slug = obj.title?.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-') || '';
-          const { error } = await supabase.from('experiences').insert({
-            title: obj.title || `Experience ${i + 1}`,
-            category: obj.category || 'Adventure',
-            location: obj.location || '',
-            creator: obj.creator || '',
-            description: obj.description || '',
-            price: obj.price || '',
-            duration: obj.duration || '',
-            group_size: obj.group_size || '',
-            rating: obj.rating ? parseFloat(obj.rating) : 4.7,
-            video_thumbnail: obj.video_thumbnail || '',
-            video_url: obj.video_url || '',
-            instagram_embed: obj.instagram_embed || '',
-            best_time: obj.best_time || '',
-            weather: obj.weather || '',
-            slug,
-          });
-          if (error) errors.push(`Row ${i + 2}: ${error.message}`);
-          else success++;
-        }
-      } else if (activeTab === 'itineraries') {
-        for (let i = 0; i < dataRows.length; i++) {
-          const row = dataRows[i];
-          const obj: Record<string, any> = {};
-          headers.forEach((h, idx) => { obj[h] = row[idx] || ''; });
-          
-          const { error } = await supabase.from('public_itineraries').insert({
-            name: obj.name || `Itinerary ${i + 1}`,
-            slug: obj.slug || obj.name?.toLowerCase().replace(/\s+/g, '-') || `itinerary-${i}`,
-            description: obj.description || '',
-            cover_image: obj.cover_image || '',
-            tag: obj.tag || 'popular',
-          });
-          if (error) errors.push(`Row ${i + 2}: ${error.message}`);
-          else success++;
-        }
-      } else if (activeTab === 'collections') {
-        for (let i = 0; i < dataRows.length; i++) {
-          const row = dataRows[i];
-          const obj: Record<string, any> = {};
-          headers.forEach((h, idx) => { obj[h] = row[idx] || ''; });
-          
-          const { error } = await supabase.from('collections').insert({
-            name: obj.name || `Collection ${i + 1}`,
-            slug: obj.slug || obj.name?.toLowerCase().replace(/\s+/g, '-') || `collection-${i}`,
-            description: obj.description || '',
-            cover_image: obj.cover_image || '',
-            collection_type: obj.collection_type || 'experiences',
-            tag: obj.tag || '',
-          });
-          if (error) errors.push(`Row ${i + 2}: ${error.message}`);
-          else success++;
+          return { obj, rowNum: i + 2 };
+        });
+
+        for (const { obj, rowNum } of records) {
+          let error: any = null;
+          if (activeTab === 'experiences') {
+            const slug = obj.slug || obj.title?.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-') || '';
+            ({ error } = await supabase.from('experiences').insert({
+              title: obj.title || `Experience ${rowNum}`, category: obj.category || 'Adventure', location: obj.location || '',
+              creator: obj.creator || '', description: obj.description || '', price: obj.price || '', duration: obj.duration || '',
+              group_size: obj.group_size || '', rating: obj.rating ? parseFloat(obj.rating) : 4.7,
+              video_thumbnail: obj.video_thumbnail || '', video_url: obj.video_url || '', instagram_embed: obj.instagram_embed || '',
+              best_time: obj.best_time || '', weather: obj.weather || '', slug,
+            }));
+          } else if (activeTab === 'categories') {
+            ({ error } = await supabase.from('categories').insert({
+              name: obj.name, emoji: obj.emoji || '', description: obj.description || '', display_order: parseInt(obj.display_order) || 0,
+            }));
+          } else if (activeTab === 'cities') {
+            ({ error } = await supabase.from('cities').insert({
+              name: obj.name, country: obj.country || '', airport_code: obj.airport_code || '', flag_emoji: obj.flag_emoji || '',
+              latitude: obj.latitude ? parseFloat(obj.latitude) : 0, longitude: obj.longitude ? parseFloat(obj.longitude) : 0,
+              cover_image: obj.cover_image || '',
+            }));
+          } else if (activeTab === 'creators') {
+            ({ error } = await supabase.from('creators').insert({
+              username: obj.username, display_name: obj.display_name || '', bio: obj.bio || '',
+              avatar_url: obj.avatar_url || '', is_verified: obj.is_verified === 'true',
+            }));
+          } else if (activeTab === 'itineraries') {
+            ({ error } = await supabase.from('public_itineraries').insert({
+              name: obj.name || `Itinerary ${rowNum}`, slug: obj.slug || obj.name?.toLowerCase().replace(/\s+/g, '-'),
+              description: obj.description || '', cover_image: obj.cover_image || '', tag: obj.tag || 'popular',
+            }));
+          } else if (activeTab === 'collections') {
+            ({ error } = await supabase.from('collections').insert({
+              name: obj.name || `Collection ${rowNum}`, slug: obj.slug || obj.name?.toLowerCase().replace(/\s+/g, '-'),
+              description: obj.description || '', cover_image: obj.cover_image || '',
+              collection_type: obj.collection_type || 'experiences', tag: obj.tag || '',
+            }));
+          }
+          if (error) errors.push(`Row ${rowNum}: ${error.message}`); else success++;
         }
       } else if (activeTab === 'itinerary_experiences') {
         for (let i = 0; i < dataRows.length; i++) {
-          const row = dataRows[i];
           const obj: Record<string, any> = {};
-          headers.forEach((h, idx) => { obj[h] = row[idx] || ''; });
-
-          // Resolve slugs to IDs
+          headers.forEach((h, idx) => { obj[h] = dataRows[i][idx] || ''; });
           const { data: itin } = await supabase.from('public_itineraries').select('id').eq('slug', obj.itinerary_slug).maybeSingle();
           const { data: exp } = await supabase.from('experiences').select('id').eq('slug', obj.experience_slug).maybeSingle();
-
           if (!itin) { errors.push(`Row ${i + 2}: Itinerary "${obj.itinerary_slug}" not found`); continue; }
           if (!exp) { errors.push(`Row ${i + 2}: Experience "${obj.experience_slug}" not found`); continue; }
-
           const { error } = await (supabase as any).from('itinerary_experiences').insert({
-            itinerary_id: itin.id,
-            experience_id: exp.id,
-            display_order: parseInt(obj.display_order) || 0,
-            notes: obj.notes || '',
+            itinerary_id: itin.id, experience_id: exp.id, display_order: parseInt(obj.display_order) || 0, notes: obj.notes || '',
           });
-          if (error) {
-            if (error.message.includes('duplicate')) {
-              errors.push(`Row ${i + 2}: Already linked`);
-            } else {
-              errors.push(`Row ${i + 2}: ${error.message}`);
-            }
-          } else success++;
+          if (error) errors.push(`Row ${i + 2}: ${error.message}`); else success++;
         }
       } else if (activeTab === 'collection_experiences') {
         for (let i = 0; i < dataRows.length; i++) {
-          const row = dataRows[i];
           const obj: Record<string, any> = {};
-          headers.forEach((h, idx) => { obj[h] = row[idx] || ''; });
-
+          headers.forEach((h, idx) => { obj[h] = dataRows[i][idx] || ''; });
           const { data: coll } = await supabase.from('collections').select('id').eq('slug', obj.collection_slug).maybeSingle();
           const { data: exp } = await supabase.from('experiences').select('id').eq('slug', obj.experience_slug).maybeSingle();
-
           if (!coll) { errors.push(`Row ${i + 2}: Collection "${obj.collection_slug}" not found`); continue; }
           if (!exp) { errors.push(`Row ${i + 2}: Experience "${obj.experience_slug}" not found`); continue; }
-
           const { error } = await (supabase as any).from('collection_experiences').insert({
-            collection_id: coll.id,
-            experience_id: exp.id,
-            display_order: parseInt(obj.display_order) || 0,
+            collection_id: coll.id, experience_id: exp.id, display_order: parseInt(obj.display_order) || 0,
           });
-          if (error) {
-            if (error.message.includes('duplicate')) {
-              errors.push(`Row ${i + 2}: Already linked`);
-            } else {
-              errors.push(`Row ${i + 2}: ${error.message}`);
-            }
-          } else success++;
+          if (error) errors.push(`Row ${i + 2}: ${error.message}`); else success++;
         }
       }
 
@@ -224,10 +186,13 @@ export const BulkUploader = () => {
 
   const tabLabel: Record<UploadType, string> = {
     experiences: 'Experiences',
+    categories: 'Categories',
+    cities: 'Cities',
+    creators: 'Creators',
     itineraries: 'Itineraries',
     collections: 'Collections',
-    itinerary_experiences: 'Link to Itinerary',
-    collection_experiences: 'Link to Collection',
+    itinerary_experiences: 'Link → Itinerary',
+    collection_experiences: 'Link → Collection',
   };
 
   return (
@@ -236,14 +201,14 @@ export const BulkUploader = () => {
         <div className="text-center mb-6">
           <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-xl font-semibold mb-2">Bulk Upload</h3>
-          <p className="text-sm text-muted-foreground">Upload CSV files to create content and link experiences to itineraries/collections</p>
+          <p className="text-sm text-muted-foreground">Upload CSV files to create content across all tables</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as UploadType); setResult(null); }}>
-          <TabsList className="grid grid-cols-3 lg:grid-cols-5 mb-4">
+          <TabsList className="grid grid-cols-4 lg:grid-cols-8 mb-4">
             {Object.entries(tabLabel).map(([key, label]) => (
-              <TabsTrigger key={key} value={key} className="text-xs">
-                {key.includes('_') ? <Link2 className="w-3 h-3 mr-1" /> : <FileSpreadsheet className="w-3 h-3 mr-1" />}
+              <TabsTrigger key={key} value={key} className="text-xs px-2">
+                {key.includes('_') && !['categories','cities','creators'].includes(key) ? <Link2 className="w-3 h-3 mr-1" /> : <FileSpreadsheet className="w-3 h-3 mr-1" />}
                 {label}
               </TabsTrigger>
             ))}
@@ -254,8 +219,8 @@ export const BulkUploader = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium">CSV Template</p>
-                    <p className="text-xs text-muted-foreground">Download the template with required columns</p>
+                    <p className="text-sm font-medium">CSV Template — {tabLabel[key as UploadType]}</p>
+                    <p className="text-xs text-muted-foreground">Columns: {TEMPLATES[key as UploadType].headers.join(', ')}</p>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => downloadTemplate(key as UploadType)}>
                     <Download className="w-4 h-4 mr-1" /> Template
@@ -263,28 +228,12 @@ export const BulkUploader = () => {
                 </div>
 
                 <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept=".csv"
-                    className="hidden"
-                    onChange={handleUpload}
-                  />
-                  <Button
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    className="mx-auto"
-                  >
-                    {uploading ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
-                    ) : (
-                      <><Upload className="w-4 h-4 mr-2" /> Upload CSV</>
-                    )}
+                  <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleUpload} />
+                  <Button onClick={() => fileRef.current?.click()} disabled={uploading} className="mx-auto">
+                    {uploading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</> : <><Upload className="w-4 h-4 mr-2" /> Upload CSV</>}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    {key.includes('_') 
-                      ? 'Use slugs to link existing items — duplicates are prevented automatically'
-                      : 'Each row creates a new record'}
+                    {key.includes('_') && !['categories','cities','creators'].includes(key) ? 'Use slugs to link existing items' : 'Each row creates a new record'}
                   </p>
                 </div>
 
@@ -292,14 +241,13 @@ export const BulkUploader = () => {
                   <div className="p-4 rounded-lg bg-muted/50 space-y-2">
                     <div className="flex items-center gap-2">
                       <Check className="w-4 h-4 text-green-500" />
-                      <span className="text-sm font-medium">{result.success}/{result.total} rows imported successfully</span>
+                      <span className="text-sm font-medium">{result.success}/{result.total} rows imported</span>
                     </div>
                     {result.errors.length > 0 && (
-                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                      <div className="space-y-1 max-h-40 overflow-y-auto">
                         {result.errors.map((err, i) => (
                           <div key={i} className="flex items-start gap-2 text-xs text-destructive">
-                            <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />
-                            <span>{err}</span>
+                            <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /><span>{err}</span>
                           </div>
                         ))}
                       </div>

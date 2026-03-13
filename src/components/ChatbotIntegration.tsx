@@ -1,316 +1,91 @@
-import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Send, Bot, User, MapPin, Clock, Zap } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect, useRef } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Bot, Send, X, MapPin, Star, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Message {
-  id: string;
-  type: 'user' | 'bot';
+interface ChatMessage {
+  role: 'user' | 'assistant';
   content: string;
-  timestamp: Date;
-  suggestions?: string[];
-  experiences?: Array<{
-    id: string;
-    title: string;
-    location: string;
-    category: string;
-    confidence: number;
-  }>;
-}
-
-interface GroundTeamData {
-  location: string;
-  currentEvents: string[];
-  popularExperiences: string[];
-  weatherConditions: string;
-  crowdLevels: Record<string, 'low' | 'medium' | 'high'>;
-  lastUpdated: Date;
-}
-
-interface ChatbotKnowledge {
-  id: string;
-  category: string;
-  keywords: string[];
-  response_template: string;
-  parameters: any;
-  priority: number;
+  experiences?: { id: string; title: string; location: string; category: string; slug?: string }[];
 }
 
 export const ChatbotIntegration = () => {
-  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [sessionId] = useState(() => crypto.randomUUID());
-  const [knowledgeBase, setKnowledgeBase] = useState<ChatbotKnowledge[]>([]);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'bot',
-      content: "Hi! I'm your experience guide. Tell me what kind of adventure you're looking for - I have real-time updates from our ground team!",
-      timestamp: new Date(),
-      suggestions: ["Something adventurous", "Beach vibes", "Local food tour", "Party tonight"]
-    }
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', content: "Hi! I can help you find experiences. What are you looking for?" }
   ]);
-  const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
-  // Mock ground team data
-  const [groundTeamData] = useState<GroundTeamData>({
-    location: "Dar Es Salaam",
-    currentEvents: ["Beach volleyball tournament at Coco Beach", "Live music at Slipway", "Night market in Kariakoo"],
-    popularExperiences: ["Jet ski adventures", "Stone Town tours", "Spice farm visits"],
-    weatherConditions: "Perfect beach weather - 28°C, sunny",
-    crowdLevels: {
-      "Coco Beach": "high",
-      "Slipway": "medium", 
-      "Masaki": "low"
-    },
-    lastUpdated: new Date()
-  });
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Mock knowledge base (chatbot_knowledge table doesn't exist yet)
-  useEffect(() => {
-    setKnowledgeBase([
-      { id: '1', category: 'adventure', keywords: ['adventure', 'exciting', 'thrill'], response_template: 'Looking for adventure? I have great options!', parameters: {}, priority: 1 },
-      { id: '2', category: 'beach', keywords: ['beach', 'ocean', 'sea', 'swim'], response_template: 'Beach vibes coming up!', parameters: {}, priority: 1 },
-      { id: '3', category: 'food', keywords: ['food', 'eat', 'restaurant', 'dining'], response_template: 'Let me find the best food spots!', parameters: {}, priority: 1 },
-      { id: '4', category: 'nightlife', keywords: ['party', 'night', 'club', 'bar'], response_template: 'Ready for the nightlife?', parameters: {}, priority: 1 }
-    ]);
-  }, []);
-
-  const analyzeQueryWithKnowledge = async (query: string) => {
-    const keywords = query.toLowerCase().split(' ');
-    
-    const matchingKnowledge = knowledgeBase.find(kb => 
-      kb.keywords.some(keyword => keywords.some(k => k.includes(keyword.toLowerCase())))
-    );
-
-    // Mock experiences since experiences table doesn't exist yet
-    const mockExperiences = [
-      { id: '1', title: 'Jet Ski Adventure', location: 'Coco Beach', category: 'Adventure', confidence: 95 },
-      { id: '2', title: 'Spice Farm Tour', location: 'Zanzibar', category: 'Culture', confidence: 88 },
-      { id: '3', title: 'Beach Sunset Party', location: 'Slipway', category: 'Nightlife', confidence: 82 }
-    ];
-
-    const response = matchingKnowledge 
-      ? matchingKnowledge.response_template 
-      : `I found some great experiences for you!`;
-
-    const groundInsights = matchingKnowledge?.category === 'beach' 
-      ? `Live update: ${groundTeamData.weatherConditions}. Coco Beach has ${groundTeamData.crowdLevels["Coco Beach"]} crowds right now.`
-      : matchingKnowledge?.category === 'nightlife'
-      ? `Tonight: ${groundTeamData.currentEvents[1]} at Slipway - perfect timing!`
-      : `Our ground team reports: ${groundTeamData.currentEvents[0]} is happening today! ${groundTeamData.weatherConditions}`;
-
-    return {
-      experiences: mockExperiences,
-      groundInsights: `${response} ${groundInsights}`,
-      knowledgeUsed: matchingKnowledge
-    };
-  };
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
+    const query = inputValue.trim();
+    setInputValue('');
+    setMessages(prev => [...prev, { role: 'user', content: query }]);
+    setLoading(true);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: inputValue,
-      timestamp: new Date()
-    };
+    try {
+      const keywords = query.toLowerCase().split(/\s+/);
+      const orFilter = keywords.map(k => `title.ilike.%${k}%,category.ilike.%${k}%,location.ilike.%${k}%`).join(',');
+      const { data } = await supabase.from('experiences').select('id, title, location, category, slug').or(orFilter).limit(5);
+      const experiences = (data || []).map(e => ({ id: e.id, title: e.title, location: e.location, category: e.category, slug: e.slug || '' }));
 
-    setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputValue;
-    setInputValue("");
-    setIsTyping(true);
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const analysis = await analyzeQueryWithKnowledge(currentInput);
-    
-    const botMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      type: 'bot',
-      content: analysis.groundInsights,
-      timestamp: new Date(),
-      experiences: analysis.experiences,
-      suggestions: analysis.experiences.length > 0 ? 
-        ["Show me more like this", "What's popular nearby?", "Check availability"] : 
-        ["Adventure activities", "Beach experiences", "Food tours", "Night parties"]
-    };
-
-    setMessages(prev => [...prev, botMessage]);
-    setIsTyping(false);
-
-    if (analysis.experiences.length > 0) {
-      toast({
-        title: "Found experiences!",
-        description: `${analysis.experiences.length} experiences match your request`,
-      });
-    }
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setInputValue(suggestion);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: experiences.length > 0 ? `I found ${experiences.length} experiences matching "${query}":` : `No experiences matched "${query}". Try different keywords!`,
+        experiences,
+      }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' }]);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="h-14 w-14 rounded-full bg-gradient-to-r from-primary to-primary/80 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-        >
-          <MessageCircle className="w-6 h-6" />
-        </Button>
-      </div>
+      <Button onClick={() => setIsOpen(true)} className="fixed bottom-20 right-4 z-50 rounded-full w-12 h-12 p-0 shadow-lg">
+        <Bot className="w-5 h-5" />
+      </Button>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-96 h-[600px] bg-card/95 backdrop-blur-lg border border-border/50 rounded-xl shadow-2xl flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-border/50 bg-gradient-to-r from-primary/10 to-primary/5 rounded-t-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <Bot className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm">Experience Guide</h3>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>Live with ground team</span>
-              </div>
-            </div>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsOpen(false)}
-            className="h-8 w-8 p-0"
-          >
-            ×
-          </Button>
-        </div>
+    <Card className="fixed bottom-20 right-4 z-50 w-80 h-96 flex flex-col shadow-xl">
+      <div className="flex items-center justify-between p-3 border-b">
+        <div className="flex items-center gap-2"><Bot className="w-4 h-4" /><span className="font-medium text-sm">Experience Finder</span></div>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsOpen(false)}><X className="w-4 h-4" /></Button>
       </div>
-
-      {/* Ground Team Status */}
-      <div className="px-4 py-2 bg-card/50 border-b border-border/30">
-        <div className="flex items-center gap-2 text-xs">
-          <MapPin className="w-3 h-3 text-primary" />
-          <span className="text-muted-foreground">{groundTeamData.location}</span>
-          <Clock className="w-3 h-3 text-muted-foreground ml-2" />
-          <span className="text-muted-foreground">Updated {Math.floor((Date.now() - groundTeamData.lastUpdated.getTime()) / 60000)}m ago</span>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
-          <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] ${message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'} rounded-lg p-3`}>
-              <div className="flex items-start gap-2">
-                {message.type === 'bot' && <Bot className="w-4 h-4 mt-0.5 text-primary" />}
-                {message.type === 'user' && <User className="w-4 h-4 mt-0.5" />}
-                <div className="flex-1">
-                  <p className="text-sm">{message.content}</p>
-                  
-                  {message.experiences && message.experiences.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      <div className="flex items-center gap-1">
-                        <Zap className="w-3 h-3 text-primary" />
-                        <span className="text-xs font-medium">Found experiences:</span>
-                      </div>
-                      {message.experiences.map((exp) => (
-                        <div key={exp.id} className="bg-card/50 rounded p-2 text-xs">
-                          <div className="font-medium">{exp.title}</div>
-                          <div className="text-muted-foreground flex items-center gap-2 mt-1">
-                            <span>{exp.location}</span>
-                            <Badge variant="secondary" className="text-xs">{exp.confidence}% match</Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {message.suggestions && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {message.suggestions.map((suggestion, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          size="sm"
-                          className="text-xs h-6"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                          {suggestion}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+              <p>{msg.content}</p>
+              {msg.experiences?.map(exp => (
+                <a key={exp.id} href={`/experiences/${exp.slug || exp.id}`} className="block mt-2 p-2 bg-background rounded border hover:bg-accent transition-colors">
+                  <p className="font-medium text-xs">{exp.title}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                    <MapPin className="w-3 h-3" />{exp.location}
+                    <Badge variant="outline" className="text-[10px] px-1 py-0">{exp.category}</Badge>
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
         ))}
-        
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-muted rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <Bot className="w-4 h-4 text-primary" />
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {loading && <div className="flex justify-start"><div className="bg-muted rounded-lg px-3 py-2"><Loader2 className="w-4 h-4 animate-spin" /></div></div>}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Input */}
-      <div className="p-4 border-t border-border/50">
-        <div className="flex gap-2">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask about experiences..."
-            className="flex-1"
-            disabled={isTyping}
-          />
-          <Button 
-            onClick={handleSend} 
-            disabled={!inputValue.trim() || isTyping}
-            className="px-3"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
+      <div className="p-3 border-t flex gap-2">
+        <Input value={inputValue} onChange={e => setInputValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} placeholder="Search experiences..." className="text-sm" />
+        <Button size="icon" className="shrink-0 h-9 w-9" onClick={handleSend} disabled={loading}><Send className="w-4 h-4" /></Button>
       </div>
-    </div>
+    </Card>
   );
 };
