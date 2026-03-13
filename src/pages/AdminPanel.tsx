@@ -15,6 +15,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCategories, useCities, useCreators } from '@/hooks/useAppData';
 import { BulkUploader } from '@/components/BulkUploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { LinkManager } from '@/components/LinkManager';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -494,6 +495,7 @@ const AdminPanel = () => {
               </div>
               <TabsList>
                 <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Manage</TabsTrigger>
+                <TabsTrigger value="links" className="gap-2"><ExternalLink className="w-4 h-4" /> Links</TabsTrigger>
                 <TabsTrigger value="bulk" className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Bulk Upload</TabsTrigger>
               </TabsList>
             </div>
@@ -616,6 +618,10 @@ const AdminPanel = () => {
                   </div>
                 )}
               </Card>
+            </TabsContent>
+
+            <TabsContent value="links">
+              <LinkManager />
             </TabsContent>
 
             <TabsContent value="bulk">
