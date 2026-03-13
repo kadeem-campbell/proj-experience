@@ -64,6 +64,7 @@ const AdminPanel = () => {
   const [formData, setFormData] = useState(defaultForm);
   const [newTikTok, setNewTikTok] = useState({ url: '', author: '' });
   const [newHighlight, setNewHighlight] = useState('');
+  const [newMeetingPoint, setNewMeetingPoint] = useState({ name: '', type: '' });
   const [creatorSearch, setCreatorSearch] = useState('');
 
   const { data: categories = [] } = useCategories();
