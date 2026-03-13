@@ -141,9 +141,9 @@ export const LinkManager = () => {
     activeTab === 'collection-itin' ? selectedCollection : null
   );
 
-  const linkedExpIds = new Set(itinLinks.map(l => l.id));
-  const linkedCollExpIds = new Set(collExpLinks.map(l => l.id));
-  const linkedCollItinIds = new Set(collItinLinks.map(l => l.id));
+  const linkedExpIds = new Set<string>(itinLinks.map(l => l.id));
+  const linkedCollExpIds = new Set<string>(collExpLinks.map(l => l.id));
+  const linkedCollItinIds = new Set<string>(collItinLinks.map(l => l.id));
 
   const filteredExperiences = experiences.filter(e =>
     e.title.toLowerCase().includes(expSearch.toLowerCase()) ||
