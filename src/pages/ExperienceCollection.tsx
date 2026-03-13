@@ -222,14 +222,15 @@ const ExperienceCollectionPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
+  const experiences = useExperiencesData();
 
   const collection = slug ? experienceCollectionDefinitions[slug] : null;
 
   const { featuredItems, remainingSections } = useMemo(() => {
     if (!collection) return { featuredItems: [], remainingSections: [] };
-    const featured = collection.filter(allExperiences);
+    const featured = collection.filter(experiences);
     const featuredIds = new Set(featured.map((i: any) => i.id));
-    const remaining = allExperiences.filter((i: any) => !featuredIds.has(i.id));
+    const remaining = experiences.filter((i: any) => !featuredIds.has(i.id));
 
     const sections: { key: string; title: string; items: any[] }[] = [];
     const otherCollections = Object.entries(experienceCollectionDefinitions).filter(([k]) => k !== slug);
