@@ -363,9 +363,7 @@ export const BulkUploader = () => {
                     )}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-3">
-                    {isLinkTab(key)
-                      ? '💡 Use slugs to link existing items. Make sure the referenced items exist first.'
-                      : '💡 UUIDs are auto-generated. Each row creates a new record.'}
+                    💡 UUIDs are auto-generated. Each row creates a new record.
                   </p>
                 </div>
 
