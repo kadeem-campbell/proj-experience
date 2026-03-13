@@ -146,7 +146,12 @@ const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onN
         )}>
           <Heart className={cn("w-4 h-4", liked ? "fill-experience-color text-experience-color" : "text-foreground")} />
         </button>
-        <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="absolute top-2 left-2 z-10"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           <ItinerarySelector
             experienceId={experience.id}
             experienceData={{
@@ -155,7 +160,12 @@ const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onN
               location: experience.location || '', price: experience.price || '',
             }}
           >
-            <button className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm bg-white/80 active:scale-90">
+            <button
+              className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm bg-white/80 active:scale-90"
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
               <Plus className="w-4 h-4 text-foreground" />
             </button>
           </ItinerarySelector>
