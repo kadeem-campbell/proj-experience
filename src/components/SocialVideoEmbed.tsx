@@ -173,9 +173,11 @@ export const SocialVideoEmbed = ({
                   src={instagramEmbedUrl}
                   className="border-0"
                   style={{ width: '100%', height: '600px' }}
-                  allow="autoplay; encrypted-media"
+                  allow="autoplay; encrypted-media; picture-in-picture"
                   allowFullScreen
                   scrolling="no"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
                 />
               </div>
             </div>
