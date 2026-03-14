@@ -1215,13 +1215,6 @@ const PublicItinerary = () => {
               ))}
             </div>
           </div>
-              </button>
-              <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
-                <Download className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs font-medium">Export XLSX</span>
-              </button>
-            </div>
-          </div>
         </DrawerContent>
       </Drawer>
 
