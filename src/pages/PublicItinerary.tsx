@@ -981,7 +981,7 @@ const PublicItinerary = () => {
               {itinerary.name}
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-[15px]">
-              <span className="font-medium">{itinerary.experiences.length} experiences</span>
+              <span className="font-medium">{filteredExperiences.length} experiences</span>
               {itineraryLocation && (
                 <span className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4" />
