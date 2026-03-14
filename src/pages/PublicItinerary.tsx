@@ -575,6 +575,10 @@ const PublicItinerary = () => {
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
     const price = experience.price ? `${experience.price} avg` : null;
 
+    // Resolve slug from DB if available
+    const dbExp = allDbExperiences.find(e => e.id === experience.id);
+    const expSlug = dbExp?.slug || slugify(experience.title);
+
     const metaParts: string[] = [];
     if (experience.location) metaParts.push(experience.location);
     if (experience.category) metaParts.push(experience.category);
@@ -582,7 +586,7 @@ const PublicItinerary = () => {
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
         <div
-          onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+          onClick={() => navigate(`/experiences/${expSlug}`)}
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
