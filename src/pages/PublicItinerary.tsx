@@ -319,7 +319,7 @@ const PublicItinerary = () => {
   }, []);
 
   // Loading / not found states
-  if (!itinerary && itinerariesLoading) {
+  if (!itinerary && (itinerariesLoading || publicItinerariesLoading)) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
     return (
       <Wrapper {...(isMobile ? { hideTopBar: true } : {})}>
