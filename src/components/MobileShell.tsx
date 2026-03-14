@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, ReactNode } from "react";
+import { useState, useCallback, useEffect, ReactNode, useMemo } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Home, Search, ListMusic, User, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,24 +6,7 @@ import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-
-const cityCodeMap: Record<string, string> = {
-  "Zanzibar": "ZNZ",
-  "Dar es Salaam": "DAR",
-};
-
-const availableCities = [
-  { name: "Zanzibar", code: "ZNZ" },
-  { name: "Dar es Salaam", code: "DAR" },
-];
-
-const comingSoonCities = [
-  { name: "Nairobi", date: "Apr 2026" },
-  { name: "Kigali", date: "May 2026" },
-  { name: "Kampala", date: "May 2026" },
-  { name: "Entebbe", date: "Jun 2026" },
-  { name: "Addis Ababa", date: "Jun 2026" },
-];
+import { useCities, type DbCity } from "@/hooks/useAppData";
 
 // Persist city globally via localStorage
 const getPersistedCity = (): string => {
@@ -33,18 +16,16 @@ const persistCity = (city: string) => {
   try { if (city) localStorage.setItem("swam_selected_city", city); else localStorage.removeItem("swam_selected_city"); } catch {}
 };
 
-// Real Tanzania flag SVG as inline component (from hatscripts/circle-flags)
-const TanzaniaFlag = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className={className}>
-    <mask id="tz-mask"><circle cx="256" cy="256" r="256" fill="#fff" /></mask>
-    <g mask="url(#tz-mask)">
-      <path fill="#ffda44" d="M399 0 0 399v45l68 68h45l399-399V68L444 0z" />
-      <path fill="#333" d="M444 0 0 444v68h68L512 68V0z" />
-      <path fill="#338af3" d="m113 512 399-399v399z" />
-      <path fill="#6da544" d="M0 399V0h399z" />
-    </g>
-  </svg>
-);
+const normalize = (value: string) => value.trim().toLowerCase();
+const isLaunched = (city: DbCity) => {
+  if (!city.launch_date) return true;
+  return new Date(`${city.launch_date}T00:00:00`).getTime() <= Date.now();
+};
+const formatLaunchMonth = (launchDate?: string | null) => {
+  if (!launchDate) return "Coming soon";
+  return new Date(`${launchDate}T00:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+};
+const isSvg = (value?: string | null) => !!value && (value.includes(".svg") || value.startsWith("data:image/svg"));
 
 // Fixed bottom navigation bar
 const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () => void; isSearchOpen: boolean }) => {
