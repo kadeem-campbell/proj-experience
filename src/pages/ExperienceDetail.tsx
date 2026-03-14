@@ -301,7 +301,7 @@ export default function ExperienceDetail() {
 
   const gallery = experience.gallery || [experience.videoThumbnail];
   const categoryIcon = categoryIconMap[experience.category];
-  const creatorNames = useMemo(() => {
+  const creatorNames = (() => {
     const rawCreator = (experience.creator || '').trim();
     if (!rawCreator) return [] as string[];
 
@@ -324,7 +324,7 @@ export default function ExperienceDetail() {
       .filter(Boolean);
 
     return Array.from(new Set(splitNames));
-  }, [experience.creator]);
+  })();
 
   // Mobile
   if (isMobile) {
