@@ -4,6 +4,7 @@ import { LikedExperience, TimeSlot } from "@/hooks/useLikedExperiences";
 
 export interface PublicItinerary {
   id: string;
+  dbId?: string;
   name: string;
   slug: string;
   experiences: LikedExperience[];
