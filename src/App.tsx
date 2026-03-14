@@ -54,6 +54,7 @@ const App = () => (
           <Route path="/hosts/:username" element={<HostProfile />} />
           <Route path="/creators/:username" element={<HostProfile />} />
           <Route path="/creators" element={<Creators />} />
+          <Route path="/hosts" element={<Hosts />} />
           <Route path="/create-experience" element={<CreateExperience />} />
           <Route path="/itinerary" element={<Trip useActiveItinerary={true} />} />
           <Route path="/itinerary/:id" element={<Trip />} />
