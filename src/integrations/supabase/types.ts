@@ -54,9 +54,11 @@ export type Database = {
           cover_image: string | null
           created_at: string | null
           flag_emoji: string | null
+          flag_svg_url: string | null
           id: string
           is_active: boolean | null
           latitude: number | null
+          launch_date: string | null
           longitude: number | null
           name: string
           updated_at: string | null
@@ -67,9 +69,11 @@ export type Database = {
           cover_image?: string | null
           created_at?: string | null
           flag_emoji?: string | null
+          flag_svg_url?: string | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
+          launch_date?: string | null
           longitude?: number | null
           name: string
           updated_at?: string | null
@@ -80,9 +84,11 @@ export type Database = {
           cover_image?: string | null
           created_at?: string | null
           flag_emoji?: string | null
+          flag_svg_url?: string | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
+          launch_date?: string | null
           longitude?: number | null
           name?: string
           updated_at?: string | null

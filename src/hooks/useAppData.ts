@@ -8,6 +8,8 @@ export interface DbCity {
   cover_image: string;
   airport_code: string;
   flag_emoji: string;
+  flag_svg_url?: string | null;
+  launch_date?: string | null;
   latitude: number;
   longitude: number;
 }
