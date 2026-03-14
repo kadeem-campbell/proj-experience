@@ -166,7 +166,8 @@ const CitySelectorSheet = ({
                       <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{city.name}</p></div>
                       <span className="text-[10px] text-muted-foreground">{formatLaunchMonth(city.launch_date)}</span>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </>
             )}
