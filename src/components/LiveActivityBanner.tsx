@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Globe, Zap, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OnboardingFlow } from "@/components/OnboardingFlow";
+// OnboardingFlow removed
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useItineraries } from "@/hooks/useItineraries";
