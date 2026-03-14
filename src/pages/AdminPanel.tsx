@@ -214,7 +214,10 @@ const AdminPanel = () => {
     const [grpMin, grpMax] = parseGroupSize(exp.group_size || '');
 
     // Try to find creator IDs from the creator string
-    const creatorNames = (exp.creator || '').split(',').map((n: string) => n.trim()).filter(Boolean);
+    const creatorNames = (exp.creator || '')
+      .split(/\r?\n|,|;|\||\s+&\s+|\s+and\s+/i)
+      .map((n: string) => n.trim())
+      .filter(Boolean);
     const creatorIds = creatorNames.map((name: string) => {
       const c = creators.find(cr => (cr.display_name || cr.username) === name);
       return c?.id;
