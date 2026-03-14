@@ -621,6 +621,7 @@ const PublicItinerary = () => {
               onClick={async (e) => {
                 e.preventDefault(); e.stopPropagation();
                 if ('vibrate' in navigator) navigator.vibrate(10);
+                if (!isAuthenticated) { setShowAuthModal(true); return; }
                 await handleToggleLike(experience.id, 'experience', {
                   id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail,
                 });
