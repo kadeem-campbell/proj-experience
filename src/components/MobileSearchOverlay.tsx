@@ -199,6 +199,22 @@ export const MobileSearchOverlay = ({
   const allExpsData = useExperiencesData();
   const isDedicatedSearchRoute = location.pathname === "/search" || location.pathname === "/discover";
 
+  // Derive unique locations dynamically from experience data
+  const filterLocations = useMemo(() => {
+    const locCounts: Record<string, number> = {};
+    allExpsData.forEach(e => {
+      const loc = (e.location || '').trim();
+      if (!loc) return;
+      // Normalize to the main city name
+      const key = loc.split(',')[0].trim();
+      locCounts[key] = (locCounts[key] || 0) + 1;
+    });
+    // Return all locations that have experiences, sorted by count desc
+    return Object.entries(locCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([value]) => ({ label: value, value }));
+  }, [allExpsData]);
+
   // Pre-select city location filter from global city state
   useEffect(() => {
     if (isOpen && initialCity) {
