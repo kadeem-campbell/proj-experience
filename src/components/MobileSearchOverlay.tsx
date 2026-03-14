@@ -41,10 +41,7 @@ const filterCategories = [
   { label: "Safari", category: "Safari" },
 ];
 
-const filterLocations = [
-  { label: "🇹🇿 Zanzibar", value: "Zanzibar" },
-  { label: "🇹🇿 Dar es Salaam", value: "Dar es Salaam" },
-];
+// Location filter is now dynamic - derived from experience data
 
 // Data now fetched inside component via hooks
 
