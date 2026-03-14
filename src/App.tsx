@@ -9,6 +9,7 @@ import Search from "./pages/Search";
 import ExperienceDetail from "./pages/ExperienceDetail";
 import CreateExperience from "./pages/CreateExperience";
 import Creators from "./pages/Creators";
+import Hosts from "./pages/Hosts";
 
 import Monetise from "./pages/Monetise";
 import Map from "./pages/Map";
