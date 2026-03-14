@@ -299,6 +299,23 @@ const ExperienceCollectionPage = () => {
   const collectionDescription = dbCollection?.description || staticCollection?.description || '';
   const featuredItems = dbCollection?.items || staticFeaturedItems;
   const remainingSections = dbCollection ? [] : staticRemainingSections;
+  const isInitialLoading = dbCollectionLoading && !hasCollection;
+
+  if (isInitialLoading) {
+    return isMobile ? (
+      <MobileShell hideAvatar>
+        <div className="flex justify-center items-center py-20">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MobileShell>
+    ) : (
+      <MainLayout>
+        <div className="flex justify-center items-center py-24">
+          <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!hasCollection) {
     return isMobile ? (
