@@ -61,7 +61,7 @@ export const AdminManualEntities = () => {
   });
 
   const [categoryForm, setCategoryForm] = useState({ name: '', emoji: '', description: '' });
-  const [cityForm, setCityForm] = useState({ name: '', country: '', flag_emoji: '', airport_code: '' });
+  const [cityForm, setCityForm] = useState({ name: '', country: '', flag_emoji: '', flag_svg_url: '', airport_code: '', launch_date: '', latitude: '', longitude: '' });
   const [creatorForm, setCreatorForm] = useState({
     username: '',
     display_name: '',

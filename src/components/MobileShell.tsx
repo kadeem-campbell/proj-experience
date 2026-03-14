@@ -333,6 +333,8 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
       {!hideTopBar && (
         <MobileTopBar
           selectedCity={selectedCity}
+          selectedCityData={selectedCityData}
+          countryFlags={countryFlags}
           hideAvatar={hideAvatar}
           notFixed={notFixed}
           onCityTap={() => setCitySelectorOpen(true)}
