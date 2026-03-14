@@ -156,10 +156,12 @@ const CitySelectorSheet = ({
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Coming soon</p>
                 </div>
                 <div className="space-y-1.5">
-                  {comingSoonCities.map((city) => (
+                  {comingSoonCities.map((city) => {
+                    const csFlag = countryFlags[city.country] || city.flag_svg_url || city.flag_emoji;
+                    return (
                     <div key={city.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50">
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        <Map className="w-4 h-4 text-muted-foreground" />
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {csFlag && isSvg(csFlag) ? <img src={csFlag} alt="" className="w-full h-full object-cover" /> : csFlag ? <span className="text-sm">{csFlag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
                       </div>
                       <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{city.name}</p></div>
                       <span className="text-[10px] text-muted-foreground">{formatLaunchMonth(city.launch_date)}</span>
