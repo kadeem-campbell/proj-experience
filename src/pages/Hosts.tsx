@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { MobileShell } from "@/components/MobileShell";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Search, X, Star, MapPin, CheckCircle2 } from "lucide-react";
+import { useCategories } from "@/hooks/useAppData";
+import { Search, X, CheckCircle2, MapPin, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -30,14 +31,38 @@ const useHostExperienceCounts = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("experiences")
-        .select("creator")
+        .select("creator, location")
         .eq("is_active", true);
       const counts: Record<string, number> = {};
+      const locations: Record<string, Set<string>> = {};
       (data || []).forEach((e: any) => {
         const name = (e.creator || "").trim().toLowerCase();
-        if (name) counts[name] = (counts[name] || 0) + 1;
+        if (name) {
+          counts[name] = (counts[name] || 0) + 1;
+          if (e.location) {
+            if (!locations[name]) locations[name] = new Set();
+            locations[name].add(e.location);
+          }
+        }
       });
-      return counts;
+      return { counts, locations };
+    },
+  });
+};
+
+const useAllCreatorCategories = () => {
+  return useQuery({
+    queryKey: ["all-creator-categories"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("creator_categories")
+        .select("creator_id, category_id");
+      const map: Record<string, string[]> = {};
+      (data || []).forEach((r: any) => {
+        if (!map[r.creator_id]) map[r.creator_id] = [];
+        map[r.creator_id].push(r.category_id);
+      });
+      return map;
     },
   });
 };
@@ -46,23 +71,71 @@ export default function Hosts() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { data: hosts = [], isLoading } = useAllHosts();
-  const { data: expCounts = {} } = useHostExperienceCounts();
+  const { data: expData } = useHostExperienceCounts();
+  const { data: categories = [] } = useCategories();
+  const { data: creatorCats = {} } = useAllCreatorCategories();
+  const expCounts = expData?.counts || {};
+  const expLocations = expData?.locations || {};
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+
+  // Get all unique locations from host experiences
+  const allLocations = useMemo(() => {
+    const locs = new Set<string>();
+    Object.values(expLocations).forEach(s => s.forEach(l => locs.add(l)));
+    return Array.from(locs).sort();
+  }, [expLocations]);
 
   const filteredHosts = useMemo(() => {
-    if (!searchQuery.trim()) return hosts;
-    const q = searchQuery.toLowerCase();
-    return hosts.filter(
-      (h: any) =>
-        h.username?.toLowerCase().includes(q) ||
-        h.display_name?.toLowerCase().includes(q) ||
-        h.bio?.toLowerCase().includes(q)
-    );
-  }, [hosts, searchQuery]);
+    let result = hosts;
+    
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (h: any) =>
+          h.username?.toLowerCase().includes(q) ||
+          h.display_name?.toLowerCase().includes(q) ||
+          h.bio?.toLowerCase().includes(q)
+      );
+    }
+
+    if (selectedCategory) {
+      result = result.filter((h: any) => {
+        const cats = creatorCats[h.id] || [];
+        return cats.includes(selectedCategory);
+      });
+    }
+
+    if (selectedLocation) {
+      result = result.filter((h: any) => {
+        const name = (h.username || h.display_name || "").toLowerCase();
+        const locs = expLocations[name];
+        return locs && locs.has(selectedLocation);
+      });
+    }
+
+    return result;
+  }, [hosts, searchQuery, selectedCategory, selectedLocation, creatorCats, expLocations]);
 
   const getExpCount = (host: any) => {
     const name = (host.username || host.display_name || "").toLowerCase();
     return expCounts[name] || 0;
+  };
+
+  const getHostLocation = (host: any) => {
+    const name = (host.username || host.display_name || "").toLowerCase();
+    const locs = expLocations[name];
+    if (!locs || locs.size === 0) return "";
+    return Array.from(locs)[0];
+  };
+
+  const getHostCategoryNames = (hostId: string) => {
+    const catIds = creatorCats[hostId] || [];
+    return catIds
+      .map((cid: string) => categories.find((c: any) => c.id === cid))
+      .filter(Boolean)
+      .map((c: any) => c.name);
   };
 
   const content = (
@@ -93,7 +166,42 @@ export default function Hosts() {
         </div>
       </div>
 
-      {/* Host list */}
+      {/* Filters */}
+      <div className="px-4 pb-2 flex gap-2 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+        {/* Location filter */}
+        <select
+          value={selectedLocation}
+          onChange={(e) => setSelectedLocation(e.target.value)}
+          className={cn(
+            "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border appearance-none bg-muted",
+            selectedLocation ? "bg-primary/10 text-primary border-primary/20" : "border-border text-muted-foreground"
+          )}
+          style={{ fontSize: '13px' }}
+        >
+          <option value="">All locations</option>
+          {allLocations.map(loc => (
+            <option key={loc} value={loc}>{loc}</option>
+          ))}
+        </select>
+
+        {/* Category filter chips */}
+        {categories.slice(0, 6).map((cat: any) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(selectedCategory === cat.id ? "" : cat.id)}
+            className={cn(
+              "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap",
+              selectedCategory === cat.id
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {cat.emoji} {cat.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Host grid - Spotify square cards */}
       <div className="px-4 pt-2 pb-8">
         {isLoading ? (
           <div className="flex justify-center py-16">
@@ -104,43 +212,56 @@ export default function Hosts() {
             <p className="text-muted-foreground">No hosts found</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3">
             {filteredHosts.map((host: any) => {
-              const socialLinks = (host.social_links && typeof host.social_links === "object") ? host.social_links as Record<string, string> : {};
-              const hasContact = Object.values(socialLinks).some((v: any) => v && String(v).trim());
               const count = getExpCount(host);
+              const location = getHostLocation(host);
+              const catNames = getHostCategoryNames(host.id);
 
               return (
                 <button
                   key={host.id}
                   onClick={() => navigate(`/hosts/${host.username}`)}
-                  className="w-full flex items-center gap-3 p-3.5 rounded-2xl bg-card border border-border hover:bg-muted/40 active:scale-[0.98] transition-all text-left"
+                  className="text-left active:scale-[0.97] transition-transform duration-150"
                 >
-                  <Avatar className="w-14 h-14 shrink-0">
-                    {host.avatar_url && <AvatarImage src={host.avatar_url} />}
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
-                      {(host.display_name || host.username).slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="font-semibold text-sm text-foreground truncate">
-                        {host.display_name || host.username}
-                      </h3>
-                      {host.is_verified && <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />}
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate">@{host.username}</p>
-                    <div className="flex items-center gap-3 mt-1">
-                      {count > 0 && (
-                        <span className="text-[11px] text-muted-foreground">{count} experience{count !== 1 ? "s" : ""}</span>
-                      )}
-                      {hasContact && (
-                        <span className="text-[11px] text-primary font-medium">Contact available</span>
-                      )}
-                    </div>
+                  {/* Square avatar card */}
+                  <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
+                    {host.avatar_url ? (
+                      <img src={host.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <span className="text-3xl font-bold text-primary/30">
+                          {(host.display_name || host.username).slice(0, 1).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    {host.is_verified && (
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle2 className="w-4 h-4 text-primary drop-shadow-md" />
+                      </div>
+                    )}
+                    {count > 0 && (
+                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur-sm">
+                        <span className="text-[10px] font-semibold text-foreground">{count} exp</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="shrink-0">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                  {/* Info */}
+                  <div className="mt-2 space-y-0.5">
+                    <h3 className="font-semibold text-sm text-foreground truncate">
+                      {host.display_name || host.username}
+                    </h3>
+                    {location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-2.5 h-2.5 text-muted-foreground" />
+                        <span className="text-[11px] text-muted-foreground truncate">{location}</span>
+                      </div>
+                    )}
+                    {catNames.length > 0 && (
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        {catNames.join(' · ')}
+                      </p>
+                    )}
                   </div>
                 </button>
               );

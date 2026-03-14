@@ -42,11 +42,9 @@ export const useUserLikes = () => {
       }));
       
       setLikes(typedLikes);
-      // Cache for offline access
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(typedLikes));
     } catch (error) {
       console.error('Error fetching likes:', error);
-      // Try to load from cache
       const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (cached) {
         setLikes(JSON.parse(cached));
@@ -60,7 +58,7 @@ export const useUserLikes = () => {
     fetchLikes();
   }, [fetchLikes]);
 
-  // Toggle like for an item
+  // Toggle like with OPTIMISTIC update - instant UI, background DB sync
   const toggleLike = async (
     itemId: string, 
     itemType: 'experience' | 'itinerary',
@@ -71,70 +69,77 @@ export const useUserLikes = () => {
     const existingLike = likes.find(l => l.item_id === itemId && l.item_type === itemType);
 
     if (existingLike) {
-      // Remove like
-      try {
-        const { error } = await supabase
-          .from('user_likes')
-          .delete()
-          .eq('id', existingLike.id);
+      // Optimistically remove
+      setLikes(prev => prev.filter(l => l.id !== existingLike.id));
+      window.dispatchEvent(new CustomEvent('userLikesChanged', { 
+        detail: { action: 'removed', itemId, itemType } 
+      }));
 
-        if (error) throw error;
-
-        setLikes(prev => prev.filter(l => l.id !== existingLike.id));
-        
-        // Dispatch event for real-time UI updates
-        window.dispatchEvent(new CustomEvent('userLikesChanged', { 
-          detail: { action: 'removed', itemId, itemType } 
-        }));
-        
-        return false; // Now unliked
-      } catch (error) {
-        console.error('Error removing like:', error);
-        return true; // Still liked (error)
-      }
+      // Background DB delete
+      supabase
+        .from('user_likes')
+        .delete()
+        .eq('id', existingLike.id)
+        .then(({ error }) => {
+          if (error) {
+            // Rollback on error
+            setLikes(prev => [existingLike, ...prev]);
+            console.error('Error removing like:', error);
+          }
+        });
+      
+      return false;
     } else {
-      // Add like
-      try {
-        const { data, error } = await supabase
-          .from('user_likes')
-          .insert({
-            user_id: user.id,
-            item_id: itemId,
-            item_type: itemType,
-            item_data: itemData
-          })
-          .select()
-          .single();
+      // Optimistically add
+      const tempId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+      const optimisticLike: UserLike = {
+        id: tempId,
+        user_id: user.id,
+        item_id: itemId,
+        item_type: itemType,
+        item_data: itemData,
+        created_at: new Date().toISOString(),
+      };
+      
+      setLikes(prev => [optimisticLike, ...prev]);
+      window.dispatchEvent(new CustomEvent('userLikesChanged', { 
+        detail: { action: 'added', itemId, itemType } 
+      }));
 
-        if (error) throw error;
-
-        const newLike: UserLike = {
-          ...data,
-          item_type: data.item_type as 'experience' | 'itinerary',
-          item_data: data.item_data as Record<string, any>
-        };
-        
-        setLikes(prev => [newLike, ...prev]);
-        
-        // Dispatch event for real-time UI updates
-        window.dispatchEvent(new CustomEvent('userLikesChanged', { 
-          detail: { action: 'added', itemId, itemType } 
-        }));
-        
-        return true; // Now liked
-      } catch (error) {
-        console.error('Error adding like:', error);
-        return false; // Not liked (error)
-      }
+      // Background DB insert
+      supabase
+        .from('user_likes')
+        .insert({
+          user_id: user.id,
+          item_id: itemId,
+          item_type: itemType,
+          item_data: itemData
+        })
+        .select()
+        .single()
+        .then(({ data, error }) => {
+          if (error) {
+            // Rollback on error
+            setLikes(prev => prev.filter(l => l.id !== tempId));
+            console.error('Error adding like:', error);
+          } else if (data) {
+            // Replace temp with real
+            setLikes(prev => prev.map(l => l.id === tempId ? {
+              ...data,
+              item_type: data.item_type as 'experience' | 'itinerary',
+              item_data: data.item_data as Record<string, any>
+            } : l));
+          }
+        });
+      
+      return true;
     }
   };
 
-  // Check if an item is liked
   const isLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' = 'experience'): boolean => {
     return likes.some(l => l.item_id === itemId && l.item_type === itemType);
   }, [likes]);
 
-  // Get likes by type
   const getLikesByType = useCallback((itemType: 'experience' | 'itinerary'): UserLike[] => {
     return likes.filter(l => l.item_type === itemType);
   }, [likes]);

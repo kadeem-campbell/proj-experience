@@ -964,7 +964,11 @@ const PublicItinerary = () => {
                 <Share2 className="w-5 h-5 text-foreground" />
               </button>
               <button 
-                onClick={() => handleToggleLike(itinerary.id, 'itinerary', { id: itinerary.id, name: itinerary.name })}
+                onClick={() => {
+                  if (!isAuthenticated) { setShowAuthModal(true); return; }
+                  if ('vibrate' in navigator) navigator.vibrate(10);
+                  handleToggleLike(itinerary.id, 'itinerary', { id: itinerary.id, name: itinerary.name });
+                }}
                 className={cn(
                   "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg",
                   isItemLiked(itinerary.id, 'itinerary') && "bg-primary/15"
