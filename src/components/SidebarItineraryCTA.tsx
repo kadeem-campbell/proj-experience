@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
