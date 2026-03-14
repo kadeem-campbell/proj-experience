@@ -200,6 +200,8 @@ const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { s
 // Top header bar
 const MobileTopBar = ({
   selectedCity,
+  selectedCityData,
+  countryFlags,
   hideAvatar = false,
   notFixed = false,
   onCityTap,
