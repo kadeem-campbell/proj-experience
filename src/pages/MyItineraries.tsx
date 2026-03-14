@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
-import { useCities } from "@/hooks/useAppData";
+import { useCities, useCategories } from "@/hooks/useAppData";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -24,14 +24,17 @@ import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
 
-const addModeCategories = [
-  { icon: catBeaches, label: "Beaches", category: "Beach" },
-  { icon: catNightlife, label: "Nightlife", category: "Nightlife" },
-  { icon: catNature, label: "Nature", category: "Wildlife" },
-  { icon: catAdventure, label: "Adventure", category: "Adventure" },
-  { icon: catFood, label: "Food", category: "Food" },
-  { icon: catSafari, label: "Safari", category: "Safari" },
-];
+const categoryIconFallback: Record<string, string> = {
+  "Beach": catBeaches,
+  "Adventure": catAdventure,
+  "Party": catNightlife,
+  "Nightlife": catNightlife,
+  "Wildlife": catNature,
+  "Food": catFood,
+  "Safari": catSafari,
+  "Water Sports": catAdventure,
+  "Culture": catNature,
+};
 
 // Spotify-style itinerary card — like a playlist (mobile)
 const ItineraryPlaylistCard = ({ 
