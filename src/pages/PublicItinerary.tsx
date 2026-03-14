@@ -639,11 +639,13 @@ const PublicItinerary = () => {
   // Icons view card
   const renderIconCard = (experience: LikedExperience) => {
     const liked = isItemLiked(experience.id, 'experience');
+    const dbExp = allDbExperiences.find(e => e.id === experience.id);
+    const expSlug = dbExp?.slug || slugify(experience.title);
     return (
       <div
         key={experience.id}
         className="cursor-pointer group"
-        onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+        onClick={() => navigate(`/experiences/${expSlug}`)}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {experience.videoThumbnail ? (
