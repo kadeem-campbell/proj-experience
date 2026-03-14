@@ -350,13 +350,49 @@ export const AdminManualEntities = () => {
             <div><Label className="text-xs mb-1 block">Instagram</Label><Input value={creatorForm.instagram} onChange={e => setCreatorForm(p => ({ ...p, instagram: e.target.value }))} placeholder="@handle" /></div>
             <div><Label className="text-xs mb-1 block">TikTok</Label><Input value={creatorForm.tiktok} onChange={e => setCreatorForm(p => ({ ...p, tiktok: e.target.value }))} placeholder="@handle" /></div>
             <div><Label className="text-xs mb-1 block">Website</Label><Input value={creatorForm.website} onChange={e => setCreatorForm(p => ({ ...p, website: e.target.value }))} placeholder="https://..." /></div>
+            <div className="md:col-span-3">
+              <Label className="text-xs mb-1 block">Categories</Label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat: any) => {
+                  const isSelected = creatorForm.category_ids.includes(cat.id);
+                  return (
+                    <label key={cat.id} className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => {
+                          setCreatorForm(p => ({
+                            ...p,
+                            category_ids: isSelected
+                              ? p.category_ids.filter(id => id !== cat.id)
+                              : [...p.category_ids, cat.id]
+                          }));
+                        }}
+                      />
+                      <span className="text-sm">{cat.emoji} {cat.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <Button size="sm" disabled={!creatorForm.username.trim() || createMutation.isPending} onClick={() => {
+          <Button size="sm" disabled={!creatorForm.username.trim() || createMutation.isPending} onClick={async () => {
+            const categoryIds = [...creatorForm.category_ids];
             createMutation.mutate({
               table: 'creators', payload: { username: creatorForm.username.trim(), display_name: creatorForm.display_name.trim(), bio: creatorForm.bio.trim(), avatar_url: creatorForm.avatar_url.trim(), social_links: { instagram: creatorForm.instagram.trim(), tiktok: creatorForm.tiktok.trim(), website: creatorForm.website.trim() } },
               successTitle: 'Creator created', invalidateKeys: ['creators'],
             });
-            setCreatorForm({ username: '', display_name: '', bio: '', avatar_url: '', instagram: '', tiktok: '', website: '' });
+            // After creator is created, add category links
+            if (categoryIds.length > 0) {
+              // Small delay to let the creator be created first
+              setTimeout(async () => {
+                const { data: newCreator } = await supabase.from('creators').select('id').eq('username', creatorForm.username.trim()).maybeSingle();
+                if (newCreator) {
+                  await supabase.from('creator_categories').insert(categoryIds.map(cid => ({ creator_id: newCreator.id, category_id: cid })));
+                  queryClient.invalidateQueries({ queryKey: ['creator-categories'] });
+                }
+              }, 500);
+            }
+            setCreatorForm({ username: '', display_name: '', bio: '', avatar_url: '', instagram: '', tiktok: '', website: '', category_ids: [] });
           }}>Add Creator</Button>
           <p className="text-xs text-muted-foreground font-medium">{creators.length} existing creators</p>
           <div className="space-y-0.5 max-h-60 overflow-y-auto border rounded-md p-2">
