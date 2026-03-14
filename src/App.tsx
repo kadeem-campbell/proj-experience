@@ -28,6 +28,7 @@ import Liked from "./pages/Liked";
 import Collection from "./pages/Collection";
 import ExperienceCollection from "./pages/ExperienceCollection";
 import NotFound from "./pages/NotFound";
+import HostProfile from "./pages/HostProfile";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,9 @@ const App = () => (
           {/* Legacy URL support */}
           <Route path="/experience/:location/:legacySlug" element={<ExperienceDetail />} />
           <Route path="/experience/:id" element={<ExperienceDetail />} />
+          {/* Host/Creator profiles */}
+          <Route path="/hosts/:username" element={<HostProfile />} />
+          <Route path="/creators/:username" element={<HostProfile />} />
           <Route path="/creators" element={<Creators />} />
           <Route path="/create-experience" element={<CreateExperience />} />
           <Route path="/itinerary" element={<Trip useActiveItinerary={true} />} />
