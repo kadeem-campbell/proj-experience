@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, ReactNode, useMemo } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Home, Search, ListMusic, User, Map, X } from "lucide-react";
+import { Home, Search, ListMusic, User, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
