@@ -656,13 +656,14 @@ const PublicItinerary = () => {
               <MapPin className="w-6 h-6 text-muted-foreground" />
             </div>
           )}
-          <button
-            onClick={async (e) => {
-              e.preventDefault(); e.stopPropagation();
-              if ('vibrate' in navigator) navigator.vibrate(10);
-              await handleToggleLike(experience.id, 'experience', { id: experience.id, title: experience.title });
-            }}
-            className={cn(
+            <button
+              onClick={async (e) => {
+                e.preventDefault(); e.stopPropagation();
+                if ('vibrate' in navigator) navigator.vibrate(10);
+                if (!isAuthenticated) { setShowAuthModal(true); return; }
+                await handleToggleLike(experience.id, 'experience', { id: experience.id, title: experience.title });
+              }}
+              className={cn(
               "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-colors",
               liked ? "bg-black/40" : "bg-background/70"
             )}
