@@ -208,7 +208,28 @@ const CollectionPage = () => {
     return { featuredItems: featured, remainingSections: uniqueSections };
   }, [dbCollection, staticCollection, slug, publicItinerariesList]);
 
-  if (!collection) {
+  const hasCollection = !!dbCollection || !!staticCollection;
+  const collectionTitle = dbCollection?.title || staticCollection?.title || "Collection";
+  const collectionDescription = dbCollection?.description || staticCollection?.description || "";
+  const isInitialLoading = (dbCollectionLoading || itinerariesLoading) && !hasCollection;
+
+  if (isInitialLoading) {
+    return isMobile ? (
+      <MobileShell hideAvatar>
+        <div className="flex justify-center items-center py-20">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MobileShell>
+    ) : (
+      <MainLayout>
+        <div className="flex justify-center items-center py-24">
+          <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!hasCollection) {
     return isMobile ? (
       <MobileShell hideAvatar>
         <div className="text-center py-16 px-4">
