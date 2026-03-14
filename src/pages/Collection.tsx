@@ -352,7 +352,7 @@ const CollectionPage = () => {
 
         <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
           <div className="max-w-[1600px] mx-auto">
-            <p className="text-muted-foreground mb-6 max-w-2xl">{collection.description}</p>
+            <p className="text-muted-foreground mb-6 max-w-2xl">{collectionDescription}</p>
             <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
               {filteredFeatured.map((itinerary: any) => (
                 <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
