@@ -161,6 +161,7 @@ export default function ExperienceDetail() {
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
   const { data: dbExperiences, isLoading: dbExperiencesLoading } = useDbExperiences();
+  const { data: allCreators = [] } = useCreators();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [justAdded, setJustAdded] = useState(false);
