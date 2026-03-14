@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useCities, type DbCity } from "@/hooks/useAppData";
 
