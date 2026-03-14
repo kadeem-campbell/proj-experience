@@ -115,9 +115,9 @@ const CitySelectorSheet = ({
   countryFlags: Record<string, string>;
   loading: boolean;
 }) => (
-  <Sheet open={open} onOpenChange={onOpenChange}>
-    <SheetContent side="right" className="w-[320px] p-0 border-l border-border">
-      <div className="px-5 pt-6 pb-4">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+    <SheetContent side="right" className="w-[320px] p-0 border-l border-border flex flex-col h-full [&>button]:right-4 [&>button]:top-4 [&>button]:z-20 [&>button]:w-8 [&>button]:h-8 [&>button]:rounded-full [&>button]:bg-muted/80 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:opacity-100">
+      <div className="px-5 pt-6 pb-4 flex-1 overflow-y-auto">
         <h2 className="text-lg font-bold text-foreground mb-1">Select city</h2>
         <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
 
@@ -128,11 +128,11 @@ const CitySelectorSheet = ({
             <div className="space-y-2 mb-6">
               {selectableCities.map((city) => {
                 const isSelected = normalize(selectedCity) === normalize(city.name);
-                const flag = countryFlags[city.country] || city.flag_svg_url || city.flag_emoji;
+                const flag = city.flag_svg_url || countryFlags[city.country] || city.flag_emoji;
                 return (
                   <button
                     key={city.id}
-                    onClick={() => onCityChange(isSelected ? "" : city.name)}
+                    onClick={() => { onCityChange(isSelected ? "" : city.name); onOpenChange(false); }}
                     className={cn(
                       "w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left active:scale-[0.98]",
                       isSelected ? "bg-primary/10 border border-primary/30" : "bg-card border border-border/60"
@@ -157,7 +157,7 @@ const CitySelectorSheet = ({
                 </div>
                 <div className="space-y-1.5">
                   {comingSoonCities.map((city) => {
-                    const csFlag = countryFlags[city.country] || city.flag_svg_url || city.flag_emoji;
+                    const csFlag = city.flag_svg_url || countryFlags[city.country] || city.flag_emoji;
                     return (
                     <div key={city.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50">
                       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -182,7 +182,7 @@ const CitySelectorSheet = ({
 const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbCity | null; countryFlags: Record<string, string>; onTap: () => void }) => {
   const isActive = !!selectedCityData;
   const code = selectedCityData?.airport_code || "";
-  const flag = selectedCityData ? (countryFlags[selectedCityData.country] || selectedCityData.flag_svg_url || selectedCityData.flag_emoji) : "";
+  const flag = selectedCityData ? (selectedCityData.flag_svg_url || countryFlags[selectedCityData.country] || selectedCityData.flag_emoji) : "";
 
   return (
     <button onClick={onTap} className="flex flex-col items-center justify-center gap-0.5 transition-all">
