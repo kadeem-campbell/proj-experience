@@ -156,6 +156,15 @@ const MyItinerariesPage = () => {
   const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
   const [showAllNotifications, setShowAllNotifications] = useState(false);
   const { data: cities = [] } = useCities();
+  const { data: dbCategories = [] } = useCategories();
+  const addModeCategories = useMemo(() => {
+    return dbCategories.map(cat => ({
+      icon: cat.icon_image || categoryIconFallback[cat.name] || catAdventure,
+      label: cat.name,
+      category: cat.name,
+      emoji: cat.emoji,
+    }));
+  }, [dbCategories]);
 
   // Add Experience Mode
   const [addMode, setAddMode] = useState(false);
