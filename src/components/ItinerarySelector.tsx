@@ -106,9 +106,8 @@ export const ItinerarySelector = ({
 
   const selectorContent = (
     <>
-      <div className="p-4 border-b border-border">
-        <h4 className="font-semibold text-base">Add to itinerary</h4>
-        <p className="text-xs text-muted-foreground mt-1">Tap to add or remove</p>
+      <div className="px-4 pt-1 pb-3 border-b border-border">
+        <h4 className="font-semibold text-base text-center">Add to itinerary</h4>
       </div>
       
       <div className="max-h-[50vh] overflow-y-auto">

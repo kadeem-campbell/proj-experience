@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -19,9 +18,8 @@ interface SidebarItineraryCTAProps {
 }
 
 export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAProps) => {
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
-  const { itineraries, experienceCount } = useItineraries();
+  const { itineraries, experienceCount, createItinerary } = useItineraries();
   const isMobile = useIsMobile();
   
   const isCollapsedView = collapsed || isMobile;
@@ -31,8 +29,9 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
     return null;
   }
 
-  const handleCreateItinerary = () => {
-    setShowOnboarding(true);
+  const handleCreateItinerary = async () => {
+    const newIt = await createItinerary("My Trip");
+    navigate(`/trip/${newIt.id}`);
   };
 
   const handleViewTrip = () => {
@@ -47,7 +46,6 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
   const hasExperiences = experienceCount > 0;
 
   return (
-    <>
       <SidebarGroup className="py-0">
         <SidebarGroupContent>
           <SidebarMenu>
@@ -80,8 +78,5 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-
-      <OnboardingFlow open={showOnboarding} onOpenChange={setShowOnboarding} />
-    </>
   );
 };

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Globe, Zap, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OnboardingFlow } from "@/components/OnboardingFlow";
+// OnboardingFlow removed
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useItineraries } from "@/hooks/useItineraries";
@@ -14,7 +14,7 @@ interface LiveActivityBannerProps {
 export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps) => {
   const [planningNow, setPlanningNow] = useState(0);
   const [itinerariesCreated, setItinerariesCreated] = useState(0);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  // onboarding removed
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { itineraries } = useItineraries();
@@ -65,8 +65,8 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
     return () => clearInterval(interval);
   }, []);
 
-  const handleCreateItinerary = () => {
-    setShowOnboarding(true);
+  const handleCreateItinerary = async () => {
+    navigate('/my-itineraries');
   };
 
   const handleViewTrip = () => {
@@ -147,9 +147,6 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
           </div>
         </div>
       </div>
-
-      {/* Onboarding Flow */}
-      <OnboardingFlow open={showOnboarding} onOpenChange={setShowOnboarding} />
     </>
   );
 };

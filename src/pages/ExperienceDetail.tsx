@@ -20,18 +20,15 @@ import {
   TrendingUp,
   Sparkles,
   ChevronRight,
-  ChevronDown,
   Calendar,
   Zap,
   CloudSun,
-  DollarSign,
   HelpCircle,
   Send,
   ThumbsUp
 } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-// DB-driven: no mock data imports needed
 import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
@@ -39,14 +36,13 @@ import { ShareDrawer } from "@/components/ShareDrawer";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
+import { AuthModal } from "@/components/AuthModal";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
 import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
-
-// Mock data images removed - all content from DB now
 
 import jetskiImage from "@/assets/jetski-experience.jpg";
 
@@ -61,21 +57,17 @@ const categoryIconMap: Record<string, string> = {
   "Culture": catNature,
 };
 
-const getDefaultImage = (category: string) => {
-  return jetskiImage;
-};
-
-// FAQ Component
-const FAQSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: string }) => {
+// Questions Section (renamed from FAQ)
+const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: string }) => {
   const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAskForm, setShowAskForm] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
   const [localFaqs, setLocalFaqs] = useState(faqs || []);
 
   const handleAsk = () => {
     if (!isAuthenticated) {
-      navigate('/auth');
+      setShowAuthModal(true);
       return;
     }
     setShowAskForm(true);
@@ -91,7 +83,7 @@ const FAQSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: string 
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">FAQ</h2>
+        <h2 className="text-lg font-semibold">Questions</h2>
         <button
           onClick={handleAsk}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium active:scale-95 transition-transform"
@@ -155,6 +147,8 @@ const FAQSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: string 
           <p className="text-xs text-muted-foreground/60 mt-0.5">Be the first to ask!</p>
         </div>
       )}
+
+      <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </div>
   );
 };
@@ -170,6 +164,8 @@ export default function ExperienceDetail() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [justAdded, setJustAdded] = useState(false);
   const [localLiked, setLocalLiked] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   const handleGoBack = () => {
@@ -203,10 +199,10 @@ export default function ExperienceDetail() {
       tiktokVideos: db.tiktok_videos,
       instagramEmbed: db.instagram_embed,
       socialLinks: db.social_links,
+      likeCount: db.like_count,
     });
 
     if (dbExperiences && dbExperiences.length > 0) {
-      // Match by DB slug field first, then by slugified title, then by ID
       if (slug) {
         const dbMatch = dbExperiences.find(e => e.slug === slug || slugify(e.title) === slug);
         if (dbMatch) return fromDb(dbMatch);
@@ -235,7 +231,8 @@ export default function ExperienceDetail() {
         videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category
       });
     } else {
-      setLocalLiked(!localLiked);
+      setPendingAction('like');
+      setShowAuthModal(true);
     }
   };
 
@@ -249,6 +246,8 @@ export default function ExperienceDetail() {
     return { added, planning, trending };
   }, [experience?.id, id]);
 
+  const likedByCount = (experience?.likeCount || 0) + socialProof.added;
+
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
@@ -261,6 +260,17 @@ export default function ExperienceDetail() {
     }
     return () => { document.title = 'Experience East Africa'; };
   }, [experience]);
+
+  // Check if sections have content
+  const hasHighlights = experience?.highlights && experience.highlights.length > 0;
+  const hasMeetingPoints = experience?.meetingPoints && experience.meetingPoints.length > 0;
+  const hasSocialContent = (experience?.tiktokVideos && experience.tiktokVideos.length > 0) || !!experience?.instagramEmbed;
+  const hasDescription = !!experience?.description?.trim();
+  const hasCreators = (() => {
+    if (!experience?.creator) return false;
+    const raw = experience.creator.trim();
+    return raw.length > 0;
+  })();
 
   if (!experience && dbExperiencesLoading) {
     return isMobile ? (
@@ -304,25 +314,18 @@ export default function ExperienceDetail() {
   const creatorNames = (() => {
     const rawCreator = (experience.creator || '').trim();
     if (!rawCreator) return [] as string[];
-
     if (rawCreator.startsWith('[')) {
       try {
         const parsed = JSON.parse(rawCreator);
         if (Array.isArray(parsed)) {
-          return parsed
-            .map((name: string) => String(name).replace(/^@/, '').trim())
-            .filter(Boolean);
+          return parsed.map((name: string) => String(name).replace(/^@/, '').trim()).filter(Boolean);
         }
-      } catch {
-        // fall through to delimiter parsing
-      }
+      } catch {}
     }
-
     const splitNames = rawCreator
       .split(/\r?\n|,|;|\||\s+&\s+|\s+and\s+/i)
       .map((name: string) => name.replace(/^@/, '').trim())
       .filter(Boolean);
-
     return Array.from(new Set(splitNames));
   })();
 
@@ -331,7 +334,7 @@ export default function ExperienceDetail() {
     return (
       <MobileShell hideTopBar>
         <div className="bg-background overflow-y-auto">
-          {/* Photo Gallery - NO rounded edges */}
+          {/* Photo Gallery */}
           <div className="relative">
             {gallery.length > 1 ? (
               <PhotoGallery images={gallery} title={experience.title} />
@@ -351,7 +354,7 @@ export default function ExperienceDetail() {
                 <img src={gallery[0]} alt={experience.title} className="w-full h-full object-cover" />
               </div>
             )}
-            {/* Top buttons - exact same as itinerary */}
+            {/* Top buttons */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
               <button 
                 onClick={handleGoBack}
@@ -360,7 +363,7 @@ export default function ExperienceDetail() {
                 <ArrowLeft className="w-5 h-5 text-foreground" />
               </button>
               <div className="flex items-center gap-2">
-                <ShareDrawer title={experience.title} url={shareUrl}>
+                <ShareDrawer title={experience.title} url={shareUrl} onInvite={() => {}}>
                   <button className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
                     <Share2 className="w-5 h-5 text-foreground" />
                   </button>
@@ -386,15 +389,15 @@ export default function ExperienceDetail() {
               <span>{experience.location}</span>
             </div>
 
-            {/* Rating + Social - spaced cleanly */}
+            {/* Rating + Social */}
             <div className="flex items-center gap-4 mb-4">
               <div className="flex items-center gap-1.5">
                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                 <span className="text-sm font-semibold text-foreground">{experience.rating}</span>
               </div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span><strong className="text-foreground">{socialProof.added}</strong> added</span>
+                <Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />
+                <span>Liked by <strong className="text-foreground">{likedByCount}</strong> people</span>
               </div>
             </div>
 
@@ -427,110 +430,129 @@ export default function ExperienceDetail() {
               </ItinerarySelector>
             </div>
 
-            {/* Info Pills - category icon, duration, group, weather unified */}
+            {/* Info Pills */}
             <div className="flex flex-wrap gap-2 mb-6">
               <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
                 {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
                 <span className="font-medium">{experience.category}</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
-                <Clock className="w-4 h-4 text-primary" />
-                <span className="font-medium">{experience.duration}</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
-                <Users className="w-4 h-4 text-primary" />
-                <span className="font-medium">{experience.groupSize}</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
-                <CloudSun className="w-4 h-4 text-primary" />
-                <span className="font-medium">{(experience.weather || experience.bestTime || "Tropical").replace(/[^\w\s,°\-–.]/g, '').trim()}</span>
-              </div>
+              {experience.duration && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{experience.duration}</span>
+                </div>
+              )}
+              {experience.groupSize && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{experience.groupSize}</span>
+                </div>
+              )}
+              {(experience.weather || experience.bestTime) && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                  <CloudSun className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{(experience.weather || experience.bestTime || "").replace(/[^\w\s,°\-–.]/g, '').trim()}</span>
+                </div>
+              )}
             </div>
 
             {/* Prices per person */}
             <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
-              <h3 className="text-base font-semibold mb-2">Prices per person</h3>
+              <h3 className="text-base font-semibold mb-2">Average prices per person</h3>
               <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
+              <p className="text-[11px] text-muted-foreground mt-1.5">Prices are based on local market averages and may vary by operator.</p>
             </div>
 
-            {/* Social Video Embeds */}
-            <SocialVideoEmbed 
-              experienceTitle={experience.title}
-              location={experience.location}
-              tiktokVideos={experience.tiktokVideos || []}
-              instagramEmbed={experience.instagramEmbed}
-              className="mb-6"
-            />
+            {/* Social Video Embeds - only if content exists */}
+            {hasSocialContent && (
+              <SocialVideoEmbed 
+                experienceTitle={experience.title}
+                location={experience.location}
+                tiktokVideos={experience.tiktokVideos || []}
+                instagramEmbed={experience.instagramEmbed}
+                className="mb-6"
+              />
+            )}
 
-            {/* Description */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-3">About this experience</h2>
-              <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
-            </div>
-
-            {/* Highlights */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-4">What makes it special</h2>
-              <div className="grid grid-cols-1 gap-3">
-                {experience.highlights?.map((item: string, index: number) => (
-                  <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-sm">{item}</span>
-                  </div>
-                ))}
+            {/* Description - only if content exists */}
+            {hasDescription && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-3">About</h2>
+                <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
               </div>
-            </div>
+            )}
 
-            {/* Meeting Points */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-4">Where to find it</h2>
-              <div className="space-y-2">
-                {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
-                  <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-4 h-4 text-primary" />
+            {/* Highlights - only if content exists */}
+            {hasHighlights && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-4">What makes it special</h2>
+                <div className="grid grid-cols-1 gap-3">
+                  {experience.highlights?.map((item: string, index: number) => (
+                    <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-sm">{item}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{point.name}</p>
-                      <p className="text-xs text-muted-foreground">{point.type}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Creators */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-3">Creators</h2>
-              <div className="space-y-2">
-                {creatorNames.map((creatorName: string, idx: number) => (
-                  <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
-                    <Avatar className="w-12 h-12">
-                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                        {creatorName.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium">@{creatorName}</p>
-                      <p className="text-sm text-muted-foreground">Creator</p>
+            {/* Meeting Points - only if content exists */}
+            {hasMeetingPoints && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-4">Where to find it</h2>
+                <div className="space-y-2">
+                  {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
+                    <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{point.name}</p>
+                        <p className="text-xs text-muted-foreground">{point.type}</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                      <span className="font-medium">{experience.rating}</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* FAQ Section - at bottom */}
-            <FAQSection faqs={experience.faqs || []} experienceId={experience.id} />
+            {/* Creators - only if content exists */}
+            {hasCreators && creatorNames.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-3">Creators</h2>
+                <div className="space-y-2">
+                  {creatorNames.map((creatorName: string, idx: number) => (
+                    <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+                      <Avatar className="w-12 h-12">
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                          {creatorName.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium">@{creatorName}</p>
+                        <p className="text-sm text-muted-foreground">Creator</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                        <span className="font-medium">{experience.rating}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Questions Section - always shown as fallback */}
+            <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />
 
             <div className="h-8" />
           </div>
         </div>
+
+        <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
       </MobileShell>
     );
   }
@@ -538,7 +560,7 @@ export default function ExperienceDetail() {
   // Desktop
   return (
     <div className="min-h-screen bg-background overflow-y-auto w-full">
-        {/* Media Section - no rounded edges */}
+        {/* Media Section */}
         <div className="relative">
           {gallery.length > 1 ? (
             <div className="aspect-[3/1] overflow-hidden">
@@ -563,7 +585,7 @@ export default function ExperienceDetail() {
             </div>
           )}
           
-          {/* Top buttons - exact same as itinerary */}
+          {/* Top buttons */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
             <button 
               onClick={handleGoBack}
@@ -572,7 +594,7 @@ export default function ExperienceDetail() {
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
             <div className="flex items-center gap-2">
-              <ShareDrawer title={experience.title} url={shareUrl}>
+              <ShareDrawer title={experience.title} url={shareUrl} onInvite={() => {}}>
                 <button className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
                   <Share2 className="w-5 h-5 text-foreground" />
                 </button>
@@ -614,8 +636,8 @@ export default function ExperienceDetail() {
                     <span className="text-sm font-semibold">{experience.rating}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <TrendingUp className="w-4 h-4" />
-                    <span><strong className="text-foreground">{socialProof.added}</strong> added</span>
+                    <Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />
+                    <span>Liked by <strong className="text-foreground">{likedByCount}</strong> people</span>
                   </div>
                 </div>
               </div>
@@ -626,94 +648,110 @@ export default function ExperienceDetail() {
                   {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
                   <span className="font-medium">{experience.category}</span>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{experience.duration}</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{experience.groupSize}</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
-                  <CloudSun className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{(experience.weather || experience.bestTime || "Tropical").replace(/[^\w\s,°\-–.]/g, '').trim()}</span>
-                </div>
+                {experience.duration && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{experience.duration}</span>
+                  </div>
+                )}
+                {experience.groupSize && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                    <Users className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{experience.groupSize}</span>
+                  </div>
+                )}
+                {(experience.weather || experience.bestTime) && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">
+                    <CloudSun className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{(experience.weather || experience.bestTime || "").replace(/[^\w\s,°\-–.]/g, '').trim()}</span>
+                  </div>
+                )}
               </div>
 
               {/* Description */}
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">About this experience</h2>
-                <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
-              </div>
+              {hasDescription && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold mb-3">About</h2>
+                  <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
+                </div>
+              )}
 
-              <SocialVideoEmbed 
-                experienceTitle={experience.title}
-                location={experience.location}
-                tiktokVideos={experience.tiktokVideos || []}
-                instagramEmbed={experience.instagramEmbed}
-                className="mb-6"
-              />
+              {hasSocialContent && (
+                <SocialVideoEmbed 
+                  experienceTitle={experience.title}
+                  location={experience.location}
+                  tiktokVideos={experience.tiktokVideos || []}
+                  instagramEmbed={experience.instagramEmbed}
+                  className="mb-6"
+                />
+              )}
 
               {/* Highlights */}
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">Highlights</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {experience.highlights?.map((item: string, i: number) => (
-                    <div key={i} className="flex items-center gap-2.5 p-3 rounded-xl bg-card border border-border">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Sparkles className="w-3 h-3 text-primary" />
+              {hasHighlights && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold mb-3">What makes it special</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {experience.highlights?.map((item: string, i: number) => (
+                      <div key={i} className="flex items-center gap-2.5 p-3 rounded-xl bg-card border border-border">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Sparkles className="w-3 h-3 text-primary" />
+                        </div>
+                        <span className="text-sm">{item}</span>
                       </div>
-                      <span className="text-sm">{item}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Meeting Points */}
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">Where to find it</h2>
-                <div className="space-y-2">
-                  {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
-                    <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-4 h-4 text-primary" />
+              {hasMeetingPoints && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold mb-3">Where to find it</h2>
+                  <div className="space-y-2">
+                    {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
+                      <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <MapPin className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{point.name}</p>
+                          <p className="text-xs text-muted-foreground">{point.type}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{point.name}</p>
-                        <p className="text-xs text-muted-foreground">{point.type}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Creators */}
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">Creators</h2>
-                <div className="space-y-2">
-                  {creatorNames.map((creatorName: string, idx: number) => (
-                    <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
-                      <Avatar className="w-12 h-12">
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                          {creatorName.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium">@{creatorName}</p>
-                        <p className="text-sm text-muted-foreground">Creator</p>
+              {hasCreators && creatorNames.length > 0 && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold mb-3">Creators</h2>
+                  <div className="space-y-2">
+                    {creatorNames.map((creatorName: string, idx: number) => (
+                      <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+                        <Avatar className="w-12 h-12">
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                            {creatorName.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium">@{creatorName}</p>
+                          <p className="text-sm text-muted-foreground">Creator</p>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                          <span className="font-medium">{experience.rating}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                        <span className="font-medium">{experience.rating}</span>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* FAQ - at bottom */}
-              <FAQSection faqs={experience.faqs || []} experienceId={experience.id} />
+              {/* Questions - always shown */}
+              <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />
             </div>
 
             {/* Right sidebar */}
@@ -762,14 +800,15 @@ export default function ExperienceDetail() {
                   </button>
 
                   <p className="text-center text-xs text-muted-foreground mt-2.5">
-                    <span className="text-primary font-medium">{socialProof.added}</span> travelers have added this
+                    Liked by <span className="text-primary font-medium">{likedByCount}</span> people
                   </p>
                 </div>
 
                 {/* Prices per person */}
                 <div className="rounded-2xl border border-border bg-card p-5">
-                  <p className="text-sm font-semibold mb-2">Prices per person</p>
+                  <p className="text-sm font-semibold mb-2">Average prices per person</p>
                   <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
+                  <p className="text-[11px] text-muted-foreground mt-1.5">Based on local market averages. May vary by operator.</p>
                 </div>
 
                 {/* In Your Itineraries */}
@@ -820,6 +859,8 @@ export default function ExperienceDetail() {
             </div>
           </div>
         </main>
+
+        <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </div>
   );
 }

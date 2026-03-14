@@ -43,6 +43,8 @@ const App = () => (
           <Route path="/" element={<Search />} />
           {/* Single experience - slug-based */}
           <Route path="/experiences/:slug" element={<ExperienceDetail />} />
+          {/* Location-prefixed slug support */}
+          <Route path="/experiences/:location/:legacySlug" element={<ExperienceDetail />} />
           {/* Legacy URL support */}
           <Route path="/experience/:location/:legacySlug" element={<ExperienceDetail />} />
           <Route path="/experience/:id" element={<ExperienceDetail />} />
