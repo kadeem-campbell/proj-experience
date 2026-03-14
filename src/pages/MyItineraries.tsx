@@ -370,12 +370,6 @@ const MyItinerariesPage = () => {
                 })}
               </div>
             </div>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
           {/* Experience list */}
