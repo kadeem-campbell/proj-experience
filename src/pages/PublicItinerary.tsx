@@ -237,10 +237,16 @@ const PublicItinerary = () => {
     return { savedBy };
   }, [itinerary]);
 
-  // Filter and order experiences for list/icons
+  // Filter and order experiences for list/icons - only show DB-verified experiences
   const filteredExperiences = useMemo(() => {
     if (!itinerary) return [];
-    let exps = [...itinerary.experiences];
+    const dbIds = new Set(allDbExperiences.map(e => e.id));
+    // Filter: only keep experiences that exist in DB (have valid UUIDs matching DB records)
+    let exps = itinerary.experiences.filter(e => {
+      // Valid UUID format check + must exist in DB
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(e.id);
+      return isUUID && dbIds.has(e.id);
+    });
     // Apply sort
     if (sortMode === 'name') {
       exps.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
@@ -255,7 +261,7 @@ const PublicItinerary = () => {
       e.location?.toLowerCase().includes(q) ||
       e.category?.toLowerCase().includes(q)
     );
-  }, [itinerary, searchQuery, sortMode]);
+  }, [itinerary, searchQuery, sortMode, allDbExperiences]);
 
   // External experience matches (not in this itinerary)
   const externalMatches = useMemo(() => {
@@ -569,6 +575,10 @@ const PublicItinerary = () => {
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
     const price = experience.price ? `${experience.price} avg` : null;
 
+    // Resolve slug from DB if available
+    const dbExp = allDbExperiences.find(e => e.id === experience.id);
+    const expSlug = dbExp?.slug || slugify(experience.title);
+
     const metaParts: string[] = [];
     if (experience.location) metaParts.push(experience.location);
     if (experience.category) metaParts.push(experience.category);
@@ -576,7 +586,7 @@ const PublicItinerary = () => {
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
         <div
-          onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+          onClick={() => navigate(`/experiences/${expSlug}`)}
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
@@ -629,11 +639,13 @@ const PublicItinerary = () => {
   // Icons view card
   const renderIconCard = (experience: LikedExperience) => {
     const liked = isItemLiked(experience.id, 'experience');
+    const dbExp = allDbExperiences.find(e => e.id === experience.id);
+    const expSlug = dbExp?.slug || slugify(experience.title);
     return (
       <div
         key={experience.id}
         className="cursor-pointer group"
-        onClick={() => navigate(`/experiences/${slugify(experience.title)}`)}
+        onClick={() => navigate(`/experiences/${expSlug}`)}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {experience.videoThumbnail ? (
@@ -969,7 +981,7 @@ const PublicItinerary = () => {
               {itinerary.name}
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-[15px]">
-              <span className="font-medium">{itinerary.experiences.length} experiences</span>
+              <span className="font-medium">{filteredExperiences.length} experiences</span>
               {itineraryLocation && (
                 <span className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4" />
@@ -1078,7 +1090,7 @@ const PublicItinerary = () => {
                   setShowAddToItinerarySheet(true);
                 }}>
                   <Plus className="w-3 h-3" />
-                  Add to Itinerary
+                  Use this itinerary
                 </Button>
               )}
             </div>
@@ -1178,14 +1190,13 @@ const PublicItinerary = () => {
             <DrawerTitle className="text-center">Share</DrawerTitle>
             <DrawerDescription className="sr-only">Share this itinerary</DrawerDescription>
           </DrawerHeader>
-          <div className="px-4 pb-4 space-y-3">
+          <div className="px-4 pb-4">
             {/* Top row: icon grid */}
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-3 gap-1">
               {[
-                { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); }, highlight: copied },
+                { label: "Copy Link", icon: copied ? Check : Copy, action: () => { handleCopyLink(); }, highlight: copied },
                 { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); }, highlight: false },
                 { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setTimeout(() => setShowInviteSheet(true), 100); }, highlight: false },
-                { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setTimeout(() => setShowCollaboratorSheet(true), 100); }, highlight: false },
               ].map((opt) => (
                 <button
                   key={opt.label}
@@ -1202,17 +1213,6 @@ const PublicItinerary = () => {
                   <span className="text-[10px] text-muted-foreground text-center leading-tight whitespace-pre-line">{opt.label}</span>
                 </button>
               ))}
-            </div>
-            {/* Export row */}
-            <div className="flex gap-2">
-              <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
-                <Download className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs font-medium">Export CSV</span>
-              </button>
-              <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
-                <Download className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs font-medium">Export XLSX</span>
-              </button>
             </div>
           </div>
         </DrawerContent>
