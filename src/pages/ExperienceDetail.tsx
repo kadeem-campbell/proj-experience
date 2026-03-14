@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
 import { MobileShell } from "@/components/MobileShell";
 import { useDbExperiences, DbExperience } from "@/hooks/useDbExperiences";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -168,6 +169,7 @@ export default function ExperienceDetail() {
   const [localLiked, setLocalLiked] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [likeCountDelta, setLikeCountDelta] = useState(0);
   const isMobile = useIsMobile();
 
   const handleGoBack = () => {
@@ -228,6 +230,8 @@ export default function ExperienceDetail() {
     if (!experience) return;
     if ('vibrate' in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
+      const wasLiked = isDbLiked(experience.id, 'experience');
+      setLikeCountDelta(prev => prev + (wasLiked ? -1 : 1));
       await toggleDbLike(experience.id, 'experience', {
         id: experience.id, title: experience.title,
         videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category
@@ -248,7 +252,7 @@ export default function ExperienceDetail() {
     return { added, planning, trending };
   }, [experience?.id, id]);
 
-  const likedByCount = (experience?.likeCount || 0) + socialProof.added;
+  const likedByCount = (experience?.likeCount || 0) + socialProof.added + likeCountDelta;
 
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
@@ -258,10 +262,25 @@ export default function ExperienceDetail() {
 
   useEffect(() => {
     if (experience) {
-      document.title = `${experience.title} in ${experience.location} | Add to Your Itinerary`;
+      document.title = `${experience.title} in ${experience.location} | Things to Do | swam.app`;
     }
-    return () => { document.title = 'Experience East Africa'; };
+    return () => { document.title = 'Discover Experiences in East Africa | swam.app'; };
   }, [experience]);
+
+  const experienceJsonLd = useMemo(() => {
+    if (!experience) return null;
+    return createExperienceJsonLd({
+      title: experience.title,
+      description: experience.description,
+      location: experience.location,
+      price: experience.price,
+      rating: experience.rating,
+      image: experience.videoThumbnail,
+      url: shareUrl,
+      duration: experience.duration,
+      category: experience.category,
+    });
+  }, [experience, shareUrl]);
 
   // Check if sections have content
   const hasHighlights = experience?.highlights && experience.highlights.length > 0;
@@ -348,6 +367,15 @@ export default function ExperienceDetail() {
   if (isMobile) {
     return (
       <MobileShell hideTopBar>
+        {experienceJsonLd && (
+          <SEOHead
+            title={`${experience.title} in ${experience.location}`}
+            description={`${experience.title} — ${experience.category} activity in ${experience.location}. ${experience.description?.slice(0, 120) || 'Discover and add to your itinerary.'}`}
+            url={shareUrl}
+            image={experience.videoThumbnail}
+            jsonLd={experienceJsonLd}
+          />
+        )}
         <div className="bg-background overflow-y-auto">
           {/* Photo Gallery */}
           <div className="relative">

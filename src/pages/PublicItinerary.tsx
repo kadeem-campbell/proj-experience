@@ -163,6 +163,10 @@ const PublicItinerary = () => {
 
   const handleToggleLike = useCallback(async (itemId: string, itemType: 'experience' | 'itinerary', itemData: Record<string, any>) => {
     if (isAuthenticated) {
+      const wasLiked = isDbLiked(itemId, itemType);
+      if (itemType === 'itinerary') {
+        setLikeCountDelta(prev => prev + (wasLiked ? -1 : 1));
+      }
       await toggleDbLike(itemId, itemType, itemData);
     } else {
       setLocalLikes(prev => {
@@ -173,7 +177,7 @@ const PublicItinerary = () => {
         return next;
       });
     }
-  }, [isAuthenticated, toggleDbLike]);
+  }, [isAuthenticated, toggleDbLike, isDbLiked]);
 
   // Find itinerary - check public data first, then user's own
   const publicItinerary = publicItinerariesData.find((i: any) => i.id === id || i.slug === id || i.dbId === id);
@@ -229,13 +233,16 @@ const PublicItinerary = () => {
     return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
   }, [itinerary]);
 
-  // Social proof (fake but convincing for public)
+  const [likeCountDelta, setLikeCountDelta] = useState(0);
+
+  // Social proof using real like_count + optimistic delta
   const socialProof = useMemo(() => {
     if (!itinerary) return null;
+    const baseLikes = (itinerary as any).likeCount || 0;
     const seed = itinerary.id.charCodeAt(0) + itinerary.experiences.length;
-    const savedBy = 80 + (seed % 200);
+    const savedBy = baseLikes + (80 + (seed % 200)) + likeCountDelta;
     return { savedBy };
-  }, [itinerary]);
+  }, [itinerary, likeCountDelta]);
 
   // Filter and order experiences for list/icons - only show DB-verified experiences
   const filteredExperiences = useMemo(() => {

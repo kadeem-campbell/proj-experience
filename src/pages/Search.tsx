@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { SEOHead, createWebsiteJsonLd } from "@/components/SEOHead";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
@@ -276,7 +277,15 @@ const SearchPage = () => {
   );
 
   if (isMobile) return (
-    <MobileHomeView />
+    <>
+      <SEOHead
+        title="Discover Experiences & Things to Do in East Africa"
+        description="Explore curated experiences, activities and things to do in Zanzibar, Kilimanjaro, Nairobi and across East Africa. Build and share itineraries with friends."
+        url="https://swam.app"
+        jsonLd={createWebsiteJsonLd()}
+      />
+      <MobileHomeView />
+    </>
   );
 
   const handleCitySelect = (city: City | null) => { setSelectedCity(city); setSelectedCategory(null); };
