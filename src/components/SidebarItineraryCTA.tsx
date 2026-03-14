@@ -18,9 +18,8 @@ interface SidebarItineraryCTAProps {
 }
 
 export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAProps) => {
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
-  const { itineraries, experienceCount } = useItineraries();
+  const { itineraries, experienceCount, createItinerary } = useItineraries();
   const isMobile = useIsMobile();
   
   const isCollapsedView = collapsed || isMobile;
