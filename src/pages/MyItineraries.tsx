@@ -141,6 +141,10 @@ const MyItinerariesPage = () => {
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newVisibility, setNewVisibility] = useState<"private" | "public">("private");
+  const [newPeople, setNewPeople] = useState("2");
+  const [newCity, setNewCity] = useState("");
   const [creating, setCreating] = useState(false);
   const [optionsItinerary, setOptionsItinerary] = useState<any>(null);
   const [renaming, setRenaming] = useState(false);
@@ -148,6 +152,7 @@ const MyItinerariesPage = () => {
   const isMobile = useIsMobile();
   const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
   const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const { data: cities = [] } = useCities();
 
   // Add Experience Mode
   const [addMode, setAddMode] = useState(false);
