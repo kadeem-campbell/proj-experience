@@ -251,7 +251,7 @@ export default function ExperienceDetail() {
     return { added, planning, trending };
   }, [experience?.id, id]);
 
-  const likedByCount = (experience?.likeCount || 0) + socialProof.added;
+  const likedByCount = (experience?.likeCount || 0) + socialProof.added + likeCountDelta;
 
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
