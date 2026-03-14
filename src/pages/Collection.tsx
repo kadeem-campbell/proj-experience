@@ -258,7 +258,15 @@ const CollectionPage = () => {
 
         {/* Hero header */}
         <div className="px-4 pt-3 pb-5">
-...
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <ArrowLeft className="w-4 h-4 text-foreground" />
+            </button>
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Collection</span>
+          </div>
           <h1 className="text-[26px] font-extrabold text-foreground leading-tight tracking-tight">
             {collectionTitle}
           </h1>

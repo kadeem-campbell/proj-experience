@@ -621,6 +621,7 @@ const PublicItinerary = () => {
               onClick={async (e) => {
                 e.preventDefault(); e.stopPropagation();
                 if ('vibrate' in navigator) navigator.vibrate(10);
+                if (!isAuthenticated) { setShowAuthModal(true); return; }
                 await handleToggleLike(experience.id, 'experience', {
                   id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail,
                 });
@@ -655,13 +656,14 @@ const PublicItinerary = () => {
               <MapPin className="w-6 h-6 text-muted-foreground" />
             </div>
           )}
-          <button
-            onClick={async (e) => {
-              e.preventDefault(); e.stopPropagation();
-              if ('vibrate' in navigator) navigator.vibrate(10);
-              await handleToggleLike(experience.id, 'experience', { id: experience.id, title: experience.title });
-            }}
-            className={cn(
+            <button
+              onClick={async (e) => {
+                e.preventDefault(); e.stopPropagation();
+                if ('vibrate' in navigator) navigator.vibrate(10);
+                if (!isAuthenticated) { setShowAuthModal(true); return; }
+                await handleToggleLike(experience.id, 'experience', { id: experience.id, title: experience.title });
+              }}
+              className={cn(
               "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-colors",
               liked ? "bg-black/40" : "bg-background/70"
             )}
@@ -964,7 +966,11 @@ const PublicItinerary = () => {
                 <Share2 className="w-5 h-5 text-foreground" />
               </button>
               <button 
-                onClick={() => handleToggleLike(itinerary.id, 'itinerary', { id: itinerary.id, name: itinerary.name })}
+                onClick={() => {
+                  if (!isAuthenticated) { setShowAuthModal(true); return; }
+                  if ('vibrate' in navigator) navigator.vibrate(10);
+                  handleToggleLike(itinerary.id, 'itinerary', { id: itinerary.id, name: itinerary.name });
+                }}
                 className={cn(
                   "w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg",
                   isItemLiked(itinerary.id, 'itinerary') && "bg-primary/15"

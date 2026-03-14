@@ -10,8 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Pencil, Check, X, Trash2 } from 'lucide-react';
+import { Pencil, Check, X, Trash2, Tag } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 const toSlug = (value: string) =>
   value.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
@@ -194,6 +195,91 @@ const EditableRow = ({
   );
 };
 
+// --- Creator Category Editor (for existing creators) ---
+const CreatorCategoryEditor = ({ creatorId, categories }: { creatorId: string; categories: any[] }) => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [editing, setEditing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const { data: creatorCats = [], isLoading } = useQuery({
+    queryKey: ['creator-categories', creatorId],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('creator_categories')
+        .select('category_id')
+        .eq('creator_id', creatorId);
+      return (data || []).map((r: any) => r.category_id);
+    },
+  });
+
+  const startEdit = () => {
+    setSelectedIds([...creatorCats]);
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    // Remove all existing, then insert new
+    await (supabase as any).from('creator_categories').delete().eq('creator_id', creatorId);
+    if (selectedIds.length > 0) {
+      await (supabase as any).from('creator_categories').insert(
+        selectedIds.map(cid => ({ creator_id: creatorId, category_id: cid }))
+      );
+    }
+    queryClient.invalidateQueries({ queryKey: ['creator-categories', creatorId] });
+    queryClient.invalidateQueries({ queryKey: ['creator-categories'] });
+    toast({ title: 'Categories updated' });
+    setEditing(false);
+  };
+
+  if (isLoading) return null;
+
+  const catNames = creatorCats
+    .map((cid: string) => categories.find((c: any) => c.id === cid))
+    .filter(Boolean)
+    .map((c: any) => `${c.emoji || ''} ${c.name}`.trim());
+
+  if (!editing) {
+    return (
+      <button onClick={startEdit} className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+        <Tag className="w-2.5 h-2.5" />
+        {catNames.length > 0 ? catNames.join(', ') : 'Add categories'}
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-1 p-2 border rounded-md bg-muted/20 space-y-2">
+      <div className="flex flex-wrap gap-1.5">
+        {categories.map((cat: any) => {
+          const isSelected = selectedIds.includes(cat.id);
+          return (
+            <label key={cat.id} className="flex items-center gap-1 cursor-pointer text-xs">
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={() => {
+                  setSelectedIds(prev =>
+                    isSelected ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                  );
+                }}
+              />
+              <span>{cat.emoji} {cat.name}</span>
+            </label>
+          );
+        })}
+      </div>
+      <div className="flex gap-1">
+        <Button size="sm" className="h-5 text-[10px] px-2" onClick={handleSave}>
+          <Check className="w-2.5 h-2.5 mr-0.5" /> Save
+        </Button>
+        <Button size="sm" variant="ghost" className="h-5 text-[10px] px-2" onClick={() => setEditing(false)}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 // --- Main component ---
 export const AdminManualEntities = () => {
   const { toast } = useToast();
@@ -250,7 +336,7 @@ export const AdminManualEntities = () => {
         <TabsList className="grid grid-cols-5 mb-4">
           <TabsTrigger value="categories">Categories</TabsTrigger>
           <TabsTrigger value="cities">Cities</TabsTrigger>
-          <TabsTrigger value="creators">Creators</TabsTrigger>
+          <TabsTrigger value="creators">Hosts</TabsTrigger>
           <TabsTrigger value="itineraries">Itineraries</TabsTrigger>
           <TabsTrigger value="collections">Collections</TabsTrigger>
         </TabsList>
@@ -340,7 +426,7 @@ export const AdminManualEntities = () => {
           </div>
         </TabsContent>
 
-        {/* ===== CREATORS ===== */}
+        {/* ===== CREATORS/HOSTS ===== */}
         <TabsContent value="creators" className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div><Label className="text-xs mb-1 block">Username *</Label><Input value={creatorForm.username} onChange={e => setCreatorForm(p => ({ ...p, username: e.target.value }))} placeholder="kadeem" /></div>
@@ -379,32 +465,35 @@ export const AdminManualEntities = () => {
             const categoryIds = [...creatorForm.category_ids];
             createMutation.mutate({
               table: 'creators', payload: { username: creatorForm.username.trim(), display_name: creatorForm.display_name.trim(), bio: creatorForm.bio.trim(), avatar_url: creatorForm.avatar_url.trim(), social_links: { instagram: creatorForm.instagram.trim(), tiktok: creatorForm.tiktok.trim(), website: creatorForm.website.trim() } },
-              successTitle: 'Creator created', invalidateKeys: ['creators'],
+              successTitle: 'Host created', invalidateKeys: ['creators'],
             });
-            // After creator is created, add category links
             if (categoryIds.length > 0) {
-              // Small delay to let the creator be created first
               setTimeout(async () => {
                 const { data: newCreator } = await supabase.from('creators').select('id').eq('username', creatorForm.username.trim()).maybeSingle();
                 if (newCreator) {
-                  await supabase.from('creator_categories').insert(categoryIds.map(cid => ({ creator_id: newCreator.id, category_id: cid })));
+                  await (supabase as any).from('creator_categories').insert(categoryIds.map(cid => ({ creator_id: newCreator.id, category_id: cid })));
                   queryClient.invalidateQueries({ queryKey: ['creator-categories'] });
                 }
               }, 500);
             }
             setCreatorForm({ username: '', display_name: '', bio: '', avatar_url: '', instagram: '', tiktok: '', website: '', category_ids: [] });
-          }}>Add Creator</Button>
-          <p className="text-xs text-muted-foreground font-medium">{creators.length} existing creators</p>
-          <div className="space-y-0.5 max-h-60 overflow-y-auto border rounded-md p-2">
+          }}>Add Host</Button>
+          <p className="text-xs text-muted-foreground font-medium">{creators.length} existing hosts</p>
+          <div className="space-y-1 max-h-[400px] overflow-y-auto border rounded-md p-2">
             {creators.map((cr: any) => (
-              <EditableRow key={cr.id} record={cr} table="creators" invalidateKeys={['creators']}
-                fields={[
-                  { key: 'username', label: 'Username' },
-                  { key: 'display_name', label: 'Display Name' },
-                  { key: 'bio', label: 'Bio' },
-                  { key: 'avatar_url', label: 'Avatar URL' },
-                ]}
-              />
+              <div key={cr.id} className="border-b border-border/20 last:border-b-0 pb-1.5">
+                <EditableRow record={cr} table="creators" invalidateKeys={['creators']}
+                  fields={[
+                    { key: 'username', label: 'Username' },
+                    { key: 'display_name', label: 'Display Name' },
+                    { key: 'bio', label: 'Bio' },
+                    { key: 'avatar_url', label: 'Avatar URL' },
+                  ]}
+                />
+                <div className="px-2">
+                  <CreatorCategoryEditor creatorId={cr.id} categories={categories} />
+                </div>
+              </div>
             ))}
           </div>
         </TabsContent>
