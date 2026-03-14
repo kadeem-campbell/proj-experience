@@ -752,7 +752,7 @@ export default function ExperienceDetail() {
                       <div 
                         key={idx} 
                         className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:bg-muted/40 transition-colors"
-                        onClick={() => navigate(`/hosts/${creatorName.toLowerCase().replace(/\s+/g, '-')}`)}
+                        onClick={() => navigate(getHostUrl(creatorName))}
                       >
                         <Avatar className="w-12 h-12">
                           <AvatarFallback className="bg-primary/10 text-primary font-bold">
