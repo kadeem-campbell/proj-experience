@@ -262,10 +262,25 @@ export default function ExperienceDetail() {
 
   useEffect(() => {
     if (experience) {
-      document.title = `${experience.title} in ${experience.location} | Add to Your Itinerary`;
+      document.title = `${experience.title} in ${experience.location} | Things to Do | swam.app`;
     }
-    return () => { document.title = 'Experience East Africa'; };
+    return () => { document.title = 'Discover Experiences in East Africa | swam.app'; };
   }, [experience]);
+
+  const experienceJsonLd = useMemo(() => {
+    if (!experience) return null;
+    return createExperienceJsonLd({
+      title: experience.title,
+      description: experience.description,
+      location: experience.location,
+      price: experience.price,
+      rating: experience.rating,
+      image: experience.videoThumbnail,
+      url: shareUrl,
+      duration: experience.duration,
+      category: experience.category,
+    });
+  }, [experience, shareUrl]);
 
   // Check if sections have content
   const hasHighlights = experience?.highlights && experience.highlights.length > 0;
