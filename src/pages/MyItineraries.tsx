@@ -420,7 +420,7 @@ const MyItinerariesPage = () => {
 
   // ============ MOBILE VIEW ============
   if (isMobile) {
-    const visibleNotifications = showAllNotifications ? updates : updates.slice(0, 3);
+    const visibleNotifications = showAllNotifications ? updates : updates.slice(0, 1);
     return (
       <MobileShell hideAvatar>
         <div className="flex flex-col h-full">
