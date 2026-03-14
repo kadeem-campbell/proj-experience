@@ -176,7 +176,7 @@ const PublicItinerary = () => {
   }, [isAuthenticated, toggleDbLike]);
 
   // Find itinerary - check public data first, then user's own
-  const publicItinerary = publicItinerariesData.find(i => i.id === id);
+  const publicItinerary = publicItinerariesData.find((i: any) => i.id === id || i.slug === id || i.dbId === id);
   const ownedItinerary = itineraries.find(i => i.id === id);
   const itinerary = publicItinerary || ownedItinerary;
   const isOwned = !!ownedItinerary && !publicItinerary;
