@@ -251,27 +251,19 @@ const CollectionPage = () => {
     return (
       <MobileShell hideAvatar>
         <Helmet>
-          <title>{collection.title} — Curated Itineraries | Swam</title>
-          <meta name="description" content={collection.description} />
+          <title>{collectionTitle} — Curated Itineraries | Swam</title>
+          <meta name="description" content={collectionDescription} />
           <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
         </Helmet>
 
         {/* Hero header */}
         <div className="px-4 pt-3 pb-5">
-          <div className="flex items-center gap-3 mb-3">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center active:scale-95 transition-transform"
-            >
-              <ArrowLeft className="w-4 h-4 text-foreground" />
-            </button>
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Collection</span>
-          </div>
+...
           <h1 className="text-[26px] font-extrabold text-foreground leading-tight tracking-tight">
-            {collection.title}
+            {collectionTitle}
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-            {collection.description}
+            {collectionDescription}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-2">
             {featuredItems.length} itineraries
