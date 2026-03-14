@@ -175,24 +175,20 @@ const CitySelectorSheet = ({
   </Sheet>
 );
 
-// City button - Map icon default, Tanzania flag with code underneath when active
-const CityButton = ({ selectedCity, onTap }: { selectedCity: string; onTap: () => void }) => {
-  const code = selectedCity ? cityCodeMap[selectedCity] : "";
-  const isActive = !!selectedCity;
+// City button - map icon default, selected city flag/code when active
+const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbCity | null; countryFlags: Record<string, string>; onTap: () => void }) => {
+  const isActive = !!selectedCityData;
+  const code = selectedCityData?.airport_code || "";
+  const flag = selectedCityData ? (countryFlags[selectedCityData.country] || selectedCityData.flag_svg_url || selectedCityData.flag_emoji) : "";
 
   return (
-    <button
-      onClick={onTap}
-      className="flex flex-col items-center justify-center gap-0.5 transition-all"
-    >
+    <button onClick={onTap} className="flex flex-col items-center justify-center gap-0.5 transition-all">
       {isActive ? (
         <>
-          <div className="w-7 h-7 rounded-full relative overflow-hidden shadow-sm">
-            <TanzaniaFlag className="absolute inset-0 w-full h-full" />
+          <div className="w-7 h-7 rounded-full relative overflow-hidden shadow-sm bg-muted flex items-center justify-center">
+            {flag ? isSvg(flag) ? <img src={flag} alt={`${selectedCityData?.country || 'country'} flag`} className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
           </div>
-          <span className="text-[8px] font-bold text-foreground tracking-wide leading-none">
-            {code}
-          </span>
+          <span className="text-[8px] font-bold text-foreground tracking-wide leading-none">{code}</span>
         </>
       ) : (
         <Map className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
