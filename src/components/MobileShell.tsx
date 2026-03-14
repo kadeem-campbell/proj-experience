@@ -200,11 +200,15 @@ const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { s
 // Top header bar
 const MobileTopBar = ({
   selectedCity,
+  selectedCityData,
+  countryFlags,
   hideAvatar = false,
   notFixed = false,
   onCityTap,
 }: {
   selectedCity: string;
+  selectedCityData: DbCity | null;
+  countryFlags: Record<string, string>;
   hideAvatar?: boolean;
   notFixed?: boolean;
   onCityTap: () => void;
@@ -221,7 +225,7 @@ const MobileTopBar = ({
           <button onClick={() => navigate('/')} className="text-[22px] tracking-[-0.03em] text-foreground" style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}>
             swam<span className="text-primary font-extrabold">.app</span>
           </button>
-          <CityButton selectedCity={selectedCity} selectedCityData={null} countryFlags={{}} onTap={onCityTap} />
+          <CityButton selectedCity={selectedCity} selectedCityData={selectedCityData} countryFlags={countryFlags} onTap={onCityTap} />
         </div>
       </div>
     </div>
@@ -331,6 +335,8 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
       {!hideTopBar && (
         <MobileTopBar
           selectedCity={selectedCity}
+          selectedCityData={selectedCityData}
+          countryFlags={countryFlags}
           hideAvatar={hideAvatar}
           notFixed={notFixed}
           onCityTap={() => setCitySelectorOpen(true)}

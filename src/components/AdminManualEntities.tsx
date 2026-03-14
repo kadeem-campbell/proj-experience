@@ -61,7 +61,7 @@ export const AdminManualEntities = () => {
   });
 
   const [categoryForm, setCategoryForm] = useState({ name: '', emoji: '', description: '' });
-  const [cityForm, setCityForm] = useState({ name: '', country: '', flag_emoji: '', airport_code: '' });
+  const [cityForm, setCityForm] = useState({ name: '', country: '', flag_emoji: '', flag_svg_url: '', airport_code: '', launch_date: '', latitude: '', longitude: '' });
   const [creatorForm, setCreatorForm] = useState({
     username: '',
     display_name: '',
@@ -176,30 +176,51 @@ export const AdminManualEntities = () => {
               <Input value={cityForm.country} onChange={(e) => setCityForm((p) => ({ ...p, country: e.target.value }))} placeholder="Tanzania" />
             </div>
             <div>
-              <Label className="text-xs mb-1 block">Flag</Label>
+              <Label className="text-xs mb-1 block">Flag Emoji</Label>
               <Input value={cityForm.flag_emoji} onChange={(e) => setCityForm((p) => ({ ...p, flag_emoji: e.target.value }))} placeholder="🇹🇿" />
+            </div>
+            <div>
+              <Label className="text-xs mb-1 block">Flag SVG URL</Label>
+              <Input value={cityForm.flag_svg_url} onChange={(e) => setCityForm((p) => ({ ...p, flag_svg_url: e.target.value }))} placeholder="https://flagcdn.com/tz.svg" />
             </div>
             <div>
               <Label className="text-xs mb-1 block">Airport code</Label>
               <Input value={cityForm.airport_code} onChange={(e) => setCityForm((p) => ({ ...p, airport_code: e.target.value }))} placeholder="ZNZ" />
+            </div>
+            <div>
+              <Label className="text-xs mb-1 block">Launch date</Label>
+              <Input type="date" value={cityForm.launch_date} onChange={(e) => setCityForm((p) => ({ ...p, launch_date: e.target.value }))} />
+            </div>
+            <div>
+              <Label className="text-xs mb-1 block">Latitude</Label>
+              <Input value={cityForm.latitude} onChange={(e) => setCityForm((p) => ({ ...p, latitude: e.target.value }))} placeholder="-6.16" />
+            </div>
+            <div>
+              <Label className="text-xs mb-1 block">Longitude</Label>
+              <Input value={cityForm.longitude} onChange={(e) => setCityForm((p) => ({ ...p, longitude: e.target.value }))} placeholder="39.19" />
             </div>
           </div>
           <Button
             size="sm"
             disabled={!cityForm.name.trim() || createMutation.isPending}
             onClick={() => {
+              const payload: Record<string, any> = {
+                name: cityForm.name.trim(),
+                country: cityForm.country.trim(),
+                flag_emoji: cityForm.flag_emoji.trim(),
+                airport_code: cityForm.airport_code.trim(),
+              };
+              if (cityForm.flag_svg_url.trim()) payload.flag_svg_url = cityForm.flag_svg_url.trim();
+              if (cityForm.launch_date) payload.launch_date = cityForm.launch_date;
+              if (cityForm.latitude) payload.latitude = parseFloat(cityForm.latitude);
+              if (cityForm.longitude) payload.longitude = parseFloat(cityForm.longitude);
               createMutation.mutate({
                 table: 'cities',
-                payload: {
-                  name: cityForm.name.trim(),
-                  country: cityForm.country.trim(),
-                  flag_emoji: cityForm.flag_emoji.trim(),
-                  airport_code: cityForm.airport_code.trim(),
-                },
+                payload,
                 successTitle: 'City created',
                 invalidateKeys: ['cities'],
               });
-              setCityForm({ name: '', country: '', flag_emoji: '', airport_code: '' });
+              setCityForm({ name: '', country: '', flag_emoji: '', flag_svg_url: '', airport_code: '', launch_date: '', latitude: '', longitude: '' });
             }}
           >
             Add City
