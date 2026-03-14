@@ -116,14 +116,7 @@ const CitySelectorSheet = ({
   loading: boolean;
 }) => (
     <Sheet open={open} onOpenChange={onOpenChange}>
-    <SheetContent side="right" className="w-[320px] p-0 border-l border-border flex flex-col h-full">
-      {/* Close button */}
-      <button
-        onClick={() => onOpenChange(false)}
-        className="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors"
-      >
-        <X className="w-4 h-4 text-foreground" />
-      </button>
+    <SheetContent side="right" className="w-[320px] p-0 border-l border-border flex flex-col h-full [&>button]:right-4 [&>button]:top-4 [&>button]:z-20 [&>button]:w-8 [&>button]:h-8 [&>button]:rounded-full [&>button]:bg-muted/80 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:opacity-100">
       <div className="px-5 pt-6 pb-4 flex-1 overflow-y-auto">
         <h2 className="text-lg font-bold text-foreground mb-1">Select city</h2>
         <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
