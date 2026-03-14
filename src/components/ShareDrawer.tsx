@@ -11,14 +11,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { 
   Copy, 
   MessageCircle, 
   Check,
   Send,
-  Users,
-  Download,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -26,30 +23,19 @@ interface ShareDrawerProps {
   title: string;
   url?: string;
   children: React.ReactNode;
-  onExportCSV?: () => void;
-  onExportXLSX?: () => void;
   onInvite?: () => void;
-  onCollab?: () => void;
 }
 
 const ShareContent = ({ 
   shareUrl, 
   shareText, 
-  title, 
   onClose,
-  onExportCSV,
-  onExportXLSX,
   onInvite,
-  onCollab,
 }: { 
   shareUrl: string; 
   shareText: string; 
-  title: string; 
   onClose: () => void;
-  onExportCSV?: () => void;
-  onExportXLSX?: () => void;
   onInvite?: () => void;
-  onCollab?: () => void;
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -87,16 +73,10 @@ const ShareContent = ({
       onClick: () => { onInvite(); onClose(); },
       className: "",
     }] : []),
-    ...(onCollab ? [{
-      name: "Collab",
-      icon: Users,
-      onClick: () => { onCollab(); onClose(); },
-      className: "",
-    }] : []),
   ];
 
   return (
-    <div className="space-y-3">
+    <div>
       <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${shareOptions.length}, 1fr)` }}>
         {shareOptions.map((option) => (
           <button
@@ -112,44 +92,11 @@ const ShareContent = ({
           </button>
         ))}
       </div>
-
-      {/* Export row */}
-      {(onExportCSV || onExportXLSX) && (
-        <div className="flex gap-2">
-          {onExportCSV && (
-            <button onClick={() => { onExportCSV(); onClose(); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
-              <Download className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs font-medium">Export CSV</span>
-            </button>
-          )}
-          {onExportXLSX && (
-            <button onClick={() => { onExportXLSX(); onClose(); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
-              <Download className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs font-medium">Export XLSX</span>
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* URL preview */}
-      <div className="p-2.5 rounded-xl bg-muted flex items-center gap-2">
-        <div className="flex-1 truncate text-xs text-muted-foreground">
-          {shareUrl}
-        </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={handleCopy}
-          className="flex-shrink-0 h-7 w-7 p-0"
-        >
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-        </Button>
-      </div>
     </div>
   );
 };
 
-export const ShareDrawer = ({ title, url, children, onExportCSV, onExportXLSX, onInvite, onCollab }: ShareDrawerProps) => {
+export const ShareDrawer = ({ title, url, children, onInvite }: ShareDrawerProps) => {
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
   
@@ -157,8 +104,6 @@ export const ShareDrawer = ({ title, url, children, onExportCSV, onExportXLSX, o
   const shareText = `Check out: ${title}`;
 
   const handleTriggerClick = async () => {
-    // Don't use navigator.share on mobile — always show our custom drawer
-    // navigator.share causes issues when combined with other share actions
     setOpen(true);
   };
 
@@ -177,12 +122,8 @@ export const ShareDrawer = ({ title, url, children, onExportCSV, onExportXLSX, o
           <ShareContent 
             shareUrl={shareUrl} 
             shareText={shareText} 
-            title={title} 
             onClose={() => setOpen(false)}
-            onExportCSV={onExportCSV}
-            onExportXLSX={onExportXLSX}
             onInvite={onInvite}
-            onCollab={onCollab}
           />
         </PopoverContent>
       </Popover>
@@ -206,12 +147,8 @@ export const ShareDrawer = ({ title, url, children, onExportCSV, onExportXLSX, o
           <ShareContent 
             shareUrl={shareUrl} 
             shareText={shareText} 
-            title={title} 
             onClose={() => setOpen(false)}
-            onExportCSV={onExportCSV}
-            onExportXLSX={onExportXLSX}
             onInvite={onInvite}
-            onCollab={onCollab}
           />
         </div>
       </DrawerContent>
