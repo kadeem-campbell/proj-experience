@@ -262,6 +262,20 @@ export default function ExperienceDetail() {
     return () => { document.title = 'Experience East Africa'; };
   }, [experience]);
 
+  if (!experience && dbExperiencesLoading) {
+    return isMobile ? (
+      <MobileShell hideTopBar>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MobileShell>
+    ) : (
+      <div className="flex justify-center items-center min-h-screen bg-background w-full">
+        <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!experience) {
     if (isMobile) {
       return (
