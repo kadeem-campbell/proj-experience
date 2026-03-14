@@ -96,71 +96,80 @@ const MobileBottomNav = ({ onSearchClick, isSearchOpen }: { onSearchClick: () =>
 };
 
 // City selector sheet - slides in from right
-const CitySelectorSheet = ({ 
-  open, onOpenChange, selectedCity, onCityChange 
-}: { 
-  open: boolean; onOpenChange: (v: boolean) => void; selectedCity: string; onCityChange: (city: string) => void;
+const CitySelectorSheet = ({
+  open,
+  onOpenChange,
+  selectedCity,
+  onCityChange,
+  selectableCities,
+  comingSoonCities,
+  countryFlags,
+  loading,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  selectedCity: string;
+  onCityChange: (city: string) => void;
+  selectableCities: DbCity[];
+  comingSoonCities: DbCity[];
+  countryFlags: Record<string, string>;
+  loading: boolean;
 }) => (
   <Sheet open={open} onOpenChange={onOpenChange}>
     <SheetContent side="right" className="w-[320px] p-0 border-l border-border">
       <div className="px-5 pt-6 pb-4">
         <h2 className="text-lg font-bold text-foreground mb-1">Select city</h2>
         <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
-        
-        <div className="space-y-2 mb-6">
-          {availableCities.map((city) => {
-            const isSelected = selectedCity === city.name;
-            return (
-              <button
-                key={city.name}
-                onClick={() => {
-                  onCityChange(isSelected ? "" : city.name);
-                }}
-                className={cn(
-                  "w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left active:scale-[0.98]",
-                  isSelected
-                    ? "bg-primary/10 border border-primary/30"
-                    : "bg-card border border-border/60"
-                )}
-              >
-                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-sm">
-                  <TanzaniaFlag className="w-full h-full" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={cn("font-semibold text-sm", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
-                  <p className="text-xs text-muted-foreground">{city.code}</p>
-                </div>
-                {isSelected && (
-                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
 
-        <div className="mb-3">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Coming soon</p>
-        </div>
-        <div className="space-y-1.5">
-          {comingSoonCities.map((city) => (
-            <div
-              key={city.name}
-              className="flex items-center gap-3 p-3 rounded-xl opacity-50"
-            >
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                <Map className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">{city.name}</p>
-              </div>
-              <span className="text-[10px] text-muted-foreground">{city.date}</span>
+        {loading ? (
+          <div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+        ) : (
+          <>
+            <div className="space-y-2 mb-6">
+              {selectableCities.map((city) => {
+                const isSelected = normalize(selectedCity) === normalize(city.name);
+                const flag = countryFlags[city.country] || city.flag_svg_url || city.flag_emoji;
+                return (
+                  <button
+                    key={city.id}
+                    onClick={() => onCityChange(isSelected ? "" : city.name)}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left active:scale-[0.98]",
+                      isSelected ? "bg-primary/10 border border-primary/30" : "bg-card border border-border/60"
+                    )}
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-sm bg-muted flex items-center justify-center">
+                      {flag ? isSvg(flag) ? <img src={flag} alt={`${city.country} flag`} className="w-full h-full object-cover" /> : <span className="text-lg">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn("font-semibold text-sm", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
+                      <p className="text-xs text-muted-foreground">{city.airport_code || city.country}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-          ))}
-        </div>
+
+            {comingSoonCities.length > 0 && (
+              <>
+                <div className="mb-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Coming soon</p>
+                </div>
+                <div className="space-y-1.5">
+                  {comingSoonCities.map((city) => (
+                    <div key={city.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        <Map className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{city.name}</p></div>
+                      <span className="text-[10px] text-muted-foreground">{formatLaunchMonth(city.launch_date)}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
     </SheetContent>
   </Sheet>
