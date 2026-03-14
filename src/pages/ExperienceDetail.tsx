@@ -168,6 +168,7 @@ export default function ExperienceDetail() {
   const [localLiked, setLocalLiked] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [likeCountDelta, setLikeCountDelta] = useState(0);
   const isMobile = useIsMobile();
 
   const handleGoBack = () => {
