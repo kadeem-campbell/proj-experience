@@ -1090,7 +1090,7 @@ const PublicItinerary = () => {
                   setShowAddToItinerarySheet(true);
                 }}>
                   <Plus className="w-3 h-3" />
-                  Add to Itinerary
+                  Use this itinerary
                 </Button>
               )}
             </div>
