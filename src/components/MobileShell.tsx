@@ -189,7 +189,7 @@ const CitySelectorSheet = ({
 const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbCity | null; countryFlags: Record<string, string>; onTap: () => void }) => {
   const isActive = !!selectedCityData;
   const code = selectedCityData?.airport_code || "";
-  const flag = selectedCityData ? (countryFlags[selectedCityData.country] || selectedCityData.flag_svg_url || selectedCityData.flag_emoji) : "";
+  const flag = selectedCityData ? (selectedCityData.flag_svg_url || countryFlags[selectedCityData.country] || selectedCityData.flag_emoji) : "";
 
   return (
     <button onClick={onTap} className="flex flex-col items-center justify-center gap-0.5 transition-all">
