@@ -642,7 +642,7 @@ const AdminPanel = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold">Admin Panel</h1>
-                <p className="text-muted-foreground">Manage experiences and content — Live database</p>
+                <p className="text-muted-foreground">Manage experiences plus categories, cities, creators, itineraries, and collections — Live database</p>
               </div>
               <TabsList>
                 <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Manage</TabsTrigger>
