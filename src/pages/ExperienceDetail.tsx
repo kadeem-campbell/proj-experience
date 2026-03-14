@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
 import { MobileShell } from "@/components/MobileShell";
 import { useDbExperiences, DbExperience } from "@/hooks/useDbExperiences";
 import { useIsMobile } from "@/hooks/use-mobile";
