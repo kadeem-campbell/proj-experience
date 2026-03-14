@@ -317,8 +317,8 @@ const CollectionPage = () => {
   return (
     <MainLayout>
       <Helmet>
-        <title>{collection.title} — Curated Itineraries | Swam</title>
-        <meta name="description" content={collection.description} />
+        <title>{collectionTitle} — Curated Itineraries | Swam</title>
+        <meta name="description" content={collectionDescription} />
         <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
       </Helmet>
 
