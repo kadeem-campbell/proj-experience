@@ -538,28 +538,137 @@ const MyItinerariesPage = () => {
           </div>
         </div>
 
-        {/* Create drawer */}
+        {/* Create drawer - iOS Create Event style */}
         <Drawer open={showCreate} onOpenChange={setShowCreate}>
-          <DrawerContent className="overflow-hidden">
-            <div className="px-6 py-5">
-              <h3 className="text-lg font-bold mb-4">New Itinerary</h3>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="e.g. Zanzibar Weekend"
-                className="h-12 rounded-xl mb-4"
-                style={{ fontSize: '16px' }}
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
-              />
+          <DrawerContent className="overflow-hidden max-h-[85vh]">
+            <div className="overflow-y-auto px-5 pt-4 pb-[env(safe-area-inset-bottom,20px)]">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <button onClick={() => setShowCreate(false)} className="text-sm text-muted-foreground font-medium">Cancel</button>
+                <h3 className="text-base font-bold text-foreground">New Itinerary</h3>
+                <button
+                  onClick={handleCreate}
+                  disabled={!newName.trim() || creating}
+                  className={cn(
+                    "text-sm font-semibold",
+                    newName.trim() && !creating ? "text-primary" : "text-muted-foreground/40"
+                  )}
+                >
+                  {creating ? "Creating..." : "Create"}
+                </button>
+              </div>
+
+              {/* Form fields - grouped card style */}
+              <div className="rounded-2xl bg-card border border-border overflow-hidden divide-y divide-border mb-4">
+                {/* Itinerary Name */}
+                <div className="px-4 py-3.5">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Itinerary Name</label>
+                  <input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="e.g. Zanzibar Weekend"
+                    className="w-full bg-transparent border-0 outline-none text-base font-medium text-foreground placeholder:text-muted-foreground/50"
+                    style={{ fontSize: '16px' }}
+                    autoFocus
+                    onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
+                  />
+                </div>
+
+                {/* Location */}
+                <div className="px-4 py-3.5">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Location</label>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-primary shrink-0" />
+                    <select
+                      value={newCity}
+                      onChange={(e) => setNewCity(e.target.value)}
+                      className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground appearance-none cursor-pointer"
+                      style={{ fontSize: '16px' }}
+                    >
+                      <option value="">Select a city</option>
+                      {launchedCities.map(city => (
+                        <option key={city.id} value={city.name}>{city.name}, {city.country}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="px-4 py-3.5">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Description</label>
+                  <textarea
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    placeholder="What's this trip about?"
+                    className="w-full bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/50 resize-none"
+                    rows={2}
+                    style={{ fontSize: '16px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Visibility & People - second card */}
+              <div className="rounded-2xl bg-card border border-border overflow-hidden divide-y divide-border mb-4">
+                {/* Visibility */}
+                <div className="px-4 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    {newVisibility === "private" ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-primary" />}
+                    <span className="text-sm font-medium text-foreground">Visibility</span>
+                  </div>
+                  <div className="flex items-center bg-muted rounded-full p-0.5">
+                    <button
+                      onClick={() => setNewVisibility("private")}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        newVisibility === "private" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                      )}
+                    >
+                      Private
+                    </button>
+                    <button
+                      onClick={() => setNewVisibility("public")}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        newVisibility === "public" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                      )}
+                    >
+                      Public
+                    </button>
+                  </div>
+                </div>
+
+                {/* Number of people */}
+                <div className="px-4 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">Travellers</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setNewPeople(String(Math.max(1, parseInt(newPeople) - 1)))}
+                      className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-foreground font-medium active:scale-90 transition-transform"
+                    >
+                      −
+                    </button>
+                    <span className="text-sm font-semibold w-6 text-center">{newPeople}</span>
+                    <button
+                      onClick={() => setNewPeople(String(Math.min(50, parseInt(newPeople) + 1)))}
+                      className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-foreground font-medium active:scale-90 transition-transform"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Create CTA */}
               <Button 
                 onClick={handleCreate} 
                 disabled={!newName.trim() || creating}
-                className="w-full h-12 rounded-xl"
+                className="w-full h-13 rounded-2xl font-semibold text-base"
               >
                 {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-                Create & Add Experiences
+                Create Itinerary
               </Button>
             </div>
           </DrawerContent>
