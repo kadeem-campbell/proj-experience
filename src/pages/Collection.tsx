@@ -12,6 +12,8 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Helmet } from "react-helmet-async";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Collection definitions - slug → metadata + filter
 const collectionDefinitions: Record<string, { title: string; description: string; filter: (items: any[]) => any[] }> = {
@@ -142,37 +144,92 @@ const CollectionPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: publicItinerariesList = [] } = usePublicItineraries();
+  const { data: publicItinerariesList = [], isLoading: itinerariesLoading } = usePublicItineraries();
 
-  const collection = slug ? collectionDefinitions[slug] : null;
+  const staticCollection = slug ? collectionDefinitions[slug] : null;
+
+  const { data: dbCollection, isLoading: dbCollectionLoading } = useQuery({
+    queryKey: ["itinerary-collection-by-slug", slug, publicItinerariesList.length],
+    enabled: !!slug,
+    queryFn: async () => {
+      const { data: collectionRow } = await supabase
+        .from("collections")
+        .select("id, name, slug, description, is_active")
+        .eq("slug", slug!)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!collectionRow) return null;
+
+      const { data: linkRows } = await (supabase as any)
+        .from("collection_items")
+        .select("item_id, position")
+        .eq("collection_id", collectionRow.id)
+        .eq("item_type", "itinerary")
+        .order("position", { ascending: true });
+
+      const linkedItems = (linkRows || [])
+        .map((row: any) => publicItinerariesList.find((it: any) => it.dbId === row.item_id))
+        .filter(Boolean);
+
+      return {
+        title: collectionRow.name,
+        description: collectionRow.description || "",
+        items: linkedItems,
+      };
+    },
+  });
 
   const { featuredItems, remainingSections } = useMemo(() => {
-    if (!collection) return { featuredItems: [], remainingSections: [] };
-    const featured = collection.filter(publicItinerariesList);
+    if (dbCollection) {
+      return { featuredItems: dbCollection.items || [], remainingSections: [] };
+    }
+
+    if (!staticCollection) return { featuredItems: [], remainingSections: [] };
+
+    const featured = staticCollection.filter(publicItinerariesList);
     const featuredIds = new Set(featured.map((i: any) => i.id));
     const remaining = publicItinerariesList.filter((i: any) => !featuredIds.has(i.id));
 
-    // Build other sections from remaining
     const sections: { key: string; title: string; items: any[] }[] = [];
     const otherCollections = Object.entries(collectionDefinitions).filter(([k]) => k !== slug);
     for (const [key, def] of otherCollections) {
       const items = def.filter(remaining).slice(0, 10);
-      if (items.length > 0) {
-        sections.push({ key, title: def.title, items });
-      }
+      if (items.length > 0) sections.push({ key, title: def.title, items });
     }
-    // Deduplicate - only show unique sections
+
     const seen = new Set<string>();
-    const uniqueSections = sections.filter(s => {
+    const uniqueSections = sections.filter((s) => {
       if (seen.has(s.title)) return false;
       seen.add(s.title);
       return true;
     }).slice(0, 4);
 
     return { featuredItems: featured, remainingSections: uniqueSections };
-  }, [collection, slug]);
+  }, [dbCollection, staticCollection, slug, publicItinerariesList]);
 
-  if (!collection) {
+  const hasCollection = !!dbCollection || !!staticCollection;
+  const collectionTitle = dbCollection?.title || staticCollection?.title || "Collection";
+  const collectionDescription = dbCollection?.description || staticCollection?.description || "";
+  const isInitialLoading = (dbCollectionLoading || itinerariesLoading) && !hasCollection;
+
+  if (isInitialLoading) {
+    return isMobile ? (
+      <MobileShell hideAvatar>
+        <div className="flex justify-center items-center py-20">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MobileShell>
+    ) : (
+      <MainLayout>
+        <div className="flex justify-center items-center py-24">
+          <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!hasCollection) {
     return isMobile ? (
       <MobileShell hideAvatar>
         <div className="text-center py-16 px-4">
@@ -194,27 +251,19 @@ const CollectionPage = () => {
     return (
       <MobileShell hideAvatar>
         <Helmet>
-          <title>{collection.title} — Curated Itineraries | Swam</title>
-          <meta name="description" content={collection.description} />
+          <title>{collectionTitle} — Curated Itineraries | Swam</title>
+          <meta name="description" content={collectionDescription} />
           <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
         </Helmet>
 
         {/* Hero header */}
         <div className="px-4 pt-3 pb-5">
-          <div className="flex items-center gap-3 mb-3">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center active:scale-95 transition-transform"
-            >
-              <ArrowLeft className="w-4 h-4 text-foreground" />
-            </button>
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Collection</span>
-          </div>
+...
           <h1 className="text-[26px] font-extrabold text-foreground leading-tight tracking-tight">
-            {collection.title}
+            {collectionTitle}
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-            {collection.description}
+            {collectionDescription}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-2">
             {featuredItems.length} itineraries
@@ -268,8 +317,8 @@ const CollectionPage = () => {
   return (
     <MainLayout>
       <Helmet>
-        <title>{collection.title} — Curated Itineraries | Swam</title>
-        <meta name="description" content={collection.description} />
+        <title>{collectionTitle} — Curated Itineraries | Swam</title>
+        <meta name="description" content={collectionDescription} />
         <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
       </Helmet>
 
@@ -284,7 +333,7 @@ const CollectionPage = () => {
               </Link>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Collection</p>
-                <h1 className="text-xl lg:text-2xl font-bold">{collection.title}</h1>
+                <h1 className="text-xl lg:text-2xl font-bold">{collectionTitle}</h1>
               </div>
               <span className="text-muted-foreground text-sm">({featuredItems.length})</span>
             </div>
@@ -303,7 +352,7 @@ const CollectionPage = () => {
 
         <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
           <div className="max-w-[1600px] mx-auto">
-            <p className="text-muted-foreground mb-6 max-w-2xl">{collection.description}</p>
+            <p className="text-muted-foreground mb-6 max-w-2xl">{collectionDescription}</p>
             <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
               {filteredFeatured.map((itinerary: any) => (
                 <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />

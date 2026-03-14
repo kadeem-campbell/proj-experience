@@ -16,6 +16,7 @@ import { useCategories, useCities, useCreators } from '@/hooks/useAppData';
 import { BulkUploader } from '@/components/BulkUploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LinkManager } from '@/components/LinkManager';
+import { AdminManualEntities } from '@/components/AdminManualEntities';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -119,7 +120,7 @@ const AdminPanel = () => {
       location: data.location,
       price: data.price_min === data.price_max ? `$${data.price_min}` : `$${data.price_min} - $${data.price_max}`,
       category: data.category,
-      creator: creatorNames.join(', '),
+      creator: creatorNames.join('\n'),
       creator_id: data.creator_ids[0] || null,
       city_id: data.city_id || null,
       video_thumbnail: data.video_thumbnail,
@@ -214,7 +215,10 @@ const AdminPanel = () => {
     const [grpMin, grpMax] = parseGroupSize(exp.group_size || '');
 
     // Try to find creator IDs from the creator string
-    const creatorNames = (exp.creator || '').split(',').map((n: string) => n.trim()).filter(Boolean);
+    const creatorNames = (exp.creator || '')
+      .split(/\r?\n|,|;|\||\s+&\s+|\s+and\s+/i)
+      .map((n: string) => n.trim())
+      .filter(Boolean);
     const creatorIds = creatorNames.map((name: string) => {
       const c = creators.find(cr => (cr.display_name || cr.username) === name);
       return c?.id;
@@ -638,7 +642,7 @@ const AdminPanel = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold">Admin Panel</h1>
-                <p className="text-muted-foreground">Manage experiences and content — Live database</p>
+                <p className="text-muted-foreground">Manage experiences plus categories, cities, creators, itineraries, and collections — Live database</p>
               </div>
               <TabsList>
                 <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Manage</TabsTrigger>
@@ -654,6 +658,8 @@ const AdminPanel = () => {
             </div>
 
             <TabsContent value="manage">
+              <AdminManualEntities />
+
               {/* Quick Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <Card className="p-4 flex items-center gap-3">

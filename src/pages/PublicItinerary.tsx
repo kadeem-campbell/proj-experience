@@ -96,7 +96,7 @@ const PublicItinerary = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
-  const { data: publicItinerariesData = [] } = usePublicItineraries();
+  const { data: publicItinerariesData = [], isLoading: publicItinerariesLoading } = usePublicItineraries();
   const [searchQuery, setSearchQuery] = useState("");
   const allDbExperiences = useExperiencesData();
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
@@ -176,7 +176,7 @@ const PublicItinerary = () => {
   }, [isAuthenticated, toggleDbLike]);
 
   // Find itinerary - check public data first, then user's own
-  const publicItinerary = publicItinerariesData.find(i => i.id === id);
+  const publicItinerary = publicItinerariesData.find((i: any) => i.id === id || i.slug === id || i.dbId === id);
   const ownedItinerary = itineraries.find(i => i.id === id);
   const itinerary = publicItinerary || ownedItinerary;
   const isOwned = !!ownedItinerary && !publicItinerary;
@@ -319,7 +319,7 @@ const PublicItinerary = () => {
   }, []);
 
   // Loading / not found states
-  if (!itinerary && itinerariesLoading) {
+  if (!itinerary && (itinerariesLoading || publicItinerariesLoading)) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
     return (
       <Wrapper {...(isMobile ? { hideTopBar: true } : {})}>

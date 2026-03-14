@@ -43,13 +43,16 @@ export const SocialVideoEmbed = ({
     if (!hasInstagram) return '';
 
     const raw = instagramEmbed!.trim();
-    const reelMatch = raw.match(/instagram\.com\/(?:reel|p)\/([^/?#]+)/i);
-    if (reelMatch?.[1]) {
-      return `https://www.instagram.com/reel/${reelMatch[1]}/embed/`;
+    const postMatch = raw.match(/instagram\.com\/(reel|p|tv)\/([^/?#]+)/i);
+    if (postMatch?.[1] && postMatch?.[2]) {
+      const postType = postMatch[1].toLowerCase();
+      const postId = postMatch[2];
+      return `https://www.instagram.com/${postType}/${postId}/embed/captioned/`;
     }
 
     if (raw.includes('/embed')) return raw;
-    return raw.replace(/\/?(\?.*)?$/, '/embed/');
+    const clean = raw.replace(/\/+$/, '');
+    return `${clean}/embed/captioned/`;
   }, [hasInstagram, instagramEmbed]);
 
   // Don't render if no embeds available
@@ -167,16 +170,23 @@ export const SocialVideoEmbed = ({
             </button>
           </div>
           {hasInstagram && (
-            <div className="w-full flex justify-center px-4 pb-6 overflow-hidden">
-              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '400px', minHeight: '500px' }}>
+            <div className="w-full flex justify-center px-4 pb-6 overflow-hidden" data-vaul-no-drag>
+              <div
+                className="rounded-xl overflow-hidden"
+                style={{ width: '100%', maxWidth: '400px', minHeight: '500px' }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+              >
                 <iframe
                   src={instagramEmbedUrl}
+                  title="Instagram Reel"
                   className="border-0"
                   style={{ width: '100%', height: '600px' }}
-                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share"
                   allowFullScreen
+                  loading="eager"
                   scrolling="no"
-                  referrerPolicy="no-referrer-when-downgrade"
+                  referrerPolicy="strict-origin-when-cross-origin"
                 />
               </div>
             </div>

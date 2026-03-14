@@ -165,7 +165,7 @@ export default function ExperienceDetail() {
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
-  const { data: dbExperiences } = useDbExperiences();
+  const { data: dbExperiences, isLoading: dbExperiencesLoading } = useDbExperiences();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [justAdded, setJustAdded] = useState(false);
@@ -262,6 +262,20 @@ export default function ExperienceDetail() {
     return () => { document.title = 'Experience East Africa'; };
   }, [experience]);
 
+  if (!experience && dbExperiencesLoading) {
+    return isMobile ? (
+      <MobileShell hideTopBar>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MobileShell>
+    ) : (
+      <div className="flex justify-center items-center min-h-screen bg-background w-full">
+        <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!experience) {
     if (isMobile) {
       return (
@@ -287,10 +301,30 @@ export default function ExperienceDetail() {
 
   const gallery = experience.gallery || [experience.videoThumbnail];
   const categoryIcon = categoryIconMap[experience.category];
-  const creatorNames = (experience.creator || '')
-    .split(/[\n,;|]+/)
-    .map((name: string) => name.replace(/^@/, '').trim())
-    .filter(Boolean);
+  const creatorNames = (() => {
+    const rawCreator = (experience.creator || '').trim();
+    if (!rawCreator) return [] as string[];
+
+    if (rawCreator.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(rawCreator);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map((name: string) => String(name).replace(/^@/, '').trim())
+            .filter(Boolean);
+        }
+      } catch {
+        // fall through to delimiter parsing
+      }
+    }
+
+    const splitNames = rawCreator
+      .split(/\r?\n|,|;|\||\s+&\s+|\s+and\s+/i)
+      .map((name: string) => name.replace(/^@/, '').trim())
+      .filter(Boolean);
+
+    return Array.from(new Set(splitNames));
+  })();
 
   // Mobile
   if (isMobile) {
