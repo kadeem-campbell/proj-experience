@@ -338,26 +338,38 @@ const MyItinerariesPage = () => {
 
             {/* Category icons row */}
             <div className="px-4 pb-3">
-              <div className="flex justify-between">
-                {addModeCategories.map((cat) => {
+              <div className="flex gap-2 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+                {addModeCategories.slice(0, 8).map((cat) => {
                   const isActive = addCategory === cat.category;
                   return (
                     <button
                       key={cat.label}
                       onClick={() => setAddCategory(isActive ? "" : cat.category)}
-                      className="flex flex-col items-center gap-1 transition-all active:scale-95"
+                      className="flex flex-col items-center gap-1 transition-all active:scale-95 shrink-0"
                     >
                       <div className={cn(
-                        "w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
+                        "w-[48px] h-[48px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
                         isActive ? "ring-2 ring-primary bg-primary/5" : "bg-muted"
                       )}>
-                        <img src={cat.icon} alt={cat.label} className="w-9 h-9 object-contain" />
+                        {cat.icon?.startsWith('http') || cat.icon?.startsWith('/') || cat.icon?.startsWith('data:') ? (
+                          <img src={cat.icon} alt={cat.label} className="w-8 h-8 object-contain" />
+                        ) : cat.emoji ? (
+                          <span className="text-xl">{cat.emoji}</span>
+                        ) : (
+                          <img src={cat.icon} alt={cat.label} className="w-8 h-8 object-contain" />
+                        )}
                       </div>
                       <span className={cn(
-                        "text-[10px] font-medium transition-colors",
+                        "text-[10px] font-medium transition-colors max-w-[52px] truncate",
                         isActive ? "text-primary" : "text-muted-foreground"
                       )}>
                         {cat.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
                       </span>
                     </button>
                   );
