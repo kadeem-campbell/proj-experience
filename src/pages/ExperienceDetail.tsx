@@ -229,6 +229,8 @@ export default function ExperienceDetail() {
     if (!experience) return;
     if ('vibrate' in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
+      const wasLiked = isDbLiked(experience.id, 'experience');
+      setLikeCountDelta(prev => prev + (wasLiked ? -1 : 1));
       await toggleDbLike(experience.id, 'experience', {
         id: experience.id, title: experience.title,
         videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category
