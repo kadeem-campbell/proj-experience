@@ -12,6 +12,8 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Helmet } from "react-helmet-async";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Collection definitions - slug → metadata + filter
 const collectionDefinitions: Record<string, { title: string; description: string; filter: (items: any[]) => any[] }> = {
