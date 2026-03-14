@@ -188,11 +188,22 @@ const MyItinerariesPage = () => {
     setAddModeItineraryId(created.id);
     setAddModeItineraryName(newName.trim());
     setNewName("");
+    setNewDescription("");
+    setNewVisibility("private");
+    setNewPeople("2");
+    setNewCity("");
     setAddSearchQuery("");
     setAddCategory("");
     setAddedIds(new Set());
     setAddMode(true);
   };
+
+  const launchedCities = useMemo(() => {
+    return cities.filter(c => {
+      if (!c.launch_date) return true;
+      return new Date(`${c.launch_date}T00:00:00`).getTime() <= Date.now();
+    });
+  }, [cities]);
 
   const handleTap = (itinerary: any) => {
     setActiveItinerary(itinerary.id);
