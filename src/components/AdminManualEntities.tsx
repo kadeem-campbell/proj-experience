@@ -222,7 +222,7 @@ export const AdminManualEntities = () => {
   // ---- Add forms state ----
   const [categoryForm, setCategoryForm] = useState({ name: '', emoji: '', description: '' });
   const [cityForm, setCityForm] = useState({ name: '', country: '', flag_emoji: '', flag_svg_url: '', airport_code: '', launch_date: '', latitude: '', longitude: '' });
-  const [creatorForm, setCreatorForm] = useState({ username: '', display_name: '', bio: '', avatar_url: '', instagram: '', tiktok: '', website: '' });
+  const [creatorForm, setCreatorForm] = useState({ username: '', display_name: '', bio: '', avatar_url: '', instagram: '', tiktok: '', website: '', category_ids: [] as string[] });
   const [itineraryForm, setItineraryForm] = useState({ name: '', slug: '', description: '', tag: 'popular' });
   const [collectionForm, setCollectionForm] = useState({ name: '', slug: '', description: '', collection_type: 'experiences', tag: '' });
 
