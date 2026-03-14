@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart } from "lucide-react";
+import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart, Calendar, Users, Globe, Eye, EyeOff } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { slugify } from "@/utils/slugUtils";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
@@ -12,9 +12,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
+import { useCities } from "@/hooks/useAppData";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -139,6 +141,10 @@ const MyItinerariesPage = () => {
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newVisibility, setNewVisibility] = useState<"private" | "public">("private");
+  const [newPeople, setNewPeople] = useState("2");
+  const [newCity, setNewCity] = useState("");
   const [creating, setCreating] = useState(false);
   const [optionsItinerary, setOptionsItinerary] = useState<any>(null);
   const [renaming, setRenaming] = useState(false);
@@ -146,6 +152,7 @@ const MyItinerariesPage = () => {
   const isMobile = useIsMobile();
   const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
   const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const { data: cities = [] } = useCities();
 
   // Add Experience Mode
   const [addMode, setAddMode] = useState(false);
@@ -181,11 +188,22 @@ const MyItinerariesPage = () => {
     setAddModeItineraryId(created.id);
     setAddModeItineraryName(newName.trim());
     setNewName("");
+    setNewDescription("");
+    setNewVisibility("private");
+    setNewPeople("2");
+    setNewCity("");
     setAddSearchQuery("");
     setAddCategory("");
     setAddedIds(new Set());
     setAddMode(true);
   };
+
+  const launchedCities = useMemo(() => {
+    return cities.filter(c => {
+      if (!c.launch_date) return true;
+      return new Date(`${c.launch_date}T00:00:00`).getTime() <= Date.now();
+    });
+  }, [cities]);
 
   const handleTap = (itinerary: any) => {
     setActiveItinerary(itinerary.id);
@@ -402,7 +420,7 @@ const MyItinerariesPage = () => {
 
   // ============ MOBILE VIEW ============
   if (isMobile) {
-    const visibleNotifications = showAllNotifications ? updates : updates.slice(0, 3);
+    const visibleNotifications = showAllNotifications ? updates : updates.slice(0, 1);
     return (
       <MobileShell hideAvatar>
         <div className="flex flex-col h-full">
@@ -414,10 +432,11 @@ const MyItinerariesPage = () => {
                 <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
               </div>
               <button
-                onClick={() => { setNewName(""); setShowCreate(true); }}
-                className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                onClick={() => { setNewName(""); setNewDescription(""); setNewVisibility("private"); setNewPeople("2"); setNewCity(""); setShowCreate(true); }}
+                className="px-4 py-2.5 rounded-full bg-primary flex items-center gap-2 shadow-lg active:scale-95 transition-transform"
               >
-                <Plus className="w-6 h-6 text-primary-foreground" />
+                <Plus className="w-4 h-4 text-primary-foreground" />
+                <span className="text-sm font-semibold text-primary-foreground">Create Itinerary</span>
               </button>
             </div>
           </div>
@@ -467,7 +486,7 @@ const MyItinerariesPage = () => {
                     </button>
                   ))}
                 </div>
-                {updates.length > 3 && !showAllNotifications && (
+                {updates.length > 1 && !showAllNotifications && (
                   <button 
                     onClick={() => setShowAllNotifications(true)}
                     className="w-full text-center py-2 mt-1 text-xs text-primary font-medium"
@@ -475,7 +494,7 @@ const MyItinerariesPage = () => {
                     Show all {updates.length} updates
                   </button>
                 )}
-                {showAllNotifications && updates.length > 3 && (
+                {showAllNotifications && updates.length > 1 && (
                   <button 
                     onClick={() => setShowAllNotifications(false)}
                     className="w-full text-center py-2 mt-1 text-xs text-muted-foreground font-medium"
@@ -519,28 +538,137 @@ const MyItinerariesPage = () => {
           </div>
         </div>
 
-        {/* Create drawer */}
+        {/* Create drawer - iOS Create Event style */}
         <Drawer open={showCreate} onOpenChange={setShowCreate}>
-          <DrawerContent className="overflow-hidden">
-            <div className="px-6 py-5">
-              <h3 className="text-lg font-bold mb-4">New Itinerary</h3>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="e.g. Zanzibar Weekend"
-                className="h-12 rounded-xl mb-4"
-                style={{ fontSize: '16px' }}
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
-              />
+          <DrawerContent className="overflow-hidden max-h-[85vh]">
+            <div className="overflow-y-auto px-5 pt-4 pb-[env(safe-area-inset-bottom,20px)]">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <button onClick={() => setShowCreate(false)} className="text-sm text-muted-foreground font-medium">Cancel</button>
+                <h3 className="text-base font-bold text-foreground">New Itinerary</h3>
+                <button
+                  onClick={handleCreate}
+                  disabled={!newName.trim() || creating}
+                  className={cn(
+                    "text-sm font-semibold",
+                    newName.trim() && !creating ? "text-primary" : "text-muted-foreground/40"
+                  )}
+                >
+                  {creating ? "Creating..." : "Create"}
+                </button>
+              </div>
+
+              {/* Form fields - grouped card style */}
+              <div className="rounded-2xl bg-card border border-border overflow-hidden divide-y divide-border mb-4">
+                {/* Itinerary Name */}
+                <div className="px-4 py-3.5">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Itinerary Name</label>
+                  <input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="e.g. Zanzibar Weekend"
+                    className="w-full bg-transparent border-0 outline-none text-base font-medium text-foreground placeholder:text-muted-foreground/50"
+                    style={{ fontSize: '16px' }}
+                    autoFocus
+                    onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
+                  />
+                </div>
+
+                {/* Location */}
+                <div className="px-4 py-3.5">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Location</label>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-primary shrink-0" />
+                    <select
+                      value={newCity}
+                      onChange={(e) => setNewCity(e.target.value)}
+                      className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground appearance-none cursor-pointer"
+                      style={{ fontSize: '16px' }}
+                    >
+                      <option value="">Select a city</option>
+                      {launchedCities.map(city => (
+                        <option key={city.id} value={city.name}>{city.name}, {city.country}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="px-4 py-3.5">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Description</label>
+                  <textarea
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    placeholder="What's this trip about?"
+                    className="w-full bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/50 resize-none"
+                    rows={2}
+                    style={{ fontSize: '16px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Visibility & People - second card */}
+              <div className="rounded-2xl bg-card border border-border overflow-hidden divide-y divide-border mb-4">
+                {/* Visibility */}
+                <div className="px-4 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    {newVisibility === "private" ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-primary" />}
+                    <span className="text-sm font-medium text-foreground">Visibility</span>
+                  </div>
+                  <div className="flex items-center bg-muted rounded-full p-0.5">
+                    <button
+                      onClick={() => setNewVisibility("private")}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        newVisibility === "private" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                      )}
+                    >
+                      Private
+                    </button>
+                    <button
+                      onClick={() => setNewVisibility("public")}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                        newVisibility === "public" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                      )}
+                    >
+                      Public
+                    </button>
+                  </div>
+                </div>
+
+                {/* Number of people */}
+                <div className="px-4 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">Travellers</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setNewPeople(String(Math.max(1, parseInt(newPeople) - 1)))}
+                      className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-foreground font-medium active:scale-90 transition-transform"
+                    >
+                      −
+                    </button>
+                    <span className="text-sm font-semibold w-6 text-center">{newPeople}</span>
+                    <button
+                      onClick={() => setNewPeople(String(Math.min(50, parseInt(newPeople) + 1)))}
+                      className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-foreground font-medium active:scale-90 transition-transform"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Create CTA */}
               <Button 
                 onClick={handleCreate} 
                 disabled={!newName.trim() || creating}
-                className="w-full h-12 rounded-xl"
+                className="w-full h-13 rounded-2xl font-semibold text-base"
               >
                 {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-                Create & Add Experiences
+                Create Itinerary
               </Button>
             </div>
           </DrawerContent>
@@ -674,7 +802,7 @@ const MyItinerariesPage = () => {
               className="w-full h-12 rounded-xl"
             >
               {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-              Create & Add Experiences
+              Create Itinerary
             </Button>
           </div>
         </DrawerContent>

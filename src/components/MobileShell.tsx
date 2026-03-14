@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useCities, type DbCity } from "@/hooks/useAppData";
 
@@ -115,9 +116,9 @@ const CitySelectorSheet = ({
   countryFlags: Record<string, string>;
   loading: boolean;
 }) => (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-    <SheetContent side="right" className="w-[320px] p-0 border-l border-border flex flex-col h-full [&>button]:right-4 [&>button]:top-4 [&>button]:z-20 [&>button]:w-8 [&>button]:h-8 [&>button]:rounded-full [&>button]:bg-muted/80 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:opacity-100">
-      <div className="px-5 pt-6 pb-4 flex-1 overflow-y-auto">
+  <Drawer open={open} onOpenChange={onOpenChange}>
+    <DrawerContent className="max-h-[80vh] overflow-hidden">
+      <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
         <h2 className="text-lg font-bold text-foreground mb-1">Select city</h2>
         <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
 
@@ -174,8 +175,8 @@ const CitySelectorSheet = ({
           </>
         )}
       </div>
-    </SheetContent>
-  </Sheet>
+    </DrawerContent>
+  </Drawer>
 );
 
 // City button - map icon default, selected city flag/code when active

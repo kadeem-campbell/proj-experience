@@ -9,6 +9,7 @@ import Search from "./pages/Search";
 import ExperienceDetail from "./pages/ExperienceDetail";
 import CreateExperience from "./pages/CreateExperience";
 import Creators from "./pages/Creators";
+import Hosts from "./pages/Hosts";
 
 import Monetise from "./pages/Monetise";
 import Map from "./pages/Map";
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/hosts/:username" element={<HostProfile />} />
           <Route path="/creators/:username" element={<HostProfile />} />
           <Route path="/creators" element={<Creators />} />
+          <Route path="/hosts" element={<Hosts />} />
           <Route path="/create-experience" element={<CreateExperience />} />
           <Route path="/itinerary" element={<Trip useActiveItinerary={true} />} />
           <Route path="/itinerary/:id" element={<Trip />} />
