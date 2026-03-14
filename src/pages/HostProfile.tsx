@@ -160,6 +160,15 @@ export default function HostProfile() {
               <span className="text-xs text-muted-foreground">{experiences.length} experiences</span>
               <span className="text-xs text-muted-foreground">{itineraries.length} itineraries</span>
             </div>
+            {creatorCategories.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {creatorCategories.map(cat => (
+                  <Badge key={cat.id} variant="outline" className="text-[10px] font-medium">
+                    {cat.emoji} {cat.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

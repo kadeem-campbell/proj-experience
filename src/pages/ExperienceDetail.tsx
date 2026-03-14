@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { MobileShell } from "@/components/MobileShell";
 import { useDbExperiences, DbExperience } from "@/hooks/useDbExperiences";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCreators } from "@/hooks/useAppData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
