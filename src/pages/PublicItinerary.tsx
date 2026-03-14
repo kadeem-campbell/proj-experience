@@ -1190,14 +1190,13 @@ const PublicItinerary = () => {
             <DrawerTitle className="text-center">Share</DrawerTitle>
             <DrawerDescription className="sr-only">Share this itinerary</DrawerDescription>
           </DrawerHeader>
-          <div className="px-4 pb-4 space-y-3">
+          <div className="px-4 pb-4">
             {/* Top row: icon grid */}
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-3 gap-1">
               {[
-                { label: "Copy\nLink", icon: copied ? Check : Copy, action: () => { handleCopyLink(); }, highlight: copied },
+                { label: "Copy Link", icon: copied ? Check : Copy, action: () => { handleCopyLink(); }, highlight: copied },
                 { label: "WhatsApp", icon: MessageCircle, action: () => { handleShareWhatsApp(); setShowShareSheet(false); }, highlight: false },
                 { label: "Invite", icon: Send, action: () => { setShowShareSheet(false); setTimeout(() => setShowInviteSheet(true), 100); }, highlight: false },
-                { label: "Collab", icon: Users, action: () => { setShowShareSheet(false); setTimeout(() => setShowCollaboratorSheet(true), 100); }, highlight: false },
               ].map((opt) => (
                 <button
                   key={opt.label}
@@ -1215,11 +1214,7 @@ const PublicItinerary = () => {
                 </button>
               ))}
             </div>
-            {/* Export row */}
-            <div className="flex gap-2">
-              <button onClick={() => { handleExportCSV(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
-                <Download className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs font-medium">Export CSV</span>
+          </div>
               </button>
               <button onClick={() => { handleExportXLSX(); setShowShareSheet(false); }} className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted/50 active:bg-muted transition-colors">
                 <Download className="w-4 h-4 text-muted-foreground" />
