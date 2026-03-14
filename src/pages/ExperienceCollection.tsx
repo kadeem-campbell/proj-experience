@@ -228,7 +228,7 @@ const ExperienceCollectionPage = () => {
 
   const staticCollection = slug ? experienceCollectionDefinitions[slug] : null;
 
-  const { data: dbCollection } = useQuery({
+  const { data: dbCollection, isLoading: dbCollectionLoading } = useQuery({
     queryKey: ['experience-collection-by-slug', slug],
     enabled: !!slug,
     queryFn: async () => {
