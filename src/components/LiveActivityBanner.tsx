@@ -14,7 +14,7 @@ interface LiveActivityBannerProps {
 export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps) => {
   const [planningNow, setPlanningNow] = useState(0);
   const [itinerariesCreated, setItinerariesCreated] = useState(0);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  // onboarding removed
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { itineraries } = useItineraries();
