@@ -147,9 +147,6 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
           </div>
         </div>
       </div>
-
-      {/* Onboarding Flow */}
-      <OnboardingFlow open={showOnboarding} onOpenChange={setShowOnboarding} />
     </>
   );
 };
