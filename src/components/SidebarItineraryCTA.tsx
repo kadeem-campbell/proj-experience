@@ -46,7 +46,6 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
   const hasExperiences = experienceCount > 0;
 
   return (
-    <>
       <SidebarGroup className="py-0">
         <SidebarGroupContent>
           <SidebarMenu>
@@ -79,8 +78,5 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-
-      <OnboardingFlow open={showOnboarding} onOpenChange={setShowOnboarding} />
-    </>
   );
 };
