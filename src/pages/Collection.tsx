@@ -144,35 +144,69 @@ const CollectionPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: publicItinerariesList = [] } = usePublicItineraries();
+  const { data: publicItinerariesList = [], isLoading: itinerariesLoading } = usePublicItineraries();
 
-  const collection = slug ? collectionDefinitions[slug] : null;
+  const staticCollection = slug ? collectionDefinitions[slug] : null;
+
+  const { data: dbCollection, isLoading: dbCollectionLoading } = useQuery({
+    queryKey: ["itinerary-collection-by-slug", slug, publicItinerariesList.length],
+    enabled: !!slug,
+    queryFn: async () => {
+      const { data: collectionRow } = await supabase
+        .from("collections")
+        .select("id, name, slug, description, is_active")
+        .eq("slug", slug!)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!collectionRow) return null;
+
+      const { data: linkRows } = await (supabase as any)
+        .from("collection_items")
+        .select("item_id, position")
+        .eq("collection_id", collectionRow.id)
+        .eq("item_type", "itinerary")
+        .order("position", { ascending: true });
+
+      const linkedItems = (linkRows || [])
+        .map((row: any) => publicItinerariesList.find((it: any) => it.dbId === row.item_id))
+        .filter(Boolean);
+
+      return {
+        title: collectionRow.name,
+        description: collectionRow.description || "",
+        items: linkedItems,
+      };
+    },
+  });
 
   const { featuredItems, remainingSections } = useMemo(() => {
-    if (!collection) return { featuredItems: [], remainingSections: [] };
-    const featured = collection.filter(publicItinerariesList);
+    if (dbCollection) {
+      return { featuredItems: dbCollection.items || [], remainingSections: [] };
+    }
+
+    if (!staticCollection) return { featuredItems: [], remainingSections: [] };
+
+    const featured = staticCollection.filter(publicItinerariesList);
     const featuredIds = new Set(featured.map((i: any) => i.id));
     const remaining = publicItinerariesList.filter((i: any) => !featuredIds.has(i.id));
 
-    // Build other sections from remaining
     const sections: { key: string; title: string; items: any[] }[] = [];
     const otherCollections = Object.entries(collectionDefinitions).filter(([k]) => k !== slug);
     for (const [key, def] of otherCollections) {
       const items = def.filter(remaining).slice(0, 10);
-      if (items.length > 0) {
-        sections.push({ key, title: def.title, items });
-      }
+      if (items.length > 0) sections.push({ key, title: def.title, items });
     }
-    // Deduplicate - only show unique sections
+
     const seen = new Set<string>();
-    const uniqueSections = sections.filter(s => {
+    const uniqueSections = sections.filter((s) => {
       if (seen.has(s.title)) return false;
       seen.add(s.title);
       return true;
     }).slice(0, 4);
 
     return { featuredItems: featured, remainingSections: uniqueSections };
-  }, [collection, slug]);
+  }, [dbCollection, staticCollection, slug, publicItinerariesList]);
 
   if (!collection) {
     return isMobile ? (
