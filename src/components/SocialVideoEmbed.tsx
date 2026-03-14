@@ -170,16 +170,23 @@ export const SocialVideoEmbed = ({
             </button>
           </div>
           {hasInstagram && (
-            <div className="w-full flex justify-center px-4 pb-6 overflow-hidden">
-              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '400px', minHeight: '500px' }}>
+            <div className="w-full flex justify-center px-4 pb-6 overflow-hidden" data-vaul-no-drag>
+              <div
+                className="rounded-xl overflow-hidden"
+                style={{ width: '100%', maxWidth: '400px', minHeight: '500px' }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+              >
                 <iframe
                   src={instagramEmbedUrl}
+                  title="Instagram Reel"
                   className="border-0"
                   style={{ width: '100%', height: '600px' }}
-                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share"
                   allowFullScreen
+                  loading="eager"
                   scrolling="no"
-                  referrerPolicy="no-referrer-when-downgrade"
+                  referrerPolicy="strict-origin-when-cross-origin"
                 />
               </div>
             </div>
