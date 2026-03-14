@@ -486,7 +486,7 @@ const MyItinerariesPage = () => {
                     </button>
                   ))}
                 </div>
-                {updates.length > 3 && !showAllNotifications && (
+                {updates.length > 1 && !showAllNotifications && (
                   <button 
                     onClick={() => setShowAllNotifications(true)}
                     className="w-full text-center py-2 mt-1 text-xs text-primary font-medium"
@@ -494,7 +494,7 @@ const MyItinerariesPage = () => {
                     Show all {updates.length} updates
                   </button>
                 )}
-                {showAllNotifications && updates.length > 3 && (
+                {showAllNotifications && updates.length > 1 && (
                   <button 
                     onClick={() => setShowAllNotifications(false)}
                     className="w-full text-center py-2 mt-1 text-xs text-muted-foreground font-medium"
