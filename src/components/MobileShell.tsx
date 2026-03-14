@@ -243,10 +243,31 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const [searchParams] = useSearchParams();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: cities = [], isLoading: citiesLoading } = useCities();
 
   // Global city state: URL param takes priority, fallback to localStorage
   const urlCity = searchParams.get("city") || "";
   const [selectedCity, setSelectedCity] = useState(() => urlCity || getPersistedCity());
+
+  const countryFlags = useMemo(() => {
+    const map: Record<string, string> = {};
+    cities.forEach((city) => {
+      const key = city.country || "";
+      if (!key || map[key]) return;
+      const flag = city.flag_svg_url || city.flag_emoji || "";
+      if (flag) map[key] = flag;
+    });
+    return map;
+  }, [cities]);
+
+  const selectableCities = useMemo(() => cities.filter(isLaunched).sort((a, b) => a.name.localeCompare(b.name)), [cities]);
+  const comingSoonCities = useMemo(() => cities.filter((c) => !isLaunched(c)).sort((a, b) => (a.launch_date || "").localeCompare(b.launch_date || "")), [cities]);
+
+  const selectedCityData = useMemo(() => {
+    if (!selectedCity) return null;
+    const key = normalize(selectedCity);
+    return cities.find((city) => normalize(city.name) === key) || null;
+  }, [cities, selectedCity]);
 
   // Sync from URL → state + localStorage when URL changes
   useEffect(() => {
@@ -269,11 +290,8 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
     setSelectedCity(city);
     persistCity(city);
     const params = new URLSearchParams(window.location.search);
-    if (city) {
-      params.set("city", city);
-    } else {
-      params.delete("city");
-    }
+    if (city) params.set("city", city);
+    else params.delete("city");
     const newSearch = params.toString();
     navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
   }, [navigate, location.pathname]);
@@ -304,6 +322,10 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
         onOpenChange={setCitySelectorOpen}
         selectedCity={selectedCity}
         onCityChange={handleCityChange}
+        selectableCities={selectableCities}
+        comingSoonCities={comingSoonCities}
+        countryFlags={countryFlags}
+        loading={citiesLoading}
       />
 
       {!hideTopBar && (
