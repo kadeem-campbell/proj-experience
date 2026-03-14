@@ -432,10 +432,11 @@ const MyItinerariesPage = () => {
                 <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
               </div>
               <button
-                onClick={() => { setNewName(""); setShowCreate(true); }}
-                className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                onClick={() => { setNewName(""); setNewDescription(""); setNewVisibility("private"); setNewPeople("2"); setNewCity(""); setShowCreate(true); }}
+                className="px-4 py-2.5 rounded-full bg-primary flex items-center gap-2 shadow-lg active:scale-95 transition-transform"
               >
-                <Plus className="w-6 h-6 text-primary-foreground" />
+                <Plus className="w-4 h-4 text-primary-foreground" />
+                <span className="text-sm font-semibold text-primary-foreground">Create Itinerary</span>
               </button>
             </div>
           </div>
