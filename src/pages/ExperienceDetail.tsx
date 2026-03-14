@@ -331,6 +331,19 @@ export default function ExperienceDetail() {
     return Array.from(new Set(splitNames));
   })();
 
+  // Resolve creator name to DB username for host profile link
+  const getHostUrl = (creatorName: string) => {
+    const slug = creatorName.toLowerCase().replace(/\s+/g, '-');
+    const match = allCreators.find(c =>
+      c.username === creatorName ||
+      c.username === slug ||
+      (c.display_name || '').toLowerCase() === creatorName.toLowerCase() ||
+      (c.display_name || '').toLowerCase().replace(/\s+/g, '-') === slug
+    );
+    return `/hosts/${match ? match.username : slug}`;
+  };
+
+
   // Mobile
   if (isMobile) {
     return (
