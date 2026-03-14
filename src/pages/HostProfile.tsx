@@ -92,6 +92,9 @@ export default function HostProfile() {
   const { data: creator, isLoading } = useCreatorByUsername(username || "");
   const { data: experiences = [] } = useCreatorExperiences(creator?.username || creator?.display_name || "");
   const { data: itineraries = [] } = useCreatorItineraries(creator?.id || "");
+  const { data: categoryIds = [] } = useCreatorCategories(creator?.id || "");
+  const { data: allCategories = [] } = useCategories();
+  const creatorCategories = allCategories.filter(c => categoryIds.includes(c.id));
 
   const socialLinks = (creator?.social_links && typeof creator.social_links === "object") ? creator.social_links as Record<string, string> : {};
 
