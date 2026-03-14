@@ -205,6 +205,8 @@ const MobileTopBar = ({
   onCityTap,
 }: {
   selectedCity: string;
+  selectedCityData: DbCity | null;
+  countryFlags: Record<string, string>;
   hideAvatar?: boolean;
   notFixed?: boolean;
   onCityTap: () => void;
