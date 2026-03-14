@@ -119,7 +119,7 @@ const AdminPanel = () => {
       location: data.location,
       price: data.price_min === data.price_max ? `$${data.price_min}` : `$${data.price_min} - $${data.price_max}`,
       category: data.category,
-      creator: creatorNames.join(', '),
+      creator: creatorNames.join('\n'),
       creator_id: data.creator_ids[0] || null,
       city_id: data.city_id || null,
       video_thumbnail: data.video_thumbnail,
