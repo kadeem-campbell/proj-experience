@@ -30,8 +30,9 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
     return null;
   }
 
-  const handleCreateItinerary = () => {
-    setShowOnboarding(true);
+  const handleCreateItinerary = async () => {
+    const newIt = await createItinerary("My Trip");
+    navigate(`/trip/${newIt.id}`);
   };
 
   const handleViewTrip = () => {
