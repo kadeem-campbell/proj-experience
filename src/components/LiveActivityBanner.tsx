@@ -65,8 +65,8 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
     return () => clearInterval(interval);
   }, []);
 
-  const handleCreateItinerary = () => {
-    setShowOnboarding(true);
+  const handleCreateItinerary = async () => {
+    navigate('/my-itineraries');
   };
 
   const handleViewTrip = () => {
