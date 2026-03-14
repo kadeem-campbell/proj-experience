@@ -163,6 +163,10 @@ const PublicItinerary = () => {
 
   const handleToggleLike = useCallback(async (itemId: string, itemType: 'experience' | 'itinerary', itemData: Record<string, any>) => {
     if (isAuthenticated) {
+      const wasLiked = isDbLiked(itemId, itemType);
+      if (itemType === 'itinerary' && itemId === itinerary?.id) {
+        setLikeCountDelta(prev => prev + (wasLiked ? -1 : 1));
+      }
       await toggleDbLike(itemId, itemType, itemData);
     } else {
       setLocalLikes(prev => {
@@ -173,7 +177,7 @@ const PublicItinerary = () => {
         return next;
       });
     }
-  }, [isAuthenticated, toggleDbLike]);
+  }, [isAuthenticated, toggleDbLike, isDbLiked, itinerary?.id]);
 
   // Find itinerary - check public data first, then user's own
   const publicItinerary = publicItinerariesData.find((i: any) => i.id === id || i.slug === id || i.dbId === id);
