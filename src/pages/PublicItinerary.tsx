@@ -96,7 +96,7 @@ const PublicItinerary = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [copied, setCopied] = useState(false);
-  const { data: publicItinerariesData = [] } = usePublicItineraries();
+  const { data: publicItinerariesData = [], isLoading: publicItinerariesLoading } = usePublicItineraries();
   const [searchQuery, setSearchQuery] = useState("");
   const allDbExperiences = useExperiencesData();
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
