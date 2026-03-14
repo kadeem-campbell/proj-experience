@@ -301,10 +301,30 @@ export default function ExperienceDetail() {
 
   const gallery = experience.gallery || [experience.videoThumbnail];
   const categoryIcon = categoryIconMap[experience.category];
-  const creatorNames = (experience.creator || '')
-    .split(/[\n,;|]+/)
-    .map((name: string) => name.replace(/^@/, '').trim())
-    .filter(Boolean);
+  const creatorNames = useMemo(() => {
+    const rawCreator = (experience.creator || '').trim();
+    if (!rawCreator) return [] as string[];
+
+    if (rawCreator.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(rawCreator);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map((name: string) => String(name).replace(/^@/, '').trim())
+            .filter(Boolean);
+        }
+      } catch {
+        // fall through to delimiter parsing
+      }
+    }
+
+    const splitNames = rawCreator
+      .split(/\r?\n|,|;|\||\s+&\s+|\s+and\s+/i)
+      .map((name: string) => name.replace(/^@/, '').trim())
+      .filter(Boolean);
+
+    return Array.from(new Set(splitNames));
+  }, [experience.creator]);
 
   // Mobile
   if (isMobile) {
