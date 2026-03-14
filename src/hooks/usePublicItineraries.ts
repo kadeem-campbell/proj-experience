@@ -83,6 +83,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
 
     return {
       id: row.slug || row.id,
+      dbId: row.id,
       name: row.name,
       slug: row.slug,
       experiences: linkedExperiences.length > 0 ? linkedExperiences : jsonFallback,
