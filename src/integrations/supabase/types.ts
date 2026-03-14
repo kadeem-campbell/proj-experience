@@ -225,6 +225,42 @@ export type Database = {
           },
         ]
       }
+      creator_categories: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          creator_id: string
+          id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          creator_id: string
+          id?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          creator_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_categories_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creators: {
         Row: {
           avatar_url: string | null

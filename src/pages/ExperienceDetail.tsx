@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { MobileShell } from "@/components/MobileShell";
 import { useDbExperiences, DbExperience } from "@/hooks/useDbExperiences";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCreators } from "@/hooks/useAppData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -160,6 +161,7 @@ export default function ExperienceDetail() {
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
   const { data: dbExperiences, isLoading: dbExperiencesLoading } = useDbExperiences();
+  const { data: allCreators = [] } = useCreators();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [justAdded, setJustAdded] = useState(false);
@@ -328,6 +330,19 @@ export default function ExperienceDetail() {
       .filter(Boolean);
     return Array.from(new Set(splitNames));
   })();
+
+  // Resolve creator name to DB username for host profile link
+  const getHostUrl = (creatorName: string) => {
+    const slug = creatorName.toLowerCase().replace(/\s+/g, '-');
+    const match = allCreators.find(c =>
+      c.username === creatorName ||
+      c.username === slug ||
+      (c.display_name || '').toLowerCase() === creatorName.toLowerCase() ||
+      (c.display_name || '').toLowerCase().replace(/\s+/g, '-') === slug
+    );
+    return `/hosts/${match ? match.username : slug}`;
+  };
+
 
   // Mobile
   if (isMobile) {
@@ -528,7 +543,7 @@ export default function ExperienceDetail() {
                     <div 
                       key={idx} 
                       className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:bg-muted/40 active:bg-muted/60 transition-colors"
-                      onClick={() => navigate(`/hosts/${creatorName.toLowerCase().replace(/\s+/g, '-')}`)}
+                      onClick={() => navigate(getHostUrl(creatorName))}
                     >
                       <Avatar className="w-12 h-12">
                         <AvatarFallback className="bg-primary/10 text-primary font-bold">
@@ -737,7 +752,7 @@ export default function ExperienceDetail() {
                       <div 
                         key={idx} 
                         className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:bg-muted/40 transition-colors"
-                        onClick={() => navigate(`/hosts/${creatorName.toLowerCase().replace(/\s+/g, '-')}`)}
+                        onClick={() => navigate(getHostUrl(creatorName))}
                       >
                         <Avatar className="w-12 h-12">
                           <AvatarFallback className="bg-primary/10 text-primary font-bold">

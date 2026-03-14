@@ -9,21 +9,49 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { slugify } from "@/utils/slugUtils";
+import { useCategories } from "@/hooks/useAppData";
 
 const useCreatorByUsername = (username: string) => {
   return useQuery({
     queryKey: ["creator", username],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First try exact username match
+      const { data: exact } = await supabase
         .from("creators")
         .select("*")
         .eq("username", username)
         .eq("is_active", true)
-        .single();
-      if (error) return null;
-      return data;
+        .maybeSingle();
+      if (exact) return exact;
+
+      // Fallback: fetch all active creators and match by slugified display_name or username
+      const { data: all } = await supabase
+        .from("creators")
+        .select("*")
+        .eq("is_active", true);
+      if (!all) return null;
+      const slug = username.toLowerCase();
+      return all.find(c =>
+        c.username === slug ||
+        c.username?.toLowerCase().replace(/\s+/g, '-') === slug ||
+        (c.display_name || '').toLowerCase().replace(/\s+/g, '-') === slug
+      ) || null;
     },
     enabled: !!username,
+  });
+};
+
+const useCreatorCategories = (creatorId: string) => {
+  return useQuery({
+    queryKey: ["creator-categories", creatorId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("creator_categories")
+        .select("category_id")
+        .eq("creator_id", creatorId);
+      return (data || []).map((r: any) => r.category_id);
+    },
+    enabled: !!creatorId,
   });
 };
 
@@ -64,6 +92,9 @@ export default function HostProfile() {
   const { data: creator, isLoading } = useCreatorByUsername(username || "");
   const { data: experiences = [] } = useCreatorExperiences(creator?.username || creator?.display_name || "");
   const { data: itineraries = [] } = useCreatorItineraries(creator?.id || "");
+  const { data: categoryIds = [] } = useCreatorCategories(creator?.id || "");
+  const { data: allCategories = [] } = useCategories();
+  const creatorCategories = allCategories.filter(c => categoryIds.includes(c.id));
 
   const socialLinks = (creator?.social_links && typeof creator.social_links === "object") ? creator.social_links as Record<string, string> : {};
 
@@ -129,6 +160,15 @@ export default function HostProfile() {
               <span className="text-xs text-muted-foreground">{experiences.length} experiences</span>
               <span className="text-xs text-muted-foreground">{itineraries.length} itineraries</span>
             </div>
+            {creatorCategories.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {creatorCategories.map(cat => (
+                  <Badge key={cat.id} variant="outline" className="text-[10px] font-medium">
+                    {cat.emoji} {cat.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

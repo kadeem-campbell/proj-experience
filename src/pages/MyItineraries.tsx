@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
-import { useCities } from "@/hooks/useAppData";
+import { useCities, useCategories } from "@/hooks/useAppData";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -24,14 +24,17 @@ import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
 
-const addModeCategories = [
-  { icon: catBeaches, label: "Beaches", category: "Beach" },
-  { icon: catNightlife, label: "Nightlife", category: "Nightlife" },
-  { icon: catNature, label: "Nature", category: "Wildlife" },
-  { icon: catAdventure, label: "Adventure", category: "Adventure" },
-  { icon: catFood, label: "Food", category: "Food" },
-  { icon: catSafari, label: "Safari", category: "Safari" },
-];
+const categoryIconFallback: Record<string, string> = {
+  "Beach": catBeaches,
+  "Adventure": catAdventure,
+  "Party": catNightlife,
+  "Nightlife": catNightlife,
+  "Wildlife": catNature,
+  "Food": catFood,
+  "Safari": catSafari,
+  "Water Sports": catAdventure,
+  "Culture": catNature,
+};
 
 // Spotify-style itinerary card — like a playlist (mobile)
 const ItineraryPlaylistCard = ({ 
@@ -153,6 +156,15 @@ const MyItinerariesPage = () => {
   const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
   const [showAllNotifications, setShowAllNotifications] = useState(false);
   const { data: cities = [] } = useCities();
+  const { data: dbCategories = [] } = useCategories();
+  const addModeCategories = useMemo(() => {
+    return dbCategories.map(cat => ({
+      icon: cat.icon_image || categoryIconFallback[cat.name] || catAdventure,
+      label: cat.name,
+      category: cat.name,
+      emoji: cat.emoji,
+    }));
+  }, [dbCategories]);
 
   // Add Experience Mode
   const [addMode, setAddMode] = useState(false);
@@ -326,23 +338,29 @@ const MyItinerariesPage = () => {
 
             {/* Category icons row */}
             <div className="px-4 pb-3">
-              <div className="flex justify-between">
-                {addModeCategories.map((cat) => {
+              <div className="flex gap-2 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+                {addModeCategories.slice(0, 8).map((cat) => {
                   const isActive = addCategory === cat.category;
                   return (
                     <button
                       key={cat.label}
                       onClick={() => setAddCategory(isActive ? "" : cat.category)}
-                      className="flex flex-col items-center gap-1 transition-all active:scale-95"
+                      className="flex flex-col items-center gap-1 transition-all active:scale-95 shrink-0"
                     >
                       <div className={cn(
-                        "w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
+                        "w-[48px] h-[48px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
                         isActive ? "ring-2 ring-primary bg-primary/5" : "bg-muted"
                       )}>
-                        <img src={cat.icon} alt={cat.label} className="w-9 h-9 object-contain" />
+                        {cat.icon?.startsWith('http') || cat.icon?.startsWith('/') || cat.icon?.startsWith('data:') ? (
+                          <img src={cat.icon} alt={cat.label} className="w-8 h-8 object-contain" />
+                        ) : cat.emoji ? (
+                          <span className="text-xl">{cat.emoji}</span>
+                        ) : (
+                          <img src={cat.icon} alt={cat.label} className="w-8 h-8 object-contain" />
+                        )}
                       </div>
                       <span className={cn(
-                        "text-[10px] font-medium transition-colors",
+                        "text-[10px] font-medium transition-colors max-w-[52px] truncate",
                         isActive ? "text-primary" : "text-muted-foreground"
                       )}>
                         {cat.label}
