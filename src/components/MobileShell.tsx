@@ -115,9 +115,16 @@ const CitySelectorSheet = ({
   countryFlags: Record<string, string>;
   loading: boolean;
 }) => (
-  <Sheet open={open} onOpenChange={onOpenChange}>
-    <SheetContent side="right" className="w-[320px] p-0 border-l border-border">
-      <div className="px-5 pt-6 pb-4">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+    <SheetContent side="right" className="w-[320px] p-0 border-l border-border flex flex-col h-full">
+      {/* Close button */}
+      <button
+        onClick={() => onOpenChange(false)}
+        className="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors"
+      >
+        <X className="w-4 h-4 text-foreground" />
+      </button>
+      <div className="px-5 pt-6 pb-4 flex-1 overflow-y-auto">
         <h2 className="text-lg font-bold text-foreground mb-1">Select city</h2>
         <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
 
@@ -128,7 +135,7 @@ const CitySelectorSheet = ({
             <div className="space-y-2 mb-6">
               {selectableCities.map((city) => {
                 const isSelected = normalize(selectedCity) === normalize(city.name);
-                const flag = countryFlags[city.country] || city.flag_svg_url || city.flag_emoji;
+                const flag = city.flag_svg_url || countryFlags[city.country] || city.flag_emoji;
                 return (
                   <button
                     key={city.id}
