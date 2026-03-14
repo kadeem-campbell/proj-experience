@@ -519,13 +519,17 @@ export default function ExperienceDetail() {
               </div>
             )}
 
-            {/* Creators - only if content exists */}
+            {/* Hosts - only if content exists */}
             {hasCreators && creatorNames.length > 0 && (
               <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">Creators</h2>
+                <h2 className="text-lg font-semibold mb-3">Hosts</h2>
                 <div className="space-y-2">
                   {creatorNames.map((creatorName: string, idx: number) => (
-                    <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+                    <div 
+                      key={idx} 
+                      className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:bg-muted/40 active:bg-muted/60 transition-colors"
+                      onClick={() => navigate(`/hosts/${creatorName.toLowerCase().replace(/\s+/g, '-')}`)}
+                    >
                       <Avatar className="w-12 h-12">
                         <AvatarFallback className="bg-primary/10 text-primary font-bold">
                           {creatorName.slice(0, 2).toUpperCase()}
@@ -533,7 +537,7 @@ export default function ExperienceDetail() {
                       </Avatar>
                       <div className="flex-1">
                         <p className="font-medium">@{creatorName}</p>
-                        <p className="text-sm text-muted-foreground">Creator</p>
+                        <p className="text-sm text-muted-foreground">Host</p>
                       </div>
                       <div className="flex items-center gap-1 text-sm">
                         <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
