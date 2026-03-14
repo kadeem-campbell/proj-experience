@@ -91,15 +91,15 @@ const HorizontalScrollRow = ({
     <div className="py-5 mb-2">
       <button 
         onClick={onTitleClick}
-        className="mb-3 flex items-center gap-1.5 w-full text-left px-4 group"
+        className="mb-3 flex items-center gap-1.5 w-full text-left px-4 group active:opacity-70 transition-opacity duration-100"
       >
         <h2 className="text-[17px] font-bold text-foreground">{title}</h2>
         <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-active:text-foreground transition-colors" />
       </button>
       <div 
         ref={scrollRef}
-        className="overflow-x-auto scrollbar-hide pb-1"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        className="overflow-x-auto scrollbar-hide pb-1 will-change-scroll"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', transform: 'translateZ(0)' }}
       >
         <div className="inline-flex gap-3 snap-x snap-mandatory px-4">
           {children}
