@@ -196,20 +196,20 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
+      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
       onClick={() => navigate(`/experiences/${(experience as any).slug || slugify(experience.title)}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
-          <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover" />
+          <img src={experience.videoThumbnail} alt={experience.title} loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-experience-color/20 to-experience-color/5" />
         )}
         <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-colors",
-          liked ? "bg-black/40 border border-white/10" : "bg-white/10 border border-white/15 hover:bg-white/20"
+          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all duration-150 active:scale-90",
+          liked ? "bg-black/40 border border-white/10" : "bg-white/10 border border-white/15"
         )}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-primary text-primary" : "text-white/90")} />
+          <Heart className={cn("w-4 h-4 transition-all duration-150", liked ? "fill-primary text-primary" : "text-white/90")} />
         </button>
         <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
           <ItinerarySelector
@@ -222,8 +222,8 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
             onAdd={handleAdded}
           >
             <button className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm transition-all active:scale-90",
-              showTick ? "bg-primary/90" : "bg-white/80 hover:bg-experience-color/10"
+              "w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm transition-all duration-150 active:scale-90",
+              showTick ? "bg-primary/90" : "bg-white/80"
             )}>
               {showTick ? (
                 <Check className="w-4 h-4 text-white" />
