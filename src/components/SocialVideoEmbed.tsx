@@ -43,13 +43,16 @@ export const SocialVideoEmbed = ({
     if (!hasInstagram) return '';
 
     const raw = instagramEmbed!.trim();
-    const reelMatch = raw.match(/instagram\.com\/(?:reel|p)\/([^/?#]+)/i);
-    if (reelMatch?.[1]) {
-      return `https://www.instagram.com/reel/${reelMatch[1]}/embed/`;
+    const postMatch = raw.match(/instagram\.com\/(reel|p|tv)\/([^/?#]+)/i);
+    if (postMatch?.[1] && postMatch?.[2]) {
+      const postType = postMatch[1].toLowerCase();
+      const postId = postMatch[2];
+      return `https://www.instagram.com/${postType}/${postId}/embed/captioned/`;
     }
 
     if (raw.includes('/embed')) return raw;
-    return raw.replace(/\/?(\?.*)?$/, '/embed/');
+    const clean = raw.replace(/\/+$/, '');
+    return `${clean}/embed/captioned/`;
   }, [hasInstagram, instagramEmbed]);
 
   // Don't render if no embeds available
