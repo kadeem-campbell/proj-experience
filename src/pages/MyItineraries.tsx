@@ -802,7 +802,7 @@ const MyItinerariesPage = () => {
               className="w-full h-12 rounded-xl"
             >
               {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-              Create & Add Experiences
+              Create Itinerary
             </Button>
           </div>
         </DrawerContent>
