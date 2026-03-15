@@ -10,23 +10,18 @@ export const slugify = (text: string): string => {
 };
 
 /**
- * Generate experience/product URL.
- * New entity route: /things-to-do/{destination}/{product-slug}
- * Legacy fallback: /experiences/{slug}
+ * Generate a product URL using the new entity route system.
+ * Pattern: /things-to-do/{destination}/{product-slug}
  */
 export const generateExperienceUrl = (location: string, title: string, slug?: string): string => {
   const resolvedSlug = (slug || '').trim() || slugify(title);
-
-  // Try to map location to a destination slug
   if (location) {
     const destSlug = slugify(location.split(',')[0].trim());
     if (destSlug) {
       return `/things-to-do/${destSlug}/${resolvedSlug}`;
     }
   }
-
-  // Fallback to legacy route
-  return `/experiences/${resolvedSlug}`;
+  return `/things-to-do/explore/${resolvedSlug}`;
 };
 
 /**
