@@ -489,7 +489,7 @@ export const MobileHomeView = () => {
       {categoryItineraries.length > 3 && (
         <HorizontalScrollRow 
           title={rowTitle("Curated by locals", `${catLabel} curated by locals`)}
-          onTitleClick={() => navigate("/itinerary-collections/curated-by-locals")}
+          onTitleClick={() => navigate("/collections/itineraries/curated-by-locals")}
         >
           {categoryItineraries.slice(3, 9).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
