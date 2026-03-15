@@ -9,9 +9,34 @@ export const slugify = (text: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
-export const generateExperienceUrl = (_location: string, title: string, slug?: string): string => {
+/**
+ * Generate experience/product URL.
+ * New entity route: /things-to-do/{destination}/{product-slug}
+ * Legacy fallback: /experiences/{slug}
+ */
+export const generateExperienceUrl = (location: string, title: string, slug?: string): string => {
   const resolvedSlug = (slug || '').trim() || slugify(title);
+
+  // Try to map location to a destination slug
+  if (location) {
+    const destSlug = slugify(location.split(',')[0].trim());
+    if (destSlug) {
+      return `/things-to-do/${destSlug}/${resolvedSlug}`;
+    }
+  }
+
+  // Fallback to legacy route
   return `/experiences/${resolvedSlug}`;
+};
+
+/**
+ * Generate a product URL from structured entity data
+ */
+export const generateProductUrl = (destinationSlug: string, productSlug: string, areaSlug?: string): string => {
+  if (areaSlug) {
+    return `/things-to-do/${destinationSlug}/${areaSlug}/${productSlug}`;
+  }
+  return `/things-to-do/${destinationSlug}/${productSlug}`;
 };
 
 export const generateExperienceSlug = (title: string): string => {

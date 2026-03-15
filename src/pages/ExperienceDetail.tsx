@@ -5,6 +5,9 @@ import { MobileShell } from "@/components/MobileShell";
 import { useDbExperiences, DbExperience } from "@/hooks/useDbExperiences";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCreators } from "@/hooks/useAppData";
+import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug } from "@/hooks/useProducts";
+import { useInteractions } from "@/hooks/useInteractions";
+import { generateProductSchema } from "@/services/schemaGenerator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -156,13 +159,14 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
 };
 
 export default function ExperienceDetail() {
-  const { id, location: locationParam, legacySlug, slug } = useParams();
+  const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams();
   const navigate = useNavigate();
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
   const { data: dbExperiences, isLoading: dbExperiencesLoading } = useDbExperiences();
   const { data: allCreators = [] } = useCreators();
+  const { trackPageView, trackClick } = useInteractions();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [justAdded, setJustAdded] = useState(false);
@@ -172,15 +176,57 @@ export default function ExperienceDetail() {
   const [likeCountDelta, setLikeCountDelta] = useState(0);
   const isMobile = useIsMobile();
 
+  // Resolve the slug from any route pattern
+  const resolvedSlug = slug || legacySlug || id || '';
+
+  // Try to find as a product first (new entity system)
+  const { data: product, isLoading: productLoading } = useProductBySlug(resolvedSlug);
+  const { data: productOptions = [] } = useProductOptions(product?.id || '');
+  const { data: productHosts = [] } = useProductHosts(product?.id || '');
+  const { data: productDestination } = useDestinationBySlug(destParam || '');
+
   const handleGoBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
     } else {
-      navigate('/experiences');
+      navigate('/things-to-do');
     }
   };
 
   const experience = useMemo(() => {
+    // First: try product table (new entity system)
+    if (product) {
+      return {
+        id: product.id,
+        title: product.title,
+        creator: '',
+        videoThumbnail: product.cover_image,
+        videoUrl: product.video_url,
+        category: '',
+        location: productDestination?.name || '',
+        description: product.description,
+        duration: product.duration,
+        groupSize: '',
+        rating: product.rating,
+        price: productOptions.length > 0
+          ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
+          : '',
+        highlights: product.highlights || [],
+        gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
+        bestTime: product.best_time,
+        weather: product.weather,
+        meetingPoints: product.meeting_points || [],
+        faqs: [],
+        tiktokVideos: [],
+        instagramEmbed: '',
+        socialLinks: {},
+        likeCount: product.like_count,
+        slug: product.slug,
+        isProduct: true,
+      };
+    }
+
+    // Second: legacy experiences table
     const fromDb = (db: DbExperience) => ({
       id: db.id,
       title: db.title,
@@ -204,11 +250,13 @@ export default function ExperienceDetail() {
       instagramEmbed: db.instagram_embed,
       socialLinks: db.social_links,
       likeCount: db.like_count,
+      slug: db.slug,
+      isProduct: false,
     });
 
     if (dbExperiences && dbExperiences.length > 0) {
-      if (slug) {
-        const dbMatch = dbExperiences.find(e => e.slug === slug || slugify(e.title) === slug);
+      if (resolvedSlug) {
+        const dbMatch = dbExperiences.find(e => e.slug === resolvedSlug || slugify(e.title) === resolvedSlug);
         if (dbMatch) return fromDb(dbMatch);
       }
       if (locationParam && legacySlug) {
@@ -222,7 +270,18 @@ export default function ExperienceDetail() {
     }
 
     return null;
-  }, [id, locationParam, legacySlug, slug, itineraries, dbExperiences]);
+  }, [id, locationParam, legacySlug, resolvedSlug, product, productOptions, productDestination, dbExperiences]);
+
+  // Analytics: track page view
+  useEffect(() => {
+    if (experience) {
+      trackPageView(
+        (experience as any).isProduct ? 'product' : 'experience',
+        experience.id,
+        window.location.pathname
+      );
+    }
+  }, [experience?.id]);
 
   const liked = experience ? (isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked) : false;
 
@@ -257,17 +316,24 @@ export default function ExperienceDetail() {
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    return `${baseUrl}${generateExperienceUrl(experience.location, experience.title)}`;
-  }, [experience]);
+    if ((experience as any).isProduct && productDestination) {
+      return `${baseUrl}/things-to-do/${productDestination.slug}/${experience.slug || ''}`;
+    }
+    return `${baseUrl}${generateExperienceUrl(experience.location, experience.title, (experience as any).slug)}`;
+  }, [experience, productDestination]);
 
   useEffect(() => {
     if (experience) {
-      document.title = `${experience.title} in ${experience.location} | Things to Do | swam.app`;
+      document.title = `${experience.title}${experience.location ? ' in ' + experience.location : ''} | Things to Do | swam.app`;
     }
     return () => { document.title = 'Discover Experiences in East Africa | swam.app'; };
   }, [experience]);
 
+  // Generate JSON-LD: prefer product schema if available
   const experienceJsonLd = useMemo(() => {
+    if (product && productOptions) {
+      return generateProductSchema(product, productOptions, productHosts, productDestination);
+    }
     if (!experience) return null;
     return createExperienceJsonLd({
       title: experience.title,
@@ -280,7 +346,8 @@ export default function ExperienceDetail() {
       duration: experience.duration,
       category: experience.category,
     });
-  }, [experience, shareUrl]);
+  }, [experience, product, productOptions, productHosts, productDestination, shareUrl]);
+
 
   // Check if sections have content
   const hasHighlights = experience?.highlights && experience.highlights.length > 0;
@@ -293,7 +360,7 @@ export default function ExperienceDetail() {
     return raw.length > 0;
   })();
 
-  if (!experience && dbExperiencesLoading) {
+  if (!experience && (dbExperiencesLoading || productLoading)) {
     return isMobile ? (
       <MobileShell hideTopBar>
         <div className="flex justify-center items-center min-h-[60vh]">
