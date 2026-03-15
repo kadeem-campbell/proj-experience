@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Plus, Edit, Search, X, Database, FileSpreadsheet, Users, DollarSign, Upload, Archive, Eye, EyeOff, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCategories, useCities, useCreators } from '@/hooks/useAppData';
+import { useActivityTypes, useDestinations, useHosts } from '@/hooks/useProducts';
 import { BulkUploader } from '@/components/BulkUploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LinkManager } from '@/components/LinkManager';
