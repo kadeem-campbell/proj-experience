@@ -63,6 +63,14 @@ export default function ThingsToDo() {
     }
     return legacyExperiences;
   }, [hasProducts, products, legacyExperiences, destSlug, currentDestination]);
+  // Analytics
+  useEffect(() => {
+    if (currentDestination?.id) {
+      trackPageView('things_to_do', currentDestination.id, destSlug);
+    } else {
+      trackPageView('things_to_do', 'hub', 'direct');
+    }
+  }, [currentDestination?.id, destSlug]);
 
   const pageTitle = currentDestination
     ? `Things to Do in ${currentDestination.name}`
