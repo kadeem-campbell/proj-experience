@@ -64,6 +64,9 @@ const App = () => (
             <Route path="/collections/itineraries/:slug" element={<Collection />} />
             <Route path="/collections/:slug" element={<Collection />} />
 
+            {/* Legacy experience URLs - render detail page */}
+            <Route path="/experiences/:slug" element={<ExperienceDetail />} />
+
             <Route path="/create-experience" element={<CreateExperience />} />
             <Route path="/monetise" element={<Monetise />} />
             <Route path="/map" element={<Map />} />
