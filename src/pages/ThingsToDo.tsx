@@ -18,12 +18,15 @@ export default function ThingsToDo() {
   const isMobile = useIsMobile();
   const { trackPageView } = useInteractions();
 
+  // Treat "all" activityType as no filter
+  const effectiveActivitySlug = activitySlug === "all" ? undefined : activitySlug;
+
   const { data: destinations = [], isLoading: destsLoading } = useDestinations();
   const { data: currentDestination, isLoading: destLoading } = useDestinationBySlug(destSlug || "");
   const { data: areas = [] } = useAreas(currentDestination?.id);
   const currentArea = useMemo(() => areas.find((area) => area.slug === areaSlug), [areas, areaSlug]);
   const { data: activityTypes = [] } = useActivityTypes();
-  const currentActivity = useMemo(() => activityTypes.find((activity) => activity.slug === activitySlug), [activityTypes, activitySlug]);
+  const currentActivity = useMemo(() => activityTypes.find((activity) => activity.slug === effectiveActivitySlug), [activityTypes, effectiveActivitySlug]);
   const { data: products = [] } = useProducts(
     currentDestination
       ? {
@@ -129,7 +132,7 @@ export default function ThingsToDo() {
             {areas.map((area) => (
               <button
                 key={area.id}
-                onClick={() => navigate(`/${currentDestination.slug}/${area.slug}`)}
+                onClick={() => navigate(`/things-to-do/${currentDestination.slug}/${area.slug}/all`)}
                 className={cn(
                   "shrink-0 px-4 py-2 rounded-full border text-sm font-medium transition-transform active:scale-95",
                   currentArea?.id === area.id ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground",

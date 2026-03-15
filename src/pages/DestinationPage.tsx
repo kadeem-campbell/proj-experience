@@ -74,8 +74,18 @@ export default function DestinationPage() {
       </div>
 
       <div className="px-4 -mt-6 relative z-10">
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{description}</p>
+        <div className="flex items-center gap-3">
+          {destination?.flag_svg_url && (
+            <img src={destination.flag_svg_url} alt={destination.name} className="w-10 h-10 rounded-full object-cover shadow-md" />
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+            {destination?.airport_code && (
+              <span className="text-xs font-semibold text-muted-foreground tracking-wider">{destination.airport_code}</span>
+            )}
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">{description}</p>
 
         <div className="flex gap-2 mt-4">
           <button
@@ -95,6 +105,7 @@ export default function DestinationPage() {
         </div>
       </div>
 
+      {/* Areas grid - only show on destination level (not area level) */}
       {!selectedArea && areas.length > 0 && (
         <div className="px-4 mt-8">
           <h2 className="text-lg font-bold mb-3">Explore by area</h2>
@@ -120,6 +131,7 @@ export default function DestinationPage() {
         </div>
       )}
 
+      {/* Activity type filters - show on area level */}
       {activityTypes.length > 0 && selectedArea && (
         <div className="px-4 mt-6">
           <h2 className="text-lg font-bold mb-3">Activities</h2>
@@ -137,6 +149,7 @@ export default function DestinationPage() {
         </div>
       )}
 
+      {/* Products grid */}
       <div className="px-4 mt-8 pb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold">Top things to do</h2>
@@ -144,26 +157,30 @@ export default function DestinationPage() {
             See all <ChevronRight className="w-4 h-4" />
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          {products.slice(0, 6).map((item) => (
-            <div
-              key={item.id}
-              onClick={() => navigate(generateExperienceUrl(locationLabel || destination?.name || "", item.title, item.slug, destination?.slug))}
-              className="cursor-pointer active:scale-[0.97] transition-transform"
-            >
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
-                <img src={item.cover_image || ""} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
-              </div>
-              <div className="mt-2">
-                <h3 className="font-semibold text-sm line-clamp-1">{item.title}</h3>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3" />
-                  <span className="truncate">{locationLabel || destination?.name || ""}</span>
+        {products.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3">
+            {products.slice(0, 6).map((item) => (
+              <div
+                key={item.id}
+                onClick={() => navigate(generateExperienceUrl(locationLabel || destination?.name || "", item.title, item.slug, destination?.slug))}
+                className="cursor-pointer active:scale-[0.97] transition-transform"
+              >
+                <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+                  <img src={item.cover_image || ""} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+                <div className="mt-2">
+                  <h3 className="font-semibold text-sm line-clamp-1">{item.title}</h3>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="w-3 h-3" />
+                    <span className="truncate">{locationLabel || destination?.name || ""}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground py-4 text-center">No experiences found yet for this location.</p>
+        )}
       </div>
     </div>
   );
