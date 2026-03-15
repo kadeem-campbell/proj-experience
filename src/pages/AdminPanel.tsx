@@ -356,7 +356,7 @@ const AdminPanel = () => {
           <SelectTrigger><SelectValue placeholder="City" /></SelectTrigger>
           <SelectContent>
             {cities.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.flag_emoji} {c.name}, {c.country}</SelectItem>
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
