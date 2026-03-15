@@ -21,8 +21,6 @@ export default function DestinationPage() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { trackPageView } = useInteractions();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   // Extract destination slug from path - works for both /zanzibar and /:destination
   const pathParts = location.pathname.split('/').filter(Boolean);
