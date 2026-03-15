@@ -127,7 +127,7 @@ export const generateItinerarySchema = (
       "@type": "ListItem",
       position: idx + 1,
       name: exp.title,
-      url: `https://swam.app/experiences/${exp.slug || exp.id}`,
+      url: `https://swam.app/things-to-do/explore/${exp.slug || exp.id}`,
     })),
   };
 };

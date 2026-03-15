@@ -331,7 +331,7 @@ export const MobileSearchOverlay = ({
     localStorage.removeItem(RECENT_SEARCHES_KEY);
   };
 
-  const experiencePath = (experience: any) => `/experiences/${experience.slug || slugify(experience.title || '')}`;
+  const experiencePath = (experience: any) => `/things-to-do/explore/${experience.slug || slugify(experience.title || '')}`;
   const itineraryPath = (itinerary: any) => `/itineraries/${itinerary.slug || itinerary.id}`;
 
   const handleNavigate = (path: string) => {

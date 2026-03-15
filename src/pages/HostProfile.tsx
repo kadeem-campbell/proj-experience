@@ -10,15 +10,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { slugify } from "@/utils/slugUtils";
-import { useCategories } from "@/hooks/useAppData";
+import { useActivityTypes } from "@/hooks/useProducts";
 import type { Host } from "@/hooks/useProducts";
 
-// Try hosts table first, fall back to creators
+// Lookup host from hosts table only
 const useHostByUsername = (username: string) => {
   return useQuery({
     queryKey: ["host-profile", username],
     queryFn: async () => {
-      // Try new hosts table
       const { data: host } = await supabase
         .from("hosts")
         .select("*")
@@ -26,27 +25,7 @@ const useHostByUsername = (username: string) => {
         .or(`slug.eq.${username},username.eq.${username}`)
         .maybeSingle();
       if (host) return { ...host, _source: "hosts" as const };
-
-      // Fall back to creators
-      const { data: creator } = await supabase
-        .from("creators")
-        .select("*")
-        .eq("username", username)
-        .eq("is_active", true)
-        .maybeSingle();
-      if (creator) return { ...creator, slug: creator.username, _source: "creators" as const };
-
-      // Fuzzy match creators
-      const { data: all } = await supabase
-        .from("creators")
-        .select("*")
-        .eq("is_active", true);
-      const slug = username.toLowerCase();
-      const match = (all || []).find(c =>
-        c.username?.toLowerCase() === slug ||
-        (c.display_name || '').toLowerCase().replace(/\s+/g, '-') === slug
-      );
-      return match ? { ...match, slug: match.username, _source: "creators" as const } : null;
+      return null;
     },
     enabled: !!username,
   });
@@ -105,8 +84,8 @@ export default function HostProfile() {
   const { data: experiences = [] } = useHostExperiences(host?.username || host?.display_name || "");
   const { data: itineraries = [] } = useHostItineraries(lookupId || "");
   const { data: categoryIds = [] } = useHostCategories(lookupId || "", host?._source || "");
-  const { data: allCategories = [] } = useCategories();
-  const hostCategories = allCategories.filter(c => categoryIds.includes(c.id));
+  const { data: allActivityTypes = [] } = useActivityTypes();
+  const hostCategories = allActivityTypes.filter(c => categoryIds.includes(c.id));
 
   const socialLinks = (host?.social_links && typeof host.social_links === "object") ? host.social_links as Record<string, string> : {};
 
@@ -239,7 +218,7 @@ export default function HostProfile() {
             {experiences.map((exp: any) => (
               <div
                 key={exp.id}
-                onClick={() => navigate(`/experiences/${exp.slug || slugify(exp.title)}`)}
+                onClick={() => navigate(`/things-to-do/explore/${exp.slug || slugify(exp.title)}`)}
                 className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer hover:bg-muted/40 active:bg-muted/60 transition-colors"
               >
                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">

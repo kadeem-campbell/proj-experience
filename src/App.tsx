@@ -8,7 +8,6 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import Search from "./pages/Search";
 import ExperienceDetail from "./pages/ExperienceDetail";
 import CreateExperience from "./pages/CreateExperience";
-import Creators from "./pages/Creators";
 import Hosts from "./pages/Hosts";
 
 import Monetise from "./pages/Monetise";
@@ -21,7 +20,7 @@ import ManagementDashboard from "./pages/ManagementDashboard";
 import SocialFinder from "./pages/SocialFinder";
 import PublicItinerary from "./pages/PublicItinerary";
 import Itineraries from "./pages/Itineraries";
-import Experiences from "./pages/Experiences";
+import ThingsToDo from "./pages/ThingsToDo";
 import Trip from "./pages/Trip";
 import Profile from "./pages/Profile";
 import MyItineraries from "./pages/MyItineraries";
@@ -30,7 +29,6 @@ import Collection from "./pages/Collection";
 import ExperienceCollection from "./pages/ExperienceCollection";
 import NotFound from "./pages/NotFound";
 import HostProfile from "./pages/HostProfile";
-import ThingsToDo from "./pages/ThingsToDo";
 import DestinationPage from "./pages/DestinationPage";
 
 const queryClient = new QueryClient();
@@ -46,15 +44,14 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Search />} />
 
-          {/* ======= NEW ENTITY ROUTES ======= */}
-          {/* Things to do hub */}
+          {/* ======= THINGS TO DO ======= */}
           <Route path="/things-to-do" element={<ThingsToDo />} />
           <Route path="/things-to-do/:destination" element={<ThingsToDo />} />
           <Route path="/things-to-do/:destination/:area" element={<ThingsToDo />} />
           <Route path="/things-to-do/:destination/:area/:slug" element={<ExperienceDetail />} />
           <Route path="/things-to-do/:destination/:slug" element={<ExperienceDetail />} />
 
-          {/* Dynamic destination pages */}
+          {/* ======= DESTINATIONS ======= */}
           <Route path="/destination/:destination" element={<DestinationPage />} />
           <Route path="/destination/:destination/:area" element={<DestinationPage />} />
 
@@ -75,25 +72,27 @@ const App = () => (
           <Route path="/stone-town" element={<DestinationPage />} />
           <Route path="/diani" element={<DestinationPage />} />
 
-          {/* Maps */}
+          {/* ======= MAP ======= */}
           <Route path="/explore/map" element={<Map />} />
+          <Route path="/:destination/map" element={<Map />} />
 
-          {/* ======= LEGACY ROUTES (preserved) ======= */}
-          {/* Single experience - slug-based */}
-          <Route path="/experiences/:slug" element={<ExperienceDetail />} />
-          {/* Location-prefixed slug support */}
-          <Route path="/experiences/:location/:legacySlug" element={<ExperienceDetail />} />
-          {/* Legacy URL support */}
-          <Route path="/experience/:location/:legacySlug" element={<ExperienceDetail />} />
-          <Route path="/experience/:id" element={<ExperienceDetail />} />
-          {/* Host/Creator profiles */}
+          {/* ======= HOSTS ======= */}
           <Route path="/hosts/:username" element={<HostProfile />} />
-          <Route path="/creators/:username" element={<HostProfile />} />
-          <Route path="/creators" element={<Creators />} />
           <Route path="/hosts" element={<Hosts />} />
-          <Route path="/create-experience" element={<CreateExperience />} />
+
+          {/* ======= ITINERARIES ======= */}
+          <Route path="/itineraries/:slug" element={<PublicItinerary />} />
+          <Route path="/itineraries" element={<Itineraries />} />
           <Route path="/itinerary" element={<Trip useActiveItinerary={true} />} />
           <Route path="/itinerary/:id" element={<Trip />} />
+
+          {/* ======= COLLECTIONS ======= */}
+          <Route path="/collections/:slug" element={<Collection />} />
+          <Route path="/experience-collections/:slug" element={<ExperienceCollection />} />
+          <Route path="/itinerary-collections/:slug" element={<Collection />} />
+
+          {/* ======= OTHER ======= */}
+          <Route path="/create-experience" element={<CreateExperience />} />
           <Route path="/monetise" element={<Monetise />} />
           <Route path="/map" element={<Map />} />
           <Route path="/travellers" element={<Travellers />} />
@@ -104,24 +103,13 @@ const App = () => (
           <Route path="/search" element={<Search />} />
           <Route path="/discover" element={<Search />} />
           <Route path="/social-finder" element={<SocialFinder />} />
-          {/* Single itinerary - slug-based */}
-          <Route path="/itineraries/:slug" element={<PublicItinerary />} />
-          {/* Legacy */}
-          <Route path="/public-itinerary/:id" element={<PublicItinerary />} />
-          <Route path="/itineraries" element={<Itineraries />} />
-          {/* Collection pages */}
-          <Route path="/itinerary-collections/:slug" element={<Collection />} />
-          {/* Legacy collection support */}
-          <Route path="/collections/:slug" element={<Collection />} />
-          {/* Experience collection pages */}
-          <Route path="/experience-collections/:slug" element={<ExperienceCollection />} />
-          <Route path="/experiences" element={<Experiences />} />
           <Route path="/trip/:id" element={<Trip />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/my-itineraries" element={<MyItineraries />} />
           <Route path="/liked" element={<Liked />} />
           <Route path="/saved" element={<Liked />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* CATCH-ALL */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

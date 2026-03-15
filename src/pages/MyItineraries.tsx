@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart, Calendar, Users, Globe, Eye, EyeOff } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
-import { slugify } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
-import { useCities, useCategories } from "@/hooks/useAppData";
+import { useDestinations, useActivityTypes } from "@/hooks/useProducts";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -155,8 +155,8 @@ const MyItinerariesPage = () => {
   const isMobile = useIsMobile();
   const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
   const [showAllNotifications, setShowAllNotifications] = useState(false);
-  const { data: cities = [] } = useCities();
-  const { data: dbCategories = [] } = useCategories();
+  const { data: destinations = [] } = useDestinations();
+  const { data: dbCategories = [] } = useActivityTypes();
   const addModeCategories = useMemo(() => {
     return dbCategories.map(cat => ({
       icon: cat.icon_image || categoryIconFallback[cat.name] || catAdventure,
@@ -210,12 +210,9 @@ const MyItinerariesPage = () => {
     setAddMode(true);
   };
 
-  const launchedCities = useMemo(() => {
-    return cities.filter(c => {
-      if (!c.launch_date) return true;
-      return new Date(`${c.launch_date}T00:00:00`).getTime() <= Date.now();
-    });
-  }, [cities]);
+  const launchedDestinations = useMemo(() => {
+    return destinations;
+  }, [destinations]);
 
   const handleTap = (itinerary: any) => {
     setActiveItinerary(itinerary.id);
@@ -385,7 +382,7 @@ const MyItinerariesPage = () => {
                   return (
                     <div key={exp.id} className="flex items-center border-b border-border/20 last:border-b-0">
                       <div
-                        onClick={() => navigate(`/experiences/${(exp as any).slug || slugify(exp.title)}`)}
+                        onClick={() => navigate(generateExperienceUrl((exp as any).location || '', exp.title, (exp as any).slug))}
                         className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors cursor-pointer"
                       >
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
@@ -603,9 +600,9 @@ const MyItinerariesPage = () => {
                       className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground appearance-none cursor-pointer"
                       style={{ fontSize: '16px' }}
                     >
-                      <option value="">Select a city</option>
-                      {launchedCities.map(city => (
-                        <option key={city.id} value={city.name}>{city.name}, {city.country}</option>
+                      <option value="">Select a destination</option>
+                      {launchedDestinations.map(dest => (
+                        <option key={dest.id} value={dest.name}>{dest.name}</option>
                       ))}
                     </select>
                   </div>

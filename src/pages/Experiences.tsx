@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { slugify } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div 
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.98] transition-transform"
-      onClick={() => navigate(`/experiences/${(experience as any).slug || slugify(experience.title)}`)}
+      onClick={() => navigate(generateExperienceUrl(experience.location, experience.title, (experience as any).slug))}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (

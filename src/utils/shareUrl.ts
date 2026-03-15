@@ -30,5 +30,5 @@ export const getItineraryShareUrl = (itineraryId: string): string => {
  * Generate a shareable experience URL
  */
 export const getExperienceShareUrl = (experienceSlug: string): string => {
-  return `${getShareBaseUrl()}/experiences/${experienceSlug}`;
+  return `${getShareBaseUrl()}/things-to-do/explore/${experienceSlug}`;
 };

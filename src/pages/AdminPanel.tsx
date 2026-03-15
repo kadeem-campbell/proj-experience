@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Plus, Edit, Search, X, Database, FileSpreadsheet, Users, DollarSign, Upload, Archive, Eye, EyeOff, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCategories, useCities, useCreators } from '@/hooks/useAppData';
+import { useActivityTypes, useDestinations, useHosts } from '@/hooks/useProducts';
 import { BulkUploader } from '@/components/BulkUploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LinkManager } from '@/components/LinkManager';
@@ -69,9 +69,9 @@ const AdminPanel = () => {
   const [newMeetingPoint, setNewMeetingPoint] = useState({ name: '', type: '' });
   const [creatorSearch, setCreatorSearch] = useState('');
 
-  const { data: categories = [] } = useCategories();
-  const { data: cities = [] } = useCities();
-  const { data: creators = [] } = useCreators();
+  const { data: categories = [] } = useActivityTypes();
+  const { data: cities = [] } = useDestinations();
+  const { data: creators = [] } = useHosts();
 
   const { data: experiences = [], isLoading } = useQuery({
     queryKey: ['admin-experiences', searchQuery],
@@ -356,7 +356,7 @@ const AdminPanel = () => {
           <SelectTrigger><SelectValue placeholder="City" /></SelectTrigger>
           <SelectContent>
             {cities.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.flag_emoji} {c.name}, {c.country}</SelectItem>
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -752,7 +752,7 @@ const AdminPanel = () => {
                               <Archive className="w-3.5 h-3.5" />
                             </Button>
                             {exp.slug && (
-                              <a href={`${getShareBaseUrl()}/experiences/${exp.slug}`} target="_blank" rel="noopener noreferrer">
+                              <a href={`${getShareBaseUrl()}/things-to-do/explore/${exp.slug}`} target="_blank" rel="noopener noreferrer">
                                 <Button variant="ghost" size="icon" className="h-8 w-8"><ExternalLink className="w-3.5 h-3.5" /></Button>
                               </a>
                             )}
