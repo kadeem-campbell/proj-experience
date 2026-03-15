@@ -10,6 +10,7 @@ import { generateDestinationSchema, generateWebsiteSchema } from "@/services/sch
 import { generateExperienceUrl } from "@/utils/slugUtils";
 import { ArrowLeft, MapPin, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ExperienceDetail from "./ExperienceDetail";
 
 export default function ThingsToDo() {
   const { destination: destSlug, area: areaSlug, activityType: activitySlug } = useParams();
@@ -17,8 +18,8 @@ export default function ThingsToDo() {
   const isMobile = useIsMobile();
   const { trackPageView } = useInteractions();
 
-  const { data: destinations = [] } = useDestinations();
-  const { data: currentDestination } = useDestinationBySlug(destSlug || "");
+  const { data: destinations = [], isLoading: destsLoading } = useDestinations();
+  const { data: currentDestination, isLoading: destLoading } = useDestinationBySlug(destSlug || "");
   const { data: areas = [] } = useAreas(currentDestination?.id);
   const currentArea = useMemo(() => areas.find((area) => area.slug === areaSlug), [areas, areaSlug]);
   const { data: activityTypes = [] } = useActivityTypes();
@@ -34,8 +35,13 @@ export default function ThingsToDo() {
   );
 
   useEffect(() => {
-    trackPageView("things_to_do", currentActivity?.id || currentArea?.id || currentDestination?.id || "hub", window.location.pathname);
-  }, [currentDestination?.id, currentArea?.id, currentActivity?.id, window.location.pathname]);
+    if (currentDestination || !destSlug) {
+      trackPageView("things_to_do", currentActivity?.id || currentArea?.id || currentDestination?.id || "hub", window.location.pathname);
+    }
+  }, [currentDestination?.id, currentArea?.id, currentActivity?.id]);
+
+  // If destSlug doesn't match any destination and loading is done, render as experience detail
+  const isExperienceSlug = destSlug && !destLoading && !destsLoading && !currentDestination;
 
   const displayItems = useMemo(
     () =>
@@ -49,6 +55,10 @@ export default function ThingsToDo() {
     [products, currentArea?.name, currentDestination?.name],
   );
 
+  if (isExperienceSlug) {
+    return <ExperienceDetail />;
+  }
+
   const pageTitle = currentActivity
     ? `${currentActivity.name} in ${currentArea?.name || currentDestination?.name}`
     : currentArea
@@ -59,6 +69,21 @@ export default function ThingsToDo() {
 
   const pageDescription = currentDestination?.description || "Discover the best things to do across SWAM destinations.";
   const jsonLd = currentDestination ? generateDestinationSchema(currentDestination, products) : generateWebsiteSchema();
+
+  // Show loading while destination is resolving
+  if (destSlug && (destLoading || destsLoading)) {
+    return isMobile ? (
+      <MobileShell hideTopBar>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MobileShell>
+    ) : (
+      <div className="flex justify-center items-center min-h-screen bg-background">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const content = (
     <div className="bg-background min-h-screen">

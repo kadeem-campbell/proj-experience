@@ -464,7 +464,7 @@ export const MobileHomeView = () => {
             selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss",
             `${catLabel} you can't miss`
           )}
-          onTitleClick={() => navigate("/itinerary-collections/attractions-you-cant-miss")}
+          onTitleClick={() => navigate("/collections/itineraries/attractions-you-cant-miss")}
         >
           {categoryItineraries.slice(0, 6).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -478,7 +478,7 @@ export const MobileHomeView = () => {
             `Available in ${cityLabel} next weekend`,
             `${catLabel} available next weekend`
           )}
-          onTitleClick={() => navigate("/experience-collections/available-next-weekend")}
+          onTitleClick={() => navigate("/collections/experiences/available-next-weekend")}
         >
           {categoryExperiences.slice(0, 8).map((experience) => (
             <MobileExperienceCard key={experience.id} experience={experience} />
@@ -489,7 +489,7 @@ export const MobileHomeView = () => {
       {categoryItineraries.length > 3 && (
         <HorizontalScrollRow 
           title={rowTitle("Curated by locals", `${catLabel} curated by locals`)}
-          onTitleClick={() => navigate("/itinerary-collections/curated-by-locals")}
+          onTitleClick={() => navigate("/collections/itineraries/curated-by-locals")}
         >
           {categoryItineraries.slice(3, 9).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -500,7 +500,7 @@ export const MobileHomeView = () => {
       {categoryExperiences.length > 8 && (
         <HorizontalScrollRow 
           title={rowTitle("Adventure awaits", `More ${catLabel}`)}
-          onTitleClick={() => navigate("/experience-collections/adventure-awaits")}
+          onTitleClick={() => navigate("/collections/experiences/adventure-awaits")}
         >
           {categoryExperiences.slice(8, 18).map((experience) => (
             <MobileExperienceCard key={experience.id} experience={experience} />
@@ -511,7 +511,7 @@ export const MobileHomeView = () => {
       {categoryItineraries.length > 1 && !activeCategory && (
         <HorizontalScrollRow 
           title="Weekend getaways"
-          onTitleClick={() => navigate("/itinerary-collections/weekend-getaways")}
+          onTitleClick={() => navigate("/collections/itineraries/weekend-getaways")}
         >
           {categoryItineraries.slice(1, 7).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -522,7 +522,7 @@ export const MobileHomeView = () => {
       {categoryExperiences.length > 18 && (
         <HorizontalScrollRow 
           title={rowTitle("Taste the local flavors", `Even more ${catLabel}`)}
-          onTitleClick={() => navigate("/experience-collections/taste-local-flavors")}
+          onTitleClick={() => navigate("/collections/experiences/taste-local-flavors")}
         >
           {categoryExperiences.slice(18, 28).map((experience) => (
             <MobileExperienceCard key={experience.id} experience={experience} />
@@ -533,7 +533,7 @@ export const MobileHomeView = () => {
       {categoryItineraries.length > 2 && !activeCategory && (
         <HorizontalScrollRow 
           title="Popular this week"
-          onTitleClick={() => navigate("/itinerary-collections/popular-this-week")}
+          onTitleClick={() => navigate("/collections/itineraries/popular-this-week")}
         >
           {categoryItineraries.slice(2, 8).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />

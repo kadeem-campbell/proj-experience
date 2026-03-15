@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActivityTypes, useDestinations, useHosts } from '@/hooks/useProducts';
 import { BulkUploader } from '@/components/BulkUploader';
+import { BulkUpdatePanel } from '@/components/BulkUpdatePanel';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LinkManager } from '@/components/LinkManager';
 import { AdminManualEntities } from '@/components/AdminManualEntities';
@@ -650,6 +651,7 @@ const AdminPanel = () => {
                 <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Legacy</TabsTrigger>
                 <TabsTrigger value="links" className="gap-2"><ExternalLink className="w-4 h-4" /> Links</TabsTrigger>
                 <TabsTrigger value="bulk" className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Bulk Upload</TabsTrigger>
+                <TabsTrigger value="bulk-update" className="gap-2"><Upload className="w-4 h-4" /> Bulk Update</TabsTrigger>
               </TabsList>
             </div>
 
@@ -785,6 +787,10 @@ const AdminPanel = () => {
 
             <TabsContent value="bulk">
               <BulkUploader />
+            </TabsContent>
+
+            <TabsContent value="bulk-update">
+              <BulkUpdatePanel />
             </TabsContent>
           </Tabs>
         </div>

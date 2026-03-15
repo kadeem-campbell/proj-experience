@@ -159,7 +159,7 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
 };
 
 export default function ExperienceDetail() {
-  const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams();
+  const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams<{ id?: string; location?: string; legacySlug?: string; slug?: string; destination?: string; area?: string }>() as any;
   const navigate = useNavigate();
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -177,7 +177,8 @@ export default function ExperienceDetail() {
   const isMobile = useIsMobile();
 
   // Resolve the slug from any route pattern
-  const resolvedSlug = slug || legacySlug || id || '';
+  // For /things-to-do/:destination (when ThingsToDo delegates), destParam IS the slug
+  const resolvedSlug = slug || legacySlug || destParam || id || '';
 
   // Try to find as a product first (new entity system)
   const { data: product, isLoading: productLoading } = useProductBySlug(resolvedSlug);
@@ -194,39 +195,7 @@ export default function ExperienceDetail() {
   };
 
   const experience = useMemo(() => {
-    // First: try product table (new entity system)
-    if (product) {
-      return {
-        id: product.id,
-        title: product.title,
-        creator: '',
-        videoThumbnail: product.cover_image,
-        videoUrl: product.video_url,
-        category: '',
-        location: productDestination?.name || '',
-        description: product.description,
-        duration: product.duration,
-        groupSize: '',
-        rating: product.rating,
-        price: productOptions.length > 0
-          ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
-          : '',
-        highlights: product.highlights || [],
-        gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
-        bestTime: product.best_time,
-        weather: product.weather,
-        meetingPoints: product.meeting_points || [],
-        faqs: [],
-        tiktokVideos: [],
-        instagramEmbed: '',
-        socialLinks: {},
-        likeCount: product.like_count,
-        slug: product.slug,
-        isProduct: true,
-      };
-    }
-
-    // Second: legacy experiences table
+    // First priority: legacy experiences table (has full data with location, price, category)
     const fromDb = (db: DbExperience) => ({
       id: db.id,
       title: db.title,
@@ -269,6 +238,38 @@ export default function ExperienceDetail() {
       }
     }
 
+    // Second: try product table (new entity system)
+    if (product) {
+      return {
+        id: product.id,
+        title: product.title,
+        creator: '',
+        videoThumbnail: product.cover_image,
+        videoUrl: product.video_url,
+        category: '',
+        location: productDestination?.name || '',
+        description: product.description,
+        duration: product.duration,
+        groupSize: '',
+        rating: product.rating,
+        price: productOptions.length > 0
+          ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
+          : '',
+        highlights: product.highlights || [],
+        gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
+        bestTime: product.best_time,
+        weather: product.weather,
+        meetingPoints: product.meeting_points || [],
+        faqs: [],
+        tiktokVideos: [],
+        instagramEmbed: '',
+        socialLinks: {},
+        likeCount: product.like_count,
+        slug: product.slug,
+        isProduct: true,
+      };
+    }
+
     return null;
   }, [id, locationParam, legacySlug, resolvedSlug, product, productOptions, productDestination, dbExperiences]);
 
@@ -301,17 +302,7 @@ export default function ExperienceDetail() {
     }
   };
 
-  const socialProof = useMemo(() => {
-    const expId = experience?.id || id || '';
-    if (!expId) return { added: 0, planning: 0, trending: false };
-    const hash = expId.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
-    const added = Math.abs(hash % 800) + 150;
-    const planning = Math.abs((hash * 7) % 50) + 5;
-    const trending = added > 500;
-    return { added, planning, trending };
-  }, [experience?.id, id]);
-
-  const likedByCount = (experience?.likeCount || 0) + socialProof.added + likeCountDelta;
+  const likedByCount = (experience?.likeCount || 0) + likeCountDelta;
 
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
@@ -725,10 +716,10 @@ export default function ExperienceDetail() {
             </div>
           </div>
           
-          {socialProof.trending && (
+          {(experience?.likeCount || 0) > 500 && (
             <Badge variant="secondary" className="absolute top-4 left-1/2 -translate-x-1/2 gap-1 text-xs bg-background/80 backdrop-blur-md text-primary border-0 z-10">
               <Flame className="w-3 h-3" />
-              Trending
+              Popular
             </Badge>
           )}
         </div>
@@ -963,13 +954,13 @@ export default function ExperienceDetail() {
                       <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                         <Zap className="w-5 h-5 text-primary" />
                       </div>
-                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[hsl(var(--success))] rounded-full animate-pulse" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-sm">
-                        <span className="text-primary">{socialProof.planning} people</span> planning now
+                        <span className="text-primary">{likedByCount > 0 ? likedByCount : 'Be the first'}</span> {likedByCount > 0 ? 'people interested' : 'to save this'}
                       </p>
-                      <p className="text-xs text-muted-foreground">Join them and build your trip</p>
+                      <p className="text-xs text-muted-foreground">Add to your itinerary</p>
                     </div>
                   </div>
                 </div>
