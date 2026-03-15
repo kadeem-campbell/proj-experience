@@ -12,7 +12,6 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useDestinations, useDestinationBySlug, useAreas, useActivityTypes, useProducts } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema, generateWebsiteSchema } from "@/services/schemaGenerator";
@@ -36,33 +35,19 @@ export default function ThingsToDo() {
     currentDestination ? { destinationId: currentDestination.id } : undefined
   );
 
-  // Fallback to legacy experiences
-  const legacyExperiences = useExperiencesData();
-
-  // Use products if available, otherwise fall back to experiences
-  const hasProducts = products.length > 0;
   const displayItems = useMemo(() => {
-    if (hasProducts) {
-      return products.map(p => ({
-        id: p.id,
-        title: p.title,
-        creator: "",
-        views: String(p.view_count || 0),
-        videoThumbnail: p.cover_image,
-        category: "",
-        location: currentDestination?.name || "",
-        price: "",
-        slug: p.slug,
-      }));
-    }
-    // Filter legacy experiences by destination name if we have a destination slug
-    if (destSlug) {
-      return legacyExperiences.filter(e =>
-        e.location?.toLowerCase().includes(destSlug.toLowerCase())
-      );
-    }
-    return legacyExperiences;
-  }, [hasProducts, products, legacyExperiences, destSlug, currentDestination]);
+    return products.map(p => ({
+      id: p.id,
+      title: p.title,
+      creator: "",
+      views: String(p.view_count || 0),
+      videoThumbnail: p.cover_image,
+      category: "",
+      location: currentDestination?.name || "",
+      price: "",
+      slug: p.slug,
+    }));
+  }, [products, currentDestination]);
   // Analytics
   useEffect(() => {
     if (currentDestination?.id) {

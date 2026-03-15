@@ -9,7 +9,6 @@ import { MobileShell } from "@/components/MobileShell";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDestinationBySlug, useAreas, useProducts, useActivityTypes } from "@/hooks/useProducts";
-import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema } from "@/services/schemaGenerator";
 import { ArrowLeft, MapPin, Compass, ChevronRight, Map } from "lucide-react";
@@ -32,16 +31,7 @@ export default function DestinationPage() {
   const { data: activityTypes = [] } = useActivityTypes();
   const { data: products = [] } = useProducts(destination ? { destinationId: destination.id } : undefined);
 
-  // Fallback to legacy experiences
-  const legacyExperiences = useExperiencesData();
-  const filteredLegacy = useMemo(() => {
-    if (!destSlug) return [];
-    return legacyExperiences.filter(e =>
-      e.location?.toLowerCase().includes(destSlug.toLowerCase())
-    );
-  }, [legacyExperiences, destSlug]);
-
-  const displayProducts = products.length > 0 ? products : filteredLegacy;
+  const displayProducts = products;
 
   // Analytics: track page view
   useEffect(() => {
