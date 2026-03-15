@@ -533,7 +533,7 @@ export const MobileHomeView = () => {
       {categoryItineraries.length > 2 && !activeCategory && (
         <HorizontalScrollRow 
           title="Popular this week"
-          onTitleClick={() => navigate("/itinerary-collections/popular-this-week")}
+          onTitleClick={() => navigate("/collections/itineraries/popular-this-week")}
         >
           {categoryItineraries.slice(2, 8).map((itinerary) => (
             <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />

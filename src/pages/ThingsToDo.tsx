@@ -33,14 +33,10 @@ export default function ThingsToDo() {
       : undefined,
   );
 
-  // If destSlug is provided but doesn't match a destination, it might be an experience slug
-  // Redirect to ExperienceDetail in that case
-  useEffect(() => {
-    if (destSlug && !destLoading && !currentDestination && !destsLoading) {
-      // Not a destination - redirect to experience detail with best guess
-      navigate(`/things-to-do/explore/${destSlug}`, { replace: true });
-    }
-  }, [destSlug, destLoading, destsLoading, currentDestination, navigate]);
+  // If destSlug doesn't match any destination, render as experience detail page
+  if (destSlug && !destLoading && !destsLoading && !currentDestination) {
+    return <ExperienceDetail />;
+  }
 
   useEffect(() => {
     trackPageView("things_to_do", currentActivity?.id || currentArea?.id || currentDestination?.id || "hub", window.location.pathname);
