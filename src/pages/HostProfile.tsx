@@ -3,85 +3,96 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { SEOHead } from "@/components/SEOHead";
+import { generateHostSchema } from "@/services/schemaGenerator";
 import { ArrowLeft, Star, MapPin, ExternalLink, MessageCircle, Globe, Instagram, Phone, Mail } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { slugify } from "@/utils/slugUtils";
 import { useCategories } from "@/hooks/useAppData";
+import type { Host } from "@/hooks/useProducts";
 
-const useCreatorByUsername = (username: string) => {
+// Try hosts table first, fall back to creators
+const useHostByUsername = (username: string) => {
   return useQuery({
-    queryKey: ["creator", username],
+    queryKey: ["host-profile", username],
     queryFn: async () => {
-      // First try exact username match
-      const { data: exact } = await supabase
+      // Try new hosts table
+      const { data: host } = await supabase
+        .from("hosts")
+        .select("*")
+        .eq("is_active", true)
+        .or(`slug.eq.${username},username.eq.${username}`)
+        .maybeSingle();
+      if (host) return { ...host, _source: "hosts" as const };
+
+      // Fall back to creators
+      const { data: creator } = await supabase
         .from("creators")
         .select("*")
         .eq("username", username)
         .eq("is_active", true)
         .maybeSingle();
-      if (exact) return exact;
+      if (creator) return { ...creator, slug: creator.username, _source: "creators" as const };
 
-      // Fallback: fetch all active creators and match by slugified display_name or username
+      // Fuzzy match creators
       const { data: all } = await supabase
         .from("creators")
         .select("*")
         .eq("is_active", true);
-      if (!all) return null;
       const slug = username.toLowerCase();
-      return all.find(c =>
-        c.username === slug ||
-        c.username?.toLowerCase().replace(/\s+/g, '-') === slug ||
+      const match = (all || []).find(c =>
+        c.username?.toLowerCase() === slug ||
         (c.display_name || '').toLowerCase().replace(/\s+/g, '-') === slug
-      ) || null;
+      );
+      return match ? { ...match, slug: match.username, _source: "creators" as const } : null;
     },
     enabled: !!username,
   });
 };
 
-const useCreatorCategories = (creatorId: string) => {
+const useHostCategories = (hostId: string, source: string) => {
   return useQuery({
-    queryKey: ["creator-categories", creatorId],
+    queryKey: ["host-categories", hostId, source],
     queryFn: async () => {
       const { data } = await supabase
         .from("creator_categories")
         .select("category_id")
-        .eq("creator_id", creatorId);
+        .eq("creator_id", hostId);
       return (data || []).map((r: any) => r.category_id);
     },
-    enabled: !!creatorId,
+    enabled: !!hostId,
   });
 };
 
-const useCreatorExperiences = (creatorName: string) => {
+const useHostExperiences = (hostName: string) => {
   return useQuery({
-    queryKey: ["creator-experiences", creatorName],
+    queryKey: ["host-experiences", hostName],
     queryFn: async () => {
       const { data } = await supabase
         .from("experiences")
         .select("id, title, slug, video_thumbnail, category, location, price, rating")
         .eq("is_active", true)
-        .ilike("creator", `%${creatorName}%`);
+        .ilike("creator", `%${hostName}%`);
       return data || [];
     },
-    enabled: !!creatorName,
+    enabled: !!hostName,
   });
 };
 
-const useCreatorItineraries = (creatorId: string) => {
+const useHostItineraries = (hostId: string) => {
   return useQuery({
-    queryKey: ["creator-itineraries", creatorId],
+    queryKey: ["host-itineraries", hostId],
     queryFn: async () => {
       const { data } = await supabase
         .from("public_itineraries")
         .select("id, name, slug, cover_image, like_count")
-        .eq("creator_id", creatorId)
+        .eq("creator_id", hostId)
         .eq("is_active", true);
       return data || [];
     },
-    enabled: !!creatorId,
+    enabled: !!hostId,
   });
 };
 
@@ -89,14 +100,15 @@ export default function HostProfile() {
   const { username } = useParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { data: creator, isLoading } = useCreatorByUsername(username || "");
-  const { data: experiences = [] } = useCreatorExperiences(creator?.username || creator?.display_name || "");
-  const { data: itineraries = [] } = useCreatorItineraries(creator?.id || "");
-  const { data: categoryIds = [] } = useCreatorCategories(creator?.id || "");
+  const { data: host, isLoading } = useHostByUsername(username || "");
+  const lookupId = host?._source === "hosts" ? (host as any).legacy_creator_id || host?.id : host?.id;
+  const { data: experiences = [] } = useHostExperiences(host?.username || host?.display_name || "");
+  const { data: itineraries = [] } = useHostItineraries(lookupId || "");
+  const { data: categoryIds = [] } = useHostCategories(lookupId || "", host?._source || "");
   const { data: allCategories = [] } = useCategories();
-  const creatorCategories = allCategories.filter(c => categoryIds.includes(c.id));
+  const hostCategories = allCategories.filter(c => categoryIds.includes(c.id));
 
-  const socialLinks = (creator?.social_links && typeof creator.social_links === "object") ? creator.social_links as Record<string, string> : {};
+  const socialLinks = (host?.social_links && typeof host.social_links === "object") ? host.social_links as Record<string, string> : {};
 
   const contactItems = [
     { key: "whatsapp", icon: MessageCircle, label: "WhatsApp", href: socialLinks.whatsapp ? `https://wa.me/${socialLinks.whatsapp.replace(/\D/g, '')}` : null },
@@ -112,6 +124,21 @@ export default function HostProfile() {
     else navigate('/');
   };
 
+  const hostForSchema = host ? {
+    id: host.id,
+    username: host.username,
+    display_name: host.display_name || '',
+    slug: (host as any).slug || host.username,
+    bio: host.bio || '',
+    avatar_url: host.avatar_url || '',
+    social_links: socialLinks,
+    destination_id: null,
+    area_id: null,
+    is_verified: host.is_verified || false,
+    is_active: true,
+    legacy_creator_id: null,
+  } as Host : null;
+
   if (isLoading) {
     const Wrapper = isMobile ? MobileShell : ({ children }: { children: React.ReactNode }) => <div className="min-h-screen bg-background">{children}</div>;
     return (
@@ -123,7 +150,7 @@ export default function HostProfile() {
     );
   }
 
-  if (!creator) {
+  if (!host) {
     const Wrapper = isMobile ? MobileShell : ({ children }: { children: React.ReactNode }) => <div className="min-h-screen bg-background">{children}</div>;
     return (
       <Wrapper {...(isMobile ? { hideTopBar: true } : {})}>
@@ -139,6 +166,16 @@ export default function HostProfile() {
 
   const content = (
     <div className="bg-background overflow-y-auto">
+      {hostForSchema && (
+        <SEOHead
+          title={`${host.display_name || host.username} — Experience Host`}
+          description={host.bio || `Discover experiences hosted by ${host.display_name || host.username}`}
+          url={`https://swam.app/hosts/${(host as any).slug || host.username}`}
+          image={host.avatar_url || undefined}
+          jsonLd={generateHostSchema(hostForSchema)}
+        />
+      )}
+
       {/* Header */}
       <div className="relative px-4 pt-4 pb-6">
         <button onClick={handleGoBack} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -147,22 +184,22 @@ export default function HostProfile() {
 
         <div className="flex items-center gap-4 mb-4">
           <Avatar className="w-20 h-20">
-            {creator.avatar_url && <AvatarImage src={creator.avatar_url} />}
+            {host.avatar_url && <AvatarImage src={host.avatar_url} />}
             <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-              {(creator.display_name || creator.username).slice(0, 2).toUpperCase()}
+              {(host.display_name || host.username).slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-foreground">{creator.display_name || creator.username}</h1>
-            <p className="text-sm text-muted-foreground">@{creator.username}</p>
+            <h1 className="text-xl font-bold text-foreground">{host.display_name || host.username}</h1>
+            <p className="text-sm text-muted-foreground">@{host.username}</p>
             <div className="flex items-center gap-3 mt-1.5">
-              {creator.is_verified && <Badge variant="secondary" className="text-[10px]">Verified</Badge>}
+              {host.is_verified && <Badge variant="secondary" className="text-[10px]">Verified</Badge>}
               <span className="text-xs text-muted-foreground">{experiences.length} experiences</span>
               <span className="text-xs text-muted-foreground">{itineraries.length} itineraries</span>
             </div>
-            {creatorCategories.length > 0 && (
+            {hostCategories.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-2">
-                {creatorCategories.map(cat => (
+                {hostCategories.map(cat => (
                   <Badge key={cat.id} variant="outline" className="text-[10px] font-medium">
                     {cat.emoji} {cat.name}
                   </Badge>
@@ -172,11 +209,10 @@ export default function HostProfile() {
           </div>
         </div>
 
-        {creator.bio && (
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">{creator.bio}</p>
+        {host.bio && (
+          <p className="text-sm text-muted-foreground leading-relaxed mb-4">{host.bio}</p>
         )}
 
-        {/* Contact Links */}
         {contactItems.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {contactItems.map(item => (
@@ -208,7 +244,7 @@ export default function HostProfile() {
               >
                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
                   {exp.video_thumbnail ? (
-                    <img src={exp.video_thumbnail} alt="" className="w-full h-full object-cover" />
+                    <img src={exp.video_thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <MapPin className="w-4 h-4 text-muted-foreground/40" />
@@ -242,7 +278,7 @@ export default function HostProfile() {
               >
                 <div className="relative aspect-[3/2.5] rounded-xl overflow-hidden bg-muted">
                   {it.cover_image ? (
-                    <img src={it.cover_image} alt={it.name} className="w-full h-full object-cover" />
+                    <img src={it.cover_image} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                       <MapPin className="w-8 h-8 text-primary/40" />
@@ -263,9 +299,6 @@ export default function HostProfile() {
     </div>
   );
 
-  if (isMobile) {
-    return <MobileShell hideTopBar>{content}</MobileShell>;
-  }
-
+  if (isMobile) return <MobileShell hideTopBar>{content}</MobileShell>;
   return <div className="min-h-screen bg-background max-w-4xl mx-auto">{content}</div>;
 }
