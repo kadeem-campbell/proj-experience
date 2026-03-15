@@ -22,12 +22,13 @@ interface AppStoreCardViewProps {
 }
 
 const AppStoreCardView = ({ experience }: AppStoreCardViewProps) => {
-  const { liked, toggleLike } = useLikedExperiences(experience.id);
+  const { isLiked, toggleLike } = useLikedExperiences();
+  const liked = isLiked(experience.id);
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleLike();
+    toggleLike(experience);
   };
 
   const handleAddSuccess = () => {
@@ -35,9 +36,13 @@ const AppStoreCardView = ({ experience }: AppStoreCardViewProps) => {
   };
 
   const experienceData = {
+    id: experience.id,
     title: experience.title,
+    creator: experience.creator,
+    videoThumbnail: experience.videoThumbnail,
+    category: experience.category,
     location: experience.location,
-    image: experience.videoThumbnail,
+    price: experience.price,
   };
 
   return (
