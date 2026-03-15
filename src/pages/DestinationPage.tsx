@@ -2,7 +2,7 @@
  * Destination Page
  * Route: /{destination} and /{destination}/{area}
  */
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import { MobileShell } from "@/components/MobileShell";
@@ -10,6 +10,7 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDestinationBySlug, useAreas, useProducts, useActivityTypes } from "@/hooks/useProducts";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
+import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema } from "@/services/schemaGenerator";
 import { ArrowLeft, MapPin, Compass, ChevronRight, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
