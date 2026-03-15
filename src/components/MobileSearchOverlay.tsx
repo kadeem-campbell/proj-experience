@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, X, Layers, Heart, MapPin, Plus, SlidersHorizontal, Check } from "lucide-react";
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
 import { useNavigate, useLocation } from "react-router-dom";
-import { slugify } from "@/utils/slugUtils";
+import { generateExperienceUrl } from "@/utils/slugUtils";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { cn } from "@/lib/utils";

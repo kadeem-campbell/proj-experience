@@ -1,81 +1,70 @@
-/**
- * Things To Do Hub Page
- * Route: /things-to-do and /things-to-do/{destination}
- * 
- * Discovery hub showing products organized by destination, area, and activity type.
- * Falls back to the existing experiences data while products table is being populated.
- */
-import { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useMemo, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
-import { ExperienceCard } from "@/components/ExperienceCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDestinations, useDestinationBySlug, useAreas, useActivityTypes, useProducts } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema, generateWebsiteSchema } from "@/services/schemaGenerator";
-import { ArrowLeft, MapPin, Compass, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { generateExperienceUrl } from "@/utils/slugUtils";
+import { ArrowLeft, MapPin, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ThingsToDo() {
-  const { destination: destSlug, area: areaSlug } = useParams();
+  const { destination: destSlug, area: areaSlug, activityType: activitySlug } = useParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [selectedActivity, setSelectedActivity] = useState<string>("");
-  const { trackPageView, trackImpression } = useInteractions();
+  const { trackPageView } = useInteractions();
 
-  // New entity system
   const { data: destinations = [] } = useDestinations();
   const { data: currentDestination } = useDestinationBySlug(destSlug || "");
   const { data: areas = [] } = useAreas(currentDestination?.id);
+  const currentArea = useMemo(() => areas.find((area) => area.slug === areaSlug), [areas, areaSlug]);
   const { data: activityTypes = [] } = useActivityTypes();
+  const currentActivity = useMemo(() => activityTypes.find((activity) => activity.slug === activitySlug), [activityTypes, activitySlug]);
   const { data: products = [] } = useProducts(
-    currentDestination ? { destinationId: currentDestination.id } : undefined
+    currentDestination
+      ? {
+          destinationId: currentDestination.id,
+          ...(currentArea ? { areaId: currentArea.id } : {}),
+          ...(currentActivity ? { activityTypeId: currentActivity.id } : {}),
+        }
+      : undefined,
   );
 
-  const displayItems = useMemo(() => {
-    return products.map(p => ({
-      id: p.id,
-      title: p.title,
-      creator: "",
-      views: String(p.view_count || 0),
-      videoThumbnail: p.cover_image,
-      category: "",
-      location: currentDestination?.name || "",
-      price: "",
-      slug: p.slug,
-    }));
-  }, [products, currentDestination]);
-  // Analytics
   useEffect(() => {
-    if (currentDestination?.id) {
-      trackPageView('things_to_do', currentDestination.id, destSlug);
-    } else {
-      trackPageView('things_to_do', 'hub', 'direct');
-    }
-  }, [currentDestination?.id, destSlug]);
+    trackPageView("things_to_do", currentActivity?.id || currentArea?.id || currentDestination?.id || "hub", window.location.pathname);
+  }, [currentDestination?.id, currentArea?.id, currentActivity?.id, window.location.pathname]);
 
-  const pageTitle = currentDestination
-    ? `Things to Do in ${currentDestination.name}`
-    : "Things to Do in East Africa";
-  const pageDescription = currentDestination?.description ||
-    "Discover the best experiences, activities and things to do across East Africa. Curated by locals.";
+  const displayItems = useMemo(
+    () =>
+      products.map((product) => ({
+        id: product.id,
+        title: product.title,
+        videoThumbnail: product.cover_image,
+        location: [currentArea?.name, currentDestination?.name].filter(Boolean).join(", ") || currentDestination?.name || "",
+        slug: product.slug,
+      })),
+    [products, currentArea?.name, currentDestination?.name],
+  );
 
-  const jsonLd = currentDestination
-    ? generateDestinationSchema(currentDestination, products)
-    : generateWebsiteSchema();
+  const pageTitle = currentActivity
+    ? `${currentActivity.name} in ${currentArea?.name || currentDestination?.name}`
+    : currentArea
+      ? `Things to Do in ${currentArea.name}`
+      : currentDestination
+        ? `Things to Do in ${currentDestination.name}`
+        : "Things to Do";
+
+  const pageDescription = currentDestination?.description || "Discover the best things to do across SWAM destinations.";
+  const jsonLd = currentDestination ? generateDestinationSchema(currentDestination, products) : generateWebsiteSchema();
 
   const content = (
     <div className="bg-background min-h-screen">
-      {/* Header */}
       <div className="px-4 pt-3 pb-4">
         <div className="flex items-center gap-3 mb-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center active:scale-95 transition-transform"
-          >
+          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center active:scale-95 transition-transform">
             <ArrowLeft className="w-4 h-4 text-foreground" />
           </button>
           <div className="flex-1 min-w-0">
@@ -83,7 +72,7 @@ export default function ThingsToDo() {
             {currentDestination && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="w-3 h-3" />
-                <span>{currentDestination.name}</span>
+                <span>{[currentArea?.name, currentDestination.name].filter(Boolean).join(", ")}</span>
               </div>
             )}
           </div>
@@ -91,34 +80,35 @@ export default function ThingsToDo() {
         <p className="text-sm text-muted-foreground">{displayItems.length} things to do</p>
       </div>
 
-      {/* Destination pills (when no destination selected) */}
       {!destSlug && destinations.length > 0 && (
         <div className="px-4 pb-4">
           <h2 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Destinations</h2>
           <div className="flex gap-2 flex-wrap">
-            {destinations.map(dest => (
+            {destinations.map((destination) => (
               <button
-                key={dest.id}
-                onClick={() => navigate(`/things-to-do/${dest.slug}`)}
+                key={destination.id}
+                onClick={() => navigate(`/things-to-do/${destination.slug}`)}
                 className="px-4 py-2 rounded-full bg-card border border-border text-sm font-medium text-foreground active:scale-95 transition-transform"
               >
-                {dest.name}
+                {destination.name}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Areas (when destination selected) */}
       {currentDestination && areas.length > 0 && (
         <div className="px-4 pb-4">
           <h2 className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Areas</h2>
-          <div className="flex gap-2 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-            {areas.map(area => (
+          <div className="flex gap-2 overflow-x-auto" style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+            {areas.map((area) => (
               <button
                 key={area.id}
                 onClick={() => navigate(`/${currentDestination.slug}/${area.slug}`)}
-                className="shrink-0 px-4 py-2 rounded-full bg-card border border-border text-sm font-medium text-foreground active:scale-95 transition-transform"
+                className={cn(
+                  "shrink-0 px-4 py-2 rounded-full border text-sm font-medium transition-transform active:scale-95",
+                  currentArea?.id === area.id ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground",
+                )}
               >
                 {area.name}
               </button>
@@ -127,38 +117,31 @@ export default function ThingsToDo() {
         </div>
       )}
 
-      {/* Activity type filter */}
-      {activityTypes.length > 0 && (
+      {currentArea && activityTypes.length > 0 && (
         <div className="px-4 pb-4">
-          <div className="flex gap-2 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-            {activityTypes.map(at => (
+          <div className="flex gap-2 overflow-x-auto" style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+            {activityTypes.map((activity) => (
               <button
-                key={at.id}
-                onClick={() => setSelectedActivity(selectedActivity === at.id ? "" : at.id)}
+                key={activity.id}
+                onClick={() => navigate(`/things-to-do/${currentDestination?.slug}/${currentArea.slug}/${activity.slug}`)}
                 className={cn(
                   "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
-                  selectedActivity === at.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
+                  currentActivity?.id === activity.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
                 )}
               >
-                {at.emoji} {at.name}
+                {activity.emoji} {activity.name}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Items grid */}
       <div className="px-4 pb-8">
         <div className="grid grid-cols-2 gap-3">
-          {displayItems.map(item => (
+          {displayItems.map((item) => (
             <div
               key={item.id}
-              onClick={() => {
-                const dest = destSlug || (item.location ? item.location.split(',')[0].trim().toLowerCase().replace(/\s+/g, '-') : '');
-                navigate(dest ? `/things-to-do/${dest}/${item.slug || item.id}` : `/experiences/${item.slug || item.id}`);
-              }}
+              onClick={() => navigate(generateExperienceUrl(item.location, item.title, item.slug, currentDestination?.slug))}
               className="cursor-pointer active:scale-[0.97] transition-transform"
             >
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
@@ -182,14 +165,6 @@ export default function ThingsToDo() {
             </div>
           ))}
         </div>
-
-        {displayItems.length === 0 && (
-          <div className="text-center py-16">
-            <Compass className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground">No things to do found</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Check back soon!</p>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -197,12 +172,7 @@ export default function ThingsToDo() {
   if (isMobile) {
     return (
       <MobileShell hideTopBar>
-        <SEOHead
-          title={pageTitle}
-          description={pageDescription}
-          url={`https://swam.app/things-to-do${destSlug ? '/' + destSlug : ''}`}
-          jsonLd={jsonLd}
-        />
+        <SEOHead title={pageTitle} description={pageDescription} url={`https://swam.app${window.location.pathname}`} jsonLd={jsonLd} />
         {content}
       </MobileShell>
     );
@@ -210,12 +180,7 @@ export default function ThingsToDo() {
 
   return (
     <MainLayout>
-      <SEOHead
-        title={pageTitle}
-        description={pageDescription}
-        url={`https://swam.app/things-to-do${destSlug ? '/' + destSlug : ''}`}
-        jsonLd={jsonLd}
-      />
+      <SEOHead title={pageTitle} description={pageDescription} url={`https://swam.app${window.location.pathname}`} jsonLd={jsonLd} />
       <div className="max-w-6xl mx-auto px-6 py-8">{content}</div>
     </MainLayout>
   );

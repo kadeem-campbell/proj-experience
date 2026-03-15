@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useProducts, useDestinations } from "@/hooks/useProducts";
+import { useProducts, useDestinations, useAreas } from "@/hooks/useProducts";
 
 export interface Experience {
   id: string;
@@ -17,30 +17,46 @@ export interface Experience {
 /** @deprecated Use useProducts() directly for new code */
 export const allExperiences: Experience[] = [];
 
-/**
- * Returns products mapped to the legacy Experience interface.
- * This is the single source of truth — queries the products table.
- */
 export const useExperiencesData = () => {
   const { data: products = [] } = useProducts();
   const { data: destinations = [] } = useDestinations();
+  const { data: areas = [] } = useAreas();
 
   return useMemo(() => {
     if (products.length === 0) return [];
 
-    const destMap = new Map(destinations.map(d => [d.id, d.name]));
+    const destMap = new Map(destinations.map((d) => [d.id, d.name]));
+    const areaMap = new Map(areas.map((a) => [a.id, a.name]));
+    const destinationNames = destinations.map((d) => ({ slug: d.slug, name: d.name }));
 
-    return products.map(p => ({
-      id: p.id,
-      title: p.title,
-      creator: "",
-      views: String(p.view_count || 0),
-      videoThumbnail: p.cover_image || "",
-      videoUrl: p.video_url || undefined,
-      category: "",
-      location: destMap.get(p.destination_id || "") || "",
-      price: "",
-      slug: p.slug,
-    }));
-  }, [products, destinations]);
+    const inferDestinationName = (title: string, slug?: string) => {
+      const haystack = `${title} ${slug || ""}`.toLowerCase();
+      const match = destinationNames.find(
+        (destination) =>
+          haystack.startsWith(`${destination.slug}-`) ||
+          haystack.startsWith(`${destination.name.toLowerCase()} `) ||
+          haystack.includes(` ${destination.name.toLowerCase()} `)
+      );
+      return match?.name || "";
+    };
+
+    return products.map((product) => {
+      const destinationName = destMap.get(product.destination_id || "") || inferDestinationName(product.title, product.slug);
+      const areaName = areaMap.get(product.area_id || "");
+      const location = [areaName, destinationName].filter(Boolean).join(", ");
+
+      return {
+        id: product.id,
+        title: product.title,
+        creator: "",
+        views: String(product.view_count || 0),
+        videoThumbnail: product.cover_image || "",
+        videoUrl: product.video_url || undefined,
+        category: "",
+        location,
+        price: "",
+        slug: product.slug,
+      };
+    });
+  }, [products, destinations, areas]);
 };
