@@ -170,7 +170,10 @@ export default function ThingsToDo() {
           {displayItems.map(item => (
             <div
               key={item.id}
-              onClick={() => navigate(`/experiences/${item.slug || item.id}`)}
+              onClick={() => {
+                const dest = destSlug || (item.location ? item.location.split(',')[0].trim().toLowerCase().replace(/\s+/g, '-') : '');
+                navigate(dest ? `/things-to-do/${dest}/${item.slug || item.id}` : `/experiences/${item.slug || item.id}`);
+              }}
               className="cursor-pointer active:scale-[0.97] transition-transform"
             >
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">

@@ -52,6 +52,7 @@ const App = () => (
           <Route path="/things-to-do/:destination" element={<ThingsToDo />} />
           <Route path="/things-to-do/:destination/:area" element={<ThingsToDo />} />
           <Route path="/things-to-do/:destination/:area/:slug" element={<ExperienceDetail />} />
+          <Route path="/things-to-do/:destination/:slug" element={<ExperienceDetail />} />
 
           {/* Dynamic destination pages */}
           <Route path="/destination/:destination" element={<DestinationPage />} />

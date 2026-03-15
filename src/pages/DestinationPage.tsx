@@ -175,7 +175,7 @@ export default function DestinationPage() {
           {displayProducts.slice(0, 6).map((item: any) => (
             <div
               key={item.id}
-              onClick={() => navigate(`/experiences/${item.slug || item.id}`)}
+              onClick={() => navigate(`/things-to-do/${destSlug}/${item.slug || item.id}`)}
               className="cursor-pointer active:scale-[0.97] transition-transform"
             >
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
