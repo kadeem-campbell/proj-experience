@@ -500,7 +500,7 @@ export const MobileHomeView = () => {
       {categoryExperiences.length > 8 && (
         <HorizontalScrollRow 
           title={rowTitle("Adventure awaits", `More ${catLabel}`)}
-          onTitleClick={() => navigate("/experience-collections/adventure-awaits")}
+          onTitleClick={() => navigate("/collections/experiences/adventure-awaits")}
         >
           {categoryExperiences.slice(8, 18).map((experience) => (
             <MobileExperienceCard key={experience.id} experience={experience} />
