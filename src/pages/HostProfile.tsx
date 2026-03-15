@@ -13,12 +13,11 @@ import { slugify } from "@/utils/slugUtils";
 import { useActivityTypes } from "@/hooks/useProducts";
 import type { Host } from "@/hooks/useProducts";
 
-// Try hosts table first, fall back to creators
+// Lookup host from hosts table only
 const useHostByUsername = (username: string) => {
   return useQuery({
     queryKey: ["host-profile", username],
     queryFn: async () => {
-      // Try new hosts table
       const { data: host } = await supabase
         .from("hosts")
         .select("*")
@@ -26,27 +25,7 @@ const useHostByUsername = (username: string) => {
         .or(`slug.eq.${username},username.eq.${username}`)
         .maybeSingle();
       if (host) return { ...host, _source: "hosts" as const };
-
-      // Fall back to creators
-      const { data: creator } = await supabase
-        .from("creators")
-        .select("*")
-        .eq("username", username)
-        .eq("is_active", true)
-        .maybeSingle();
-      if (creator) return { ...creator, slug: creator.username, _source: "creators" as const };
-
-      // Fuzzy match creators
-      const { data: all } = await supabase
-        .from("creators")
-        .select("*")
-        .eq("is_active", true);
-      const slug = username.toLowerCase();
-      const match = (all || []).find(c =>
-        c.username?.toLowerCase() === slug ||
-        (c.display_name || '').toLowerCase().replace(/\s+/g, '-') === slug
-      );
-      return match ? { ...match, slug: match.username, _source: "creators" as const } : null;
+      return null;
     },
     enabled: !!username,
   });
