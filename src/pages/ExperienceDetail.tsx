@@ -348,20 +348,6 @@ export default function ExperienceDetail() {
     });
   }, [experience, product, productOptions, productHosts, productDestination, shareUrl]);
 
-  const experienceJsonLd = useMemo(() => {
-    if (!experience) return null;
-    return createExperienceJsonLd({
-      title: experience.title,
-      description: experience.description,
-      location: experience.location,
-      price: experience.price,
-      rating: experience.rating,
-      image: experience.videoThumbnail,
-      url: shareUrl,
-      duration: experience.duration,
-      category: experience.category,
-    });
-  }, [experience, shareUrl]);
 
   // Check if sections have content
   const hasHighlights = experience?.highlights && experience.highlights.length > 0;
