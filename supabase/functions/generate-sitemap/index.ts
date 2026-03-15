@@ -66,15 +66,8 @@ Deno.serve(async (req) => {
 
     // Products
     (products || []).forEach((p: any) => {
-      urls.push({ loc: `${baseUrl}/experiences/${p.slug}`, lastmod: p.updated_at?.split('T')[0] || now, priority: '0.8', changefreq: 'weekly' });
-    });
-
-    // Legacy experiences (that aren't already products)
-    const productSlugs = new Set((products || []).map((p: any) => p.slug));
-    (experiences || []).forEach((e: any) => {
-      if (e.slug && !productSlugs.has(e.slug)) {
-        urls.push({ loc: `${baseUrl}/experiences/${e.slug}`, lastmod: e.updated_at?.split('T')[0] || now, priority: '0.7', changefreq: 'weekly' });
-      }
+      const destSlug = p.destination_id ? destMap.get(p.destination_id) : 'explore';
+      urls.push({ loc: `${baseUrl}/things-to-do/${destSlug || 'explore'}/${p.slug}`, lastmod: p.updated_at?.split('T')[0] || now, priority: '0.8', changefreq: 'weekly' });
     });
 
     // Hosts
