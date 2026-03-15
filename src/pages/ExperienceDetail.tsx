@@ -195,39 +195,7 @@ export default function ExperienceDetail() {
   };
 
   const experience = useMemo(() => {
-    // First: try product table (new entity system)
-    if (product) {
-      return {
-        id: product.id,
-        title: product.title,
-        creator: '',
-        videoThumbnail: product.cover_image,
-        videoUrl: product.video_url,
-        category: '',
-        location: productDestination?.name || '',
-        description: product.description,
-        duration: product.duration,
-        groupSize: '',
-        rating: product.rating,
-        price: productOptions.length > 0
-          ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
-          : '',
-        highlights: product.highlights || [],
-        gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
-        bestTime: product.best_time,
-        weather: product.weather,
-        meetingPoints: product.meeting_points || [],
-        faqs: [],
-        tiktokVideos: [],
-        instagramEmbed: '',
-        socialLinks: {},
-        likeCount: product.like_count,
-        slug: product.slug,
-        isProduct: true,
-      };
-    }
-
-    // Second: legacy experiences table
+    // First priority: legacy experiences table (has full data with location, price, category)
     const fromDb = (db: DbExperience) => ({
       id: db.id,
       title: db.title,
@@ -268,6 +236,38 @@ export default function ExperienceDetail() {
         const dbMatch = dbExperiences.find(e => e.id === id);
         if (dbMatch) return fromDb(dbMatch);
       }
+    }
+
+    // Second: try product table (new entity system)
+    if (product) {
+      return {
+        id: product.id,
+        title: product.title,
+        creator: '',
+        videoThumbnail: product.cover_image,
+        videoUrl: product.video_url,
+        category: '',
+        location: productDestination?.name || '',
+        description: product.description,
+        duration: product.duration,
+        groupSize: '',
+        rating: product.rating,
+        price: productOptions.length > 0
+          ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
+          : '',
+        highlights: product.highlights || [],
+        gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
+        bestTime: product.best_time,
+        weather: product.weather,
+        meetingPoints: product.meeting_points || [],
+        faqs: [],
+        tiktokVideos: [],
+        instagramEmbed: '',
+        socialLinks: {},
+        likeCount: product.like_count,
+        slug: product.slug,
+        isProduct: true,
+      };
     }
 
     return null;
