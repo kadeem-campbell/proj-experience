@@ -360,7 +360,7 @@ export default function ExperienceDetail() {
     return raw.length > 0;
   })();
 
-  if (!experience && dbExperiencesLoading) {
+  if (!experience && (dbExperiencesLoading || productLoading)) {
     return isMobile ? (
       <MobileShell hideTopBar>
         <div className="flex justify-center items-center min-h-[60vh]">
