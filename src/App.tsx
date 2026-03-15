@@ -46,7 +46,7 @@ const App = () => (
             <Route path="/things-to-do" element={<ThingsToDo />} />
             <Route path="/things-to-do/:destination/:area/:activityType" element={<ThingsToDo />} />
             <Route path="/things-to-do/:destination/:slug" element={<ExperienceDetail />} />
-            {/* Single-segment catch: could be destination OR experience slug */}
+            {/* Single-segment: could be destination or experience slug - ThingsToDo handles detection */}
             <Route path="/things-to-do/:destination" element={<ThingsToDo />} />
 
             <Route path="/explore/map" element={<Map />} />
