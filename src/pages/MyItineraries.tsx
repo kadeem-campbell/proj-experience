@@ -600,9 +600,9 @@ const MyItinerariesPage = () => {
                       className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground appearance-none cursor-pointer"
                       style={{ fontSize: '16px' }}
                     >
-                      <option value="">Select a city</option>
-                      {launchedCities.map(city => (
-                        <option key={city.id} value={city.name}>{city.name}, {city.country}</option>
+                      <option value="">Select a destination</option>
+                      {launchedDestinations.map(dest => (
+                        <option key={dest.id} value={dest.name}>{dest.name}</option>
                       ))}
                     </select>
                   </div>
