@@ -25,7 +25,7 @@ const discoverySlides = [
     colorClass: "bg-experience-color",
     textClass: "text-experience-color",
     bgClass: "bg-experience-color/10",
-    ctas: [{ label: "Find Experiences", primary: true, route: "/experiences" }],
+    ctas: [{ label: "Find Experiences", primary: true, route: "/things-to-do" }],
   },
   {
     icon: Map,
@@ -51,7 +51,7 @@ const DesktopQuickNav = () => {
   const navigate = useNavigate();
 
   const items = [
-    { icon: Compass, label: "Experiences", route: "/experiences", color: "text-experience-color", bg: "bg-experience-color/8 hover:bg-experience-color/15" },
+    { icon: Compass, label: "Experiences", route: "/things-to-do", color: "text-experience-color", bg: "bg-experience-color/8 hover:bg-experience-color/15" },
     { icon: Map, label: "Itineraries", route: "/itineraries", color: "text-itinerary-color", bg: "bg-itinerary-color/8 hover:bg-itinerary-color/15" },
     { icon: MapPinned, label: "Create", route: "/itineraries?create=true", color: "text-social-color", bg: "bg-social-color/8 hover:bg-social-color/15" },
   ];

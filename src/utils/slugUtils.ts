@@ -10,23 +10,35 @@ export const slugify = (text: string): string => {
 };
 
 /**
- * Generate a product URL using the new entity route system.
+ * Generate a product URL using the canonical route system.
  * Pattern: /things-to-do/{destination}/{product-slug}
  */
-export const generateExperienceUrl = (location: string, title: string, slug?: string): string => {
+export const generateExperienceUrl = (
+  location: string,
+  title: string,
+  slug?: string,
+  destinationOverride?: string,
+): string => {
   const resolvedSlug = (slug || '').trim() || slugify(title);
-  if (location) {
-    const destSlug = slugify(location.split(',')[0].trim());
-    if (destSlug) {
-      return `/things-to-do/${destSlug}/${resolvedSlug}`;
-    }
+  const explicitDestination = slugify(destinationOverride || '');
+  if (explicitDestination) {
+    return `/things-to-do/${explicitDestination}/${resolvedSlug}`;
   }
-  return `/things-to-do/explore/${resolvedSlug}`;
+
+  const locationParts = location
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const destinationSource = locationParts.length > 1 ? locationParts[locationParts.length - 1] : locationParts[0];
+  const destinationSlug = slugify(destinationSource || '');
+
+  if (destinationSlug) {
+    return `/things-to-do/${destinationSlug}/${resolvedSlug}`;
+  }
+
+  return `/things-to-do/${resolvedSlug}`;
 };
 
-/**
- * Generate a product URL from structured entity data
- */
 export const generateProductUrl = (destinationSlug: string, productSlug: string, areaSlug?: string): string => {
   if (areaSlug) {
     return `/things-to-do/${destinationSlug}/${areaSlug}/${productSlug}`;

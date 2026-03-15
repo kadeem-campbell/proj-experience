@@ -1,64 +1,13 @@
 import { Link } from "react-router-dom";
-import { slugify } from "@/utils/slugUtils";
+import { generateExperienceUrl } from "@/utils/slugUtils";
 import { Heart, Plus, MapPin } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-
-interface Experience {
-  id: string;
-  title: string;
-  creator: string;
-  views?: string;
-  videoThumbnail: string;
-  videoUrl?: string;
-  category: string;
-  location: string;
-  price: string;
-}
-
-interface AppStoreCardViewProps {
-  experiences: Experience[];
-}
-
-export const AppStoreCardView = ({ experiences }: AppStoreCardViewProps) => {
-  return (
-    <div className="flex flex-col gap-4 p-4 pb-24">
-      {experiences.map((experience) => (
-        <AppStoreCard key={experience.id} experience={experience} />
-      ))}
-    </div>
-  );
-};
-
-const AppStoreCard = ({ experience }: { experience: Experience }) => {
-  const { isLiked, toggleLike } = useLikedExperiences();
-
-  const liked = isLiked(experience.id);
-
-  const experienceData = {
-    id: experience.id,
-    title: experience.title,
-    creator: experience.creator,
-    videoThumbnail: experience.videoThumbnail,
-    category: experience.category,
-    location: experience.location,
-    price: experience.price
-  };
-
-  const handleLikeClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleLike(experienceData);
-  };
-
-  const handleAddSuccess = () => {
-    // No toast - optimistic UI update only
-  };
-
+...
   return (
     <Link 
-      to={`/things-to-do/explore/${slugify(experience.title)}`}
+      to={generateExperienceUrl(experience.location, experience.title, undefined)}
       className="block w-full"
     >
       <div className="relative w-full rounded-2xl overflow-hidden">
