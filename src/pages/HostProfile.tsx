@@ -84,8 +84,8 @@ export default function HostProfile() {
   const { data: experiences = [] } = useHostExperiences(host?.username || host?.display_name || "");
   const { data: itineraries = [] } = useHostItineraries(lookupId || "");
   const { data: categoryIds = [] } = useHostCategories(lookupId || "", host?._source || "");
-  const { data: allCategories = [] } = useCategories();
-  const hostCategories = allCategories.filter(c => categoryIds.includes(c.id));
+  const { data: allActivityTypes = [] } = useActivityTypes();
+  const hostCategories = allActivityTypes.filter(c => categoryIds.includes(c.id));
 
   const socialLinks = (host?.social_links && typeof host.social_links === "object") ? host.social_links as Record<string, string> : {};
 
