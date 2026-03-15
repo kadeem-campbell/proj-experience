@@ -155,8 +155,8 @@ const MyItinerariesPage = () => {
   const isMobile = useIsMobile();
   const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
   const [showAllNotifications, setShowAllNotifications] = useState(false);
-  const { data: cities = [] } = useCities();
-  const { data: dbCategories = [] } = useCategories();
+  const { data: destinations = [] } = useDestinations();
+  const { data: dbCategories = [] } = useActivityTypes();
   const addModeCategories = useMemo(() => {
     return dbCategories.map(cat => ({
       icon: cat.icon_image || categoryIconFallback[cat.name] || catAdventure,
