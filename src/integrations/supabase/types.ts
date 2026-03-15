@@ -582,6 +582,8 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number | null
+          flag_emoji: string | null
+          flag_svg_url: string | null
           id: string
           is_active: boolean | null
           latitude: number | null
@@ -598,6 +600,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          flag_emoji?: string | null
+          flag_svg_url?: string | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
@@ -614,6 +618,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          flag_emoji?: string | null
+          flag_svg_url?: string | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
