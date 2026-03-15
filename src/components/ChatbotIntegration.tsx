@@ -68,7 +68,7 @@ export const ChatbotIntegration = () => {
             <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
               <p>{msg.content}</p>
               {msg.experiences?.map(exp => (
-                <a key={exp.id} href={`/things-to-do/explore/${exp.slug || exp.id}`} className="block mt-2 p-2 bg-background rounded border hover:bg-accent transition-colors">
+                <a key={exp.id} href={`/things-to-do/${exp.slug || exp.id}`} className="block mt-2 p-2 bg-background rounded border hover:bg-accent transition-colors">
                   <p className="font-medium text-xs">{exp.title}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                     <MapPin className="w-3 h-3" />{exp.location}
