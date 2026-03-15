@@ -302,17 +302,7 @@ export default function ExperienceDetail() {
     }
   };
 
-  const socialProof = useMemo(() => {
-    const expId = experience?.id || id || '';
-    if (!expId) return { added: 0, planning: 0, trending: false };
-    const hash = expId.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
-    const added = Math.abs(hash % 800) + 150;
-    const planning = Math.abs((hash * 7) % 50) + 5;
-    const trending = added > 500;
-    return { added, planning, trending };
-  }, [experience?.id, id]);
-
-  const likedByCount = (experience?.likeCount || 0) + socialProof.added + likeCountDelta;
+  const likedByCount = (experience?.likeCount || 0) + likeCountDelta;
 
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
