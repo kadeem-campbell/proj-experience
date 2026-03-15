@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useDbExperiences } from "@/hooks/useDbExperiences";
+import { useProducts, useDestinations } from "@/hooks/useProducts";
 
 export interface Experience {
   id: string;
@@ -14,27 +14,33 @@ export interface Experience {
   slug?: string;
 }
 
-/** @deprecated DB is the single source of truth – use useExperiencesData() hook */
+/** @deprecated Use useProducts() directly for new code */
 export const allExperiences: Experience[] = [];
 
-// Hook that returns DB experiences only
+/**
+ * Returns products mapped to the legacy Experience interface.
+ * This is the single source of truth — queries the products table.
+ */
 export const useExperiencesData = () => {
-  const { data: dbExperiences, isLoading } = useDbExperiences();
+  const { data: products = [] } = useProducts();
+  const { data: destinations = [] } = useDestinations();
 
   return useMemo(() => {
-    if (!dbExperiences || dbExperiences.length === 0) return [];
+    if (products.length === 0) return [];
 
-    return dbExperiences.map(db => ({
-      id: db.id,
-      title: db.title,
-      creator: db.creator,
-      views: db.views,
-      videoThumbnail: db.video_thumbnail,
-      videoUrl: db.video_url,
-      category: db.category,
-      location: db.location,
-      price: db.price,
-      slug: db.slug,
+    const destMap = new Map(destinations.map(d => [d.id, d.name]));
+
+    return products.map(p => ({
+      id: p.id,
+      title: p.title,
+      creator: "",
+      views: String(p.view_count || 0),
+      videoThumbnail: p.cover_image || "",
+      videoUrl: p.video_url || undefined,
+      category: "",
+      location: destMap.get(p.destination_id || "") || "",
+      price: "",
+      slug: p.slug,
     }));
-  }, [dbExperiences]);
+  }, [products, destinations]);
 };
