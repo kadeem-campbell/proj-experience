@@ -116,7 +116,7 @@ export default function Map() {
               title={item.title}
               onClick={() => {
                 if (item.type === 'destination') navigate(`/${item.slug}`);
-                else navigate(`/experiences/${item.slug}`);
+                else navigate(`/things-to-do/explore/${item.slug}`);
               }}
             />
           ))}
