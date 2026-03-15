@@ -752,7 +752,7 @@ const AdminPanel = () => {
                               <Archive className="w-3.5 h-3.5" />
                             </Button>
                             {exp.slug && (
-                              <a href={`${getShareBaseUrl()}/experiences/${exp.slug}`} target="_blank" rel="noopener noreferrer">
+                              <a href={`${getShareBaseUrl()}/things-to-do/explore/${exp.slug}`} target="_blank" rel="noopener noreferrer">
                                 <Button variant="ghost" size="icon" className="h-8 w-8"><ExternalLink className="w-3.5 h-3.5" /></Button>
                               </a>
                             )}
