@@ -71,6 +71,8 @@ export interface Destination {
   is_active: boolean;
   legacy_city_id: string | null;
   country_id: string | null;
+  flag_emoji: string;
+  flag_svg_url: string;
 }
 
 export interface Area {

@@ -43,34 +43,41 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Search />} />
 
+            {/* Things to do hierarchy */}
             <Route path="/things-to-do" element={<ThingsToDo />} />
             <Route path="/things-to-do/:destination/:area/:activityType" element={<ThingsToDo />} />
             <Route path="/things-to-do/:destination/:slug" element={<ExperienceDetail />} />
-            {/* Single-segment: could be destination or experience slug - ThingsToDo handles detection */}
             <Route path="/things-to-do/:destination" element={<ThingsToDo />} />
 
+            {/* Map */}
             <Route path="/explore/map" element={<Map />} />
             <Route path="/:destination/map" element={<Map />} />
 
+            {/* Hosts */}
             <Route path="/hosts/:username" element={<HostProfile />} />
             <Route path="/hosts" element={<Hosts />} />
 
+            {/* Itineraries */}
             <Route path="/itineraries/:slug" element={<PublicItinerary />} />
             <Route path="/itineraries" element={<Itineraries />} />
             <Route path="/itinerary" element={<Trip useActiveItinerary={true} />} />
             <Route path="/itinerary/:id" element={<Trip />} />
 
+            {/* Collections */}
             <Route path="/collections/experiences/:slug" element={<ExperienceCollection />} />
             <Route path="/collections/itineraries/:slug" element={<Collection />} />
             <Route path="/collections/:slug" element={<Collection />} />
 
-            {/* Legacy experience URLs - render detail page */}
+            {/* Travelers (noindex) */}
+            <Route path="/travelers/:id" element={<Travellers />} />
+            <Route path="/travellers" element={<Travellers />} />
+
+            {/* Legacy experience URLs */}
             <Route path="/experiences/:slug" element={<ExperienceDetail />} />
 
             <Route path="/create-experience" element={<CreateExperience />} />
             <Route path="/monetise" element={<Monetise />} />
             <Route path="/map" element={<Map />} />
-            <Route path="/travellers" element={<Travellers />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminPanel />} />
@@ -84,6 +91,7 @@ const App = () => (
             <Route path="/liked" element={<Liked />} />
             <Route path="/saved" element={<Liked />} />
 
+            {/* Destination hierarchy: /{destination} and /{destination}/{area} */}
             <Route path="/:destination/:area" element={<DestinationPage />} />
             <Route path="/:destination" element={<DestinationPage />} />
 
