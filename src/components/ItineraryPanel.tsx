@@ -567,7 +567,7 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
                       </div>
 
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link to={`/experiences/${slugify(experience.title)}`}>
+                        <Link to={`/things-to-do/explore/${slugify(experience.title)}`}>
                           <Button variant="ghost" size="icon" className="h-7 w-7">
                             <ChevronRight className="w-4 h-4" />
                           </Button>

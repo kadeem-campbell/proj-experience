@@ -288,7 +288,7 @@ export const BulkUploader = () => {
 
   const getLink = (item: ProcessedItem, tab: UploadType) => {
     const base = getShareBaseUrl();
-    if (tab === 'experiences' && item.slug) return `${base}/experiences/${item.slug}`;
+    if (tab === 'experiences' && item.slug) return `${base}/things-to-do/explore/${item.slug}`;
     if (tab === 'itineraries' && item.slug) return `${base}/itineraries/${item.slug}`;
     if (tab === 'collections' && item.slug) return `${base}/experience-collections/${item.slug}`;
     return null;

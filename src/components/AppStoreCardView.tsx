@@ -58,7 +58,7 @@ const AppStoreCard = ({ experience }: { experience: Experience }) => {
 
   return (
     <Link 
-      to={`/experiences/${slugify(experience.title)}`}
+      to={`/things-to-do/explore/${slugify(experience.title)}`}
       className="block w-full"
     >
       <div className="relative w-full rounded-2xl overflow-hidden">

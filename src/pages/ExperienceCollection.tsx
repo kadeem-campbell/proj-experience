@@ -175,7 +175,7 @@ const GridExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div
       className="cursor-pointer"
-      onClick={() => navigate(`/experiences/${experience.slug || slugify(experience.title)}`)}
+      onClick={() => navigate(`/things-to-do/explore/${experience.slug || slugify(experience.title)}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
