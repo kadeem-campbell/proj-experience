@@ -18,12 +18,15 @@ export default function ThingsToDo() {
   const isMobile = useIsMobile();
   const { trackPageView } = useInteractions();
 
+  // Treat "all" activityType as no filter
+  const effectiveActivitySlug = activitySlug === "all" ? undefined : activitySlug;
+
   const { data: destinations = [], isLoading: destsLoading } = useDestinations();
   const { data: currentDestination, isLoading: destLoading } = useDestinationBySlug(destSlug || "");
   const { data: areas = [] } = useAreas(currentDestination?.id);
   const currentArea = useMemo(() => areas.find((area) => area.slug === areaSlug), [areas, areaSlug]);
   const { data: activityTypes = [] } = useActivityTypes();
-  const currentActivity = useMemo(() => activityTypes.find((activity) => activity.slug === activitySlug), [activityTypes, activitySlug]);
+  const currentActivity = useMemo(() => activityTypes.find((activity) => activity.slug === effectiveActivitySlug), [activityTypes, effectiveActivitySlug]);
   const { data: products = [] } = useProducts(
     currentDestination
       ? {
