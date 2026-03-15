@@ -177,7 +177,8 @@ export default function ExperienceDetail() {
   const isMobile = useIsMobile();
 
   // Resolve the slug from any route pattern
-  const resolvedSlug = slug || legacySlug || id || '';
+  // For /things-to-do/:destination (when ThingsToDo delegates), destParam IS the slug
+  const resolvedSlug = slug || legacySlug || destParam || id || '';
 
   // Try to find as a product first (new entity system)
   const { data: product, isLoading: productLoading } = useProductBySlug(resolvedSlug);
