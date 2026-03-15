@@ -69,9 +69,9 @@ const AdminPanel = () => {
   const [newMeetingPoint, setNewMeetingPoint] = useState({ name: '', type: '' });
   const [creatorSearch, setCreatorSearch] = useState('');
 
-  const { data: categories = [] } = useCategories();
-  const { data: cities = [] } = useCities();
-  const { data: creators = [] } = useCreators();
+  const { data: categories = [] } = useActivityTypes();
+  const { data: cities = [] } = useDestinations();
+  const { data: creators = [] } = useHosts();
 
   const { data: experiences = [], isLoading } = useQuery({
     queryKey: ['admin-experiences', searchQuery],
