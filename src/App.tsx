@@ -30,6 +30,8 @@ import Collection from "./pages/Collection";
 import ExperienceCollection from "./pages/ExperienceCollection";
 import NotFound from "./pages/NotFound";
 import HostProfile from "./pages/HostProfile";
+import ThingsToDo from "./pages/ThingsToDo";
+import DestinationPage from "./pages/DestinationPage";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,28 @@ const App = () => (
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Search />} />
+
+          {/* ======= NEW ENTITY ROUTES ======= */}
+          {/* Things to do hub */}
+          <Route path="/things-to-do" element={<ThingsToDo />} />
+          <Route path="/things-to-do/:destination" element={<ThingsToDo />} />
+          <Route path="/things-to-do/:destination/:area" element={<ThingsToDo />} />
+          <Route path="/things-to-do/:destination/:area/:slug" element={<ExperienceDetail />} />
+
+          {/* Destination pages */}
+          <Route path="/zanzibar" element={<DestinationPage />} />
+          <Route path="/dar-es-salaam" element={<DestinationPage />} />
+          <Route path="/nairobi" element={<DestinationPage />} />
+          {/* Dynamic destination catch (after explicit ones) */}
+
+          {/* Destination + area */}
+          <Route path="/zanzibar/:area" element={<DestinationPage />} />
+          <Route path="/dar-es-salaam/:area" element={<DestinationPage />} />
+
+          {/* Destination map */}
+          <Route path="/explore/map" element={<Map />} />
+
+          {/* ======= LEGACY ROUTES (preserved) ======= */}
           {/* Single experience - slug-based */}
           <Route path="/experiences/:slug" element={<ExperienceDetail />} />
           {/* Location-prefixed slug support */}
