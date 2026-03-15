@@ -17,8 +17,8 @@ export default function ThingsToDo() {
   const isMobile = useIsMobile();
   const { trackPageView } = useInteractions();
 
-  const { data: destinations = [] } = useDestinations();
-  const { data: currentDestination } = useDestinationBySlug(destSlug || "");
+  const { data: destinations = [], isLoading: destsLoading } = useDestinations();
+  const { data: currentDestination, isLoading: destLoading } = useDestinationBySlug(destSlug || "");
   const { data: areas = [] } = useAreas(currentDestination?.id);
   const currentArea = useMemo(() => areas.find((area) => area.slug === areaSlug), [areas, areaSlug]);
   const { data: activityTypes = [] } = useActivityTypes();
@@ -32,6 +32,15 @@ export default function ThingsToDo() {
         }
       : undefined,
   );
+
+  // If destSlug is provided but doesn't match a destination, it might be an experience slug
+  // Redirect to ExperienceDetail in that case
+  useEffect(() => {
+    if (destSlug && !destLoading && !currentDestination && !destsLoading) {
+      // Not a destination - redirect to experience detail with best guess
+      navigate(`/things-to-do/explore/${destSlug}`, { replace: true });
+    }
+  }, [destSlug, destLoading, destsLoading, currentDestination, navigate]);
 
   useEffect(() => {
     trackPageView("things_to_do", currentActivity?.id || currentArea?.id || currentDestination?.id || "hub", window.location.pathname);
