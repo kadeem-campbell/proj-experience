@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
-import { slugify } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import { format, parseISO, isSameDay, addDays, setHours, setMinutes } from "date-fns";
 import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
