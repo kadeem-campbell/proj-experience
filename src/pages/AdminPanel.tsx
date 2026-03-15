@@ -659,6 +659,10 @@ const AdminPanel = () => {
               <span className="text-xs text-muted-foreground ml-auto">{experiences.length} experiences loaded</span>
             </div>
 
+            <TabsContent value="entities">
+              <AdminEntityManager />
+            </TabsContent>
+
             <TabsContent value="manage">
               <AdminManualEntities />
 
