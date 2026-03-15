@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { slugify } from "@/utils/slugUtils";
-import { useCategories } from "@/hooks/useAppData";
+import { useActivityTypes } from "@/hooks/useProducts";
 import type { Host } from "@/hooks/useProducts";
 
 // Try hosts table first, fall back to creators
