@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import ExperienceDetail from "./ExperienceDetail";
+import { SEOHead } from "@/components/SEOHead";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -10,6 +10,7 @@ import { generateDestinationSchema, generateWebsiteSchema } from "@/services/sch
 import { generateExperienceUrl } from "@/utils/slugUtils";
 import { ArrowLeft, MapPin, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ExperienceDetail from "./ExperienceDetail";
 
 export default function ThingsToDo() {
   const { destination: destSlug, area: areaSlug, activityType: activitySlug } = useParams();
@@ -33,14 +34,18 @@ export default function ThingsToDo() {
       : undefined,
   );
 
-  // If destSlug doesn't match any destination, render as experience detail page
-  if (destSlug && !destLoading && !destsLoading && !currentDestination) {
+  useEffect(() => {
+    if (currentDestination || !destSlug) {
+      trackPageView("things_to_do", currentActivity?.id || currentArea?.id || currentDestination?.id || "hub", window.location.pathname);
+    }
+  }, [currentDestination?.id, currentArea?.id, currentActivity?.id]);
+
+  // If destSlug doesn't match any destination and loading is done, render as experience detail
+  const isExperienceSlug = destSlug && !destLoading && !destsLoading && !currentDestination;
+
+  if (isExperienceSlug) {
     return <ExperienceDetail />;
   }
-
-  useEffect(() => {
-    trackPageView("things_to_do", currentActivity?.id || currentArea?.id || currentDestination?.id || "hub", window.location.pathname);
-  }, [currentDestination?.id, currentArea?.id, currentActivity?.id, window.location.pathname]);
 
   const displayItems = useMemo(
     () =>
@@ -64,6 +69,21 @@ export default function ThingsToDo() {
 
   const pageDescription = currentDestination?.description || "Discover the best things to do across SWAM destinations.";
   const jsonLd = currentDestination ? generateDestinationSchema(currentDestination, products) : generateWebsiteSchema();
+
+  // Show loading while destination is resolving
+  if (destSlug && (destLoading || destsLoading)) {
+    return isMobile ? (
+      <MobileShell hideTopBar>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MobileShell>
+    ) : (
+      <div className="flex justify-center items-center min-h-screen bg-background">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const content = (
     <div className="bg-background min-h-screen">
