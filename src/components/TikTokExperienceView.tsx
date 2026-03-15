@@ -119,7 +119,7 @@ const TikTokCard = ({ experience, isActive }: { experience: Experience; isActive
       className="h-full w-full snap-start snap-always relative flex-shrink-0"
       style={{ scrollSnapAlign: 'start' }}
     >
-      <Link to={generateExperienceUrl(experience.location || '', experience.title, experience.slug)} className="block h-full w-full">
+      <Link to={generateExperienceUrl(experience.location || '', experience.title)} className="block h-full w-full">
         {/* Full-screen media */}
         <div className="absolute inset-0 bg-black">
           {experience.videoUrl ? (
