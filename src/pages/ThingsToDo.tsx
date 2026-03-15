@@ -25,6 +25,7 @@ export default function ThingsToDo() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [selectedActivity, setSelectedActivity] = useState<string>("");
+  const { trackPageView, trackImpression } = useInteractions();
 
   // New entity system
   const { data: destinations = [] } = useDestinations();
