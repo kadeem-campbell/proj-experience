@@ -50,6 +50,7 @@ export default function DestinationPage() {
     }
   }, [destination?.id]);
 
+  if (isLoading) {
     return isMobile ? (
       <MobileShell hideTopBar>
         <div className="flex justify-center items-center min-h-[60vh]">
