@@ -2,7 +2,7 @@
  * Destination Page
  * Route: /{destination} and /{destination}/{area}
  */
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import { MobileShell } from "@/components/MobileShell";
@@ -10,6 +10,7 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDestinationBySlug, useAreas, useProducts, useActivityTypes } from "@/hooks/useProducts";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
+import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema } from "@/services/schemaGenerator";
 import { ArrowLeft, MapPin, Compass, ChevronRight, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ export default function DestinationPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { trackPageView } = useInteractions();
 
   // Extract destination slug from path - works for both /zanzibar and /:destination
   const pathParts = location.pathname.split('/').filter(Boolean);
@@ -40,6 +42,13 @@ export default function DestinationPage() {
   }, [legacyExperiences, destSlug]);
 
   const displayProducts = products.length > 0 ? products : filteredLegacy;
+
+  // Analytics: track page view
+  useEffect(() => {
+    if (destination?.id) {
+      trackPageView('destination', destination.id, 'direct');
+    }
+  }, [destination?.id]);
 
   if (isLoading) {
     return isMobile ? (

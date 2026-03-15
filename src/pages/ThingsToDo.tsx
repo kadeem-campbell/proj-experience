@@ -5,7 +5,7 @@
  * Discovery hub showing products organized by destination, area, and activity type.
  * Falls back to the existing experiences data while products table is being populated.
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import { MainLayout } from "@/components/layouts/MainLayout";
@@ -14,6 +14,7 @@ import { ExperienceCard } from "@/components/ExperienceCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 import { useDestinations, useDestinationBySlug, useAreas, useActivityTypes, useProducts } from "@/hooks/useProducts";
+import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema, generateWebsiteSchema } from "@/services/schemaGenerator";
 import { ArrowLeft, MapPin, Compass, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export default function ThingsToDo() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [selectedActivity, setSelectedActivity] = useState<string>("");
+  const { trackPageView, trackImpression } = useInteractions();
 
   // New entity system
   const { data: destinations = [] } = useDestinations();
@@ -61,6 +63,14 @@ export default function ThingsToDo() {
     }
     return legacyExperiences;
   }, [hasProducts, products, legacyExperiences, destSlug, currentDestination]);
+  // Analytics
+  useEffect(() => {
+    if (currentDestination?.id) {
+      trackPageView('things_to_do', currentDestination.id, destSlug);
+    } else {
+      trackPageView('things_to_do', 'hub', 'direct');
+    }
+  }, [currentDestination?.id, destSlug]);
 
   const pageTitle = currentDestination
     ? `Things to Do in ${currentDestination.name}`

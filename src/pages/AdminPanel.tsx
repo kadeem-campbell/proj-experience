@@ -17,6 +17,7 @@ import { BulkUploader } from '@/components/BulkUploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LinkManager } from '@/components/LinkManager';
 import { AdminManualEntities } from '@/components/AdminManualEntities';
+import { AdminEntityManager } from '@/components/AdminEntityManager';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -638,14 +639,15 @@ const AdminPanel = () => {
       <Navigation />
       <main className="pt-24 px-6 pb-20">
         <div className="max-w-6xl mx-auto">
-          <Tabs defaultValue="manage">
+          <Tabs defaultValue="entities">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold">Admin Panel</h1>
                 <p className="text-muted-foreground">Manage experiences plus categories, cities, creators, itineraries, and collections — Live database</p>
               </div>
               <TabsList>
-                <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Manage</TabsTrigger>
+                <TabsTrigger value="entities" className="gap-2"><Database className="w-4 h-4" /> Entities</TabsTrigger>
+                <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Legacy</TabsTrigger>
                 <TabsTrigger value="links" className="gap-2"><ExternalLink className="w-4 h-4" /> Links</TabsTrigger>
                 <TabsTrigger value="bulk" className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Bulk Upload</TabsTrigger>
               </TabsList>
@@ -656,6 +658,10 @@ const AdminPanel = () => {
               <span className="text-sm font-medium text-green-700 dark:text-green-400">Live — Connected to database</span>
               <span className="text-xs text-muted-foreground ml-auto">{experiences.length} experiences loaded</span>
             </div>
+
+            <TabsContent value="entities">
+              <AdminEntityManager />
+            </TabsContent>
 
             <TabsContent value="manage">
               <AdminManualEntities />
