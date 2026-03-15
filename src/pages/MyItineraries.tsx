@@ -210,12 +210,9 @@ const MyItinerariesPage = () => {
     setAddMode(true);
   };
 
-  const launchedCities = useMemo(() => {
-    return cities.filter(c => {
-      if (!c.launch_date) return true;
-      return new Date(`${c.launch_date}T00:00:00`).getTime() <= Date.now();
-    });
-  }, [cities]);
+  const launchedDestinations = useMemo(() => {
+    return destinations;
+  }, [destinations]);
 
   const handleTap = (itinerary: any) => {
     setActiveItinerary(itinerary.id);
