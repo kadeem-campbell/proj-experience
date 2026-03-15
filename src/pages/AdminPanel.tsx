@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActivityTypes, useDestinations, useHosts } from '@/hooks/useProducts';
 import { BulkUploader } from '@/components/BulkUploader';
+import { BulkUpdatePanel } from '@/components/BulkUpdatePanel';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LinkManager } from '@/components/LinkManager';
 import { AdminManualEntities } from '@/components/AdminManualEntities';
