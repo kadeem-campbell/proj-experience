@@ -787,6 +787,10 @@ const AdminPanel = () => {
             <TabsContent value="bulk">
               <BulkUploader />
             </TabsContent>
+
+            <TabsContent value="bulk-update">
+              <BulkUpdatePanel />
+            </TabsContent>
           </Tabs>
         </div>
       </main>
