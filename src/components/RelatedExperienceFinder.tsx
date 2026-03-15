@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, MapPin, Star, Clock, Users, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { generateExperienceUrl } from '@/utils/slugUtils';
 
 interface Experience {
   id: string;
@@ -67,7 +68,7 @@ export const RelatedExperienceFinder = () => {
 
       <div className="space-y-3">
         {results.map(exp => (
-          <a key={exp.id} href={`/things-to-do/explore/${exp.slug || exp.id}`} className="block p-3 border rounded-lg hover:bg-accent transition-colors">
+          <a key={exp.id} href={generateExperienceUrl(exp.location || '', exp.title, exp.slug)} className="block p-3 border rounded-lg hover:bg-accent transition-colors">
             <div className="flex items-start gap-3">
               {exp.video_thumbnail && <img src={exp.video_thumbnail} alt={exp.title} className="w-16 h-16 rounded-lg object-cover shrink-0" />}
               <div className="flex-1 min-w-0">

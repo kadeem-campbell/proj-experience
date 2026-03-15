@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { slugify } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import { 
   GripVertical, 
   Trash2, 
@@ -567,7 +567,7 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
                       </div>
 
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link to={`/things-to-do/explore/${slugify(experience.title)}`}>
+                        <Link to={generateExperienceUrl(experience.location || '', experience.title)}>
                           <Button variant="ghost" size="icon" className="h-7 w-7">
                             <ChevronRight className="w-4 h-4" />
                           </Button>

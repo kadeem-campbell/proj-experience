@@ -9,7 +9,7 @@ import { ArrowLeft, Star, MapPin, ExternalLink, MessageCircle, Globe, Instagram,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { slugify } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import { useActivityTypes } from "@/hooks/useProducts";
 import type { Host } from "@/hooks/useProducts";
 
@@ -218,7 +218,7 @@ export default function HostProfile() {
             {experiences.map((exp: any) => (
               <div
                 key={exp.id}
-                onClick={() => navigate(`/things-to-do/explore/${exp.slug || slugify(exp.title)}`)}
+                onClick={() => navigate(generateExperienceUrl(exp.location || '', exp.title, exp.slug))}
                 className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer hover:bg-muted/40 active:bg-muted/60 transition-colors"
               >
                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">

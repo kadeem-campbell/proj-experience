@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { Helmet } from "react-helmet-async";
-import { slugify } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -104,7 +104,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
-      onClick={() => navigate(`/things-to-do/explore/${experience.slug || slugify(experience.title)}`)}
+      onClick={() => navigate(generateExperienceUrl(experience.location || '', experience.title, experience.slug))}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
@@ -175,7 +175,7 @@ const GridExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div
       className="cursor-pointer"
-      onClick={() => navigate(`/things-to-do/explore/${experience.slug || slugify(experience.title)}`)}
+      onClick={() => navigate(generateExperienceUrl(experience.location || '', experience.title, experience.slug))}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
