@@ -316,15 +316,37 @@ export default function ExperienceDetail() {
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    return `${baseUrl}${generateExperienceUrl(experience.location, experience.title)}`;
-  }, [experience]);
+    if ((experience as any).isProduct && productDestination) {
+      return `${baseUrl}/things-to-do/${productDestination.slug}/${experience.slug || ''}`;
+    }
+    return `${baseUrl}${generateExperienceUrl(experience.location, experience.title, (experience as any).slug)}`;
+  }, [experience, productDestination]);
 
   useEffect(() => {
     if (experience) {
-      document.title = `${experience.title} in ${experience.location} | Things to Do | swam.app`;
+      document.title = `${experience.title}${experience.location ? ' in ' + experience.location : ''} | Things to Do | swam.app`;
     }
     return () => { document.title = 'Discover Experiences in East Africa | swam.app'; };
   }, [experience]);
+
+  // Generate JSON-LD: prefer product schema if available
+  const experienceJsonLd = useMemo(() => {
+    if (product && productOptions) {
+      return generateProductSchema(product, productOptions, productHosts, productDestination);
+    }
+    if (!experience) return null;
+    return createExperienceJsonLd({
+      title: experience.title,
+      description: experience.description,
+      location: experience.location,
+      price: experience.price,
+      rating: experience.rating,
+      image: experience.videoThumbnail,
+      url: shareUrl,
+      duration: experience.duration,
+      category: experience.category,
+    });
+  }, [experience, product, productOptions, productHosts, productDestination, shareUrl]);
 
   const experienceJsonLd = useMemo(() => {
     if (!experience) return null;
