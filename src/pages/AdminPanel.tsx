@@ -17,6 +17,7 @@ import { BulkUploader } from '@/components/BulkUploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LinkManager } from '@/components/LinkManager';
 import { AdminManualEntities } from '@/components/AdminManualEntities';
+import { AdminEntityManager } from '@/components/AdminEntityManager';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
