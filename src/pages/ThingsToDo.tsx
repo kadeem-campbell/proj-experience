@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { SEOHead } from "@/components/SEOHead";
+import ExperienceDetail from "./ExperienceDetail";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
