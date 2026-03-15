@@ -639,7 +639,7 @@ const AdminPanel = () => {
       <Navigation />
       <main className="pt-24 px-6 pb-20">
         <div className="max-w-6xl mx-auto">
-          <Tabs defaultValue="manage">
+          <Tabs defaultValue="entities">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold">Admin Panel</h1>
