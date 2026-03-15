@@ -53,17 +53,28 @@ const App = () => (
           <Route path="/things-to-do/:destination/:area" element={<ThingsToDo />} />
           <Route path="/things-to-do/:destination/:area/:slug" element={<ExperienceDetail />} />
 
-          {/* Destination pages */}
+          {/* Dynamic destination pages */}
+          <Route path="/destination/:destination" element={<DestinationPage />} />
+          <Route path="/destination/:destination/:area" element={<DestinationPage />} />
+
+          {/* Well-known destination short URLs */}
           <Route path="/zanzibar" element={<DestinationPage />} />
-          <Route path="/dar-es-salaam" element={<DestinationPage />} />
-          <Route path="/nairobi" element={<DestinationPage />} />
-          {/* Dynamic destination catch (after explicit ones) */}
-
-          {/* Destination + area */}
           <Route path="/zanzibar/:area" element={<DestinationPage />} />
+          <Route path="/dar-es-salaam" element={<DestinationPage />} />
           <Route path="/dar-es-salaam/:area" element={<DestinationPage />} />
+          <Route path="/nairobi" element={<DestinationPage />} />
+          <Route path="/mombasa" element={<DestinationPage />} />
+          <Route path="/arusha" element={<DestinationPage />} />
+          <Route path="/cape-town" element={<DestinationPage />} />
+          <Route path="/lagos" element={<DestinationPage />} />
+          <Route path="/kigali" element={<DestinationPage />} />
+          <Route path="/kampala" element={<DestinationPage />} />
+          <Route path="/accra" element={<DestinationPage />} />
+          <Route path="/cairo" element={<DestinationPage />} />
+          <Route path="/stone-town" element={<DestinationPage />} />
+          <Route path="/diani" element={<DestinationPage />} />
 
-          {/* Destination map */}
+          {/* Maps */}
           <Route path="/explore/map" element={<Map />} />
 
           {/* ======= LEGACY ROUTES (preserved) ======= */}

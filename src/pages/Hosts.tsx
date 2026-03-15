@@ -1,33 +1,38 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { MobileShell } from "@/components/MobileShell";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useCategories } from "@/hooks/useAppData";
-import { Search, X, CheckCircle2, MapPin, ChevronDown } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useHosts, useActivityTypes, useDestinations, Host } from "@/hooks/useProducts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { SEOHead } from "@/components/SEOHead";
+import { Search, X, CheckCircle2, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const useAllHosts = () => {
+// Count products per host
+const useHostProductCounts = () => {
   return useQuery({
-    queryKey: ["all-hosts"],
+    queryKey: ["host-product-counts"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("creators")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_name", { ascending: true });
-      return data || [];
+        .from("product_hosts")
+        .select("host_id");
+      const counts: Record<string, number> = {};
+      (data || []).forEach((r: any) => {
+        counts[r.host_id] = (counts[r.host_id] || 0) + 1;
+      });
+      return counts;
     },
+    staleTime: 5 * 60 * 1000,
   });
 };
 
+// Fallback: count experiences per creator name for hosts with legacy links
 const useHostExperienceCounts = () => {
   return useQuery({
-    queryKey: ["host-experience-counts"],
+    queryKey: ["host-experience-counts-v2"],
     queryFn: async () => {
       const { data } = await supabase
         .from("experiences")
@@ -47,40 +52,25 @@ const useHostExperienceCounts = () => {
       });
       return { counts, locations };
     },
-  });
-};
-
-const useAllCreatorCategories = () => {
-  return useQuery({
-    queryKey: ["all-creator-categories"],
-    queryFn: async () => {
-      const { data } = await (supabase as any)
-        .from("creator_categories")
-        .select("creator_id, category_id");
-      const map: Record<string, string[]> = {};
-      (data || []).forEach((r: any) => {
-        if (!map[r.creator_id]) map[r.creator_id] = [];
-        map[r.creator_id].push(r.category_id);
-      });
-      return map;
-    },
+    staleTime: 5 * 60 * 1000,
   });
 };
 
 export default function Hosts() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { data: hosts = [], isLoading } = useAllHosts();
+  const { data: hosts = [], isLoading } = useHosts();
+  const { data: activityTypes = [] } = useActivityTypes();
+  const { data: destinations = [] } = useDestinations();
+  const { data: productCounts = {} } = useHostProductCounts();
   const { data: expData } = useHostExperienceCounts();
-  const { data: categories = [] } = useCategories();
-  const { data: creatorCats = {} } = useAllCreatorCategories();
   const expCounts = expData?.counts || {};
   const expLocations = expData?.locations || {};
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
 
-  // Get all unique locations from host experiences
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedActivity, setSelectedActivity] = useState("");
+  const [selectedDestination, setSelectedDestination] = useState("");
+
   const allLocations = useMemo(() => {
     const locs = new Set<string>();
     Object.values(expLocations).forEach(s => s.forEach(l => locs.add(l)));
@@ -89,58 +79,74 @@ export default function Hosts() {
 
   const filteredHosts = useMemo(() => {
     let result = hosts;
-    
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (h: any) =>
-          h.username?.toLowerCase().includes(q) ||
-          h.display_name?.toLowerCase().includes(q) ||
-          h.bio?.toLowerCase().includes(q)
+      result = result.filter(h =>
+        h.username?.toLowerCase().includes(q) ||
+        h.display_name?.toLowerCase().includes(q) ||
+        h.bio?.toLowerCase().includes(q)
       );
     }
-
-    if (selectedCategory) {
-      result = result.filter((h: any) => {
-        const cats = creatorCats[h.id] || [];
-        return cats.includes(selectedCategory);
-      });
-    }
-
-    if (selectedLocation) {
-      result = result.filter((h: any) => {
+    if (selectedDestination) {
+      result = result.filter(h => {
+        if (h.destination_id === selectedDestination) return true;
+        // Fallback: check experience locations
         const name = (h.username || h.display_name || "").toLowerCase();
+        const dest = destinations.find(d => d.id === selectedDestination);
+        if (!dest) return false;
         const locs = expLocations[name];
-        return locs && locs.has(selectedLocation);
+        return locs && Array.from(locs).some(l => l.toLowerCase().includes(dest.name.toLowerCase()));
       });
     }
-
     return result;
-  }, [hosts, searchQuery, selectedCategory, selectedLocation, creatorCats, expLocations]);
+  }, [hosts, searchQuery, selectedDestination, destinations, expLocations]);
 
-  const getExpCount = (host: any) => {
+  const getExpCount = (host: Host) => {
+    const pc = productCounts[host.id] || 0;
+    if (pc > 0) return pc;
     const name = (host.username || host.display_name || "").toLowerCase();
     return expCounts[name] || 0;
   };
 
-  const getHostLocation = (host: any) => {
+  const getHostLocation = (host: Host) => {
+    if (host.destination_id) {
+      const dest = destinations.find(d => d.id === host.destination_id);
+      if (dest) return dest.name;
+    }
     const name = (host.username || host.display_name || "").toLowerCase();
     const locs = expLocations[name];
     if (!locs || locs.size === 0) return "";
     return Array.from(locs)[0];
   };
 
-  const getHostCategoryNames = (hostId: string) => {
-    const catIds = creatorCats[hostId] || [];
-    return catIds
-      .map((cid: string) => categories.find((c: any) => c.id === cid))
-      .filter(Boolean)
-      .map((c: any) => c.name);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Experience Hosts",
+    description: "Discover local experience hosts and activity providers across East Africa",
+    url: "https://swam.app/hosts",
+    numberOfItems: filteredHosts.length,
+    itemListElement: filteredHosts.slice(0, 20).map((h, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "LocalBusiness",
+        name: h.display_name || h.username,
+        url: `https://swam.app/hosts/${h.slug}`,
+        ...(h.avatar_url ? { image: h.avatar_url } : {}),
+      },
+    })),
   };
 
   const content = (
     <div className="bg-background min-h-screen">
-      {/* Header */}
+      <SEOHead
+        title="Experience Hosts — Local Guides & Activity Providers"
+        description="Discover verified local experience hosts and activity providers across East Africa. Book directly with trusted guides."
+        url="https://swam.app/hosts"
+        jsonLd={jsonLd}
+      />
+
       <div className="px-4 pt-3 pb-2">
         <h1 className="text-2xl font-bold text-foreground">Hosts</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Discover local experience hosts</p>
@@ -168,40 +174,38 @@ export default function Hosts() {
 
       {/* Filters */}
       <div className="px-4 pb-2 flex gap-2 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-        {/* Location filter */}
         <select
-          value={selectedLocation}
-          onChange={(e) => setSelectedLocation(e.target.value)}
+          value={selectedDestination}
+          onChange={(e) => setSelectedDestination(e.target.value)}
           className={cn(
             "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border appearance-none bg-muted",
-            selectedLocation ? "bg-primary/10 text-primary border-primary/20" : "border-border text-muted-foreground"
+            selectedDestination ? "bg-primary/10 text-primary border-primary/20" : "border-border text-muted-foreground"
           )}
           style={{ fontSize: '13px' }}
         >
-          <option value="">All locations</option>
-          {allLocations.map(loc => (
-            <option key={loc} value={loc}>{loc}</option>
+          <option value="">All destinations</option>
+          {destinations.map(d => (
+            <option key={d.id} value={d.id}>{d.name}</option>
           ))}
         </select>
 
-        {/* Category filter chips */}
-        {categories.slice(0, 6).map((cat: any) => (
+        {activityTypes.slice(0, 6).map(at => (
           <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(selectedCategory === cat.id ? "" : cat.id)}
+            key={at.id}
+            onClick={() => setSelectedActivity(selectedActivity === at.id ? "" : at.id)}
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap",
-              selectedCategory === cat.id
+              selectedActivity === at.id
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground"
             )}
           >
-            {cat.emoji} {cat.name}
+            {at.emoji} {at.name}
           </button>
         ))}
       </div>
 
-      {/* Host grid - Spotify square cards */}
+      {/* Host grid */}
       <div className="px-4 pt-2 pb-8">
         {isLoading ? (
           <div className="flex justify-center py-16">
@@ -213,21 +217,18 @@ export default function Hosts() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {filteredHosts.map((host: any) => {
+            {filteredHosts.map(host => {
               const count = getExpCount(host);
               const location = getHostLocation(host);
-              const catNames = getHostCategoryNames(host.id);
-
               return (
                 <button
                   key={host.id}
-                  onClick={() => navigate(`/hosts/${host.username}`)}
+                  onClick={() => navigate(`/hosts/${host.slug || host.username}`)}
                   className="text-left active:scale-[0.97] transition-transform duration-150"
                 >
-                  {/* Square avatar card */}
                   <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
                     {host.avatar_url ? (
-                      <img src={host.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <img src={host.avatar_url} alt="" className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                         <span className="text-3xl font-bold text-primary/30">
@@ -246,7 +247,6 @@ export default function Hosts() {
                       </div>
                     )}
                   </div>
-                  {/* Info */}
                   <div className="mt-2 space-y-0.5">
                     <h3 className="font-semibold text-sm text-foreground truncate">
                       {host.display_name || host.username}
@@ -256,11 +256,6 @@ export default function Hosts() {
                         <MapPin className="w-2.5 h-2.5 text-muted-foreground" />
                         <span className="text-[11px] text-muted-foreground truncate">{location}</span>
                       </div>
-                    )}
-                    {catNames.length > 0 && (
-                      <p className="text-[10px] text-muted-foreground truncate">
-                        {catNames.join(' · ')}
-                      </p>
                     )}
                   </div>
                 </button>
@@ -272,9 +267,6 @@ export default function Hosts() {
     </div>
   );
 
-  if (isMobile) {
-    return <MobileShell>{content}</MobileShell>;
-  }
-
+  if (isMobile) return <MobileShell>{content}</MobileShell>;
   return <MainLayout>{content}</MainLayout>;
 }
