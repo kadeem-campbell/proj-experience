@@ -43,7 +43,13 @@ export default function DestinationPage() {
 
   const displayProducts = products.length > 0 ? products : filteredLegacy;
 
-  if (isLoading) {
+  // Analytics: track page view
+  useEffect(() => {
+    if (destination?.id) {
+      trackPageView('destination', destination.id, 'direct');
+    }
+  }, [destination?.id]);
+
     return isMobile ? (
       <MobileShell hideTopBar>
         <div className="flex justify-center items-center min-h-[60vh]">
