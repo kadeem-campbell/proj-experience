@@ -650,6 +650,7 @@ const AdminPanel = () => {
                 <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Legacy</TabsTrigger>
                 <TabsTrigger value="links" className="gap-2"><ExternalLink className="w-4 h-4" /> Links</TabsTrigger>
                 <TabsTrigger value="bulk" className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Bulk Upload</TabsTrigger>
+                <TabsTrigger value="bulk-update" className="gap-2"><Upload className="w-4 h-4" /> Bulk Update</TabsTrigger>
               </TabsList>
             </div>
 
