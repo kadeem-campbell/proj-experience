@@ -954,13 +954,13 @@ export default function ExperienceDetail() {
                       <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                         <Zap className="w-5 h-5 text-primary" />
                       </div>
-                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[hsl(var(--success))] rounded-full animate-pulse" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-sm">
-                        <span className="text-primary">{socialProof.planning} people</span> planning now
+                        <span className="text-primary">{likedByCount > 0 ? likedByCount : 'Be the first'}</span> {likedByCount > 0 ? 'people interested' : 'to save this'}
                       </p>
-                      <p className="text-xs text-muted-foreground">Join them and build your trip</p>
+                      <p className="text-xs text-muted-foreground">Add to your itinerary</p>
                     </div>
                   </div>
                 </div>
