@@ -129,7 +129,7 @@ export default function ThingsToDo() {
             {areas.map((area) => (
               <button
                 key={area.id}
-                onClick={() => navigate(`/${currentDestination.slug}/${area.slug}`)}
+                onClick={() => navigate(`/things-to-do/${currentDestination.slug}/${area.slug}/all`)}
                 className={cn(
                   "shrink-0 px-4 py-2 rounded-full border text-sm font-medium transition-transform active:scale-95",
                   currentArea?.id === area.id ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-foreground",
