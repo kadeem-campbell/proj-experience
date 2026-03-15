@@ -646,7 +646,8 @@ const AdminPanel = () => {
                 <p className="text-muted-foreground">Manage experiences plus categories, cities, creators, itineraries, and collections — Live database</p>
               </div>
               <TabsList>
-                <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Manage</TabsTrigger>
+                <TabsTrigger value="entities" className="gap-2"><Database className="w-4 h-4" /> Entities</TabsTrigger>
+                <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Legacy</TabsTrigger>
                 <TabsTrigger value="links" className="gap-2"><ExternalLink className="w-4 h-4" /> Links</TabsTrigger>
                 <TabsTrigger value="bulk" className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Bulk Upload</TabsTrigger>
               </TabsList>
