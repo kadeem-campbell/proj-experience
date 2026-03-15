@@ -104,7 +104,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer"
-      onClick={() => navigate(`/things-to-do/explore/${experience.slug || slugify(experience.title)}`)}
+      onClick={() => navigate(generateExperienceUrl(experience.location || '', experience.title, experience.slug))}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
