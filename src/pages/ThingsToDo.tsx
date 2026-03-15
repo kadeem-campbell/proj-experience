@@ -43,10 +43,6 @@ export default function ThingsToDo() {
   // If destSlug doesn't match any destination and loading is done, render as experience detail
   const isExperienceSlug = destSlug && !destLoading && !destsLoading && !currentDestination;
 
-  if (isExperienceSlug) {
-    return <ExperienceDetail />;
-  }
-
   const displayItems = useMemo(
     () =>
       products.map((product) => ({
@@ -58,6 +54,10 @@ export default function ThingsToDo() {
       })),
     [products, currentArea?.name, currentDestination?.name],
   );
+
+  if (isExperienceSlug) {
+    return <ExperienceDetail />;
+  }
 
   const pageTitle = currentActivity
     ? `${currentActivity.name} in ${currentArea?.name || currentDestination?.name}`
