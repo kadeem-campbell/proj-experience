@@ -716,10 +716,10 @@ export default function ExperienceDetail() {
             </div>
           </div>
           
-          {socialProof.trending && (
+          {(experience?.likeCount || 0) > 500 && (
             <Badge variant="secondary" className="absolute top-4 left-1/2 -translate-x-1/2 gap-1 text-xs bg-background/80 backdrop-blur-md text-primary border-0 z-10">
               <Flame className="w-3 h-3" />
-              Trending
+              Popular
             </Badge>
           )}
         </div>
