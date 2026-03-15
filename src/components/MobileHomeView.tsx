@@ -10,6 +10,7 @@ import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
+import { generateExperienceUrl } from "@/utils/slugUtils";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
