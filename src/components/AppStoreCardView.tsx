@@ -4,14 +4,53 @@ import { Heart, Plus, MapPin } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-...
+import { toast } from "sonner";
+
+interface Experience {
+  id: string;
+  title: string;
+  location: string;
+  category: string;
+  creator: string;
+  price: string;
+  videoThumbnail: string;
+  slug?: string;
+}
+
+interface AppStoreCardViewProps {
+  experience: Experience;
+}
+
+const AppStoreCardView = ({ experience }: AppStoreCardViewProps) => {
+  const { isLiked, toggleLike } = useLikedExperiences();
+  const liked = isLiked(experience.id);
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleLike(experience);
+  };
+
+  const handleAddSuccess = () => {
+    toast.success("Added to itinerary!");
+  };
+
+  const experienceData = {
+    id: experience.id,
+    title: experience.title,
+    creator: experience.creator,
+    videoThumbnail: experience.videoThumbnail,
+    category: experience.category,
+    location: experience.location,
+    price: experience.price,
+  };
+
   return (
     <Link 
-      to={generateExperienceUrl(experience.location, experience.title, undefined)}
+      to={generateExperienceUrl(experience.location, experience.title, experience.slug)}
       className="block w-full"
     >
       <div className="relative w-full rounded-2xl overflow-hidden">
-        {/* Image - tall aspect ratio like App Store */}
         <div className="relative aspect-[4/5] w-full">
           <img
             src={experience.videoThumbnail}
@@ -19,17 +58,14 @@ import { ItinerarySelector } from "@/components/ItinerarySelector";
             className="w-full h-full object-cover"
           />
           
-          {/* Gradient overlay - cleaner, no weird shade */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
           
-          {/* Category badge */}
           <div className="absolute top-3 left-3">
             <span className="bg-white/90 text-foreground px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
               {experience.category}
             </span>
           </div>
 
-          {/* Action buttons - top right */}
           <div className="absolute top-3 right-3 flex gap-2">
             <button
               onClick={handleLikeClick}
@@ -49,14 +85,13 @@ import { ItinerarySelector } from "@/components/ItinerarySelector";
                 experienceData={experienceData}
                 onAdd={handleAddSuccess}
               >
-              <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-2xl border border-white/15 flex items-center justify-center shadow-lg cursor-pointer hover:bg-white/20 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-2xl border border-white/15 flex items-center justify-center shadow-lg cursor-pointer hover:bg-white/20 transition-colors">
                   <Plus className="w-4 h-4 text-white/90" />
                 </div>
               </ItinerarySelector>
             </div>
           </div>
 
-          {/* Content overlay at bottom */}
           <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
             <h2 className="text-xl font-bold text-white line-clamp-2">
               {experience.title}
