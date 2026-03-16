@@ -145,7 +145,7 @@ export default function Map() {
           navigate(`/${item.slug}`);
           return;
         }
-        navigate(generateExperienceUrl(item.destinationName, item.title, item.slug, item.destinationSlug));
+        navigate(generateProductPageUrl(item.destinationName, item.title, item.slug, item.destinationSlug));
       };
 
       const marker = new mapboxgl.Marker({ element: el }).setLngLat([item.lng, item.lat]).addTo(mapRef.current!);
