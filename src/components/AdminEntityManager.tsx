@@ -1,6 +1,7 @@
 /**
- * Admin Entity Manager for Phase 3 — manages destinations, areas, products, options,
- * price options, hosts, themes, POIs from the new entity graph.
+ * Admin Entity Manager — manages destinations, areas, products, options,
+ * price options, hosts, themes, POIs from the entity graph.
+ * Supports individual + bulk add, edit, delete with simple UX.
  */
 import { useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,50 +16,41 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, X, ChevronDown, ChevronUp, MapPin, Package, Tag, Globe, Mountain, Users, DollarSign, Gauge } from 'lucide-react';
-import { validateProduct, validateDestination, validateHost, type PublishValidationResult } from '@/services/publishValidator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Search, X, ChevronDown, ChevronUp, MapPin, Package, Tag, Globe, Mountain, Users, DollarSign, Gauge, Trash2, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
-// ============ PUBLISH SCORE BADGE ============
-const PublishScoreBadge = ({ result }: { result: PublishValidationResult | null }) => {
-  if (!result) return null;
-  const color = result.publish_score >= 80 ? 'bg-green-500' : result.publish_score >= 50 ? 'bg-yellow-500' : 'bg-red-500';
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className={cn("w-2 h-2 rounded-full", color)} />
-      <span className="text-xs font-medium">{result.publish_score}%</span>
-      {!result.is_publishable && <span className="text-[10px] text-destructive">Not publishable</span>}
-    </div>
-  );
-};
-
-// ============ GENERIC ENTITY LIST ============
+// ============ GENERIC ENTITY LIST WITH BULK ============
 function EntityList<T extends { id: string }>({
   items,
   renderRow,
   renderForm,
   onSave,
-  onToggleActive,
+  onDelete,
   entityName,
   defaultItem,
+  tableName,
 }: {
   items: T[];
   renderRow: (item: T) => React.ReactNode;
   renderForm: (item: Partial<T>, onChange: (field: string, value: any) => void) => React.ReactNode;
   onSave: (item: Partial<T>, isNew: boolean) => Promise<void>;
-  onToggleActive?: (id: string, active: boolean) => void;
+  onDelete?: (ids: string[]) => Promise<void>;
   entityName: string;
   defaultItem: Partial<T>;
+  tableName?: string;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<T>>(defaultItem);
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkMode, setBulkMode] = useState(false);
 
   const filtered = items.filter((item: any) =>
-    (item.name || item.title || item.display_name || '').toLowerCase().includes(search.toLowerCase())
+    (item.name || item.title || item.display_name || item.username || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const handleChange = (field: string, value: any) => {
@@ -76,17 +68,58 @@ function EntityList<T extends { id: string }>({
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(i => i.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} ${entityName}(s)? This cannot be undone.`)) return;
+    if (onDelete) {
+      await onDelete(Array.from(selectedIds));
+      setSelectedIds(new Set());
+      setBulkMode(false);
+    }
+  };
+
   return (
     <div>
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder={`Search ${entityName}...`} value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
+        <Button size="sm" variant={bulkMode ? "secondary" : "outline"} className="gap-1 text-xs" onClick={() => { setBulkMode(!bulkMode); setSelectedIds(new Set()); }}>
+          <CheckSquare className="w-3.5 h-3.5" /> Bulk
+        </Button>
         <Button size="sm" className="gap-1" onClick={() => { setFormData(defaultItem); setExpandedId('new'); }}>
           <Plus className="w-3.5 h-3.5" /> Add
         </Button>
       </div>
+
+      {bulkMode && selectedIds.size > 0 && (
+        <div className="flex items-center gap-2 mb-3 p-2 bg-destructive/10 rounded-lg border border-destructive/20">
+          <span className="text-xs font-medium">{selectedIds.size} selected</span>
+          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={selectAll}>
+            {selectedIds.size === filtered.length ? 'Deselect All' : 'Select All'}
+          </Button>
+          <Button size="sm" variant="destructive" className="h-7 text-xs gap-1 ml-auto" onClick={handleBulkDelete}>
+            <Trash2 className="w-3 h-3" /> Delete Selected
+          </Button>
+        </div>
+      )}
 
       {expandedId === 'new' && (
         <Card className="p-4 mb-4 border-primary/30">
@@ -102,11 +135,34 @@ function EntityList<T extends { id: string }>({
       <div className="space-y-1.5 max-h-[600px] overflow-y-auto">
         {filtered.map(item => (
           <div key={item.id} className="border rounded-lg">
-            <div className="flex items-center justify-between p-2.5 cursor-pointer" onClick={() => {
-              if (expandedId === item.id) { setExpandedId(null); } else { setExpandedId(item.id); setFormData(item); }
-            }}>
-              <div className="flex-1 min-w-0">{renderRow(item)}</div>
-              {expandedId === item.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <div className="flex items-center gap-2 p-2.5">
+              {bulkMode && (
+                <Checkbox
+                  checked={selectedIds.has(item.id)}
+                  onCheckedChange={() => toggleSelect(item.id)}
+                  className="shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => {
+                if (expandedId === item.id) { setExpandedId(null); } else { setExpandedId(item.id); setFormData(item); }
+              }}>
+                {renderRow(item)}
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                {!bulkMode && onDelete && (
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/60 hover:text-destructive" onClick={async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete this ${entityName}?`)) await onDelete([item.id]);
+                  }}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+                <button onClick={() => {
+                  if (expandedId === item.id) { setExpandedId(null); } else { setExpandedId(item.id); setFormData(item); }
+                }}>
+                  {expandedId === item.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
             {expandedId === item.id && (
               <div className="border-t p-3 bg-muted/20">
@@ -165,7 +221,7 @@ export const AdminEntityManager = () => {
   });
 
   const invalidateAll = () => {
-    ['admin-destinations', 'admin-areas', 'admin-products', 'admin-hosts', 'admin-themes', 'admin-activity-types', 'admin-pois', 'admin-options', 'destinations', 'all-hosts-v2', 'products', 'themes', 'activity-types'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
+    ['admin-destinations', 'admin-areas', 'admin-products', 'admin-hosts', 'admin-themes', 'admin-activity-types', 'admin-pois', 'admin-options', 'destinations', 'all-hosts-v2', 'products', 'themes', 'activity-types', 'home-pois'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
   };
 
   const saveTo = async (table: string, item: any, isNew: boolean) => {
@@ -179,6 +235,15 @@ export const AdminEntityManager = () => {
     }
     invalidateAll();
     toast({ title: isNew ? 'Created' : 'Saved' });
+  };
+
+  const deleteFrom = async (table: string, ids: string[]) => {
+    for (const id of ids) {
+      const { error } = await (supabase as any).from(table).delete().eq('id', id);
+      if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    }
+    invalidateAll();
+    toast({ title: `Deleted ${ids.length} item(s)` });
   };
 
   // Common form fields
@@ -221,12 +286,14 @@ export const AdminEntityManager = () => {
           <EntityList
             items={destinations}
             entityName="Destination"
+            tableName="destinations"
             defaultItem={{ name: '', slug: '', description: '', cover_image: '', is_active: true, display_order: 0 }}
             renderRow={(d: any) => (
               <div className="flex items-center gap-2">
+                {d.flag_svg_url && <img src={d.flag_svg_url} className="w-5 h-5 rounded-full" alt="" />}
                 <span className="font-medium text-sm">{d.name}</span>
+                {d.airport_code && <span className="text-xs text-muted-foreground">({d.airport_code})</span>}
                 <Badge variant={d.is_active ? 'default' : 'secondary'} className="text-[10px]">{d.is_active ? 'active' : 'inactive'}</Badge>
-                <span className="text-xs text-muted-foreground">/{d.slug}</span>
               </div>
             )}
             renderForm={(item: any, onChange) => (
@@ -247,6 +314,17 @@ export const AdminEntityManager = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Flag SVG URL</Label>
+                    <Input value={item.flag_svg_url || ''} onChange={e => onChange('flag_svg_url', e.target.value)} />
+                    {item.flag_svg_url && <img src={item.flag_svg_url} className="w-6 h-6 rounded-full mt-1" alt="" />}
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Flag Emoji</Label>
+                    <Input value={item.flag_emoji || ''} onChange={e => onChange('flag_emoji', e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Latitude</Label><Input type="number" step="any" value={item.latitude || ''} onChange={e => onChange('latitude', parseFloat(e.target.value) || null)} /></div>
                   <div><Label className="text-xs text-muted-foreground">Longitude</Label><Input type="number" step="any" value={item.longitude || ''} onChange={e => onChange('longitude', parseFloat(e.target.value) || null)} /></div>
                 </div>
@@ -257,6 +335,7 @@ export const AdminEntityManager = () => {
               </div>
             )}
             onSave={(item, isNew) => saveTo('destinations', item, isNew)}
+            onDelete={(ids) => deleteFrom('destinations', ids)}
           />
         </TabsContent>
 
@@ -265,6 +344,7 @@ export const AdminEntityManager = () => {
           <EntityList
             items={areas}
             entityName="Area"
+            tableName="areas"
             defaultItem={{ name: '', slug: '', destination_id: '', description: '', is_active: true }}
             renderRow={(a: any) => (
               <div className="flex items-center gap-2">
@@ -290,6 +370,7 @@ export const AdminEntityManager = () => {
               </div>
             )}
             onSave={(item, isNew) => saveTo('areas', item, isNew)}
+            onDelete={(ids) => deleteFrom('areas', ids)}
           />
         </TabsContent>
 
@@ -298,6 +379,7 @@ export const AdminEntityManager = () => {
           <EntityList
             items={products}
             entityName="Product"
+            tableName="products"
             defaultItem={{ title: '', slug: '', description: '', destination_id: '', activity_type_id: '', is_active: true, tier: 'standard', format_type: 'shared' }}
             renderRow={(p: any) => (
               <div className="flex items-center gap-2">
@@ -372,6 +454,7 @@ export const AdminEntityManager = () => {
               </div>
             )}
             onSave={(item, isNew) => saveTo('products', item, isNew)}
+            onDelete={(ids) => deleteFrom('products', ids)}
           />
         </TabsContent>
 
@@ -380,6 +463,7 @@ export const AdminEntityManager = () => {
           <EntityList
             items={hosts}
             entityName="Host"
+            tableName="hosts"
             defaultItem={{ username: '', display_name: '', slug: '', bio: '', avatar_url: '', is_active: true, is_verified: false }}
             renderRow={(h: any) => (
               <div className="flex items-center gap-2">
@@ -413,6 +497,7 @@ export const AdminEntityManager = () => {
               </div>
             )}
             onSave={(item, isNew) => saveTo('hosts', item, isNew)}
+            onDelete={(ids) => deleteFrom('hosts', ids)}
           />
         </TabsContent>
 
@@ -421,6 +506,7 @@ export const AdminEntityManager = () => {
           <EntityList
             items={themes}
             entityName="Theme"
+            tableName="themes"
             defaultItem={{ name: '', slug: '', emoji: '', description: '', is_active: true, is_public_page: false, display_order: 0 }}
             renderRow={(t: any) => (
               <div className="flex items-center gap-2">
@@ -444,6 +530,7 @@ export const AdminEntityManager = () => {
               </div>
             )}
             onSave={(item, isNew) => saveTo('themes', item, isNew)}
+            onDelete={(ids) => deleteFrom('themes', ids)}
           />
         </TabsContent>
 
@@ -452,6 +539,7 @@ export const AdminEntityManager = () => {
           <EntityList
             items={pois}
             entityName="POI"
+            tableName="pois"
             defaultItem={{ name: '', slug: '', destination_id: '', poi_type: 'attraction', is_active: true, is_public_page: false }}
             renderRow={(p: any) => (
               <div className="flex items-center gap-2">
@@ -480,6 +568,9 @@ export const AdminEntityManager = () => {
                         <SelectItem value="beach">Beach</SelectItem>
                         <SelectItem value="landmark">Landmark</SelectItem>
                         <SelectItem value="natural_site">Natural Site</SelectItem>
+                        <SelectItem value="nature">Nature</SelectItem>
+                        <SelectItem value="marine">Marine</SelectItem>
+                        <SelectItem value="island">Island</SelectItem>
                         <SelectItem value="viewpoint">Viewpoint</SelectItem>
                         <SelectItem value="market">Market</SelectItem>
                       </SelectContent>
@@ -487,6 +578,7 @@ export const AdminEntityManager = () => {
                   </div>
                 </div>
                 <div><Label className="text-xs text-muted-foreground">Description</Label><Textarea value={item.description || ''} onChange={e => onChange('description', e.target.value)} rows={2} /></div>
+                <div><Label className="text-xs text-muted-foreground">Cover Image</Label><Input value={item.cover_image || ''} onChange={e => onChange('cover_image', e.target.value)} /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Latitude</Label><Input type="number" step="any" value={item.latitude || ''} onChange={e => onChange('latitude', parseFloat(e.target.value) || null)} /></div>
                   <div><Label className="text-xs text-muted-foreground">Longitude</Label><Input type="number" step="any" value={item.longitude || ''} onChange={e => onChange('longitude', parseFloat(e.target.value) || null)} /></div>
@@ -499,6 +591,7 @@ export const AdminEntityManager = () => {
               </div>
             )}
             onSave={(item, isNew) => saveTo('pois', item, isNew)}
+            onDelete={(ids) => deleteFrom('pois', ids)}
           />
         </TabsContent>
 
@@ -507,6 +600,7 @@ export const AdminEntityManager = () => {
           <EntityList
             items={options}
             entityName="Option"
+            tableName="options"
             defaultItem={{ name: '', slug: '', product_id: '', tier: 'standard', format_type: 'shared', is_active: true }}
             renderRow={(o: any) => (
               <div className="flex items-center gap-2">
@@ -556,6 +650,7 @@ export const AdminEntityManager = () => {
               </div>
             )}
             onSave={(item, isNew) => saveTo('options', item, isNew)}
+            onDelete={(ids) => deleteFrom('options', ids)}
           />
         </TabsContent>
       </Tabs>

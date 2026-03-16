@@ -29,7 +29,6 @@ import ExperienceCollection from "./pages/ExperienceCollection";
 import NotFound from "./pages/NotFound";
 import HostProfile from "./pages/HostProfile";
 import DestinationPage from "./pages/DestinationPage";
-import LegacyExperienceRedirect, { LegacyExperienceListRedirect } from "./components/LegacyRedirect";
 
 const queryClient = new QueryClient();
 
@@ -72,10 +71,6 @@ const App = () => (
             {/* Travelers (noindex) */}
             <Route path="/travelers/:id" element={<Travellers />} />
             <Route path="/travellers" element={<Travellers />} />
-
-            {/* Legacy /experiences routes — 301 redirect to canonical */}
-            <Route path="/experiences/:slug" element={<LegacyExperienceRedirect />} />
-            <Route path="/experiences" element={<LegacyExperienceListRedirect />} />
 
             <Route path="/create-experience" element={<CreateExperience />} />
             <Route path="/monetise" element={<Monetise />} />

@@ -15,54 +15,6 @@ import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Collection definitions - slug → metadata + filter
-const collectionDefinitions: Record<string, { title: string; description: string; filter: (items: any[]) => any[] }> = {
-  "attractions-you-cant-miss": {
-    title: "Attractions You Can't Miss",
-    description: "The most iconic experiences and must-visit destinations curated by our team.",
-    filter: (items) => items.filter(i => i.tag === 'popular'),
-  },
-  "staff-picks": {
-    title: "Staff Picks",
-    description: "Hand-picked itineraries our team loves — tried, tested, and unforgettable.",
-    filter: (items) => items.filter(i => i.tag === 'fave'),
-  },
-  "zanzibar-getaways": {
-    title: "Zanzibar Getaways",
-    description: "Island magic — the best itineraries for exploring Zanzibar's beaches, culture, and spice.",
-    filter: (items) => items.filter(i => i.name?.toLowerCase().includes('zanzibar')),
-  },
-  "popular-this-week": {
-    title: "Popular This Week",
-    description: "Trending right now — the itineraries travellers are loving this week.",
-    filter: (items) => items.filter(i => i.tag === 'popular'),
-  },
-  "beach-island-life": {
-    title: "Beach & Island Life",
-    description: "Sun, sand, and sea — curated coastal escapes and island adventures.",
-    filter: (items) => items.filter(i =>
-      i.name?.toLowerCase().includes('beach') || i.name?.toLowerCase().includes('island') || i.name?.toLowerCase().includes('diani') || i.name?.toLowerCase().includes('mombasa')
-    ),
-  },
-  "safari-adventures": {
-    title: "Safari Adventures",
-    description: "Wild encounters and open plains — the best safari itineraries across East Africa.",
-    filter: (items) => items.filter(i =>
-      i.name?.toLowerCase().includes('safari') || i.name?.toLowerCase().includes('serengeti') || i.name?.toLowerCase().includes('maasai')
-    ),
-  },
-  "curated-by-locals": {
-    title: "Curated by Locals",
-    description: "Insider knowledge — itineraries crafted by people who know these places best.",
-    filter: (items) => items.filter(i => i.tag === 'fave'),
-  },
-  "weekend-getaways": {
-    title: "Weekend Getaways",
-    description: "Short on time? These itineraries pack the best into a quick escape.",
-    filter: (items) => items.filter(i => i.name?.toLowerCase().includes('zanzibar') || i.name?.toLowerCase().includes('weekend') || i.name?.toLowerCase().includes('escape')),
-  },
-};
-
 // Horizontal scroll row for remaining sections
 const HorizontalScrollRow = ({ title, onTitleClick, children, titleClassName }: { title: string; onTitleClick?: () => void; children: React.ReactNode; titleClassName?: string }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -146,8 +98,7 @@ const CollectionPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: publicItinerariesList = [], isLoading: itinerariesLoading } = usePublicItineraries();
 
-  const staticCollection = slug ? collectionDefinitions[slug] : null;
-
+  // Fetch from DB — no collection_type filter so it works for itineraries collections
   const { data: dbCollection, isLoading: dbCollectionLoading } = useQuery({
     queryKey: ["itinerary-collection-by-slug", slug, publicItinerariesList.length],
     enabled: !!slug,
@@ -161,6 +112,7 @@ const CollectionPage = () => {
 
       if (!collectionRow) return null;
 
+      // Try collection_items first
       const { data: linkRows } = await (supabase as any)
         .from("collection_items")
         .select("item_id, position")
@@ -168,9 +120,14 @@ const CollectionPage = () => {
         .eq("item_type", "itinerary")
         .order("position", { ascending: true });
 
-      const linkedItems = (linkRows || [])
+      let linkedItems = (linkRows || [])
         .map((row: any) => publicItinerariesList.find((it: any) => it.dbId === row.item_id))
         .filter(Boolean);
+
+      // If no linked items, show ALL itineraries as fallback (this is the fix for top-in-city)
+      if (linkedItems.length === 0) {
+        linkedItems = publicItinerariesList;
+      }
 
       return {
         title: collectionRow.name,
@@ -180,37 +137,10 @@ const CollectionPage = () => {
     },
   });
 
-  const { featuredItems, remainingSections } = useMemo(() => {
-    if (dbCollection) {
-      return { featuredItems: dbCollection.items || [], remainingSections: [] };
-    }
-
-    if (!staticCollection) return { featuredItems: [], remainingSections: [] };
-
-    const featured = staticCollection.filter(publicItinerariesList);
-    const featuredIds = new Set(featured.map((i: any) => i.id));
-    const remaining = publicItinerariesList.filter((i: any) => !featuredIds.has(i.id));
-
-    const sections: { key: string; title: string; items: any[] }[] = [];
-    const otherCollections = Object.entries(collectionDefinitions).filter(([k]) => k !== slug);
-    for (const [key, def] of otherCollections) {
-      const items = def.filter(remaining).slice(0, 10);
-      if (items.length > 0) sections.push({ key, title: def.title, items });
-    }
-
-    const seen = new Set<string>();
-    const uniqueSections = sections.filter((s) => {
-      if (seen.has(s.title)) return false;
-      seen.add(s.title);
-      return true;
-    }).slice(0, 4);
-
-    return { featuredItems: featured, remainingSections: uniqueSections };
-  }, [dbCollection, staticCollection, slug, publicItinerariesList]);
-
-  const hasCollection = !!dbCollection || !!staticCollection;
-  const collectionTitle = dbCollection?.title || staticCollection?.title || "Collection";
-  const collectionDescription = dbCollection?.description || staticCollection?.description || "";
+  const hasCollection = !!dbCollection;
+  const collectionTitle = dbCollection?.title || slug?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || "Collection";
+  const collectionDescription = dbCollection?.description || "";
+  const featuredItems = dbCollection?.items || [];
   const isInitialLoading = (dbCollectionLoading || itinerariesLoading) && !hasCollection;
 
   if (isInitialLoading) {
@@ -229,7 +159,7 @@ const CollectionPage = () => {
     );
   }
 
-  if (!hasCollection) {
+  if (!hasCollection && !itinerariesLoading) {
     return isMobile ? (
       <MobileShell hideAvatar>
         <div className="text-center py-16 px-4">
@@ -253,7 +183,7 @@ const CollectionPage = () => {
         <Helmet>
           <title>{collectionTitle} — Curated Itineraries | Swam</title>
           <meta name="description" content={collectionDescription} />
-          <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
+          <link rel="canonical" href={`https://guiduuid.lovable.app/collections/itineraries/${slug}`} />
         </Helmet>
 
         {/* Hero header */}
@@ -270,9 +200,11 @@ const CollectionPage = () => {
           <h1 className="text-[26px] font-extrabold text-foreground leading-tight tracking-tight">
             {collectionTitle}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-            {collectionDescription}
-          </p>
+          {collectionDescription && (
+            <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+              {collectionDescription}
+            </p>
+          )}
           <p className="text-xs text-muted-foreground/70 mt-2">
             {featuredItems.length} itineraries
           </p>
@@ -286,33 +218,6 @@ const CollectionPage = () => {
             ))}
           </div>
         </div>
-
-        {/* Divider + continued discovery */}
-        {remainingSections.length > 0 && (
-          <>
-            <div className="flex-1 -mb-20 pb-20 [&_h3]:text-white [&_p]:text-white/60 [&_.text-foreground]:text-white [&_.text-muted-foreground]:text-white/60" style={{ backgroundColor: '#811b25' }}>
-              <div className="pt-8 pb-4 px-4 text-center">
-                <span className="text-xs uppercase tracking-wider text-white/80">
-                  More itineraries to explore
-                </span>
-              </div>
-
-              {remainingSections.map(section => (
-                <HorizontalScrollRow
-                  key={section.key}
-                  title={section.title}
-                  onTitleClick={() => navigate(`/itinerary-collections/${section.key}`)}
-                  titleClassName="text-white"
-                >
-                  {section.items.map((it: any) => (
-                    <MobileItineraryCard key={it.id} itinerary={it} />
-                  ))}
-                </HorizontalScrollRow>
-              ))}
-              <div className="pb-4" />
-            </div>
-          </>
-        )}
       </MobileShell>
     );
   }
@@ -327,7 +232,7 @@ const CollectionPage = () => {
       <Helmet>
         <title>{collectionTitle} — Curated Itineraries | Swam</title>
         <meta name="description" content={collectionDescription} />
-        <link rel="canonical" href={`https://guiduuid.lovable.app/itinerary-collections/${slug}`} />
+        <link rel="canonical" href={`https://guiduuid.lovable.app/collections/itineraries/${slug}`} />
       </Helmet>
 
       <div className="flex flex-col h-full">
@@ -360,7 +265,7 @@ const CollectionPage = () => {
 
         <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
           <div className="max-w-[1600px] mx-auto">
-            <p className="text-muted-foreground mb-6 max-w-2xl">{collectionDescription}</p>
+            {collectionDescription && <p className="text-muted-foreground mb-6 max-w-2xl">{collectionDescription}</p>}
             <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
               {filteredFeatured.map((itinerary: any) => (
                 <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
