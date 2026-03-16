@@ -149,7 +149,8 @@ export default function HostProfile() {
         <SEOHead
           title={`${host.display_name || host.username} — Experience Host`}
           description={host.bio || `Discover experiences hosted by ${host.display_name || host.username}`}
-          url={`https://swam.app/hosts/${(host as any).slug || host.username}`}
+          canonicalPath={`/hosts/${(host as any).slug || host.username}`}
+          indexability="public_indexed"
           image={host.avatar_url || undefined}
           jsonLd={generateHostSchema(hostForSchema)}
         />

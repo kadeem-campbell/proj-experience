@@ -281,7 +281,8 @@ const SearchPage = () => {
       <SEOHead
         title="Discover Experiences & Things to Do in East Africa"
         description="Explore curated experiences, activities and things to do in Zanzibar, Kilimanjaro, Nairobi and across East Africa. Build and share itineraries with friends."
-        url="https://swam.app"
+        canonicalPath="/"
+        indexability="public_indexed"
         jsonLd={createWebsiteJsonLd()}
       />
       <MobileHomeView />

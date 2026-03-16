@@ -208,7 +208,7 @@ export default function ThingsToDo() {
 
   return (
     <MainLayout>
-      <SEOHead title={pageTitle} description={pageDescription} url={`https://swam.app${window.location.pathname}`} jsonLd={jsonLd} />
+      <SEOHead title={pageTitle} description={pageDescription} canonicalPath={window.location.pathname} indexability="public_indexed" jsonLd={jsonLd} />
       <div className="max-w-6xl mx-auto px-6 py-8">{content}</div>
     </MainLayout>
   );
