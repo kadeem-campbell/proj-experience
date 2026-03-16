@@ -60,7 +60,7 @@ export default function PoiDetail() {
     if (!poi) return;
     if ("vibrate" in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
-      await toggleDbLike(poi.id, "poi", { id: poi.id, title: poi.name, videoThumbnail: poi.cover_image || "" });
+      await toggleDbLike(poi.id, "experience", { id: poi.id, title: poi.name, videoThumbnail: poi.cover_image || "" });
     } else {
       setLocalLiked(!localLiked);
     }
