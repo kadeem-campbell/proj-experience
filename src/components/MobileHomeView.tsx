@@ -166,7 +166,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
-        <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
             entityId={experience.id}
             entityType="experience"
@@ -178,8 +178,8 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
             title={experience.title}
             slug={(experience as any).slug}
           >
-            <button className="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-2xl border border-white/15 shadow-lg transition-all duration-150 active:scale-90">
-              <Bookmark className="w-3.5 h-3.5 text-white/90" />
+            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-foreground/80 backdrop-blur-xl shadow-lg transition-all duration-150 active:scale-90">
+              <Plus className="w-5 h-5 text-background" />
             </button>
           </CardActionMenu>
         </div>
