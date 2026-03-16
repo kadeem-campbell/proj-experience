@@ -22,6 +22,7 @@ export const SEOHead = ({
   title,
   description,
   canonicalPath,
+  url,
   image,
   type = "website",
   jsonLd,
