@@ -524,6 +524,7 @@ export const MobileHomeView = () => {
           })
           .map((carousel) => {
             const title = carousel.name.replace('{city}', selectedCity || 'your city');
+            const resolvedSlug = carousel.slug.replace('city', selectedCity ? slugify(selectedCity) : 'city');
           
             if (carousel.contentType === 'itinerary') {
               const items = carousel.itemIds.length > 0
@@ -534,7 +535,7 @@ export const MobileHomeView = () => {
                 <HorizontalScrollRow
                   key={carousel.id}
                   title={activeCategory ? `${catLabel} — ${title}` : title}
-                  onTitleClick={() => navigate(`/collections/${carousel.slug}`)}
+                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 8).map((itinerary) => (
                     <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -550,7 +551,7 @@ export const MobileHomeView = () => {
                 <HorizontalScrollRow
                   key={carousel.id}
                   title={activeCategory ? `${catLabel} — ${title}` : title}
-                  onTitleClick={() => navigate(`/collections/${carousel.slug}`)}
+                  onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 10).map((experience) => (
                     <MobileExperienceCard key={experience.id} experience={experience} />
