@@ -535,7 +535,7 @@ export const MobileHomeView = () => {
                 <HorizontalScrollRow
                   key={carousel.id}
                   title={activeCategory ? `${catLabel} — ${title}` : title}
-                  onTitleClick={() => navigate(`/collections/${carousel.slug}`)}
+                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 8).map((itinerary) => (
                     <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
