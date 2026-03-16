@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { Heart, Plus, MapPin } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
