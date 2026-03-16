@@ -186,6 +186,12 @@ const ItinerariesPage = () => {
 
       return (
         <MobileShell hideAvatar>
+          <SEOHead
+            title="Curated Itineraries — Trip Plans & Guides"
+            description="Browse curated travel itineraries and trip plans across Africa. Find inspiration for your next adventure."
+            canonicalPath="/itineraries"
+            indexability="public_indexed"
+          />
           <div className="mb-4 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
             <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
             <p className="text-sm text-muted-foreground mt-1">{featuredItems.length} itineraries</p>
