@@ -19,6 +19,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { LinkManager } from '@/components/LinkManager';
 import { AdminManualEntities } from '@/components/AdminManualEntities';
 import { AdminEntityManager } from '@/components/AdminEntityManager';
+import { AdminCarouselManager } from '@/components/AdminCarouselManager';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -646,8 +647,9 @@ const AdminPanel = () => {
                 <h1 className="text-3xl font-bold">Admin Panel</h1>
                 <p className="text-muted-foreground">Manage experiences plus categories, cities, creators, itineraries, and collections — Live database</p>
               </div>
-              <TabsList>
+              <TabsList className="flex-wrap">
                 <TabsTrigger value="entities" className="gap-2"><Database className="w-4 h-4" /> Entities</TabsTrigger>
+                <TabsTrigger value="carousels" className="gap-2"><Eye className="w-4 h-4" /> Carousels</TabsTrigger>
                 <TabsTrigger value="manage" className="gap-2"><Database className="w-4 h-4" /> Legacy</TabsTrigger>
                 <TabsTrigger value="links" className="gap-2"><ExternalLink className="w-4 h-4" /> Links</TabsTrigger>
                 <TabsTrigger value="bulk" className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Bulk Upload</TabsTrigger>
@@ -663,6 +665,10 @@ const AdminPanel = () => {
 
             <TabsContent value="entities">
               <AdminEntityManager />
+            </TabsContent>
+
+            <TabsContent value="carousels">
+              <AdminCarouselManager />
             </TabsContent>
 
             <TabsContent value="manage">

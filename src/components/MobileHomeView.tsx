@@ -259,7 +259,7 @@ const MobilePoiCard = ({ poi }: { poi: any }) => {
   return (
     <div 
       className="flex-shrink-0 w-[36vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
-      onClick={() => navigate(`/explore/map?poi=${poi.slug}`)}
+      onClick={() => navigate(`/zanzibar/map?poi=${poi.slug}`)}
     >
       <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
         {poi.cover_image ? (
@@ -509,7 +509,7 @@ export const MobileHomeView = () => {
               <HorizontalScrollRow
                 key={carousel.id}
                 title={activeCategory ? `${catLabel} — ${title}` : title}
-                onTitleClick={() => navigate(`/collections/itineraries/${carousel.slug}`)}
+                onTitleClick={() => navigate(`/collections/${carousel.slug}`)}
               >
                 {items.slice(0, 8).map((itinerary) => (
                   <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -557,7 +557,7 @@ export const MobileHomeView = () => {
       {pois.length > 0 && (
         <HorizontalScrollRow
           title="Places to explore"
-          onTitleClick={() => navigate("/explore/map")}
+          onTitleClick={() => navigate(`/${selectedCity ? slugify(selectedCity) : 'zanzibar'}/map`)}
         >
           {pois.slice(0, 10).map((poi: any) => (
             <MobilePoiCard key={poi.id} poi={poi} />
