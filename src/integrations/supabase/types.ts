@@ -72,6 +72,7 @@ export type Database = {
           destination_id: string
           display_order: number | null
           id: string
+          indexability_state: string | null
           is_active: boolean | null
           latitude: number | null
           longitude: number | null
@@ -86,6 +87,7 @@ export type Database = {
           destination_id: string
           display_order?: number | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           latitude?: number | null
           longitude?: number | null
@@ -100,6 +102,7 @@ export type Database = {
           destination_id?: string
           display_order?: number | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           latitude?: number | null
           longitude?: number | null
@@ -367,6 +370,7 @@ export type Database = {
           display_order: number | null
           home_display_order: number | null
           id: string
+          indexability_state: string | null
           is_active: boolean | null
           name: string
           show_on_home: boolean | null
@@ -385,6 +389,7 @@ export type Database = {
           display_order?: number | null
           home_display_order?: number | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           name: string
           show_on_home?: boolean | null
@@ -403,6 +408,7 @@ export type Database = {
           display_order?: number | null
           home_display_order?: number | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           name?: string
           show_on_home?: boolean | null
@@ -594,6 +600,7 @@ export type Database = {
           flag_emoji: string | null
           flag_svg_url: string | null
           id: string
+          indexability_state: string | null
           is_active: boolean | null
           latitude: number | null
           legacy_city_id: string | null
@@ -612,6 +619,7 @@ export type Database = {
           flag_emoji?: string | null
           flag_svg_url?: string | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           latitude?: number | null
           legacy_city_id?: string | null
@@ -630,6 +638,7 @@ export type Database = {
           flag_emoji?: string | null
           flag_svg_url?: string | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           latitude?: number | null
           legacy_city_id?: string | null
@@ -658,27 +667,39 @@ export type Database = {
       entity_aliases: {
         Row: {
           alias: string
+          alias_normalized: string | null
           alias_type: string | null
+          confidence: number | null
           created_at: string | null
           entity_id: string
           entity_type: string
           id: string
+          is_searchable: boolean | null
+          source: string | null
         }
         Insert: {
           alias: string
+          alias_normalized?: string | null
           alias_type?: string | null
+          confidence?: number | null
           created_at?: string | null
           entity_id: string
           entity_type: string
           id?: string
+          is_searchable?: boolean | null
+          source?: string | null
         }
         Update: {
           alias?: string
+          alias_normalized?: string | null
           alias_type?: string | null
+          confidence?: number | null
           created_at?: string | null
           entity_id?: string
           entity_type?: string
           id?: string
+          is_searchable?: boolean | null
+          source?: string | null
         }
         Relationships: []
       }
@@ -761,8 +782,11 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
+          is_current: boolean | null
           new_slug: string
           old_slug: string
+          reason: string | null
+          redirect_to_slug: string | null
         }
         Insert: {
           changed_at?: string | null
@@ -770,8 +794,11 @@ export type Database = {
           entity_id: string
           entity_type: string
           id?: string
+          is_current?: boolean | null
           new_slug: string
           old_slug: string
+          reason?: string | null
+          redirect_to_slug?: string | null
         }
         Update: {
           changed_at?: string | null
@@ -779,8 +806,11 @@ export type Database = {
           entity_id?: string
           entity_type?: string
           id?: string
+          is_current?: boolean | null
           new_slug?: string
           old_slug?: string
+          reason?: string | null
+          redirect_to_slug?: string | null
         }
         Relationships: []
       }
@@ -1159,6 +1189,7 @@ export type Database = {
           destination_id: string | null
           display_name: string | null
           id: string
+          indexability_state: string | null
           is_active: boolean | null
           is_verified: boolean | null
           latitude: number | null
@@ -1177,6 +1208,7 @@ export type Database = {
           destination_id?: string | null
           display_name?: string | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           is_verified?: boolean | null
           latitude?: number | null
@@ -1195,6 +1227,7 @@ export type Database = {
           destination_id?: string | null
           display_name?: string | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           is_verified?: boolean | null
           latitude?: number | null
@@ -1612,6 +1645,60 @@ export type Database = {
           },
         ]
       }
+      page_route_registry: {
+        Row: {
+          canonical_url: string
+          conflict_group_key: string | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          generated_from_rule: string | null
+          id: string
+          indexability_state: string
+          page_type: string
+          redirect_target_url: string | null
+          resolved_path: string
+          route_priority: number
+          status: string
+          supersedes_route_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          canonical_url: string
+          conflict_group_key?: string | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          generated_from_rule?: string | null
+          id?: string
+          indexability_state?: string
+          page_type: string
+          redirect_target_url?: string | null
+          resolved_path: string
+          route_priority?: number
+          status?: string
+          supersedes_route_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          canonical_url?: string
+          conflict_group_key?: string | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          generated_from_rule?: string | null
+          id?: string
+          indexability_state?: string
+          page_type?: string
+          redirect_target_url?: string | null
+          resolved_path?: string
+          route_priority?: number
+          status?: string
+          supersedes_route_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       pois: {
         Row: {
           area_id: string | null
@@ -1621,6 +1708,7 @@ export type Database = {
           destination_id: string | null
           google_place_id: string | null
           id: string
+          indexability_state: string | null
           is_active: boolean | null
           is_public_page: boolean | null
           latitude: number | null
@@ -1639,6 +1727,7 @@ export type Database = {
           destination_id?: string | null
           google_place_id?: string | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           is_public_page?: boolean | null
           latitude?: number | null
@@ -1657,6 +1746,7 @@ export type Database = {
           destination_id?: string | null
           google_place_id?: string | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           is_public_page?: boolean | null
           latitude?: number | null
@@ -1902,6 +1992,7 @@ export type Database = {
           gallery: Json | null
           highlights: Json | null
           id: string
+          indexability_state: string | null
           is_active: boolean | null
           is_indexable: boolean | null
           latitude: number | null
@@ -1933,6 +2024,7 @@ export type Database = {
           gallery?: Json | null
           highlights?: Json | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           is_indexable?: boolean | null
           latitude?: number | null
@@ -1964,6 +2056,7 @@ export type Database = {
           gallery?: Json | null
           highlights?: Json | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           is_indexable?: boolean | null
           latitude?: number | null
@@ -2051,6 +2144,7 @@ export type Database = {
           description: string | null
           experiences: Json | null
           id: string
+          indexability_state: string | null
           is_active: boolean | null
           like_count: number | null
           name: string
@@ -2069,6 +2163,7 @@ export type Database = {
           description?: string | null
           experiences?: Json | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           like_count?: number | null
           name: string
@@ -2087,6 +2182,7 @@ export type Database = {
           description?: string | null
           experiences?: Json | null
           id?: string
+          indexability_state?: string | null
           is_active?: boolean | null
           like_count?: number | null
           name?: string

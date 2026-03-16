@@ -1,4 +1,6 @@
 import { Helmet } from "react-helmet-async";
+import type { IndexabilityState } from "@/services/canonicalRegistry";
+import { indexabilityToRobots } from "@/services/canonicalRegistry";
 
 interface SEOHeadProps {
   title: string;
@@ -7,18 +9,37 @@ interface SEOHeadProps {
   image?: string;
   type?: "website" | "article";
   jsonLd?: Record<string, any>;
+  indexability?: IndexabilityState;
+  robots?: string;
 }
 
-export const SEOHead = ({ title, description, url, image, type = "website", jsonLd }: SEOHeadProps) => {
+export const SEOHead = ({
+  title,
+  description,
+  url,
+  image,
+  type = "website",
+  jsonLd,
+  indexability,
+  robots: robotsOverride,
+}: SEOHeadProps) => {
   const siteName = "swam.app";
   const fullTitle = `${title} | ${siteName}`;
   const canonical = url || (typeof window !== "undefined" ? window.location.href : "");
+
+  // Compute robots directive from indexability state or explicit override
+  const robotsDirective = robotsOverride
+    ? robotsOverride
+    : indexability
+      ? indexabilityToRobots(indexability)
+      : "index,follow";
 
   return (
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={canonical} />
+      <meta name="robots" content={robotsDirective} />
 
       {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
@@ -44,7 +65,7 @@ export const SEOHead = ({ title, description, url, image, type = "website", json
   );
 };
 
-// Helpers for structured data
+// Helpers for structured data — kept for backward compat during migration
 export const createExperienceJsonLd = (exp: {
   title: string;
   description?: string;

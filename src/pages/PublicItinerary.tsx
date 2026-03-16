@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { slugify } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 
@@ -593,7 +593,7 @@ const PublicItinerary = () => {
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
         <div
-          onClick={() => navigate(`/experiences/${expSlug}`)}
+          onClick={() => navigate(generateExperienceUrl(experience.location || '', experience.title, expSlug))}
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
@@ -653,7 +653,7 @@ const PublicItinerary = () => {
       <div
         key={experience.id}
         className="cursor-pointer group"
-        onClick={() => navigate(`/experiences/${expSlug}`)}
+        onClick={() => navigate(generateExperienceUrl(experience.location || '', experience.title, expSlug))}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {experience.videoThumbnail ? (
@@ -1148,7 +1148,7 @@ const PublicItinerary = () => {
                         className="flex items-center gap-3 py-2 rounded-lg px-1 transition-colors"
                       >
                         <div
-                          onClick={() => navigate(`/experiences/${slugify(exp.title)}`)}
+                          onClick={() => navigate(generateExperienceUrl(exp.location || '', exp.title, slugify(exp.title)))}
                           className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-muted/40 rounded-lg transition-colors"
                         >
                           <div className="w-9 h-9 rounded-md overflow-hidden bg-muted shrink-0">
