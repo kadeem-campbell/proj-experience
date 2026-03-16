@@ -17,9 +17,6 @@ import {
 // Hidden navigation items - set to false to show
 const HIDDEN_NAV_ITEMS = {
   map: true,
-  socialFinder: true,
-  travellers: true,
-  creators: true,
 };
 
 export const Navigation = () => {
