@@ -2,7 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createItineraryJsonLd } from "@/components/SEOHead";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useProductListings } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useProductListings";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays } from "date-fns";

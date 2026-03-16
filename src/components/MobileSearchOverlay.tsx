@@ -3,7 +3,7 @@ import { Search, X, Layers, Heart, MapPin, Plus, SlidersHorizontal, Check } from
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
 import { useNavigate, useLocation } from "react-router-dom";
 import { generateProductPageUrl } from "@/utils/slugUtils";
-import { useProductListings } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useProductListings";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { cn } from "@/lib/utils";
 import { useUserLikes } from "@/hooks/useUserLikes";

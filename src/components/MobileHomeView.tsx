@@ -9,7 +9,7 @@ import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
 import { usePopularItineraries, usePublicItineraries } from "@/hooks/usePublicItineraries";
-import { useProductListings } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useProductListings";
 import { generateProductPageUrl } from "@/utils/slugUtils";
 import { useHomeCarousels } from "@/hooks/useHomeCarousels";
 import { useUserLikes } from "@/hooks/useUserLikes";
