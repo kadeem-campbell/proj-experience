@@ -62,7 +62,7 @@ export default function Monetise() {
               <Button size="lg" disabled className="bg-muted text-muted-foreground cursor-not-allowed">
                 Join Waitlist
               </Button>
-              <Link to="/itinerary">
+              <Link to="/itineraries">
                 <Button variant="outline" size="lg">
                   View Sample Itinerary
                 </Button>

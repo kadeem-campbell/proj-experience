@@ -958,7 +958,7 @@ export default function ExperienceDetail() {
                         .map(itinerary => (
                           <Link 
                             key={itinerary.id} 
-                            to={`/itinerary/${itinerary.id}`}
+                            to={`/my-trips/${itinerary.id}`}
                             className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
                           >
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
