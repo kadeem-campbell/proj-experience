@@ -9,7 +9,7 @@ import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { generateProductPageUrl } from "@/utils/slugUtils";
 
-interface ExperienceCardProps {
+interface ProductCardProps {
   id: string;
   title: string;
   creator: string;
@@ -23,7 +23,7 @@ interface ExperienceCardProps {
   compact?: boolean;
 }
 
-export const ExperienceCard = ({
+export const ProductCard = ({
   id,
   title,
   creator,
@@ -35,7 +35,7 @@ export const ExperienceCard = ({
   price,
   slug,
   compact = false,
-}: ExperienceCardProps) => {
+}: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
@@ -58,7 +58,7 @@ export const ExperienceCard = ({
     }
   }, [isHovered, videoUrl]);
 
-  const experienceData = {
+  const productData = {
     id, title, creator, videoThumbnail, category, location, price
   };
 
@@ -69,11 +69,11 @@ export const ExperienceCard = ({
     e.stopPropagation();
     if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
-      await toggleDbLike(id, 'experience', experienceData);
+      await toggleDbLike(id, 'experience', productData);
     } else {
-      toggleLocalLike(experienceData);
+      toggleLocalLike(productData);
     }
-  }, [id, isAuthenticated, experienceData, toggleDbLike, toggleLocalLike, isMobile]);
+  }, [id, isAuthenticated, productData, toggleDbLike, toggleLocalLike, isMobile]);
 
   return (
     <Link 
@@ -90,9 +90,7 @@ export const ExperienceCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container */}
         <div className="relative overflow-hidden rounded-xl bg-muted aspect-[4/3]">
-          {/* Skeleton shimmer while loading */}
           {!imageLoaded && (
             <div className="absolute inset-0 bg-muted animate-pulse" />
           )}
@@ -129,7 +127,6 @@ export const ExperienceCard = ({
             />
           )}
 
-          {/* Heart button */}
           <button
             onClick={handleLikeClick}
             onTouchEnd={handleLikeClick}
@@ -149,14 +146,13 @@ export const ExperienceCard = ({
             />
           </button>
           
-          {/* Add to Itinerary */}
           <div
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
             className="absolute bottom-2.5 right-2.5"
           >
             <ItinerarySelector
               experienceId={id}
-              experienceData={experienceData}
+              experienceData={productData}
               onAdd={handleAddSuccess}
             >
               <button className={cn(
@@ -171,7 +167,6 @@ export const ExperienceCard = ({
           </div>
         </div>
 
-        {/* Text content */}
         <div className="mt-2.5 space-y-0.5">
           <h3 className={cn(
             "font-semibold line-clamp-1 text-foreground leading-snug",

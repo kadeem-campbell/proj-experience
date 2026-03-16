@@ -354,7 +354,7 @@ const CollectionPage = () => {
               {filteredItems.map((item: any) =>
                 contentType === 'itineraries'
                   ? <PublicItineraryCard key={item.id} itinerary={item} />
-                  : <ExperienceCard key={item.id} {...item} compact />
+                  : <ProductCard key={item.id} {...item} compact />
               )}
             </div>
             {filteredItems.length === 0 && <div className="text-center py-16"><p className="text-muted-foreground">No items found</p></div>}

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useDbExperiences } from "@/hooks/useDbExperiences";
 
-export interface Experience {
+export interface ProductListing {
   id: string;
   title: string;
   creator: string;
@@ -16,13 +16,13 @@ export interface Experience {
 }
 
 /** @deprecated Use useDbExperiences() directly for new code */
-export const allExperiences: Experience[] = [];
+export const emptyProductListings: ProductListing[] = [];
 
-/** Normalised listing data from the experiences table */
+/** Normalized listing data from the products/experiences source */
 export const useProductListings = () => {
   const { data: experiences = [] } = useDbExperiences();
 
-  return useMemo(() => {
+  return useMemo<ProductListing[]>(() => {
     if (experiences.length === 0) return [];
 
     return experiences.map((exp) => ({
