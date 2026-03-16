@@ -222,6 +222,53 @@ const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: s
   );
 };
 
+// Ranked card with Netflix-style ribbon badge
+const RankedCard = ({ 
+  rank, 
+  image, 
+  name, 
+  subtitle,
+  onClick 
+}: { 
+  rank: number; 
+  image?: string; 
+  name: string; 
+  subtitle?: string;
+  onClick: () => void;
+}) => {
+  return (
+    <div 
+      className="flex-shrink-0 w-[38vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
+      onClick={onClick}
+    >
+      <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
+        {image ? (
+          <img src={image} alt={name} loading="lazy" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <MapPin className="w-8 h-8 text-muted-foreground/30" />
+          </div>
+        )}
+        {/* Rank ribbon badge */}
+        <div className="absolute top-2.5 left-2.5 z-10">
+          <div className="relative bg-destructive text-destructive-foreground px-2.5 pt-1 pb-2.5 rounded-t-md text-center min-w-[32px] shadow-lg">
+            <span className="text-[13px] font-extrabold leading-none">#{rank}</span>
+            {/* Ribbon tail */}
+            <div className="absolute bottom-0 left-0 right-0 overflow-hidden h-[6px]">
+              <div className="absolute bottom-0 left-0 w-1/2 h-full bg-destructive" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />
+              <div className="absolute bottom-0 right-0 w-1/2 h-full bg-destructive" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-2 space-y-0.5">
+        <h3 className="font-semibold text-sm text-foreground truncate">{name}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
+      </div>
+    </div>
+  );
+};
+
 // Static alias map
 const cityAliases: Record<string, string[]> = {
   "Zanzibar": ["Zanzibar", "Stone Town", "Kendwa", "Nungwi", "Paje", "Jambiani"],
