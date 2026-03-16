@@ -360,13 +360,16 @@ export type Database = {
         Row: {
           city_id: string | null
           collection_type: string
+          content_type: string | null
           cover_image: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
+          home_display_order: number | null
           id: string
           is_active: boolean | null
           name: string
+          show_on_home: boolean | null
           slug: string
           tag: string | null
           updated_at: string | null
@@ -375,13 +378,16 @@ export type Database = {
         Insert: {
           city_id?: string | null
           collection_type?: string
+          content_type?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          home_display_order?: number | null
           id?: string
           is_active?: boolean | null
           name: string
+          show_on_home?: boolean | null
           slug: string
           tag?: string | null
           updated_at?: string | null
@@ -390,13 +396,16 @@ export type Database = {
         Update: {
           city_id?: string | null
           collection_type?: string
+          content_type?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          home_display_order?: number | null
           id?: string
           is_active?: boolean | null
           name?: string
+          show_on_home?: boolean | null
           slug?: string
           tag?: string | null
           updated_at?: string | null
