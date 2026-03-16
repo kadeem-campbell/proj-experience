@@ -31,9 +31,10 @@ export const SEOHead = ({
   const siteName = "swam.app";
   const fullTitle = `${title} | ${siteName}`;
 
-  // Canonical URL must always come from explicit path, never window.location
-  const canonical = canonicalPath
-    ? (canonicalPath.startsWith("http") ? canonicalPath : `${BASE_URL}${canonicalPath}`)
+  // Canonical URL: prefer canonicalPath, fall back to deprecated url prop, never use window.location
+  const rawCanonical = canonicalPath || url;
+  const canonical = rawCanonical
+    ? (rawCanonical.startsWith("http") ? rawCanonical : `${BASE_URL}${rawCanonical}`)
     : undefined;
 
   // Compute robots directive from indexability state or explicit override
