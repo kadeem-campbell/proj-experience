@@ -290,7 +290,7 @@ export const BulkUploader = () => {
     const base = getShareBaseUrl();
     if (tab === 'experiences' && item.slug) return `${base}/things-to-do/${item.slug}`;
     if (tab === 'itineraries' && item.slug) return `${base}/itineraries/${item.slug}`;
-    if (tab === 'collections' && item.slug) return `${base}/experience-collections/${item.slug}`;
+    if (tab === 'collections' && item.slug) return `${base}/collections/${item.slug}`;
     return null;
   };
 

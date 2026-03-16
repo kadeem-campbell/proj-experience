@@ -47,16 +47,9 @@ export const Navigation = () => {
                     Map
                   </Link>
                 )}
-                {!HIDDEN_NAV_ITEMS.travellers && (
-                  <Link to="/travellers" className="text-muted-foreground hover:text-foreground transition-colors">
-                    Travellers
-                  </Link>
-                )}
-                {!HIDDEN_NAV_ITEMS.creators && (
-                  <Link to="/creators" className="text-muted-foreground hover:text-foreground transition-colors">
-                    Creators
-                  </Link>
-                )}
+                <Link to="/hosts" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Hosts
+                </Link>
                 <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
                   About
                 </Link>
