@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from "react";
+import { SEOHead } from "@/components/SEOHead";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
