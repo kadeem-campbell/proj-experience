@@ -524,6 +524,7 @@ export const MobileHomeView = () => {
           })
           .map((carousel) => {
             const title = carousel.name.replace('{city}', selectedCity || 'your city');
+            const resolvedSlug = carousel.slug.replace('city', selectedCity ? slugify(selectedCity) : 'city');
           
             if (carousel.contentType === 'itinerary') {
               const items = carousel.itemIds.length > 0
