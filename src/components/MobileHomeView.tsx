@@ -460,88 +460,65 @@ export const MobileHomeView = () => {
         </div>
       ) : (
       <>
-      {/* Alternating content */}
-      {categoryItineraries.length > 0 && (
-        <HorizontalScrollRow 
-          title={rowTitle(
-            selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss",
-            `${catLabel} you can't miss`
+      {/* Dynamic collection-driven carousels */}
+      {homeCarousels.length > 0 ? (
+        homeCarousels.map((carousel) => {
+          const title = carousel.name.replace('{city}', selectedCity || 'your city');
+          
+          if (carousel.contentType === 'itinerary') {
+            // Filter itineraries by linked IDs if any, otherwise fall back to all
+            const items = carousel.itemIds.length > 0
+              ? categoryItineraries.filter(it => carousel.itemIds.includes(it.dbId || it.id))
+              : categoryItineraries.slice(0, 6);
+            if (items.length === 0) return null;
+            return (
+              <HorizontalScrollRow
+                key={carousel.id}
+                title={activeCategory ? `${catLabel} — ${title}` : title}
+                onTitleClick={() => navigate(`/collections/itineraries/${carousel.slug}`)}
+              >
+                {items.slice(0, 8).map((itinerary) => (
+                  <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+                ))}
+              </HorizontalScrollRow>
+            );
+          } else {
+            // Experience carousel
+            const items = carousel.itemIds.length > 0
+              ? categoryExperiences.filter(exp => carousel.itemIds.includes(exp.id))
+              : categoryExperiences.slice(0, 8);
+            if (items.length === 0) return null;
+            return (
+              <HorizontalScrollRow
+                key={carousel.id}
+                title={activeCategory ? `${catLabel} — ${title}` : title}
+                onTitleClick={() => navigate(`/collections/experiences/${carousel.slug}`)}
+              >
+                {items.slice(0, 10).map((experience) => (
+                  <MobileExperienceCard key={experience.id} experience={experience} />
+                ))}
+              </HorizontalScrollRow>
+            );
+          }
+        })
+      ) : (
+        /* Fallback: show all itineraries + experiences if no carousels configured */
+        <>
+          {categoryItineraries.length > 0 && (
+            <HorizontalScrollRow title={selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss"}>
+              {categoryItineraries.slice(0, 6).map((itinerary) => (
+                <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+              ))}
+            </HorizontalScrollRow>
           )}
-          onTitleClick={() => navigate("/collections/itineraries/attractions-you-cant-miss")}
-        >
-          {categoryItineraries.slice(0, 6).map((itinerary) => (
-            <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-          ))}
-        </HorizontalScrollRow>
-      )}
-
-      {categoryExperiences.length > 0 && (
-        <HorizontalScrollRow 
-          title={rowTitle(
-            `Available in ${cityLabel} next weekend`,
-            `${catLabel} available next weekend`
+          {categoryExperiences.length > 0 && (
+            <HorizontalScrollRow title={`Available in ${cityLabel} next weekend`}>
+              {categoryExperiences.slice(0, 8).map((experience) => (
+                <MobileExperienceCard key={experience.id} experience={experience} />
+              ))}
+            </HorizontalScrollRow>
           )}
-          onTitleClick={() => navigate("/collections/experiences/available-next-weekend")}
-        >
-          {categoryExperiences.slice(0, 8).map((experience) => (
-            <MobileExperienceCard key={experience.id} experience={experience} />
-          ))}
-        </HorizontalScrollRow>
-      )}
-
-      {categoryItineraries.length > 3 && (
-        <HorizontalScrollRow 
-          title={rowTitle("Curated by locals", `${catLabel} curated by locals`)}
-          onTitleClick={() => navigate("/collections/itineraries/curated-by-locals")}
-        >
-          {categoryItineraries.slice(3, 9).map((itinerary) => (
-            <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-          ))}
-        </HorizontalScrollRow>
-      )}
-
-      {categoryExperiences.length > 8 && (
-        <HorizontalScrollRow 
-          title={rowTitle("Adventure awaits", `More ${catLabel}`)}
-          onTitleClick={() => navigate("/collections/experiences/adventure-awaits")}
-        >
-          {categoryExperiences.slice(8, 18).map((experience) => (
-            <MobileExperienceCard key={experience.id} experience={experience} />
-          ))}
-        </HorizontalScrollRow>
-      )}
-
-      {categoryItineraries.length > 1 && !activeCategory && (
-        <HorizontalScrollRow 
-          title="Weekend getaways"
-          onTitleClick={() => navigate("/collections/itineraries/weekend-getaways")}
-        >
-          {categoryItineraries.slice(1, 7).map((itinerary) => (
-            <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-          ))}
-        </HorizontalScrollRow>
-      )}
-
-      {categoryExperiences.length > 18 && (
-        <HorizontalScrollRow 
-          title={rowTitle("Taste the local flavors", `Even more ${catLabel}`)}
-          onTitleClick={() => navigate("/collections/experiences/taste-local-flavors")}
-        >
-          {categoryExperiences.slice(18, 28).map((experience) => (
-            <MobileExperienceCard key={experience.id} experience={experience} />
-          ))}
-        </HorizontalScrollRow>
-      )}
-
-      {categoryItineraries.length > 2 && !activeCategory && (
-        <HorizontalScrollRow 
-          title="Popular this week"
-          onTitleClick={() => navigate("/collections/itineraries/popular-this-week")}
-        >
-          {categoryItineraries.slice(2, 8).map((itinerary) => (
-            <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-          ))}
-        </HorizontalScrollRow>
+        </>
       )}
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
