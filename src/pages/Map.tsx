@@ -238,7 +238,7 @@ export default function Map() {
   if (isMobile) {
     return (
       <MobileShell hideTopBar>
-        <SEOHead title="Explore Map" description="Explore activities and things to do on the map" url={`https://swam.app${window.location.pathname}`} />
+        <SEOHead title="Explore Map" description="Explore activities and things to do on the map" canonicalPath={window.location.pathname} indexability="public_indexed" />
         {content}
       </MobileShell>
     );
