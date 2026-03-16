@@ -77,9 +77,17 @@ const ActionMenuContent = ({
     if ("vibrate" in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
       await toggleDbLike(entityId, entityType, entityData);
-    } else {
-      toggleLocalLike(entityData);
     }
+    // Always toggle local likes too so card hearts stay in sync
+    toggleLocalLike({
+      id: entityId,
+      title: entityData?.title || title,
+      creator: entityData?.creator || "",
+      videoThumbnail: entityData?.videoThumbnail || entityData?.video_thumbnail || entityData?.coverImage || "",
+      category: entityData?.category || "",
+      location: entityData?.location || "",
+      price: entityData?.price || "",
+    });
   };
 
   const handleCopy = async () => {
