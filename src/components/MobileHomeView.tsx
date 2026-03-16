@@ -316,7 +316,7 @@ export const MobileHomeView = () => {
   const { data: allDestinations = [] } = useQuery({
     queryKey: ["home-destinations"],
     queryFn: async () => {
-      const { data } = await supabase.from("destinations").select("id, name, slug").eq("is_active", true);
+      const { data } = await supabase.from("destinations").select("id, name, slug, cover_image, display_order").eq("is_active", true).order("display_order");
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
