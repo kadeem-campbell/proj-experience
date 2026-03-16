@@ -200,7 +200,7 @@ export default function ThingsToDo() {
   if (isMobile) {
     return (
       <MobileShell hideTopBar>
-        <SEOHead title={pageTitle} description={pageDescription} url={`https://swam.app${window.location.pathname}`} jsonLd={jsonLd} />
+        <SEOHead title={pageTitle} description={pageDescription} canonicalPath={window.location.pathname} indexability="public_indexed" jsonLd={jsonLd} />
         {content}
       </MobileShell>
     );
