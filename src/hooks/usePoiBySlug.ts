@@ -35,11 +35,28 @@ export const usePoiBySlug = (slug: string) => {
   });
 };
 
+export const usePoiMedia = (poiId: string) => {
+  return useQuery({
+    queryKey: ["poi-media", poiId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("media_assets")
+        .select("*")
+        .eq("entity_id", poiId)
+        .eq("entity_type", "poi")
+        .eq("is_active", true)
+        .order("display_order");
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!poiId,
+  });
+};
+
 export const usePoiProducts = (poiId: string) => {
   return useQuery({
     queryKey: ["poi-products", poiId],
     queryFn: async () => {
-      // Get product IDs linked to this POI
       const { data: links, error } = await supabase
         .from("product_pois")
         .select("product_id, relationship_type, products(*)")
@@ -58,8 +75,6 @@ export const usePoiExperiences = (poiId: string, destinationId: string | null) =
   return useQuery({
     queryKey: ["poi-experiences", poiId, destinationId],
     queryFn: async () => {
-      // Get experiences linked via location name match or same area
-      // First try product_pois for linked products, then get their legacy experiences
       const { data: poiData } = await supabase
         .from("pois")
         .select("name, area_id, destination_id")
@@ -68,7 +83,6 @@ export const usePoiExperiences = (poiId: string, destinationId: string | null) =
 
       if (!poiData) return [];
 
-      // Find experiences whose location contains the POI name
       const { data: exps } = await supabase
         .from("experiences")
         .select("*")
