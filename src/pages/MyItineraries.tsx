@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart, Calendar, Users, Globe, Eye, EyeOff } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
-import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
+import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useExperiencesData } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useExperiencesData";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useDestinations, useActivityTypes } from "@/hooks/useProducts";
 import catBeaches from "@/assets/cat-beaches.png";
@@ -173,7 +173,7 @@ const MyItinerariesPage = () => {
   const [addSearchQuery, setAddSearchQuery] = useState("");
   const [addCategory, setAddCategory] = useState("");
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
-  const experiencesData = useExperiencesData();
+  const experiencesData = useProductListings();
 
   // Auto-open create drawer from ?create=true
   useEffect(() => {
@@ -382,7 +382,7 @@ const MyItinerariesPage = () => {
                   return (
                     <div key={exp.id} className="flex items-center border-b border-border/20 last:border-b-0">
                       <div
-                        onClick={() => navigate(generateExperienceUrl((exp as any).location || '', exp.title, (exp as any).slug))}
+                        onClick={() => navigate(generateProductPageUrl((exp as any).location || '', exp.title, (exp as any).slug))}
                         className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors cursor-pointer"
                       >
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">

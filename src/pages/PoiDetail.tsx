@@ -13,7 +13,7 @@ import {
   ArrowLeft, MapPin, Share2, ChevronRight, Clock,
   Heart, Star, Navigation2, Sparkles, Plus,
 } from "lucide-react";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
@@ -241,7 +241,7 @@ export default function PoiDetail() {
                       onClick={() =>
                         item.itemType === "product"
                           ? navigate(`/things-to-do/${destParam}/${item.slug}`)
-                          : navigate(generateExperienceUrl(item.location || "", item.title, item.slug))
+                          : navigate(generateProductPageUrl(item.location || "", item.title, item.slug))
                       }
                       className="w-full flex items-center gap-3 p-3 rounded-2xl bg-card border border-border active:scale-[0.98] transition-transform text-left group"
                     >
@@ -352,7 +352,7 @@ export default function PoiDetail() {
                       onClick={() =>
                         item.itemType === "product"
                           ? navigate(`/things-to-do/${destParam}/${item.slug}`)
-                          : navigate(generateExperienceUrl(item.location || "", item.title, item.slug))
+                          : navigate(generateProductPageUrl(item.location || "", item.title, item.slug))
                       }
                       className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border hover:bg-muted/40 transition-colors text-left group"
                     >

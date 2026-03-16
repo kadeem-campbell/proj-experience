@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useDestinationBySlug, useAreas, useProducts, useActivityTypes } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema } from "@/services/schemaGenerator";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { ArrowLeft, MapPin, Compass, ChevronRight, Map } from "lucide-react";
 
 export default function DestinationPage() {
@@ -162,7 +162,7 @@ export default function DestinationPage() {
             {products.slice(0, 6).map((item) => (
               <div
                 key={item.id}
-                onClick={() => navigate(generateExperienceUrl(locationLabel || destination?.name || "", item.title, item.slug, destination?.slug))}
+                onClick={() => navigate(generateProductPageUrl(locationLabel || destination?.name || "", item.title, item.slug, destination?.slug))}
                 className="cursor-pointer active:scale-[0.97] transition-transform"
               >
                 <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">

@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, X, Layers, Heart, MapPin, Plus, SlidersHorizontal, Check } from "lucide-react";
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
 import { useNavigate, useLocation } from "react-router-dom";
-import { generateExperienceUrl } from "@/utils/slugUtils";
-import { useExperiencesData } from "@/hooks/useExperiencesData";
+import { generateProductPageUrl } from "@/utils/slugUtils";
+import { useProductListings } from "@/hooks/useExperiencesData";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { cn } from "@/lib/utils";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -196,7 +196,7 @@ export const MobileSearchOverlay = ({
   const [typeFilter, setTypeFilter] = useState<"all" | "experiences" | "itineraries">("all");
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const { data: allItinerariesData = [] } = usePopularItineraries();
-  const allExpsData = useExperiencesData();
+  const allExpsData = useProductListings();
   const isDedicatedSearchRoute = location.pathname === "/search" || location.pathname === "/discover";
 
   // Derive unique locations dynamically from experience data
@@ -331,7 +331,7 @@ export const MobileSearchOverlay = ({
     localStorage.removeItem(RECENT_SEARCHES_KEY);
   };
 
-  const experiencePath = (experience: any) => generateExperienceUrl(experience.location || '', experience.title || '', experience.slug);
+  const experiencePath = (experience: any) => generateProductPageUrl(experience.location || '', experience.title || '', experience.slug);
   const itineraryPath = (itinerary: any) => `/itineraries/${itinerary.slug || itinerary.id}`;
 
   const handleNavigate = (path: string) => {

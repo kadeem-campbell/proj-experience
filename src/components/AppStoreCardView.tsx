@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { Heart, Plus, MapPin } from "lucide-react";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
 import { cn } from "@/lib/utils";
@@ -47,7 +47,7 @@ const AppStoreCardView = ({ experience }: AppStoreCardViewProps) => {
 
   return (
     <Link 
-      to={generateExperienceUrl(experience.location, experience.title, experience.slug)}
+      to={generateProductPageUrl(experience.location, experience.title, experience.slug)}
       className="block w-full"
     >
       <div className="relative w-full rounded-2xl overflow-hidden">

@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 
 interface ExperienceCardProps {
   id: string;
@@ -77,7 +77,7 @@ export const ExperienceCard = ({
 
   return (
     <Link 
-      to={generateExperienceUrl(location, title, slug)}
+      to={generateProductPageUrl(location, title, slug)}
       className="touch-manipulation block"
       onTouchStart={() => setIsPressed(true)}
       onTouchEnd={() => setIsPressed(false)}

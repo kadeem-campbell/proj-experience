@@ -27,8 +27,8 @@ export const getItineraryShareUrl = (itineraryId: string): string => {
 };
 
 /**
- * Generate a shareable experience URL
+ * Generate a shareable product URL
  */
-export const getExperienceShareUrl = (experienceSlug: string): string => {
-  return `${getShareBaseUrl()}/things-to-do/${experienceSlug}`;
+export const getProductShareUrl = (productSlug: string): string => {
+  return `${getShareBaseUrl()}/things-to-do/${productSlug}`;
 };

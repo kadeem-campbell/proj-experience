@@ -9,7 +9,7 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { SEOHead } from "@/components/SEOHead";
 import { useDestinations, useProducts, useAreas, useDestinationBySlug } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { cn } from "@/lib/utils";
 
 const rasterStyle: mapboxgl.Style = {
@@ -145,7 +145,7 @@ export default function Map() {
           navigate(`/${item.slug}`);
           return;
         }
-        navigate(generateExperienceUrl(item.destinationName, item.title, item.slug, item.destinationSlug));
+        navigate(generateProductPageUrl(item.destinationName, item.title, item.slug, item.destinationSlug));
       };
 
       const marker = new mapboxgl.Marker({ element: el }).setLngLat([item.lng, item.lat]).addTo(mapRef.current!);
@@ -210,7 +210,7 @@ export default function Map() {
                   navigate(`/${item.slug}`);
                   return;
                 }
-                navigate(generateExperienceUrl(item.destinationName, item.title, item.slug, item.destinationSlug));
+                navigate(generateProductPageUrl(item.destinationName, item.title, item.slug, item.destinationSlug));
               }}
               className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border active:scale-[0.98] transition-transform text-left"
             >

@@ -5,7 +5,7 @@ import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/button";
 import { usePublicItineraries } from "@/hooks/usePublicItineraries";
-import { useExperiencesData } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useExperiencesData";
 import { ArrowLeft, Layers, Heart, Search, MapPin, Plus, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { SEOHead, createCollectionJsonLd } from "@/components/SEOHead";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 
 // Itinerary card for mobile
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
@@ -80,7 +80,7 @@ const MobileExpCard = ({ experience }: { experience: any }) => {
   };
 
   return (
-    <div className="cursor-pointer" onClick={() => navigate(generateExperienceUrl(experience.location || '', experience.title, experience.slug))}>
+    <div className="cursor-pointer" onClick={() => navigate(generateProductPageUrl(experience.location || '', experience.title, experience.slug))}>
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
           <img src={experience.videoThumbnail} alt={experience.title} loading="lazy" className="w-full h-full object-cover" />
@@ -113,7 +113,7 @@ const CollectionPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: publicItinerariesList = [], isLoading: itinerariesLoading } = usePublicItineraries();
-  const allExperiences = useExperiencesData();
+  const allExperiences = useProductListings();
 
   // Fetch destinations for city filtering
   const { data: destinations = [] } = useQuery({

@@ -18,7 +18,8 @@ export interface Experience {
 /** @deprecated Use useDbExperiences() directly for new code */
 export const allExperiences: Experience[] = [];
 
-export const useExperiencesData = () => {
+/** Normalised listing data from the experiences table */
+export const useProductListings = () => {
   const { data: experiences = [] } = useDbExperiences();
 
   return useMemo(() => {

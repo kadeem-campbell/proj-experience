@@ -9,8 +9,8 @@ import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
 import { usePopularItineraries, usePublicItineraries } from "@/hooks/usePublicItineraries";
-import { useExperiencesData } from "@/hooks/useExperiencesData";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { useProductListings } from "@/hooks/useExperiencesData";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { useHomeCarousels } from "@/hooks/useHomeCarousels";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
@@ -199,7 +199,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   return (
     <div 
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
-      onClick={() => navigate(generateExperienceUrl((experience as any).location || '', experience.title, (experience as any).slug))}
+      onClick={() => navigate(generateProductPageUrl((experience as any).location || '', experience.title, (experience as any).slug))}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
@@ -314,7 +314,7 @@ export const MobileHomeView = () => {
   const [activeCategory, setActiveCategory] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const { data: allItinerariesData = [] } = usePublicItineraries();
-  const allExpsData = useExperiencesData();
+  const allExpsData = useProductListings();
   const { data: homeCarousels = [] } = useHomeCarousels();
 
   // Fetch destinations to map selectedCity name → destination ID

@@ -42,7 +42,7 @@ import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
-import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
+import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { AuthModal } from "@/components/AuthModal";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
@@ -312,7 +312,7 @@ export default function ExperienceDetail() {
     if ((experience as any).isProduct && productDestination) {
       return `${baseUrl}/things-to-do/${productDestination.slug}/${experience.slug || ''}`;
     }
-    return `${baseUrl}${generateExperienceUrl(experience.location, experience.title, (experience as any).slug)}`;
+    return `${baseUrl}${generateProductPageUrl(experience.location, experience.title, (experience as any).slug)}`;
   }, [experience, productDestination]);
 
   useEffect(() => {
