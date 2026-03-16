@@ -126,7 +126,7 @@ const CollectionPage = () => {
   });
 
   const { data: dbCollection, isLoading: dbCollectionLoading } = useQuery({
-    queryKey: ["unified-collection", slug, publicItinerariesList.length, allExperiences.length],
+    queryKey: ["unified-collection", slug, publicItinerariesList.length, productListings.length],
     enabled: !!slug,
     queryFn: async () => {
       const { data: collectionRow } = await supabase
