@@ -167,9 +167,9 @@ Deno.serve(async (req) => {
 
       (collections || []).forEach((c: any) => {
         if (c.indexability_state === 'public_indexed') {
-          const prefix = c.content_type === 'itinerary' ? 'itineraries' : 'experiences';
+          // Single canonical family: /collections/:slug — no subtype in path
           urls.push({
-            loc: `${baseUrl}/collections/${prefix}/${c.slug}`,
+            loc: `${baseUrl}/collections/${c.slug}`,
             lastmod: c.updated_at?.split('T')[0] || now,
             priority: '0.6',
             changefreq: 'weekly',
