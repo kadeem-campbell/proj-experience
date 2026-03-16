@@ -64,6 +64,47 @@ export type Database = {
           },
         ]
       }
+      answers: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          is_best: boolean | null
+          question_id: string
+          updated_at: string | null
+          user_id: string
+          vote_count: number | null
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          is_best?: boolean | null
+          question_id: string
+          updated_at?: string | null
+          user_id: string
+          vote_count?: number | null
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          is_best?: boolean | null
+          question_id?: string
+          updated_at?: string | null
+          user_id?: string
+          vote_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       areas: {
         Row: {
           cover_image: string | null
@@ -989,6 +1030,60 @@ export type Database = {
           },
         ]
       }
+      experience_relationships: {
+        Row: {
+          created_at: string | null
+          id: string
+          relationship_type: string
+          score: number | null
+          source_id: string
+          source_type: string
+          target_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          relationship_type?: string
+          score?: number | null
+          source_id: string
+          source_type?: string
+          target_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          relationship_type?: string
+          score?: number | null
+          source_id?: string
+          source_type?: string
+          target_id?: string
+        }
+        Relationships: []
+      }
+      experience_tags: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          tag: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type?: string
+          id?: string
+          tag: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          tag?: string
+        }
+        Relationships: []
+      }
       experiences: {
         Row: {
           best_time: string | null
@@ -1368,6 +1463,8 @@ export type Database = {
         Row: {
           active_trip_id: string | null
           collaborators: string[] | null
+          copied_from: string | null
+          copy_count: number | null
           cover_image: string | null
           created_at: string | null
           creator_id: string | null
@@ -1385,6 +1482,8 @@ export type Database = {
         Insert: {
           active_trip_id?: string | null
           collaborators?: string[] | null
+          copied_from?: string | null
+          copy_count?: number | null
           cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
@@ -1402,6 +1501,8 @@ export type Database = {
         Update: {
           active_trip_id?: string | null
           collaborators?: string[] | null
+          copied_from?: string | null
+          copy_count?: number | null
           cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
@@ -1622,6 +1723,45 @@ export type Database = {
           performed_at?: string | null
           performed_by?: string | null
           reason?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          body: string | null
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2017,6 +2157,7 @@ export type Database = {
         Row: {
           activity_type_id: string | null
           area_id: string | null
+          best_for: string[] | null
           best_time: string | null
           canonical_url: string | null
           cover_image: string | null
@@ -2036,6 +2177,7 @@ export type Database = {
           like_count: number | null
           longitude: number | null
           meeting_points: Json | null
+          pair_with_ids: string[] | null
           publish_score: number | null
           rating: number | null
           slug: string
@@ -2049,6 +2191,7 @@ export type Database = {
         Insert: {
           activity_type_id?: string | null
           area_id?: string | null
+          best_for?: string[] | null
           best_time?: string | null
           canonical_url?: string | null
           cover_image?: string | null
@@ -2068,6 +2211,7 @@ export type Database = {
           like_count?: number | null
           longitude?: number | null
           meeting_points?: Json | null
+          pair_with_ids?: string[] | null
           publish_score?: number | null
           rating?: number | null
           slug: string
@@ -2081,6 +2225,7 @@ export type Database = {
         Update: {
           activity_type_id?: string | null
           area_id?: string | null
+          best_for?: string[] | null
           best_time?: string | null
           canonical_url?: string | null
           cover_image?: string | null
@@ -2100,6 +2245,7 @@ export type Database = {
           like_count?: number | null
           longitude?: number | null
           meeting_points?: Json | null
+          pair_with_ids?: string[] | null
           publish_score?: number | null
           rating?: number | null
           slug?: string
@@ -2174,6 +2320,7 @@ export type Database = {
       public_itineraries: {
         Row: {
           city_id: string | null
+          copy_count: number | null
           cover_image: string | null
           created_at: string | null
           creator_id: string | null
@@ -2184,6 +2331,7 @@ export type Database = {
           is_active: boolean | null
           like_count: number | null
           name: string
+          save_count: number | null
           slug: string
           tag: string | null
           trips: Json | null
@@ -2193,6 +2341,7 @@ export type Database = {
         }
         Insert: {
           city_id?: string | null
+          copy_count?: number | null
           cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
@@ -2203,6 +2352,7 @@ export type Database = {
           is_active?: boolean | null
           like_count?: number | null
           name: string
+          save_count?: number | null
           slug: string
           tag?: string | null
           trips?: Json | null
@@ -2212,6 +2362,7 @@ export type Database = {
         }
         Update: {
           city_id?: string | null
+          copy_count?: number | null
           cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
@@ -2222,6 +2373,7 @@ export type Database = {
           is_active?: boolean | null
           like_count?: number | null
           name?: string
+          save_count?: number | null
           slug?: string
           tag?: string | null
           trips?: Json | null
@@ -2273,6 +2425,126 @@ export type Database = {
           is_publishable?: boolean | null
           publish_score?: number | null
           validated_at?: string | null
+        }
+        Relationships: []
+      }
+      quality_scores: {
+        Row: {
+          computed_at: string | null
+          conversion_score: number | null
+          entity_id: string
+          entity_type: string
+          id: string
+          media_score: number | null
+          metadata_score: number | null
+          overall_score: number | null
+          pairing_score: number | null
+          question_score: number | null
+          relation_score: number | null
+          schema_score: number | null
+          title_score: number | null
+        }
+        Insert: {
+          computed_at?: string | null
+          conversion_score?: number | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          media_score?: number | null
+          metadata_score?: number | null
+          overall_score?: number | null
+          pairing_score?: number | null
+          question_score?: number | null
+          relation_score?: number | null
+          schema_score?: number | null
+          title_score?: number | null
+        }
+        Update: {
+          computed_at?: string | null
+          conversion_score?: number | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          media_score?: number | null
+          metadata_score?: number | null
+          overall_score?: number | null
+          pairing_score?: number | null
+          question_score?: number | null
+          relation_score?: number | null
+          schema_score?: number | null
+          title_score?: number | null
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          body: string
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_pinned: boolean | null
+          status: string
+          updated_at: string | null
+          user_id: string
+          vote_count: number | null
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          entity_id: string
+          entity_type?: string
+          id?: string
+          is_pinned?: boolean | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+          vote_count?: number | null
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_pinned?: boolean | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+          vote_count?: number | null
+        }
+        Relationships: []
+      }
+      redirect_registry: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          source_path: string
+          status_code: number | null
+          target_path: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          source_path: string
+          status_code?: number | null
+          target_path: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          source_path?: string
+          status_code?: number | null
+          target_path?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2558,6 +2830,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_follows: {
+        Row: {
+          created_at: string | null
+          followed_id: string
+          followed_type: string
+          follower_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          followed_id: string
+          followed_type?: string
+          follower_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          followed_id?: string
+          followed_type?: string
+          follower_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       user_likes: {
         Row: {
           created_at: string
@@ -2602,6 +2898,30 @@ export type Database = {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_saves: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_id: string
+          item_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
           user_id?: string
         }
         Relationships: []
