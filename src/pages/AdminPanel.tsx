@@ -665,6 +665,10 @@ const AdminPanel = () => {
               <AdminEntityManager />
             </TabsContent>
 
+            <TabsContent value="carousels">
+              <AdminCarouselManager />
+            </TabsContent>
+
             <TabsContent value="manage">
               <AdminManualEntities />
 
