@@ -609,7 +609,6 @@ export const MobileHomeView = () => {
           </HorizontalScrollRow>
         );
       })()}
-      )}
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
         <div className="text-center py-12 px-4">
