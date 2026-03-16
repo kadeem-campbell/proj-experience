@@ -13,7 +13,7 @@ import {
   ArrowLeft, MapPin, Share2, ChevronRight, Clock,
   Heart, Star, Navigation2, Sparkles, Plus,
 } from "lucide-react";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ItinerarySelector } from "@/components/ItinerarySelector";

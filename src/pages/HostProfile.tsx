@@ -9,7 +9,7 @@ import { ArrowLeft, Star, MapPin, ExternalLink, MessageCircle, Globe, Instagram,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
+import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { useActivityTypes } from "@/hooks/useProducts";
 import type { Host } from "@/hooks/useProducts";
 

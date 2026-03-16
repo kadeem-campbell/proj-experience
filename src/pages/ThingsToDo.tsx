@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useDestinations, useDestinationBySlug, useAreas, useActivityTypes, useProducts } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema, generateWebsiteSchema } from "@/services/schemaGenerator";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { ArrowLeft, MapPin, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ExperienceDetail from "./ExperienceDetail";

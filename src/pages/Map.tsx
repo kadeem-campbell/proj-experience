@@ -9,7 +9,7 @@ import { MainLayout } from "@/components/layouts/MainLayout";
 import { SEOHead } from "@/components/SEOHead";
 import { useDestinations, useProducts, useAreas, useDestinationBySlug } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { cn } from "@/lib/utils";
 
 const rasterStyle: mapboxgl.Style = {

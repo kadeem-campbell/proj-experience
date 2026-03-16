@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useDestinationBySlug, useAreas, useProducts, useActivityTypes } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateDestinationSchema } from "@/services/schemaGenerator";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { ArrowLeft, MapPin, Compass, ChevronRight, Map } from "lucide-react";
 
 export default function DestinationPage() {
