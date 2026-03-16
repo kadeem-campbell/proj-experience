@@ -106,9 +106,7 @@ export const buildCanonicalUrl = (
         ? `${BASE_URL}/things-to-do/${destinationSlug}/theme/${slug}`
         : `${BASE_URL}/themes/${slug}`;
     case "map_hub":
-      return destinationSlug
-        ? `${BASE_URL}/${destinationSlug}/map`
-        : `${BASE_URL}/explore/map`;
+      return `${BASE_URL}/${destinationSlug || "zanzibar"}/map`;
     default:
       return `${BASE_URL}/${slug}`;
   }
