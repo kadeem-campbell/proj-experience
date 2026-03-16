@@ -196,7 +196,7 @@ const SearchPage = () => {
     return null;
   });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const experiences = useExperiencesData();
+  const experiences = useProductListings();
   const { data: popularItinerariesForSearch = [] } = usePopularItineraries();
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(18);
