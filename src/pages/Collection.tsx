@@ -240,7 +240,13 @@ const CollectionPage = () => {
     return items.filter((e: any) => {
       const dest = destinations.find(d => d.id === selectedCityId);
       if (!dest) return true;
-      return (e.location || '').toLowerCase().includes(dest.name.toLowerCase()) || e.cityId === selectedCityId;
+      // Match by location name
+      if ((e.location || '').toLowerCase().includes(dest.name.toLowerCase())) return true;
+      // Match by cityId === destination id
+      if (e.cityId === selectedCityId) return true;
+      // Match by cityId === legacy_city_id on destination
+      if (dest.legacy_city_id && e.cityId === dest.legacy_city_id) return true;
+      return false;
     });
   }, [dbCollection?.items, selectedCityId, contentType, destinations]);
 
