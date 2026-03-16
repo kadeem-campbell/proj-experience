@@ -12,6 +12,7 @@ export interface Experience {
   location: string;
   price: string;
   slug?: string;
+  cityId?: string | null;
 }
 
 /** @deprecated Use useDbExperiences() directly for new code */
@@ -34,6 +35,7 @@ export const useExperiencesData = () => {
       location: exp.location || "",
       price: exp.price || "",
       slug: exp.slug || undefined,
+      cityId: exp.city_id || null,
     }));
   }, [experiences]);
 };

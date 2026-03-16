@@ -248,18 +248,19 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 };
 
 // POI card
-const MobilePoiCard = ({ poi }: { poi: any }) => {
+const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
   const navigate = useNavigate();
   const typeEmojis: Record<string, string> = {
     beach: '🏖️', attraction: '🏛️', landmark: '📍', nature: '🌿',
     marine: '🐠', island: '🏝️', viewpoint: '👁️', market: '🛍️',
+    forest: '🌳', cave: '🕳️',
   };
   const emoji = typeEmojis[poi.poi_type] || '📍';
 
   return (
     <div 
       className="flex-shrink-0 w-[36vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
-      onClick={() => navigate(`/zanzibar/map?poi=${poi.slug}`)}
+      onClick={() => navigate(`/things-to-do/${destinationSlug || 'zanzibar'}/${poi.slug}`)}
     >
       <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
         {poi.cover_image ? (
@@ -593,17 +594,21 @@ export const MobileHomeView = () => {
         </>
       )}
 
-      {/* POI Carousel — always show if POIs exist */}
-      {pois.length > 0 && (
-        <HorizontalScrollRow
-          title="Places to explore"
-          onTitleClick={() => navigate(`/${selectedCity ? slugify(selectedCity) : 'zanzibar'}/map`)}
-        >
-          {pois.slice(0, 10).map((poi: any) => (
-            <MobilePoiCard key={poi.id} poi={poi} />
-          ))}
-        </HorizontalScrollRow>
-      )}
+      {/* POI Carousel — filtered by destination, links to POI pages */}
+      {pois.length > 0 && (() => {
+        const destSlug = selectedCity ? slugify(selectedCity) : '';
+        const filteredPois = selectedDestId
+          ? pois.filter((p: any) => p.destination_id === selectedDestId)
+          : pois;
+        if (filteredPois.length === 0) return null;
+        return (
+          <HorizontalScrollRow title="Places to explore">
+            {filteredPois.slice(0, 10).map((poi: any) => (
+              <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug || 'zanzibar'} />
+            ))}
+          </HorizontalScrollRow>
+        );
+      })()}
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
         <div className="text-center py-12 px-4">

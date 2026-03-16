@@ -8,6 +8,8 @@ import { useCreators } from "@/hooks/useAppData";
 import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateProductSchema } from "@/services/schemaGenerator";
+import { usePoiBySlug } from "@/hooks/usePoiBySlug";
+import PoiDetail from "@/pages/PoiDetail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -351,7 +353,32 @@ export default function ExperienceDetail() {
     return raw.length > 0;
   })();
 
+  // Check for POI match when no experience/product found
+  const { data: poiMatch, isLoading: poiLoading } = usePoiBySlug(
+    (!experience && !dbExperiencesLoading && !productLoading) ? resolvedSlug : ""
+  );
+
   if (!experience && (dbExperiencesLoading || productLoading)) {
+    return isMobile ? (
+      <MobileShell hideTopBar>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </MobileShell>
+    ) : (
+      <div className="flex justify-center items-center min-h-screen bg-background w-full">
+        <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // If no experience/product found but POI exists, render POI page
+  if (!experience && poiMatch) {
+    return <PoiDetail />;
+  }
+
+  // Still loading POI check
+  if (!experience && poiLoading) {
     return isMobile ? (
       <MobileShell hideTopBar>
         <div className="flex justify-center items-center min-h-[60vh]">
