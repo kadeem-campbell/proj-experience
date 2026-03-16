@@ -257,12 +257,6 @@ export default function PoiDetail() {
         )}
       </div>
 
-      <ShareDrawer
-        open={shareOpen}
-        onOpenChange={setShareOpen}
-        title={poi.name}
-        url={shareUrl}
-      />
     </div>
   );
 
