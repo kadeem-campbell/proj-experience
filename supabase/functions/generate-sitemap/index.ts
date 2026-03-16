@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
       urls.push({ loc: `${baseUrl}/things-to-do`, lastmod: now, priority: '0.9', changefreq: 'daily' });
       urls.push({ loc: `${baseUrl}/itineraries`, lastmod: now, priority: '0.8', changefreq: 'weekly' });
       urls.push({ loc: `${baseUrl}/hosts`, lastmod: now, priority: '0.7', changefreq: 'weekly' });
-      urls.push({ loc: `${baseUrl}/explore/map`, lastmod: now, priority: '0.6', changefreq: 'weekly' });
+      // Map hub pages are destination-specific, generated in destinations sitemap
     }
 
     if (sitemapType === 'destinations') {
