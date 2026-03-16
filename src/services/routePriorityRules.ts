@@ -2,7 +2,8 @@
  * Route Priority Rules
  * 
  * Determines which page class wins when multiple pages could target
- * the same user intent. Uses deterministic priority order.
+ * the same user intent. Uses deterministic priority order with
+ * area_activity, destination_activity subclasses.
  */
 
 import type { PageClass, IndexabilityState, CanonicalDecision } from "./canonicalRegistry";
@@ -35,6 +36,24 @@ export const resolveIntentCanonical = (
       redirectAction: "404",
       indexability: "internal_only",
       sitemapInclude: false,
+      losingCandidates: [],
+    };
+  }
+
+  // If only one candidate, shortcut
+  if (active.length === 1) {
+    const c = active[0];
+    const { buildCanonicalUrl, indexabilityToRobots } = require("./canonicalRegistry");
+    const url = buildCanonicalUrl(c.pageType, { slug: c.slug, destinationSlug: c.destinationSlug });
+    const isPublishable = c.publishScore >= 40;
+    const finalState = c.indexability === "public_indexed" && isPublishable ? "public_indexed" : "public_noindex";
+    return {
+      winningPageType: c.pageType,
+      winningUrl: url,
+      robotsDirective: indexabilityToRobots(finalState),
+      redirectAction: "none",
+      indexability: finalState,
+      sitemapInclude: finalState === "public_indexed",
       losingCandidates: [],
     };
   }

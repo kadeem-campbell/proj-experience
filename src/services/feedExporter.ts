@@ -1,10 +1,27 @@
 /**
- * Feed Export Service
+ * Feed Export Service with Contract Registry
  * 
- * Generates Google Things to do feed-ready data and validates feed readiness.
+ * Generates partner-specific feeds with versioned contracts,
+ * field exposure rules, and deep-link enforcement.
  */
 
 import { supabase } from "@/integrations/supabase/client";
+
+// ============ TYPES ============
+
+export interface ExportContract {
+  id: string;
+  partner: string;
+  feed_type: string;
+  contract_version: number;
+  field_exposure: Record<string, boolean>;
+  deep_link_template: string;
+  is_active: boolean;
+  requires_pricing: boolean;
+  requires_geo: boolean;
+  requires_image: boolean;
+  min_description_length: number;
+}
 
 export interface FeedProduct {
   id: string;
@@ -13,6 +30,7 @@ export interface FeedProduct {
   url: string;
   image_url: string;
   destination: string;
+  destination_slug: string;
   area?: string;
   activity_type?: string;
   options: FeedOption[];
@@ -45,7 +63,17 @@ export interface FeedValidationIssue {
   issue_type: string;
   severity: "error" | "warning";
   message: string;
+  contract_rule?: string;
 }
+
+// ============ FETCH CONTRACTS ============
+export const fetchExportContracts = async (): Promise<ExportContract[]> => {
+  const { data, error } = await (supabase as any)
+    .from("export_contracts")
+    .select("*")
+    .eq("is_active", true);
+  return error ? [] : (data || []);
+};
 
 // ============ FETCH FEED DATA ============
 export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
@@ -64,14 +92,12 @@ export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
 
   const productIds = products.map((p: any) => p.id);
 
-  // Fetch options + prices
   const { data: options } = await supabase
     .from("options")
     .select("*, price_options(*)")
     .in("product_id", productIds)
     .eq("is_active", true);
 
-  // Fetch hosts
   const { data: hostLinks } = await supabase
     .from("product_hosts")
     .select("product_id, hosts(display_name, slug)")
@@ -101,6 +127,7 @@ export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
       url: `https://swam.app/things-to-do/${dest?.slug || "explore"}/${p.slug}`,
       image_url: p.cover_image || "",
       destination: dest?.name || "",
+      destination_slug: dest?.slug || "explore",
       area: area?.name,
       activity_type: p.activity_types?.name,
       options: opts.map((o: any) => ({
@@ -125,24 +152,91 @@ export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
   });
 };
 
-// ============ VALIDATE FEED READINESS ============
-export const validateFeedReadiness = (products: FeedProduct[]): FeedValidationIssue[] => {
+// ============ VALIDATE AGAINST CONTRACT ============
+export const validateFeedAgainstContract = (
+  products: FeedProduct[],
+  contract: ExportContract,
+): FeedValidationIssue[] => {
   const issues: FeedValidationIssue[] = [];
 
   products.forEach((p) => {
-    if (!p.title) issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_title", severity: "error", message: "Title is required" });
-    if (!p.description || p.description.length < 30) issues.push({ product_id: p.id, product_title: p.title, issue_type: "short_description", severity: "warning", message: "Description should be 30+ chars" });
-    if (!p.image_url) issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_image", severity: "error", message: "Cover image required for feed" });
-    if (!p.destination) issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_destination", severity: "error", message: "Destination required" });
-    if (p.options.length === 0) issues.push({ product_id: p.id, product_title: p.title, issue_type: "no_options", severity: "warning", message: "No options defined" });
+    // Core requirements
+    if (!p.title) issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_title", severity: "error", message: "Title is required", contract_rule: "core" });
     
-    const hasPrice = p.options.some(o => o.prices.length > 0);
-    if (!hasPrice) issues.push({ product_id: p.id, product_title: p.title, issue_type: "no_pricing", severity: "warning", message: "No pricing defined" });
-    
-    if (!p.latitude || !p.longitude) issues.push({ product_id: p.id, product_title: p.title, issue_type: "no_coordinates", severity: "warning", message: "Coordinates improve map/feed quality" });
+    if (contract.requires_image && !p.image_url) {
+      issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_image", severity: "error", message: `Image required by ${contract.partner}`, contract_rule: "requires_image" });
+    }
+
+    if (contract.min_description_length && (!p.description || p.description.length < contract.min_description_length)) {
+      issues.push({ product_id: p.id, product_title: p.title, issue_type: "short_description", severity: "warning", message: `Description < ${contract.min_description_length} chars for ${contract.partner}`, contract_rule: "min_description_length" });
+    }
+
+    if (contract.requires_pricing) {
+      const hasPrice = p.options.some(o => o.prices.length > 0);
+      if (!hasPrice) issues.push({ product_id: p.id, product_title: p.title, issue_type: "no_pricing", severity: "error", message: `Pricing required by ${contract.partner}`, contract_rule: "requires_pricing" });
+    }
+
+    if (contract.requires_geo && (!p.latitude || !p.longitude)) {
+      issues.push({ product_id: p.id, product_title: p.title, issue_type: "no_coordinates", severity: "error", message: `Coordinates required by ${contract.partner}`, contract_rule: "requires_geo" });
+    }
+
+    // Deep-link enforcement
+    const expectedUrl = contract.deep_link_template
+      .replace("{destination_slug}", p.destination_slug)
+      .replace("{product_slug}", p.url.split("/").pop() || "");
+    if (p.url !== expectedUrl) {
+      issues.push({ product_id: p.id, product_title: p.title, issue_type: "deep_link_mismatch", severity: "warning", message: `URL doesn't match template: ${expectedUrl}`, contract_rule: "deep_link_template" });
+    }
+
+    if (!p.destination) issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_destination", severity: "error", message: "Destination required", contract_rule: "core" });
+    if (p.options.length === 0) issues.push({ product_id: p.id, product_title: p.title, issue_type: "no_options", severity: "warning", message: "No options defined", contract_rule: "core" });
   });
 
   return issues;
+};
+
+// Legacy compat wrapper
+export const validateFeedReadiness = (products: FeedProduct[]): FeedValidationIssue[] => {
+  const defaultContract: ExportContract = {
+    id: "default",
+    partner: "internal",
+    feed_type: "generic",
+    contract_version: 1,
+    field_exposure: {},
+    deep_link_template: "https://swam.app/things-to-do/{destination_slug}/{product_slug}",
+    is_active: true,
+    requires_pricing: true,
+    requires_geo: false,
+    requires_image: true,
+    min_description_length: 30,
+  };
+  return validateFeedAgainstContract(products, defaultContract);
+};
+
+// ============ APPLY FIELD EXPOSURE ============
+export const applyFieldExposure = (
+  products: FeedProduct[],
+  contract: ExportContract,
+): any[] => {
+  const exposure = contract.field_exposure || {};
+  return products.map(p => {
+    const item: Record<string, any> = {};
+    // Always include
+    item.id = p.id;
+    item.title = p.title;
+    item.url = p.url;
+    // Conditional fields
+    if (exposure.description !== false) item.description = p.description;
+    if (exposure.image !== false) item.image_url = p.image_url;
+    if (exposure.destination !== false) item.destination = p.destination;
+    if (exposure.area !== false) item.area = p.area;
+    if (exposure.activity_type !== false) item.activity_type = p.activity_type;
+    if (exposure.options !== false) item.options = p.options;
+    if (exposure.host !== false) item.host = p.host;
+    if (exposure.rating !== false) item.rating = p.rating;
+    if (exposure.geo !== false && p.latitude) item.geo = { lat: p.latitude, lng: p.longitude };
+    return item;
+  });
 };
 
 // ============ LOG FEED ISSUES ============
@@ -153,7 +247,7 @@ export const logFeedIssues = async (issues: FeedValidationIssue[]): Promise<void
     entity_type: "product",
     entity_id: i.product_id,
     issue_type: i.issue_type,
-    message: i.message,
+    message: `[${i.contract_rule || 'core'}] ${i.message}`,
     severity: i.severity,
     resolved: false,
   }));

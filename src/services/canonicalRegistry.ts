@@ -4,9 +4,10 @@
  * Single source of truth for:
  * - canonical URL generation per page class
  * - indexability state → robots directive
- * - route-priority conflict resolution
+ * - route-priority conflict resolution (with area activity, destination activity subclasses)
  * - slug history & alias handling
  * - page contract definitions
+ * - runtime canonical resolution from persistent registry
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -14,14 +15,17 @@ import { supabase } from "@/integrations/supabase/client";
 // ============ TYPE DEFINITIONS ============
 
 export type PageClass =
-  | "destination"
-  | "area"
   | "product"
-  | "poi"
-  | "collection"
+  | "area_activity"
+  | "area"
+  | "destination_activity"
+  | "destination"
+  | "curated_collection"
   | "itinerary"
   | "host"
   | "theme"
+  | "poi"
+  | "traveler"
   | "map_hub";
 
 export type IndexabilityState =
@@ -57,23 +61,34 @@ export interface RouteValidationResult {
   reason?: string;
 }
 
+export interface RuntimeCanonical {
+  canonical_url: string;
+  indexability_state: IndexabilityState;
+  robots: string;
+  page_type: string;
+}
+
 // ============ CONSTANTS ============
 
 const BASE_URL = "https://swam.app";
 
 /**
  * Route priority — lower number = higher priority.
+ * Now includes area_activity, destination_activity, curated_collection, traveler.
  */
 const ROUTE_PRIORITY: Record<PageClass, number> = {
   product: 1,
-  area: 2,
-  destination: 3,
-  collection: 4,
-  itinerary: 5,
-  host: 6,
-  theme: 7,
-  poi: 8,
-  map_hub: 9,
+  area_activity: 2,
+  area: 3,
+  destination_activity: 4,
+  destination: 5,
+  curated_collection: 6,
+  itinerary: 7,
+  host: 8,
+  theme: 9,
+  poi: 10,
+  traveler: 11,
+  map_hub: 12,
 };
 
 // ============ URL BUILDERS ============
@@ -82,18 +97,22 @@ export const buildCanonicalUrl = (
   pageClass: PageClass,
   slugParts: { slug: string; destinationSlug?: string; areaSlug?: string }
 ): string => {
-  const { slug, destinationSlug } = slugParts;
+  const { slug, destinationSlug, areaSlug } = slugParts;
 
   switch (pageClass) {
     case "destination":
       return `${BASE_URL}/${slug}`;
     case "area":
       return `${BASE_URL}/${destinationSlug}/${slug}`;
+    case "area_activity":
+      return `${BASE_URL}/things-to-do/${destinationSlug}/${areaSlug}/${slug}`;
+    case "destination_activity":
+      return `${BASE_URL}/things-to-do/${destinationSlug}/${slug}`;
     case "product":
       return `${BASE_URL}/things-to-do/${destinationSlug || "explore"}/${slug}`;
     case "itinerary":
       return `${BASE_URL}/itineraries/${slug}`;
-    case "collection":
+    case "curated_collection":
       return `${BASE_URL}/collections/${slug}`;
     case "host":
       return `${BASE_URL}/hosts/${slug}`;
@@ -105,6 +124,8 @@ export const buildCanonicalUrl = (
       return destinationSlug
         ? `${BASE_URL}/things-to-do/${destinationSlug}/theme/${slug}`
         : `${BASE_URL}/themes/${slug}`;
+    case "traveler":
+      return `${BASE_URL}/travelers/${slug}`;
     case "map_hub":
       return `${BASE_URL}/${destinationSlug || "zanzibar"}/map`;
     default:
@@ -153,6 +174,65 @@ export const shouldRenderPage = (state: IndexabilityState, isAdmin: boolean): bo
   }
 };
 
+// ============ RUNTIME CANONICAL RESOLUTION ============
+
+/**
+ * Resolve canonical from persistent page_route_registry before render.
+ * This is called by pages to get their canonical URL and robots directive.
+ */
+export const resolveRuntimeCanonical = async (
+  entityType: string,
+  entityId: string,
+): Promise<RuntimeCanonical | null> => {
+  try {
+    const { data } = await (supabase as any)
+      .from("page_route_registry")
+      .select("canonical_url, indexability_state, page_type")
+      .eq("entity_type", entityType)
+      .eq("entity_id", entityId)
+      .eq("status", "active")
+      .single();
+
+    if (!data) return null;
+
+    return {
+      canonical_url: data.canonical_url,
+      indexability_state: data.indexability_state as IndexabilityState,
+      robots: indexabilityToRobots(data.indexability_state as IndexabilityState),
+      page_type: data.page_type,
+    };
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Resolve canonical by path (for redirect handler).
+ */
+export const resolveCanonicalByPath = async (
+  path: string,
+): Promise<RuntimeCanonical | null> => {
+  try {
+    const { data } = await (supabase as any)
+      .from("page_route_registry")
+      .select("canonical_url, indexability_state, page_type, redirect_target_url")
+      .eq("resolved_path", path)
+      .eq("status", "active")
+      .single();
+
+    if (!data) return null;
+
+    return {
+      canonical_url: data.redirect_target_url || data.canonical_url,
+      indexability_state: data.indexability_state as IndexabilityState,
+      robots: indexabilityToRobots(data.indexability_state as IndexabilityState),
+      page_type: data.page_type,
+    };
+  } catch {
+    return null;
+  }
+};
+
 // ============ CANONICAL CONFLICT RESOLVER ============
 
 export const resolveCanonicalPage = (
@@ -168,7 +248,12 @@ export const resolveCanonicalPage = (
   const sorted = [...candidates].sort((a, b) => {
     const priorityDiff = ROUTE_PRIORITY[a.pageType] - ROUTE_PRIORITY[b.pageType];
     if (priorityDiff !== 0) return priorityDiff;
-    return b.publishScore - a.publishScore;
+    // Same class: higher publish score wins
+    if (b.publishScore !== a.publishScore) return b.publishScore - a.publishScore;
+    // Tie-break: indexed wins over noindex
+    if (a.indexability === "public_indexed" && b.indexability !== "public_indexed") return -1;
+    if (b.indexability === "public_indexed" && a.indexability !== "public_indexed") return 1;
+    return 0;
   });
 
   const winner = sorted[0];
@@ -192,11 +277,19 @@ export const resolveCanonicalPage = (
     redirectAction: "none",
     indexability: finalIndexability,
     sitemapInclude: finalIndexability === "public_indexed",
-    losingCandidates: losers.map(l => ({
-      pageType: l.pageType,
-      url: buildCanonicalUrl(l.pageType, { slug: l.slug, destinationSlug: l.destinationSlug }),
-      action: l.indexability === "public_indexed" ? "noindex" as const : "hold_unpublished" as const,
-    })),
+    losingCandidates: losers.map(l => {
+      const lUrl = buildCanonicalUrl(l.pageType, { slug: l.slug, destinationSlug: l.destinationSlug });
+      // Determine loser action
+      let action: "noindex" | "301" | "404" | "hold_unpublished";
+      if (l.indexability === "deprecated_redirect" || l.indexability === "merged_redirect") {
+        action = "301";
+      } else if (l.indexability === "public_indexed") {
+        action = "noindex"; // suppress duplicate
+      } else {
+        action = "hold_unpublished";
+      }
+      return { pageType: l.pageType, url: lUrl, action };
+    }),
   };
 };
 
@@ -222,8 +315,7 @@ export const validateRouteParams = (
     }
     if (!knownActivityTypes.includes(activity)) {
       return {
-        valid: false,
-        statusCode: 301,
+        valid: false, statusCode: 301,
         redirect: `/things-to-do/${dest}/${area}`,
         reason: "unknown_activity_type",
       };
@@ -237,7 +329,7 @@ export const validateRouteParams = (
   }
 
   // /:dest/:area
-  if (segments.length === 2 && !["things-to-do", "hosts", "itineraries", "collections", "my-trips"].includes(segments[0])) {
+  if (segments.length === 2 && !["things-to-do", "hosts", "itineraries", "collections", "my-trips", "travelers"].includes(segments[0])) {
     const [dest, area] = segments;
     if (!knownDestinations.includes(dest)) {
       return { valid: false, statusCode: 404, reason: "unknown_destination" };
@@ -344,6 +436,28 @@ export const registerPageRoute = async (
   }
 };
 
+// ============ AUDIT LOG ============
+
+export const logAdminAction = async (
+  actionType: string,
+  entityType?: string,
+  entityId?: string,
+  oldValue?: any,
+  newValue?: any,
+): Promise<void> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    await (supabase as any).from("admin_audit_log").insert({
+      user_id: user?.id || null,
+      action_type: actionType,
+      entity_type: entityType,
+      entity_id: entityId,
+      old_value: oldValue ? JSON.stringify(oldValue) : null,
+      new_value: newValue ? JSON.stringify(newValue) : null,
+    });
+  } catch { /* best effort */ }
+};
+
 // ============ PAGE CONTRACT DEFINITIONS ============
 
 export interface PageContractField {
@@ -417,14 +531,17 @@ export interface CrawlPolicy {
   feedExport: boolean;
 }
 
-export const CRAWL_POLICIES: Record<PageClass, CrawlPolicy> = {
+export const CRAWL_POLICIES: Record<string, CrawlPolicy> = {
   destination: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
   area: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
+  area_activity: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
+  destination_activity: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
   product: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: true },
   itinerary: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
-  collection: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: false, feedExport: false },
+  curated_collection: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: false, feedExport: false },
   host: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
   poi: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
   theme: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: false, feedExport: false },
+  traveler: { searchEngineCrawl: false, aiCrawlerAllowed: false, snippetAllowed: false, imageIndexing: false, feedExport: false },
   map_hub: { searchEngineCrawl: true, aiCrawlerAllowed: false, snippetAllowed: false, imageIndexing: false, feedExport: false },
 };
