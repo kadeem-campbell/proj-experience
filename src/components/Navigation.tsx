@@ -63,7 +63,10 @@ export const Navigation = () => {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              {/* Notification Bell */}
+              <NotificationBell />
+
               {/* Itinerary with Export Options */}
               <div className="relative">
                 <ExportDropdown />
