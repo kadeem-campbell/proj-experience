@@ -679,6 +679,22 @@ export default function ExperienceDetail() {
               </div>
             )}
 
+            {/* Save + Follow bar */}
+            <SaveFollowBar
+              experienceId={experience.id}
+              hostId={productHosts.length > 0 ? productHosts[0]?.id : undefined}
+              hostName={creatorNames[0]}
+            />
+
+            {/* Best for personas */}
+            {product?.best_for && <BestForBlock bestFor={product.best_for as string[]} />}
+
+            {/* Pairing & substitution recommendations */}
+            <PairingBlock experienceId={experience.id} />
+
+            {/* Included in itineraries */}
+            <IncludedInItineraries experienceId={experience.id} />
+
             {/* Questions Section - always shown as fallback */}
             <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />
 
