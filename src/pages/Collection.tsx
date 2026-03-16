@@ -273,11 +273,12 @@ const CollectionPage = () => {
   }
 
   const seoBlock = (
-    <Helmet>
-      <title>{collectionTitle} — Curated Collection | Swam</title>
-      <meta name="description" content={collectionDescription || `${collectionTitle} — curated collection on Swam`} />
-      <link rel="canonical" href={`https://swam.app/collections/${slug}`} />
-    </Helmet>
+    <SEOHead
+      title={`${collectionTitle} — Curated Collection`}
+      description={collectionDescription || `${collectionTitle} — curated collection on Swam`}
+      canonicalPath={`/collections/${slug}`}
+      indexability="public_indexed"
+    />
   );
 
   const cityChips = isDynamic && destinations.length > 0 ? (
