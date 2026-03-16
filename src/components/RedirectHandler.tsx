@@ -1,6 +1,9 @@
 /**
  * RedirectHandler — checks the current path against the redirect registry
  * and performs client-side redirects for legacy routes.
+ * 
+ * Consolidated: /travelers is the canonical spelling (single 'l').
+ * All legacy route families are redirected here.
  */
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -40,6 +43,19 @@ export const RedirectHandler = () => {
     if (location.pathname.startsWith('/itinerary/')) {
       const rest = location.pathname.replace('/itinerary/', '/itineraries/');
       navigate(rest, { replace: true });
+      return;
+    }
+
+    // Handle /travellers/* → /travelers/*
+    if (location.pathname.startsWith('/travellers/')) {
+      const rest = location.pathname.replace('/travellers/', '/travelers/');
+      navigate(rest, { replace: true });
+      return;
+    }
+
+    // Handle /explore/* → /
+    if (location.pathname.startsWith('/explore')) {
+      navigate('/', { replace: true });
       return;
     }
   }, [location.pathname, navigate]);

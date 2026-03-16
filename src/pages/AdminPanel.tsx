@@ -32,6 +32,8 @@ import { AdminQualitySection } from '@/components/admin/AdminQualitySection';
 import { AdminQuestionsSection } from '@/components/admin/AdminQuestionsSection';
 import { AdminNotificationsSection } from '@/components/admin/AdminNotificationsSection';
 import { AdminGraphInspector } from '@/components/admin/AdminGraphInspector';
+import { AdminGovernanceGates } from '@/components/admin/AdminGovernanceGates';
+import { AdminFeedContracts } from '@/components/admin/AdminFeedContracts';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, group: 'Main' },
@@ -48,6 +50,8 @@ const SECTIONS = [
   { id: 'slugs', label: 'Slugs / Routes', icon: Link2, group: 'Governance' },
   { id: 'redirects', label: 'Redirects', icon: Route, group: 'Governance' },
   { id: 'graph', label: 'Graph Inspector', icon: Settings, group: 'Governance' },
+  { id: 'governance', label: 'Deploy Gates', icon: AlertTriangle, group: 'Governance' },
+  { id: 'feed_contracts', label: 'Feed Contracts', icon: Rss, group: 'Governance' },
   { id: 'notifications', label: 'Notifications', icon: Send, group: 'Governance' },
   { id: 'bulk', label: 'Bulk Operations', icon: Upload, group: 'Operations' },
   { id: 'json', label: 'JSON Tools', icon: Code2, group: 'Operations' },
@@ -76,6 +80,8 @@ const AdminPanel = () => {
       case 'redirects': return <AdminRedirectsSection />;
       case 'graph': return <AdminGraphInspector />;
       case 'notifications': return <AdminNotificationsSection />;
+      case 'governance': return <AdminGovernanceGates />;
+      case 'feed_contracts': return <AdminFeedContracts />;
       case 'bulk': return <AdminBulkOps />;
       case 'json': return <AdminJsonTools />;
       case 'legacy': return <AdminLegacySection />;

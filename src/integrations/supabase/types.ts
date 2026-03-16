@@ -64,6 +64,39 @@ export type Database = {
           },
         ]
       }
+      admin_audit_log: {
+        Row: {
+          action_type: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       answers: {
         Row: {
           body: string
@@ -666,6 +699,78 @@ export type Database = {
         }
         Relationships: []
       }
+      defer_register: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string | null
+          deferred_to_phase: string | null
+          id: string
+          item_name: string
+          reason: string | null
+          resolved_at: string | null
+          severity: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          deferred_to_phase?: string | null
+          id?: string
+          item_name: string
+          reason?: string | null
+          resolved_at?: string | null
+          severity?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          deferred_to_phase?: string | null
+          id?: string
+          item_name?: string
+          reason?: string | null
+          resolved_at?: string | null
+          severity?: string | null
+        }
+        Relationships: []
+      }
+      deploy_gates: {
+        Row: {
+          created_at: string | null
+          criteria: Json
+          evaluated_by: string | null
+          gate_name: string
+          gate_type: string
+          id: string
+          is_passed: boolean | null
+          last_evaluated_at: string | null
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          criteria?: Json
+          evaluated_by?: string | null
+          gate_name: string
+          gate_type?: string
+          id?: string
+          is_passed?: boolean | null
+          last_evaluated_at?: string | null
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          criteria?: Json
+          evaluated_by?: string | null
+          gate_name?: string
+          gate_type?: string
+          id?: string
+          is_passed?: boolean | null
+          last_evaluated_at?: string | null
+          notes?: string | null
+        }
+        Relationships: []
+      }
       destinations: {
         Row: {
           airport_code: string | null
@@ -740,6 +845,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dim_entities: {
+        Row: {
+          activity_type: string | null
+          area_id: string | null
+          area_name: string | null
+          created_at: string | null
+          destination_id: string | null
+          destination_name: string | null
+          entity_id: string
+          entity_type: string
+          host_id: string | null
+          host_name: string | null
+          indexability_state: string | null
+          publish_score: number | null
+          quality_score: number | null
+          slug: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          activity_type?: string | null
+          area_id?: string | null
+          area_name?: string | null
+          created_at?: string | null
+          destination_id?: string | null
+          destination_name?: string | null
+          entity_id: string
+          entity_type: string
+          host_id?: string | null
+          host_name?: string | null
+          indexability_state?: string | null
+          publish_score?: number | null
+          quality_score?: number | null
+          slug?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          activity_type?: string | null
+          area_id?: string | null
+          area_name?: string | null
+          created_at?: string | null
+          destination_id?: string | null
+          destination_name?: string | null
+          entity_id?: string
+          entity_type?: string
+          host_id?: string | null
+          host_name?: string | null
+          indexability_state?: string | null
+          publish_score?: number | null
+          quality_score?: number | null
+          slug?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       entity_aliases: {
         Row: {
@@ -1198,6 +1360,54 @@ export type Database = {
           },
         ]
       }
+      export_contracts: {
+        Row: {
+          contract_version: number
+          created_at: string | null
+          deep_link_template: string | null
+          feed_type: string
+          field_exposure: Json
+          id: string
+          is_active: boolean | null
+          min_description_length: number | null
+          partner: string
+          requires_geo: boolean | null
+          requires_image: boolean | null
+          requires_pricing: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          contract_version?: number
+          created_at?: string | null
+          deep_link_template?: string | null
+          feed_type?: string
+          field_exposure?: Json
+          id?: string
+          is_active?: boolean | null
+          min_description_length?: number | null
+          partner: string
+          requires_geo?: boolean | null
+          requires_image?: boolean | null
+          requires_pricing?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          contract_version?: number
+          created_at?: string | null
+          deep_link_template?: string | null
+          feed_type?: string
+          field_exposure?: Json
+          id?: string
+          is_active?: boolean | null
+          min_description_length?: number | null
+          partner?: string
+          requires_geo?: boolean | null
+          requires_image?: boolean | null
+          requires_pricing?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       external_entity_contracts: {
         Row: {
           contract_version: number | null
@@ -1228,6 +1438,84 @@ export type Database = {
           is_active?: boolean | null
           partner?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      fact_booking_intents: {
+        Row: {
+          created_at: string
+          id: string
+          intent_stage: string
+          metadata: Json | null
+          option_id: string | null
+          product_id: string
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intent_stage?: string
+          metadata?: Json | null
+          option_id?: string | null
+          product_id: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intent_stage?: string
+          metadata?: Json | null
+          option_id?: string | null
+          product_id?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      fact_pageviews: {
+        Row: {
+          anonymous_id: string | null
+          created_at: string
+          device_type: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          locale: string | null
+          page_url: string
+          referrer: string | null
+          session_id: string
+          user_id: string | null
+          viewport: string | null
+        }
+        Insert: {
+          anonymous_id?: string | null
+          created_at?: string
+          device_type?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          locale?: string | null
+          page_url: string
+          referrer?: string | null
+          session_id: string
+          user_id?: string | null
+          viewport?: string | null
+        }
+        Update: {
+          anonymous_id?: string | null
+          created_at?: string
+          device_type?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          locale?: string | null
+          page_url?: string
+          referrer?: string | null
+          session_id?: string
+          user_id?: string | null
+          viewport?: string | null
         }
         Relationships: []
       }
@@ -1392,6 +1680,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      identity_map: {
+        Row: {
+          anonymous_id: string
+          first_seen_at: string | null
+          id: string
+          last_seen_at: string | null
+          user_id: string
+        }
+        Insert: {
+          anonymous_id: string
+          first_seen_at?: string | null
+          id?: string
+          last_seen_at?: string | null
+          user_id: string
+        }
+        Update: {
+          anonymous_id?: string
+          first_seen_at?: string | null
+          id?: string
+          last_seen_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       identity_resolution_links: {
         Row: {

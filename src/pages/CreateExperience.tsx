@@ -170,25 +170,29 @@ export default function CreateExperience() {
         );
       }
 
-      // 6. Also write to legacy experiences for compatibility
+      // 6. Register route in page_route_registry (no legacy write)
       const dest = destinations.find(d => d.id === form.destinationId);
-      await (supabase as any).from("experiences").insert({
-        title: form.title,
-        slug,
-        description: form.description,
-        category: activityTypes.find(a => a.id === form.activityTypeId)?.name || 'Adventure',
-        location: dest?.name || '',
-        price: form.priceAmount ? `$${form.priceAmount}` : '',
-        duration: form.duration,
-        creator: allHosts.find(h => h.id === form.hostId)?.display_name || '',
-        city_id: dest?.legacy_city_id || null,
-        video_url: form.videoUrl,
-        video_thumbnail: form.coverImage,
-        highlights: form.highlights ? form.highlights.split('\n').filter(Boolean) : [],
-        is_active: true,
-      });
+      const destSlug = dest?.slug || 'explore';
+      const canonicalUrl = `https://swam.app/things-to-do/${destSlug}/${slug}`;
+      await (supabase as any).from("page_route_registry").upsert({
+        page_type: 'product',
+        entity_id: productId,
+        entity_type: 'product',
+        resolved_path: `/things-to-do/${destSlug}/${slug}`,
+        canonical_url: canonicalUrl,
+        route_priority: 1,
+        indexability_state: 'draft_unpublished',
+        status: 'active',
+        generated_from_rule: 'auto_product',
+      }, { onConflict: 'entity_type,entity_id' });
 
-      toast({ title: "Experience Created", description: `"${form.title}" has been created with option and pricing.` });
+      // Update product with canonical_url
+      await (supabase as any).from("products").update({
+        canonical_url: canonicalUrl,
+        indexability_state: 'draft_unpublished',
+      }).eq('id', productId);
+
+      toast({ title: "Experience Created", description: `"${form.title}" has been created. Run validation in Admin to publish.` });
       setCurrentStep('confirmation');
     } catch (err: any) {
       console.error("Create failed:", err);
