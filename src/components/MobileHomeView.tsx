@@ -285,8 +285,9 @@ export const MobileHomeView = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeCategory, setActiveCategory] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const { data: allItinerariesData = [] } = usePopularItineraries();
+  const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useExperiencesData();
+  const { data: homeCarousels = [] } = useHomeCarousels();
 
   useEffect(() => {
     const interval = setInterval(() => {
