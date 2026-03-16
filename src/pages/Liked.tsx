@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
-import { ExperienceCard } from "@/components/ExperienceCard";
+import { ProductCard } from "@/components/ProductCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
 import { useUserLikes } from "@/hooks/useUserLikes";

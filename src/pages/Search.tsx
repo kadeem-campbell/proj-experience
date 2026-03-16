@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { SEOHead, createWebsiteJsonLd } from "@/components/SEOHead";
 import { MainLayout } from "@/components/layouts/MainLayout";
-import { ExperienceCard } from "@/components/ExperienceCard";
+import { ProductCard } from "@/components/ProductCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { FixedSearchHeader } from "@/components/FixedSearchHeader";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
@@ -13,7 +13,7 @@ import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { Button } from "@/components/ui/button";
 import { City, cities as browseDataCities } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useProductListings } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useProductListings";
 import { Compass, Map, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
