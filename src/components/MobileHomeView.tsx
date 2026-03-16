@@ -111,57 +111,41 @@ const HorizontalScrollRow = ({
   );
 };
 
-// Itinerary card
+// Itinerary card — same size as experience card
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
-  const [localLiked, setLocalLiked] = useState(false);
-  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
-
-  const liked = isAuthenticated ? isDbLiked(itinerary.id, 'itinerary') : localLiked;
   const experienceCount = itinerary.experiences?.length || 0;
   const coverImage = itinerary.coverImage || itinerary.experiences?.[0]?.videoThumbnail;
-
-  const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    if (isAuthenticated) {
-      await toggleDbLike(itinerary.id, 'itinerary', {
-        id: itinerary.id, name: itinerary.name, coverImage: itinerary.coverImage,
-        creatorName: itinerary.creatorName, experiences: itinerary.experiences?.slice(0, 3)
-      });
-    } else {
-      setLocalLiked(!localLiked);
-    }
-  };
 
   return (
     <div 
       className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
       onClick={() => navigate(`/itineraries/${itinerary.id}`)}
     >
-      <div className="relative aspect-[3/2.5] rounded-xl overflow-hidden bg-muted">
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} loading="lazy" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-itinerary-color/20 to-itinerary-color/5 flex items-center justify-center">
-            <MapPin className="w-8 h-8 text-itinerary-color/40" />
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <Layers className="w-8 h-8 text-primary/40" />
           </div>
         )}
-        <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all duration-150 active:scale-90",
-          liked ? "bg-black/40 border border-white/10" : "bg-white/10 border border-white/15"
-        )}>
-          <Heart className={cn("w-4 h-4 transition-all duration-150", liked ? "fill-primary text-primary" : "text-white/90")} />
-        </button>
+        <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <CardActionMenu
+            entityId={itinerary.id}
+            entityType="itinerary"
+            entityData={{ id: itinerary.id, name: itinerary.name, coverImage, creatorName: itinerary.creatorName }}
+            title={itinerary.name}
+          >
+            <button className="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-2xl border border-white/15 shadow-lg transition-all duration-150 active:scale-90">
+              <Bookmark className="w-3.5 h-3.5 text-white/90" />
+            </button>
+          </CardActionMenu>
+        </div>
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{itinerary.name}</h3>
-        <p className="text-xs text-muted-foreground">{experienceCount} experiences</p>
-        <p className="text-xs text-muted-foreground truncate">
-          {itinerary.creatorName || 'Local Creator'}
-        </p>
+        <p className="text-xs text-muted-foreground">{experienceCount} activities</p>
       </div>
     </div>
   );
