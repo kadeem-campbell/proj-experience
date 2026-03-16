@@ -210,7 +210,7 @@ export default function Map() {
                   navigate(`/${item.slug}`);
                   return;
                 }
-                navigate(generateExperienceUrl(item.destinationName, item.title, item.slug, item.destinationSlug));
+                navigate(generateProductPageUrl(item.destinationName, item.title, item.slug, item.destinationSlug));
               }}
               className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border active:scale-[0.98] transition-transform text-left"
             >

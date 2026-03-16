@@ -772,7 +772,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
     return (
       <Link 
         key={experience.id}
-        to={generateExperienceUrl(experience.location || '', experience.title)}
+        to={generateProductPageUrl(experience.location || '', experience.title)}
       >
         <div className="group cursor-pointer transition-transform duration-150">
           {/* Cover Image - match PublicItinerary geometry (4:3, rounded-xl) */}

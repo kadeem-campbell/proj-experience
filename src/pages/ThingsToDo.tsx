@@ -169,7 +169,7 @@ export default function ThingsToDo() {
           {displayItems.map((item) => (
             <div
               key={item.id}
-              onClick={() => navigate(generateExperienceUrl(item.location, item.title, item.slug, currentDestination?.slug))}
+              onClick={() => navigate(generateProductPageUrl(item.location, item.title, item.slug, currentDestination?.slug))}
               className="cursor-pointer active:scale-[0.97] transition-transform"
             >
               <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">

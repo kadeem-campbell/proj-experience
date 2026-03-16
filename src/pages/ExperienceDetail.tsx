@@ -312,7 +312,7 @@ export default function ExperienceDetail() {
     if ((experience as any).isProduct && productDestination) {
       return `${baseUrl}/things-to-do/${productDestination.slug}/${experience.slug || ''}`;
     }
-    return `${baseUrl}${generateExperienceUrl(experience.location, experience.title, (experience as any).slug)}`;
+    return `${baseUrl}${generateProductPageUrl(experience.location, experience.title, (experience as any).slug)}`;
   }, [experience, productDestination]);
 
   useEffect(() => {

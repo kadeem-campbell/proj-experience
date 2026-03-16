@@ -99,7 +99,7 @@ const PublicItinerary = () => {
   const [copied, setCopied] = useState(false);
   const { data: publicItinerariesData = [], isLoading: publicItinerariesLoading } = usePublicItineraries();
   const [searchQuery, setSearchQuery] = useState("");
-  const allDbExperiences = useExperiencesData();
+  const allDbExperiences = useProductListings();
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('local_likes');

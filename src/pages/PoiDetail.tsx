@@ -352,7 +352,7 @@ export default function PoiDetail() {
                       onClick={() =>
                         item.itemType === "product"
                           ? navigate(`/things-to-do/${destParam}/${item.slug}`)
-                          : navigate(generateExperienceUrl(item.location || "", item.title, item.slug))
+                          : navigate(generateProductPageUrl(item.location || "", item.title, item.slug))
                       }
                       className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border hover:bg-muted/40 transition-colors text-left group"
                     >
