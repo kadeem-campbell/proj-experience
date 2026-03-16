@@ -130,7 +130,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
             <Layers className="w-8 h-8 text-primary/40" />
           </div>
         )}
-        <div className="absolute bottom-2.5 right-2.5 z-10 opacity-0 group-hover/card:opacity-100 md:transition-opacity md:duration-200 max-md:opacity-100" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
             entityId={itinerary.id}
             entityType="itinerary"
