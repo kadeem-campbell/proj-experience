@@ -242,15 +242,6 @@ const ActionMenuContent = ({
 
   return (
     <div className="space-y-3">
-      {/* Primary CTA */}
-      <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowItineraryPicker(true); }}
-        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all active:scale-[0.98] active:opacity-90"
-      >
-        <Layers className="w-4 h-4" />
-        {ctaLabel}
-      </button>
-
       {/* Share row */}
       <div className="grid grid-cols-4 gap-2">
         {shareActions.map((action) => (
@@ -267,6 +258,15 @@ const ActionMenuContent = ({
           </button>
         ))}
       </div>
+
+      {/* Add to itinerary CTA — below share row */}
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowItineraryPicker(true); }}
+        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all active:scale-[0.98] active:opacity-90"
+      >
+        <Layers className="w-4 h-4" />
+        {ctaLabel}
+      </button>
     </div>
   );
 };

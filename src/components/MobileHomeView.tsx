@@ -119,7 +119,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
+      className="group/card flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
       onClick={() => navigate(`/itineraries/${itinerary.id}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
@@ -130,11 +130,11 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
             <Layers className="w-8 h-8 text-primary/40" />
           </div>
         )}
-        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute bottom-2.5 right-2.5 z-10 opacity-0 group-hover/card:opacity-100 md:transition-opacity md:duration-200 max-md:opacity-100" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
             entityId={itinerary.id}
             entityType="itinerary"
-            entityData={{ id: itinerary.id, name: itinerary.name, coverImage, creatorName: itinerary.creatorName }}
+            entityData={{ id: itinerary.id, name: itinerary.name, coverImage, creatorName: itinerary.creatorName, experiences: itinerary.experiences }}
             title={itinerary.name}
           >
             <button className="w-10 h-10 flex items-center justify-center rounded-full bg-foreground/80 backdrop-blur-xl shadow-lg transition-all duration-150 active:scale-90">
@@ -157,7 +157,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 
   return (
     <div 
-      className="flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
+      className="group/card flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
       onClick={() => navigate(generateProductPageUrl((experience as any).location || '', experience.title, (experience as any).slug))}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
@@ -166,7 +166,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
-        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute bottom-2.5 right-2.5 z-10 opacity-0 group-hover/card:opacity-100 md:transition-opacity md:duration-200 max-md:opacity-100" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
             entityId={experience.id}
             entityType="experience"
