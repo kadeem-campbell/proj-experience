@@ -322,7 +322,7 @@ const ExperienceCollectionPage = () => {
       <MobileShell hideAvatar>
         <div className="text-center py-16 px-4">
           <p className="text-lg font-semibold text-foreground mb-2">Collection not found</p>
-          <Button variant="outline" onClick={() => navigate('/experiences')}>Browse all experiences</Button>
+          <Button variant="outline" onClick={() => navigate('/things-to-do')}>Browse all experiences</Button>
         </div>
       </MobileShell>
     ) : (
