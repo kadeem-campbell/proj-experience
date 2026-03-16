@@ -242,7 +242,7 @@ const ActionMenuContent = ({
 
   // --- Main view ---
   const shareActions = [
-    { name: "Wishlist", icon: Heart, onClick: handleSave, active: liked },
+    { name: "Like", icon: Heart, onClick: handleSave, active: liked },
     { name: "Share", icon: Share2, onClick: handleShare },
     { name: "Copy Link", icon: copied ? Check : Copy, onClick: handleCopy, active: copied },
     { name: "WhatsApp", icon: MessageCircle, onClick: handleWhatsApp },
