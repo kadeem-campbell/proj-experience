@@ -5,7 +5,7 @@ import { indexabilityToRobots } from "@/services/canonicalRegistry";
 interface SEOHeadProps {
   title: string;
   description: string;
-  url?: string;
+  canonicalPath?: string;
   image?: string;
   type?: "website" | "article";
   jsonLd?: Record<string, any>;
@@ -13,10 +13,12 @@ interface SEOHeadProps {
   robots?: string;
 }
 
+const BASE_URL = "https://swam.app";
+
 export const SEOHead = ({
   title,
   description,
-  url,
+  canonicalPath,
   image,
   type = "website",
   jsonLd,
@@ -25,7 +27,11 @@ export const SEOHead = ({
 }: SEOHeadProps) => {
   const siteName = "swam.app";
   const fullTitle = `${title} | ${siteName}`;
-  const canonical = url || (typeof window !== "undefined" ? window.location.href : "");
+
+  // Canonical URL must always come from explicit path, never window.location
+  const canonical = canonicalPath
+    ? (canonicalPath.startsWith("http") ? canonicalPath : `${BASE_URL}${canonicalPath}`)
+    : undefined;
 
   // Compute robots directive from indexability state or explicit override
   const robotsDirective = robotsOverride
@@ -38,14 +44,14 @@ export const SEOHead = ({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      <link rel="canonical" href={canonical} />
+      {canonical && <link rel="canonical" href={canonical} />}
       <meta name="robots" content={robotsDirective} />
 
       {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
-      <meta property="og:url" content={canonical} />
+      {canonical && <meta property="og:url" content={canonical} />}
       <meta property="og:site_name" content={siteName} />
       {image && <meta property="og:image" content={image} />}
 
@@ -65,7 +71,7 @@ export const SEOHead = ({
   );
 };
 
-// Helpers for structured data — kept for backward compat during migration
+// Helpers for structured data
 export const createExperienceJsonLd = (exp: {
   title: string;
   description?: string;

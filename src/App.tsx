@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import Search from "./pages/Search";
@@ -11,12 +11,10 @@ import CreateExperience from "./pages/CreateExperience";
 import Hosts from "./pages/Hosts";
 import Monetise from "./pages/Monetise";
 import Map from "./pages/Map";
-import Travellers from "./pages/Travellers";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
 import ManagementDashboard from "./pages/ManagementDashboard";
-import SocialFinder from "./pages/SocialFinder";
 import PublicItinerary from "./pages/PublicItinerary";
 import Itineraries from "./pages/Itineraries";
 import ThingsToDo from "./pages/ThingsToDo";
@@ -41,57 +39,49 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
+            {/* Home */}
             <Route path="/" element={<Search />} />
 
-            {/* Things to do hierarchy */}
+            {/* Things to do — canonical product/activity routes */}
             <Route path="/things-to-do" element={<ThingsToDo />} />
             <Route path="/things-to-do/:destination/:area/:activityType" element={<ThingsToDo />} />
             <Route path="/things-to-do/:destination/:slug" element={<ExperienceDetail />} />
             <Route path="/things-to-do/:destination" element={<ThingsToDo />} />
 
-            {/* Map */}
-            <Route path="/explore/map" element={<Map />} />
+            {/* Map — single canonical pattern */}
             <Route path="/:destination/map" element={<Map />} />
 
             {/* Hosts */}
             <Route path="/hosts/:username" element={<HostProfile />} />
             <Route path="/hosts" element={<Hosts />} />
 
-            {/* Itineraries */}
+            {/* Itineraries — single canonical family */}
             <Route path="/itineraries/:slug" element={<PublicItinerary />} />
             <Route path="/itineraries" element={<Itineraries />} />
-            <Route path="/itinerary" element={<Trip useActiveItinerary={true} />} />
-            <Route path="/itinerary/:id" element={<Trip />} />
 
-            {/* Collections */}
-            <Route path="/collections/experiences/:slug" element={<ExperienceCollection />} />
-            <Route path="/collections/itineraries/:slug" element={<Collection />} />
+            {/* User's active trip (authenticated, noindex) */}
+            <Route path="/my-trips/:id" element={<Trip />} />
+            <Route path="/my-trips" element={<Trip useActiveItinerary={true} />} />
+
+            {/* Collections — single canonical family */}
             <Route path="/collections/:slug" element={<Collection />} />
 
-            {/* Travelers (noindex) */}
-            <Route path="/travelers/:id" element={<Travellers />} />
-            <Route path="/travellers" element={<Travellers />} />
-
+            {/* Admin / internal (noindex, disallowed in robots) */}
             <Route path="/create-experience" element={<CreateExperience />} />
             <Route path="/monetise" element={<Monetise />} />
-            <Route path="/map" element={<Map />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/management" element={<ManagementDashboard />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/discover" element={<Navigate to="/" replace />} />
-            <Route path="/social-finder" element={<SocialFinder />} />
-            <Route path="/trip/:id" element={<Trip />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/my-itineraries" element={<MyItineraries />} />
             <Route path="/liked" element={<Liked />} />
-            <Route path="/saved" element={<Liked />} />
 
-            {/* Destination hierarchy: /{destination} and /{destination}/{area} */}
+            {/* Destination hierarchy */}
             <Route path="/:destination/:area" element={<DestinationPage />} />
             <Route path="/:destination" element={<DestinationPage />} />
 
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -2,11 +2,11 @@
  * Canonical URL Registry, Indexability & Route Resolution Service
  * 
  * Single source of truth for:
- * - canonical URL generation
- * - indexability state management
+ * - canonical URL generation per page class
+ * - indexability state → robots directive
  * - route-priority conflict resolution
  * - slug history & alias handling
- * - parameter whitelisting & invalid-state enforcement
+ * - page contract definitions
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -22,8 +22,7 @@ export type PageClass =
   | "itinerary"
   | "host"
   | "theme"
-  | "map_hub"
-  | "traveler";
+  | "map_hub";
 
 export type IndexabilityState =
   | "internal_only"
@@ -64,19 +63,17 @@ const BASE_URL = "https://swam.app";
 
 /**
  * Route priority — lower number = higher priority.
- * When multiple pages could serve the same intent, lower-priority page wins.
  */
 const ROUTE_PRIORITY: Record<PageClass, number> = {
   product: 1,
-  area: 2,       // area + activity page
-  destination: 3, // destination + activity page
+  area: 2,
+  destination: 3,
   collection: 4,
   itinerary: 5,
   host: 6,
   theme: 7,
   poi: 8,
   map_hub: 9,
-  traveler: 10,
 };
 
 // ============ URL BUILDERS ============
@@ -85,7 +82,7 @@ export const buildCanonicalUrl = (
   pageClass: PageClass,
   slugParts: { slug: string; destinationSlug?: string; areaSlug?: string }
 ): string => {
-  const { slug, destinationSlug, areaSlug } = slugParts;
+  const { slug, destinationSlug } = slugParts;
 
   switch (pageClass) {
     case "destination":
@@ -112,8 +109,6 @@ export const buildCanonicalUrl = (
       return destinationSlug
         ? `${BASE_URL}/${destinationSlug}/map`
         : `${BASE_URL}/explore/map`;
-    case "traveler":
-      return `${BASE_URL}/travelers/${slug}`;
     default:
       return `${BASE_URL}/${slug}`;
   }
@@ -134,7 +129,7 @@ export const indexabilityToRobots = (state: IndexabilityState): string => {
       return "noindex,nofollow";
     case "deprecated_redirect":
     case "merged_redirect":
-      return "noindex,follow"; // redirect handles it
+      return "noindex,follow";
     default:
       return "noindex,nofollow";
   }
@@ -153,7 +148,6 @@ export const shouldRenderPage = (state: IndexabilityState, isAdmin: boolean): bo
       return isAdmin;
     case "deprecated_redirect":
     case "merged_redirect":
-      return false; // redirect instead
     case "suppressed_duplicate":
       return false;
     default:
@@ -173,7 +167,6 @@ export const resolveCanonicalPage = (
     publishScore: number;
   }>
 ): CanonicalDecision => {
-  // Sort by priority (lower = higher priority), then by publish score (higher = better)
   const sorted = [...candidates].sort((a, b) => {
     const priorityDiff = ROUTE_PRIORITY[a.pageType] - ROUTE_PRIORITY[b.pageType];
     if (priorityDiff !== 0) return priorityDiff;
@@ -189,7 +182,7 @@ export const resolveCanonicalPage = (
   });
 
   const isPublishable = winner.publishScore >= 40;
-  const finalIndexability: IndexabilityState = 
+  const finalIndexability: IndexabilityState =
     winner.indexability === "public_indexed" && isPublishable
       ? "public_indexed"
       : "public_noindex";
@@ -214,29 +207,10 @@ export const resolveCanonicalPage = (
 export const validateRouteParams = (
   path: string,
   knownDestinations: string[],
-  knownAreas: Map<string, string[]>, // destinationSlug → areaSlug[]
+  knownAreas: Map<string, string[]>,
   knownActivityTypes: string[],
 ): RouteValidationResult => {
   const segments = path.split("/").filter(Boolean);
-
-  // /experiences/* → legacy, redirect to /things-to-do
-  if (segments[0] === "experiences") {
-    const slug = segments[1];
-    if (slug) {
-      return {
-        valid: false,
-        statusCode: 301,
-        redirect: `/things-to-do/${slug}`,
-        reason: "legacy_experience_url",
-      };
-    }
-    return {
-      valid: false,
-      statusCode: 301,
-      redirect: "/things-to-do",
-      reason: "legacy_experience_listing",
-    };
-  }
 
   // /things-to-do/:dest/:area/:activity
   if (segments[0] === "things-to-do" && segments.length === 4) {
@@ -261,56 +235,23 @@ export const validateRouteParams = (
 
   // /things-to-do/:dest/:slug
   if (segments[0] === "things-to-do" && segments.length === 3) {
-    const [, dest] = segments;
-    if (!knownDestinations.includes(dest)) {
-      // dest might be interpreted as experience slug
-      return { valid: true, statusCode: 200 };
-    }
     return { valid: true, statusCode: 200 };
   }
 
   // /:dest/:area
-  if (segments.length === 2 && !["things-to-do", "hosts", "itineraries", "collections", "travelers", "explore"].includes(segments[0])) {
+  if (segments.length === 2 && !["things-to-do", "hosts", "itineraries", "collections", "my-trips"].includes(segments[0])) {
     const [dest, area] = segments;
     if (!knownDestinations.includes(dest)) {
       return { valid: false, statusCode: 404, reason: "unknown_destination" };
     }
     const destAreas = knownAreas.get(dest) || [];
-    if (!destAreas.includes(area)) {
+    if (!destAreas.includes(area) && area !== "map") {
       return { valid: false, statusCode: 404, reason: "area_not_in_destination" };
     }
     return { valid: true, statusCode: 200 };
   }
 
   return { valid: true, statusCode: 200 };
-};
-
-// ============ LEGACY URL RESOLVER ============
-
-export const resolveLegacyUrl = (path: string): RouteValidationResult | null => {
-  const segments = path.split("/").filter(Boolean);
-
-  // /experiences/:slug → /things-to-do/:slug (will be resolved by ThingsToDo)
-  if (segments[0] === "experiences" && segments[1]) {
-    return {
-      valid: false,
-      statusCode: 301,
-      redirect: `/things-to-do/${segments[1]}`,
-      reason: "legacy_experience_url",
-    };
-  }
-
-  // /experiences → /things-to-do
-  if (segments[0] === "experiences" && !segments[1]) {
-    return {
-      valid: false,
-      statusCode: 301,
-      redirect: "/things-to-do",
-      reason: "legacy_listing",
-    };
-  }
-
-  return null;
 };
 
 // ============ LOG CANONICAL DECISION ============
@@ -350,13 +291,11 @@ export const logSlugChange = async (
 ): Promise<void> => {
   if (oldSlug === newSlug) return;
   try {
-    // Mark old slug as not current
     await (supabase as any).from("entity_slug_history").update({ is_current: false })
       .eq("entity_type", entityType)
       .eq("entity_id", entityId)
       .eq("is_current", true);
 
-    // Insert new slug record
     await (supabase as any).from("entity_slug_history").insert({
       entity_type: entityType,
       entity_id: entityId,
@@ -490,5 +429,4 @@ export const CRAWL_POLICIES: Record<PageClass, CrawlPolicy> = {
   poi: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
   theme: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: false, feedExport: false },
   map_hub: { searchEngineCrawl: true, aiCrawlerAllowed: false, snippetAllowed: false, imageIndexing: false, feedExport: false },
-  traveler: { searchEngineCrawl: false, aiCrawlerAllowed: false, snippetAllowed: false, imageIndexing: false, feedExport: false },
 };
