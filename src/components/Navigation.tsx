@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, ChevronDown } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { ExportDropdown } from "@/components/ExportDropdown";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
