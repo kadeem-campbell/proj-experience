@@ -58,9 +58,7 @@ const ActionMenuContent = ({
     removeExperienceFromItinerary,
   } = useItineraries();
 
-  const liked = isAuthenticated
-    ? isDbLiked(entityId, entityType)
-    : isLocalLiked(entityId);
+  const liked = isDbLiked(entityId, entityType) || isLocalLiked(entityId);
 
   const shareUrl =
     entityType === "itinerary"
