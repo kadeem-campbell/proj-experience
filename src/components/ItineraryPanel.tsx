@@ -318,7 +318,7 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
         {/* Footer */}
         {activeItinerary.experiences.length > 0 && (
           <div className="p-4 border-t border-border">
-            <Link to="/itinerary">
+            <Link to="/my-trips">
               <Button className="w-full">
                 View Full Itinerary
                 <ChevronRight className="w-4 h-4 ml-2" />
