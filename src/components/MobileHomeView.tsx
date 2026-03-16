@@ -222,6 +222,53 @@ const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: s
   );
 };
 
+// Ranked card with Netflix-style ribbon badge
+const RankedCard = ({ 
+  rank, 
+  image, 
+  name, 
+  subtitle,
+  onClick 
+}: { 
+  rank: number; 
+  image?: string; 
+  name: string; 
+  subtitle?: string;
+  onClick: () => void;
+}) => {
+  return (
+    <div 
+      className="flex-shrink-0 w-[38vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
+      onClick={onClick}
+    >
+      <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
+        {image ? (
+          <img src={image} alt={name} loading="lazy" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <MapPin className="w-8 h-8 text-muted-foreground/30" />
+          </div>
+        )}
+        {/* Rank ribbon badge */}
+        <div className="absolute top-2.5 left-2.5 z-10">
+          <div className="relative bg-destructive text-destructive-foreground px-2.5 pt-1 pb-2.5 rounded-t-md text-center min-w-[32px] shadow-lg">
+            <span className="text-[13px] font-extrabold leading-none">#{rank}</span>
+            {/* Ribbon tail */}
+            <div className="absolute bottom-0 left-0 right-0 overflow-hidden h-[6px]">
+              <div className="absolute bottom-0 left-0 w-1/2 h-full bg-destructive" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />
+              <div className="absolute bottom-0 right-0 w-1/2 h-full bg-destructive" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-2 space-y-0.5">
+        <h3 className="font-semibold text-sm text-foreground truncate">{name}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
+      </div>
+    </div>
+  );
+};
+
 // Static alias map
 const cityAliases: Record<string, string[]> = {
   "Zanzibar": ["Zanzibar", "Stone Town", "Kendwa", "Nungwi", "Paje", "Jambiani"],
@@ -269,7 +316,7 @@ export const MobileHomeView = () => {
   const { data: allDestinations = [] } = useQuery({
     queryKey: ["home-destinations"],
     queryFn: async () => {
-      const { data } = await supabase.from("destinations").select("id, name, slug").eq("is_active", true);
+      const { data } = await supabase.from("destinations").select("id, name, slug, cover_image, display_order").eq("is_active", true).order("display_order");
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -537,20 +584,59 @@ export const MobileHomeView = () => {
         </>
       )}
 
-      {/* POI Carousel — filtered by destination, links to POI pages */}
-      {pois.length > 0 && (() => {
+      {/* Ranked Row — 3rd carousel position */}
+      {(() => {
         const destSlug = selectedCity ? slugify(selectedCity) : '';
-        const filteredPois = selectedDestId
-          ? pois.filter((p: any) => p.destination_id === selectedDestId)
-          : pois;
-        if (filteredPois.length === 0) return null;
-        return (
-          <HorizontalScrollRow title="Places to explore">
-            {filteredPois.slice(0, 10).map((poi: any) => (
-              <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug || 'zanzibar'} />
-            ))}
-          </HorizontalScrollRow>
-        );
+        
+        if (selectedDestId) {
+          // City selected → show POIs for that city with ranked design
+          const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
+          if (cityPois.length === 0) return null;
+          return (
+            <HorizontalScrollRow 
+              title={`Top spots in ${selectedCity}`}
+              onTitleClick={() => navigate(`/${destSlug}`)}
+            >
+              {cityPois.slice(0, 10).map((poi: any, index: number) => (
+                <RankedCard
+                  key={poi.id}
+                  rank={index + 1}
+                  image={poi.cover_image}
+                  name={poi.name}
+                  subtitle={poi.poi_type}
+                  onClick={() => navigate(`/things-to-do/${destSlug}/${poi.slug}`)}
+                />
+              ))}
+            </HorizontalScrollRow>
+          );
+        } else {
+          // No city selected → show trending destinations
+          const topDestinations = allDestinations
+            .filter((d: any) => d.cover_image || true)
+            .slice(0, 10);
+          if (topDestinations.length === 0) return null;
+          return (
+            <HorizontalScrollRow 
+              title="Trending destinations"
+              onTitleClick={() => navigate('/search')}
+            >
+              {topDestinations.map((dest: any, index: number) => (
+                <RankedCard
+                  key={dest.id}
+                  rank={index + 1}
+                  image={dest.cover_image}
+                  name={dest.name}
+                  subtitle={dest.country_name}
+                  onClick={() => {
+                    setSelectedCity(dest.name);
+                    try { localStorage.setItem("swam_selected_city", dest.name); } catch {}
+                    navigate(`/?city=${encodeURIComponent(dest.name)}`);
+                  }}
+                />
+              ))}
+            </HorizontalScrollRow>
+          );
+        }
       })()}
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
