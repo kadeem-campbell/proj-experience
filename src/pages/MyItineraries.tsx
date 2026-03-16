@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useProductListings } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useProductListings";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useDestinations, useActivityTypes } from "@/hooks/useProducts";
 import catBeaches from "@/assets/cat-beaches.png";

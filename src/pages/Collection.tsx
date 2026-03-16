@@ -2,10 +2,10 @@ import { useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
-import { ExperienceCard } from "@/components/ExperienceCard";
+import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { usePublicItineraries } from "@/hooks/usePublicItineraries";
-import { useProductListings } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useProductListings";
 import { ArrowLeft, Layers, Heart, Search, MapPin, Plus, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -113,7 +113,7 @@ const CollectionPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: publicItinerariesList = [], isLoading: itinerariesLoading } = usePublicItineraries();
-  const allExperiences = useProductListings();
+  const productListings = useProductListings();
 
   // Fetch destinations for city filtering
   const { data: destinations = [] } = useQuery({
@@ -126,7 +126,7 @@ const CollectionPage = () => {
   });
 
   const { data: dbCollection, isLoading: dbCollectionLoading } = useQuery({
-    queryKey: ["unified-collection", slug, publicItinerariesList.length, allExperiences.length],
+    queryKey: ["unified-collection", slug, publicItinerariesList.length, productListings.length],
     enabled: !!slug,
     queryFn: async () => {
       const { data: collectionRow } = await supabase
@@ -185,13 +185,13 @@ const CollectionPage = () => {
         const allExpIds = [...new Set([...itemExpIds, ...ceExpIds])];
 
         let linkedItems = allExpIds
-          .map((id: string) => allExperiences.find((e: any) => e.id === id))
+          .map((id: string) => productListings.find((product) => product.id === id))
           .filter(Boolean);
 
         if (linkedItems.length === 0) {
-          linkedItems = allExperiences;
+          linkedItems = productListings;
           if (collectionRow.city_id) {
-            linkedItems = linkedItems.filter((e: any) => e.cityId === collectionRow.city_id);
+            linkedItems = linkedItems.filter((product) => product.cityId === collectionRow.city_id);
           }
           linkedItems = linkedItems.slice(0, 30);
         }
@@ -354,7 +354,7 @@ const CollectionPage = () => {
               {filteredItems.map((item: any) =>
                 contentType === 'itineraries'
                   ? <PublicItineraryCard key={item.id} itinerary={item} />
-                  : <ExperienceCard key={item.id} {...item} compact />
+                  : <ProductCard key={item.id} {...item} compact />
               )}
             </div>
             {filteredItems.length === 0 && <div className="text-center py-16"><p className="text-muted-foreground">No items found</p></div>}

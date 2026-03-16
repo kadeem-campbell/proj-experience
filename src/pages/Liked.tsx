@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { MobileShell } from "@/components/MobileShell";
-import { ExperienceCard } from "@/components/ExperienceCard";
+import { ProductCard } from "@/components/ProductCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { Button } from "@/components/ui/button";
 import { useUserLikes } from "@/hooks/useUserLikes";
@@ -44,7 +44,7 @@ const LikedPage = () => {
                   <h2 className="text-base font-bold mb-3">Experiences ({likedExperiences.length})</h2>
                   <div className="grid grid-cols-2 gap-3">
                     {likedExperiences.map((like) => (
-                      <ExperienceCard
+                      <ProductCard
                         key={like.id}
                         id={like.item_data.id || like.item_id}
                         title={like.item_data.title || "Experience"}
@@ -120,7 +120,7 @@ const LikedPage = () => {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {likedExperiences.map((like) => (
-                    <ExperienceCard
+                    <ProductCard
                       key={like.id}
                       id={like.item_data.id || like.item_id}
                       title={like.item_data.title || "Experience"}

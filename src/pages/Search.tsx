@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { SEOHead, createWebsiteJsonLd } from "@/components/SEOHead";
 import { MainLayout } from "@/components/layouts/MainLayout";
-import { ExperienceCard } from "@/components/ExperienceCard";
+import { ProductCard } from "@/components/ProductCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { FixedSearchHeader } from "@/components/FixedSearchHeader";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
@@ -13,7 +13,7 @@ import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { Button } from "@/components/ui/button";
 import { City, cities as browseDataCities } from "@/data/browseData";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useProductListings } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useProductListings";
 import { Compass, Map, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -404,7 +404,7 @@ const SearchPage = () => {
               <DesktopScrollRow title={selectedCity ? `${selectedCity.name} — Available next weekend` : "Available next weekend"} variant="experience" onViewAll={() => navigate("/things-to-do")}>
                 {cityFilteredExperiences.slice(0, 8).map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
-                    <ExperienceCard {...exp} compact />
+                    <ProductCard {...exp} compact />
                   </div>
                 ))}
               </DesktopScrollRow>
@@ -424,7 +424,7 @@ const SearchPage = () => {
               <DesktopScrollRow title="Adventure awaits" variant="experience" onViewAll={() => navigate("/things-to-do")}>
                 {adventureExps.map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
-                    <ExperienceCard {...exp} compact />
+                    <ProductCard {...exp} compact />
                   </div>
                 ))}
               </DesktopScrollRow>
@@ -444,7 +444,7 @@ const SearchPage = () => {
               <DesktopScrollRow title="Taste the local flavors" variant="experience" onViewAll={() => navigate("/things-to-do")}>
                 {foodExps.map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
-                    <ExperienceCard {...exp} compact />
+                    <ProductCard {...exp} compact />
                   </div>
                 ))}
               </DesktopScrollRow>
@@ -464,7 +464,7 @@ const SearchPage = () => {
               <DesktopScrollRow title="Beach vibes" variant="experience" onViewAll={() => navigate("/things-to-do")}>
                 {beachExps.map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
-                    <ExperienceCard {...exp} compact />
+                    <ProductCard {...exp} compact />
                   </div>
                 ))}
               </DesktopScrollRow>
@@ -488,7 +488,7 @@ const SearchPage = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6">
               {filteredExperiences.map((experience) => (
-                <ExperienceCard key={experience.id} {...experience} compact />
+                <ProductCard key={experience.id} {...experience} compact />
               ))}
             </div>
 
