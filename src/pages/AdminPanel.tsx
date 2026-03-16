@@ -80,6 +80,8 @@ const AdminPanel = () => {
       case 'redirects': return <AdminRedirectsSection />;
       case 'graph': return <AdminGraphInspector />;
       case 'notifications': return <AdminNotificationsSection />;
+      case 'governance': return <AdminGovernanceGates />;
+      case 'feed_contracts': return <AdminFeedContracts />;
       case 'bulk': return <AdminBulkOps />;
       case 'json': return <AdminJsonTools />;
       case 'legacy': return <AdminLegacySection />;
