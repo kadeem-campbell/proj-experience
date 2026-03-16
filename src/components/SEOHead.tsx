@@ -5,7 +5,10 @@ import { indexabilityToRobots } from "@/services/canonicalRegistry";
 interface SEOHeadProps {
   title: string;
   description: string;
+  /** Preferred: explicit canonical path like "/things-to-do/zanzibar/sunset-cruise" */
   canonicalPath?: string;
+  /** @deprecated Use canonicalPath instead */
+  url?: string;
   image?: string;
   type?: "website" | "article";
   jsonLd?: Record<string, any>;
