@@ -516,18 +516,71 @@ export const MobileHomeView = () => {
         </div>
       ) : (
       <>
-      {/* Dynamic collection-driven carousels — filtered by selected destination */}
+      {/* Dynamic collection-driven carousels — with ranked row injected at position 3 */}
       {homeCarousels.length > 0 ? (
-        homeCarousels
-          .filter((carousel) => {
-            // If carousel has no destination restrictions → show always
+        (() => {
+          const filteredCarousels = homeCarousels.filter((carousel) => {
             if (carousel.destinationIds.length === 0) return true;
-            // If no city selected → show all carousels
             if (!selectedDestId) return true;
-            // Only show if the carousel is assigned to the selected destination
             return carousel.destinationIds.includes(selectedDestId);
-          })
-          .map((carousel) => {
+          });
+
+          // Build ranked row element
+          const destSlug = selectedCity ? slugify(selectedCity) : '';
+          const rankedRow = selectedDestId ? (() => {
+            const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
+            if (cityPois.length === 0) return null;
+            return (
+              <HorizontalScrollRow 
+                key="ranked-pois"
+                title={`Top spots in ${selectedCity}`}
+                onTitleClick={() => navigate(`/${destSlug}`)}
+              >
+                {cityPois.slice(0, 10).map((poi: any, index: number) => (
+                  <RankedCard
+                    key={poi.id}
+                    rank={index + 1}
+                    image={poi.cover_image}
+                    name={poi.name}
+                    subtitle={poi.poi_type}
+                    onClick={() => navigate(`/things-to-do/${destSlug}/${poi.slug}`)}
+                  />
+                ))}
+              </HorizontalScrollRow>
+            );
+          })() : (() => {
+            const topDestinations = allDestinations.slice(0, 10);
+            if (topDestinations.length === 0) return null;
+            return (
+              <HorizontalScrollRow 
+                key="ranked-destinations"
+                title="Trending destinations"
+                onTitleClick={() => navigate('/search')}
+              >
+                {topDestinations.map((dest: any, index: number) => (
+                  <RankedCard
+                    key={dest.id}
+                    rank={index + 1}
+                    image={dest.cover_image}
+                    name={dest.name}
+                    subtitle={dest.country_name}
+                    onClick={() => {
+                      setSelectedCity(dest.name);
+                      try { localStorage.setItem("swam_selected_city", dest.name); } catch {}
+                      navigate(`/?city=${encodeURIComponent(dest.name)}`);
+                    }}
+                  />
+                ))}
+              </HorizontalScrollRow>
+            );
+          })();
+
+          // Render carousels with ranked row spliced in at index 2 (3rd position)
+          const elements: React.ReactNode[] = [];
+          filteredCarousels.forEach((carousel, idx) => {
+            // Insert ranked row before the 3rd carousel
+            if (idx === 2 && rankedRow) elements.push(rankedRow);
+
             const title = carousel.name.replace('{city}', selectedCity || 'your city');
             const resolvedSlug = carousel.slug.replace('city', selectedCity ? slugify(selectedCity) : 'city');
           
@@ -535,12 +588,12 @@ export const MobileHomeView = () => {
               const items = carousel.itemIds.length > 0
                 ? categoryItineraries.filter(it => carousel.itemIds.includes(it.dbId || it.id))
                 : categoryItineraries.slice(0, 6);
-              if (items.length === 0) return null;
-              return (
+              if (items.length === 0) return;
+              elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
                   title={activeCategory ? `${catLabel} — ${title}` : title}
-                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
+                  onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 8).map((itinerary) => (
                     <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -551,8 +604,8 @@ export const MobileHomeView = () => {
               const items = carousel.itemIds.length > 0
                 ? categoryExperiences.filter(exp => carousel.itemIds.includes(exp.id))
                 : categoryExperiences.slice(0, 8);
-              if (items.length === 0) return null;
-              return (
+              if (items.length === 0) return;
+              elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
                   title={activeCategory ? `${catLabel} — ${title}` : title}
@@ -564,7 +617,11 @@ export const MobileHomeView = () => {
                 </HorizontalScrollRow>
               );
             }
-          })
+          });
+          // If fewer than 3 carousels, append ranked row at the end
+          if (filteredCarousels.length < 3 && rankedRow) elements.push(rankedRow);
+          return <>{elements}</>;
+        })()
       ) : (
         <>
           {categoryItineraries.length > 0 && (
