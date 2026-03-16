@@ -38,7 +38,7 @@ export const SidebarItineraryCTA = ({ collapsed = false }: SidebarItineraryCTAPr
     if (itineraries.length === 1) {
       navigate(`/trip/${itineraries[0].id}`);
     } else {
-      navigate('/itinerary');
+      navigate('/my-trips');
     }
   };
 

@@ -43,7 +43,7 @@ export const Navigation = () => {
                   Experiences
                 </Link>
                 {!HIDDEN_NAV_ITEMS.map && (
-                  <Link to="/map" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link to="/zanzibar/map" className="text-muted-foreground hover:text-foreground transition-colors">
                     Map
                   </Link>
                 )}
