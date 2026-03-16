@@ -77,8 +77,8 @@ export const PublicItineraryCard = ({ itinerary }: PublicItineraryCardProps) => 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image container */}
-        <div className="relative overflow-hidden rounded-xl bg-muted aspect-[3/2]">
+        {/* Image container — matches experience card 4:3 */}
+        <div className="relative overflow-hidden rounded-xl bg-muted aspect-[4/3]">
           {/* Skeleton shimmer */}
           {!imageLoaded && (
             <div className="absolute inset-0 bg-muted animate-pulse" />

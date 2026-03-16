@@ -151,34 +151,9 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Experience card with + button
+// Experience card — no heart on homepage, action menu top-right
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
-  const [localLiked, setLocalLiked] = useState(false);
-  const [showTick, setShowTick] = useState(false);
-  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
-
-  const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked;
-
-  const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    if (isAuthenticated) {
-      await toggleDbLike(experience.id, 'experience', {
-        id: experience.id, title: experience.title,
-        videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category
-      });
-    } else {
-      setLocalLiked(!localLiked);
-    }
-  };
-
-  const handleAdded = () => {
-    setShowTick(true);
-    setTimeout(() => setShowTick(false), 1500);
-  };
 
   return (
     <div 
@@ -189,35 +164,24 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         {experience.videoThumbnail ? (
           <img src={experience.videoThumbnail} alt={experience.title} loading="lazy" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-experience-color/20 to-experience-color/5" />
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
-        <button onClick={handleLikeClick} className={cn(
-          "absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full backdrop-blur-2xl shadow-lg transition-all duration-150 active:scale-90",
-          liked ? "bg-black/40 border border-white/10" : "bg-white/10 border border-white/15"
-        )}>
-          <Heart className={cn("w-4 h-4 transition-all duration-150", liked ? "fill-primary text-primary" : "text-white/90")} />
-        </button>
-        <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
-          <ItinerarySelector
-            experienceId={experience.id}
-            experienceData={{
+        <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <CardActionMenu
+            entityId={experience.id}
+            entityType="experience"
+            entityData={{
               id: experience.id, title: experience.title, creator: experience.creator || '',
               videoThumbnail: experience.videoThumbnail || '', category: experience.category || '',
               location: experience.location || '', price: experience.price || '',
             }}
-            onAdd={handleAdded}
+            title={experience.title}
+            slug={(experience as any).slug}
           >
-            <button className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm transition-all duration-150 active:scale-90",
-              showTick ? "bg-primary/90" : "bg-white/80"
-            )}>
-              {showTick ? (
-                <Check className="w-4 h-4 text-white" />
-              ) : (
-                <Plus className="w-4 h-4 text-foreground" />
-              )}
+            <button className="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-2xl border border-white/15 shadow-lg transition-all duration-150 active:scale-90">
+              <Bookmark className="w-3.5 h-3.5 text-white/90" />
             </button>
-          </ItinerarySelector>
+          </CardActionMenu>
         </div>
       </div>
       <div className="mt-2 space-y-0.5">
