@@ -8,265 +8,244 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Upload, CreditCard, Phone, User, ChevronRight, ChevronLeft } from "lucide-react";
+import { MapPin, Upload, CreditCard, Phone, User, ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useCategories, useCities } from "@/hooks/useAppData";
+import { useDestinations, useAreas, useActivityTypes, useThemes, useHosts } from "@/hooks/useProducts";
+import { validateProduct, type PublishValidationResult } from "@/services/publishValidator";
+import { cn } from "@/lib/utils";
 
-type FormStep = 'basic' | 'location' | 'media' | 'host' | 'additional' | 'review' | 'auth' | 'confirmation';
+type FormStep = 'basic' | 'location' | 'options' | 'host' | 'media' | 'review' | 'auth' | 'confirmation';
+
+const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
 export default function CreateExperience() {
-  const { user, isAuthenticated, isCreator } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: dbCategories = [] } = useCategories();
-  const { data: dbCities = [] } = useCities();
+  const { data: destinations = [] } = useDestinations();
+  const { data: activityTypes = [] } = useActivityTypes();
+  const { data: themes = [] } = useThemes();
+  const { data: allHosts = [] } = useHosts();
+  const [selectedDestId, setSelectedDestId] = useState('');
+  const { data: areas = [] } = useAreas(selectedDestId || undefined);
+
   const [currentStep, setCurrentStep] = useState<FormStep>('basic');
-  const [formData, setFormData] = useState({
+  const [saving, setSaving] = useState(false);
+  const [validationResult, setValidationResult] = useState<PublishValidationResult | null>(null);
+
+  const [form, setForm] = useState({
     title: '',
     description: '',
-    address: '',
-    city: '',
-    region: '',
-    photos: [] as File[],
-    videoUrl: '',
-    hostName: '',
-    hostEmail: '',
-    hostPhone: '',
-    category: '',
-    price: '',
-    capacity: '',
+    destinationId: '',
+    areaId: '',
+    activityTypeId: '',
+    themeIds: [] as string[],
+    tier: 'standard',
+    formatType: 'shared',
     duration: '',
-    schedule: ''
+    bestTime: '',
+    weather: '',
+    coverImage: '',
+    videoUrl: '',
+    // Option
+    optionName: 'Standard Experience',
+    optionTier: 'standard',
+    optionFormat: 'shared',
+    optionDuration: '',
+    optionGroupSize: '',
+    // Price
+    priceAmount: '',
+    priceCurrency: 'USD',
+    priceLabel: 'Adult',
+    // Host
+    hostId: '',
+    // Highlights
+    highlights: '',
   });
 
-  // Input validation functions
-  const validateTitle = (title: string) => {
-    return title.length >= 3 && title.length <= 100;
-  };
-
-  const validatePrice = (price: string) => {
-    const numPrice = parseFloat(price);
-    return !isNaN(numPrice) && numPrice >= 0 && numPrice <= 10000;
-  };
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validateUrl = (url: string) => {
-    if (!url) return true; // Optional field
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const sanitizeInput = (input: string) => {
-    return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').trim();
-  };
-
-  const steps: { id: FormStep; title: string; icon: any }[] = [
-    { id: 'basic', title: 'Basic Info', icon: User },
-    { id: 'location', title: 'Location', icon: MapPin },
-    { id: 'media', title: 'Media', icon: Upload },
-    { id: 'host', title: 'Host Details', icon: User },
-    { id: 'additional', title: 'Additional Info', icon: User },
-    { id: 'review', title: 'Review', icon: User },
-    { id: 'auth', title: 'Sign Up/Login', icon: User }
+  const steps: { id: FormStep; title: string }[] = [
+    { id: 'basic', title: 'Basic Info' },
+    { id: 'location', title: 'Location' },
+    { id: 'options', title: 'Options & Pricing' },
+    { id: 'host', title: 'Host' },
+    { id: 'media', title: 'Media' },
+    { id: 'review', title: 'Review & Publish' },
   ];
 
-  // Start with basic info, handle auth at the end
   useEffect(() => {
-    // Remove any redirects, let users start the flow
-  }, []);
+    if (form.destinationId && form.destinationId !== selectedDestId) {
+      setSelectedDestId(form.destinationId);
+    }
+  }, [form.destinationId]);
+
+  const set = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
   const nextStep = () => {
-    const stepIndex = steps.findIndex(step => step.id === currentStep);
-    if (stepIndex < steps.length - 1) {
-      setCurrentStep(steps[stepIndex + 1].id as FormStep);
-    }
+    const idx = steps.findIndex(s => s.id === currentStep);
+    if (idx < steps.length - 1) setCurrentStep(steps[idx + 1].id);
+  };
+  const prevStep = () => {
+    const idx = steps.findIndex(s => s.id === currentStep);
+    if (idx > 0) setCurrentStep(steps[idx - 1].id);
   };
 
-  const handleCreateExperience = async (isDraft = false) => {
-    // Check if user is authenticated first
-    if (!isAuthenticated) {
-      setCurrentStep('auth');
-      return;
-    }
-
-    // Auto-switch to creator if needed via edge function
-    if (!isCreator) {
-      try {
-        const { data, error } = await supabase.functions.invoke('change-role', {
-          body: { role: 'creator' }
-        });
-
-        if (error) throw error;
-        
-        toast({
-          title: "Role Updated",
-          description: "You've been switched to creator mode!",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to switch to creator mode.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    // Validate inputs before submission
-    if (!validateTitle(formData.title)) {
-      toast({
-        title: "Validation Error",
-        description: "Title must be between 3 and 100 characters.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!validatePrice(formData.price)) {
-      toast({
-        title: "Validation Error", 
-        description: "Price must be a valid number between 0 and 10,000.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (formData.hostEmail && !validateEmail(formData.hostEmail)) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a valid email address.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!validateUrl(formData.videoUrl)) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a valid URL for the video.",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handlePublish = async () => {
+    if (!isAuthenticated) { setCurrentStep('auth'); return; }
+    setSaving(true);
 
     try {
-      // Experiences table doesn't exist yet - just show success message
-      toast({
-        title: "Success!",
-        description: isDraft 
-          ? "Your experience has been saved as draft. (Demo mode - database table not yet created)"
-          : "Your experience has been created successfully. (Demo mode - database table not yet created)"
-      });
+      const slug = toSlug(form.title);
 
-      setCurrentStep('confirmation');
-    } catch (error) {
-      console.error('Error creating experience:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create experience. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
+      // 1. Create Product
+      const { data: product, error: pErr } = await (supabase as any)
+        .from("products")
+        .insert({
+          title: form.title,
+          slug,
+          description: form.description,
+          destination_id: form.destinationId || null,
+          area_id: form.areaId || null,
+          activity_type_id: form.activityTypeId || null,
+          tier: form.tier,
+          format_type: form.formatType,
+          duration: form.duration,
+          best_time: form.bestTime,
+          weather: form.weather,
+          cover_image: form.coverImage,
+          video_url: form.videoUrl,
+          highlights: form.highlights ? form.highlights.split('\n').filter(Boolean) : [],
+          is_active: true,
+          is_indexable: false, // starts as noindex until validated
+          publish_score: 0,
+        })
+        .select("id")
+        .single();
 
-  const prevStep = () => {
-    const stepIndex = steps.findIndex(step => step.id === currentStep);
-    if (stepIndex > 0) {
-      setCurrentStep(steps[stepIndex - 1].id as FormStep);
-    }
-  };
+      if (pErr) throw pErr;
+      const productId = product.id;
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 'auth':
-        return (
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Almost There!</h2>
-            <div className="text-center space-y-6">
-              <p className="text-muted-foreground">
-                To publish your experience, please sign up or log in.
-              </p>
-              
-              {!isAuthenticated ? (
-                <div className="space-y-4">
-                  <Link to="/auth">
-                    <Button size="lg" className="w-full">
-                      Sign Up / Log In
-                    </Button>
-                  </Link>
-                  <p className="text-sm text-muted-foreground">
-                    Your experience details have been saved.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-green-600">✓ You're logged in!</p>
-                  <Button onClick={() => handleCreateExperience(false)} size="lg" className="w-full">
-                    Publish Experience
-                  </Button>
-                </div>
-              )}
-            </div>
-          </Card>
+      // 2. Create Option
+      const { data: option, error: oErr } = await (supabase as any)
+        .from("options")
+        .insert({
+          product_id: productId,
+          name: form.optionName,
+          slug: slug + '-standard',
+          tier: form.optionTier,
+          format_type: form.optionFormat,
+          duration: form.optionDuration || form.duration,
+          group_size: form.optionGroupSize,
+        })
+        .select("id")
+        .single();
+
+      if (oErr) throw oErr;
+
+      // 3. Create PriceOption
+      if (form.priceAmount) {
+        await (supabase as any).from("price_options").insert({
+          option_id: option.id,
+          amount: parseFloat(form.priceAmount) || 0,
+          currency: form.priceCurrency,
+          label: form.priceLabel,
+        });
+      }
+
+      // 4. Link Host
+      if (form.hostId) {
+        await (supabase as any).from("product_hosts").insert({
+          product_id: productId,
+          host_id: form.hostId,
+          is_primary: true,
+        });
+      }
+
+      // 5. Link Themes
+      if (form.themeIds.length > 0) {
+        await (supabase as any).from("product_themes").insert(
+          form.themeIds.map(tid => ({ product_id: productId, theme_id: tid }))
         );
+      }
 
+      // 6. Also write to legacy experiences for compatibility
+      const dest = destinations.find(d => d.id === form.destinationId);
+      await (supabase as any).from("experiences").insert({
+        title: form.title,
+        slug,
+        description: form.description,
+        category: activityTypes.find(a => a.id === form.activityTypeId)?.name || 'Adventure',
+        location: dest?.name || '',
+        price: form.priceAmount ? `$${form.priceAmount}` : '',
+        duration: form.duration,
+        creator: allHosts.find(h => h.id === form.hostId)?.display_name || '',
+        city_id: dest?.legacy_city_id || null,
+        video_url: form.videoUrl,
+        video_thumbnail: form.coverImage,
+        highlights: form.highlights ? form.highlights.split('\n').filter(Boolean) : [],
+        is_active: true,
+      });
+
+      toast({ title: "Experience Created", description: `"${form.title}" has been created with option and pricing.` });
+      setCurrentStep('confirmation');
+    } catch (err: any) {
+      console.error("Create failed:", err);
+      toast({ title: "Error", description: err.message || "Failed to create experience.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
       case 'basic':
         return (
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Basic Information</h2>
-            <div className="space-y-6">
+          <Card className="p-6 space-y-4">
+            <h2 className="text-xl font-bold">Basic Information</h2>
+            <div>
+              <Label>Title</Label>
+              <Input placeholder="e.g., Sunset Jet Ski Adventure" value={form.title} onChange={e => set('title', e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea placeholder="Describe this experience..." value={form.description} onChange={e => set('description', e.target.value)} className="mt-1 min-h-[100px]" />
+            </div>
+            <div>
+              <Label>Activity Type</Label>
+              <Select value={form.activityTypeId} onValueChange={v => set('activityTypeId', v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select activity type" /></SelectTrigger>
+                <SelectContent>
+                  {activityTypes.map(at => (
+                    <SelectItem key={at.id} value={at.id}>{at.emoji} {at.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Highlights (one per line)</Label>
+              <Textarea placeholder="Crystal clear waters&#10;Professional guides&#10;Equipment included" value={form.highlights} onChange={e => set('highlights', e.target.value)} className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="title">Experience Title</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., Sunset Jet Ski Adventure"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="mt-2"
-                />
+                <Label>Duration</Label>
+                <Input placeholder="2 hours" value={form.duration} onChange={e => set('duration', e.target.value)} className="mt-1" />
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Describe your experience in detail..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="mt-2 min-h-[120px]"
-                />
+                <Label>Best Time</Label>
+                <Input placeholder="Morning" value={form.bestTime} onChange={e => set('bestTime', e.target.value)} className="mt-1" />
               </div>
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dbCategories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.name}>{cat.emoji} {cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleCreateExperience(true)}
-                  className="w-full"
-                >
-                  Finish Later (Save as Draft)
-                </Button>
+            </div>
+            <div>
+              <Label>Themes</Label>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {themes.map(t => (
+                  <Badge key={t.id} variant={form.themeIds.includes(t.id) ? "default" : "outline"} className="cursor-pointer"
+                    onClick={() => set('themeIds', form.themeIds.includes(t.id) ? form.themeIds.filter(id => id !== t.id) : [...form.themeIds, t.id])}>
+                    {t.emoji} {t.name}
+                  </Badge>
+                ))}
               </div>
             </div>
           </Card>
@@ -274,98 +253,95 @@ export default function CreateExperience() {
 
       case 'location':
         return (
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Location Details</h2>
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="address">Street Address</Label>
-                <Input
-                  id="address"
-                  placeholder="123 Beach Road"
-                  value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  className="mt-2"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="city">City</Label>
-                    <Select value={formData.city} onValueChange={(value) => setFormData({...formData, city: value})}>
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Select city" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dbCities.map((city) => (
-                          <SelectItem key={city.id} value={city.name}>{city.flag_emoji} {city.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                </div>
-                <div>
-                  <Label htmlFor="region">Region</Label>
-                  <Select value={formData.region} onValueChange={(value) => setFormData({...formData, region: value})}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Select region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {dbCities.map((city) => (
-                        <SelectItem key={city.id} value={city.name}>{city.flag_emoji} {city.name}, {city.country}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleCreateExperience(true)}
-                  className="w-full"
-                >
-                  Finish Later (Save as Draft)
-                </Button>
-              </div>
+          <Card className="p-6 space-y-4">
+            <h2 className="text-xl font-bold">Location</h2>
+            <div>
+              <Label>Destination</Label>
+              <Select value={form.destinationId} onValueChange={v => { set('destinationId', v); set('areaId', ''); }}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select destination" /></SelectTrigger>
+                <SelectContent>
+                  {destinations.map(d => (
+                    <SelectItem key={d.id} value={d.id}>{d.flag_emoji} {d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            {areas.length > 0 && (
+              <div>
+                <Label>Area</Label>
+                <Select value={form.areaId} onValueChange={v => set('areaId', v)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select area (optional)" /></SelectTrigger>
+                  <SelectContent>
+                    {areas.map(a => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </Card>
         );
 
-      case 'media':
+      case 'options':
         return (
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Media Upload</h2>
-            <div className="space-y-6">
+          <Card className="p-6 space-y-4">
+            <h2 className="text-xl font-bold">Options & Pricing</h2>
+            <div>
+              <Label>Option Name</Label>
+              <Input value={form.optionName} onChange={e => set('optionName', e.target.value)} className="mt-1" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Photos</Label>
-                <div className="mt-2 border-2 border-dashed border-border rounded-lg p-8 text-center">
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground mb-2">Drop your photos here or click to browse</p>
-                  <p className="text-sm text-muted-foreground">Maximum 10 photos, up to 5MB each</p>
-                  <Button variant="outline" className="mt-4">
-                    Choose Files
-                  </Button>
-                </div>
+                <Label>Tier</Label>
+                <Select value={form.optionTier} onValueChange={v => set('optionTier', v)}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['basic','standard','premium','luxury'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
-              <Separator />
               <div>
-                <Label htmlFor="videoUrl">Video URL (Optional)</Label>
-                <Input
-                  id="videoUrl"
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  value={formData.videoUrl}
-                  onChange={(e) => setFormData({...formData, videoUrl: e.target.value})}
-                  className="mt-2"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  YouTube, Vimeo, or direct video links supported
-                </p>
+                <Label>Format</Label>
+                <Select value={form.optionFormat} onValueChange={v => set('optionFormat', v)}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['private','shared','group','self-guided','hosted'].map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleCreateExperience(true)}
-                  className="w-full"
-                >
-                  Finish Later (Save as Draft)
-                </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Group Size</Label>
+                <Input placeholder="Up to 8" value={form.optionGroupSize} onChange={e => set('optionGroupSize', e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label>Option Duration</Label>
+                <Input placeholder="2 hours" value={form.optionDuration} onChange={e => set('optionDuration', e.target.value)} className="mt-1" />
+              </div>
+            </div>
+            <Separator />
+            <h3 className="font-semibold">Pricing</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Amount</Label>
+                <Input type="number" placeholder="50" value={form.priceAmount} onChange={e => set('priceAmount', e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label>Currency</Label>
+                <Select value={form.priceCurrency} onValueChange={v => set('priceCurrency', v)}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="TZS">TZS</SelectItem>
+                    <SelectItem value="KES">KES</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Label</Label>
+                <Input value={form.priceLabel} onChange={e => set('priceLabel', e.target.value)} className="mt-1" />
               </div>
             </div>
           </Card>
@@ -373,274 +349,108 @@ export default function CreateExperience() {
 
       case 'host':
         return (
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Host Information</h2>
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="hostName">Host Name</Label>
-                <Input
-                  id="hostName"
-                  placeholder="John Doe"
-                  value={formData.hostName}
-                  onChange={(e) => setFormData({...formData, hostName: e.target.value})}
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="hostEmail">Contact Email</Label>
-                <Input
-                  id="hostEmail"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={formData.hostEmail}
-                  onChange={(e) => setFormData({...formData, hostEmail: e.target.value})}
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="hostPhone">Phone Number</Label>
-                <Input
-                  id="hostPhone"
-                  type="tel"
-                  placeholder="+255 123 456 789"
-                  value={formData.hostPhone}
-                  onChange={(e) => setFormData({...formData, hostPhone: e.target.value})}
-                  className="mt-2"
-                />
-              </div>
-              <div className="pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleCreateExperience(true)}
-                  className="w-full"
-                >
-                  Finish Later (Save as Draft)
-                </Button>
-              </div>
+          <Card className="p-6 space-y-4">
+            <h2 className="text-xl font-bold">Host</h2>
+            <div>
+              <Label>Select Host</Label>
+              <Select value={form.hostId} onValueChange={v => set('hostId', v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select host" /></SelectTrigger>
+                <SelectContent>
+                  {allHosts.map(h => (
+                    <SelectItem key={h.id} value={h.id}>{h.display_name || h.username}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </Card>
         );
 
-      case 'additional':
+      case 'media':
         return (
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Additional Details</h2>
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="price">Price per Person</Label>
-                  <Input
-                    id="price"
-                    placeholder="50"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="capacity">Max Capacity</Label>
-                  <Input
-                    id="capacity"
-                    placeholder="8"
-                    value={formData.capacity}
-                    onChange={(e) => setFormData({...formData, capacity: e.target.value})}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="duration">Duration</Label>
-                <Input
-                  id="duration"
-                  placeholder="2 hours"
-                  value={formData.duration}
-                  onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="schedule">Schedule/Availability</Label>
-                <Textarea
-                  id="schedule"
-                  placeholder="Daily at 9:00 AM and 2:00 PM"
-                  value={formData.schedule}
-                  onChange={(e) => setFormData({...formData, schedule: e.target.value})}
-                  className="mt-2"
-                />
-              </div>
-              <div className="pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleCreateExperience(true)}
-                  className="w-full"
-                >
-                  Finish Later (Save as Draft)
-                </Button>
-              </div>
+          <Card className="p-6 space-y-4">
+            <h2 className="text-xl font-bold">Media</h2>
+            <div>
+              <Label>Cover Image URL</Label>
+              <Input placeholder="https://..." value={form.coverImage} onChange={e => set('coverImage', e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label>Video URL (optional)</Label>
+              <Input placeholder="https://youtube.com/..." value={form.videoUrl} onChange={e => set('videoUrl', e.target.value)} className="mt-1" />
             </div>
           </Card>
         );
 
       case 'review':
         return (
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Review Your Experience</h2>
-            <div className="space-y-6">
-              <div className="grid gap-4">
-                <div>
-                  <h3 className="font-semibold">Basic Information</h3>
-                  <p><strong>Title:</strong> {formData.title}</p>
-                  <p><strong>Category:</strong> {formData.category}</p>
-                  <p><strong>Description:</strong> {formData.description}</p>
-                </div>
-                <Separator />
-                <div>
-                  <h3 className="font-semibold">Location</h3>
-                  <p><strong>Address:</strong> {formData.address}</p>
-                  <p><strong>City:</strong> {formData.city}</p>
-                  <p><strong>Region:</strong> {formData.region}</p>
-                </div>
-                <Separator />
-                <div>
-                  <h3 className="font-semibold">Host Details</h3>
-                  <p><strong>Name:</strong> {formData.hostName}</p>
-                  <p><strong>Email:</strong> {formData.hostEmail}</p>
-                  <p><strong>Phone:</strong> {formData.hostPhone}</p>
-                </div>
-                <Separator />
-                <div>
-                  <h3 className="font-semibold">Pricing & Details</h3>
-                  <p><strong>Price:</strong> ${formData.price} per person</p>
-                  <p><strong>Capacity:</strong> {formData.capacity} people</p>
-                  <p><strong>Duration:</strong> {formData.duration}</p>
-                </div>
-              </div>
-              <div className="pt-4">
-                <Button 
-                  onClick={() => handleCreateExperience(false)} 
-                  className="w-full" 
-                  size="lg"
-                >
-                  {isAuthenticated ? 'Create Experience' : 'Sign Up & Create Experience'}
-                </Button>
-              </div>
+          <Card className="p-6 space-y-4">
+            <h2 className="text-xl font-bold">Review & Publish</h2>
+            <div className="space-y-2 text-sm">
+              <p><strong>Title:</strong> {form.title}</p>
+              <p><strong>Destination:</strong> {destinations.find(d => d.id === form.destinationId)?.name || 'None'}</p>
+              <p><strong>Activity:</strong> {activityTypes.find(a => a.id === form.activityTypeId)?.name || 'None'}</p>
+              <p><strong>Option:</strong> {form.optionName} ({form.optionTier} / {form.optionFormat})</p>
+              <p><strong>Price:</strong> {form.priceAmount ? `${form.priceCurrency} ${form.priceAmount}` : 'Not set'}</p>
+              <p><strong>Host:</strong> {allHosts.find(h => h.id === form.hostId)?.display_name || 'None'}</p>
             </div>
+          </Card>
+        );
+
+      case 'auth':
+        return (
+          <Card className="p-6 text-center space-y-4">
+            <h2 className="text-xl font-bold">Sign In to Publish</h2>
+            <Link to="/auth"><Button size="lg" className="w-full">Sign Up / Log In</Button></Link>
           </Card>
         );
 
       case 'confirmation':
         return (
-          <Card className="p-8 text-center">
-            <div className="mb-6">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl">✓</span>
-              </div>
-              <h2 className="text-2xl font-bold mb-2">Experience Created Successfully!</h2>
-              <p className="text-muted-foreground">Your experience is now live and ready for bookings</p>
-            </div>
-            
-            <div className="space-y-4">
-              <Link to="/">
-                <Button className="w-full" size="lg">
-                  View All Experiences
-                </Button>
-              </Link>
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                size="lg"
-                onClick={() => {
-                  setCurrentStep('basic');
-                  setFormData({
-                    title: '',
-                    description: '',
-                    address: '',
-                    city: '',
-                    region: '',
-                    photos: [],
-                    videoUrl: '',
-                    hostName: '',
-                    hostEmail: '',
-                    hostPhone: '',
-                    category: '',
-                    price: '',
-                    capacity: '',
-                    duration: '',
-                    schedule: ''
-                  });
-                }}
-              >
-                Create Another Experience
-              </Button>
-            </div>
+          <Card className="p-6 text-center space-y-4">
+            <CheckCircle2 className="w-16 h-16 mx-auto text-primary" />
+            <h2 className="text-xl font-bold">Experience Created!</h2>
+            <p className="text-muted-foreground">Your experience has been created with normalized product, option, and pricing data.</p>
+            <Button onClick={() => navigate('/admin')}>Go to Admin</Button>
           </Card>
         );
-
-      default:
-        return null;
     }
   };
+
+  const stepIdx = steps.findIndex(s => s.id === currentStep);
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <div className="pt-24 px-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              {steps.map((step, index) => (
-                <div key={step.id} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    steps.findIndex(s => s.id === currentStep) >= index
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {index + 1}
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div className={`h-0.5 w-12 mx-2 ${
-                      steps.findIndex(s => s.id === currentStep) > index
-                        ? 'bg-primary'
-                        : 'bg-muted'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-muted-foreground text-center">
-              Step {steps.findIndex(step => step.id === currentStep) + 1} of {steps.length}: {steps.find(step => step.id === currentStep)?.title}
-            </p>
+      <div className="container max-w-2xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6">Create New Experience</h1>
+
+        {/* Step indicator */}
+        {currentStep !== 'confirmation' && currentStep !== 'auth' && (
+          <div className="flex gap-1 mb-6">
+            {steps.filter(s => s.id !== 'auth').map((s, i) => (
+              <div key={s.id} className={cn("h-1 flex-1 rounded-full", i <= stepIdx ? "bg-primary" : "bg-muted")} />
+            ))}
           </div>
+        )}
 
-          {/* Step Content */}
-          {renderStepContent()}
+        {renderStep()}
 
-          {/* Navigation Buttons */}
-          {currentStep !== 'confirmation' && currentStep !== 'auth' && (
-            <div className="flex justify-between mt-8">
-              <Button
-                variant="outline"
-                onClick={prevStep}
-                disabled={currentStep === 'basic'}
-                className="flex items-center gap-2"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Back
+        {/* Navigation */}
+        {!['confirmation', 'auth'].includes(currentStep) && (
+          <div className="flex justify-between mt-6">
+            <Button variant="outline" onClick={prevStep} disabled={stepIdx === 0}>
+              <ChevronLeft className="w-4 h-4 mr-1" /> Back
+            </Button>
+            {currentStep === 'review' ? (
+              <Button onClick={handlePublish} disabled={saving || !form.title}>
+                {saving ? 'Creating...' : 'Create Experience'}
               </Button>
-              
-              <Button
-                onClick={nextStep}
-                disabled={currentStep === 'review'}
-                className="flex items-center gap-2"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
+            ) : (
+              <Button onClick={nextStep}>
+                Next <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
