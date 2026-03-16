@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
+import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { Heart, Plus, Check, MapPin, ChevronUp } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
