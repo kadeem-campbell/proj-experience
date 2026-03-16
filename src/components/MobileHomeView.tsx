@@ -584,20 +584,59 @@ export const MobileHomeView = () => {
         </>
       )}
 
-      {/* POI Carousel — filtered by destination, links to POI pages */}
-      {pois.length > 0 && (() => {
+      {/* Ranked Row — 3rd carousel position */}
+      {(() => {
         const destSlug = selectedCity ? slugify(selectedCity) : '';
-        const filteredPois = selectedDestId
-          ? pois.filter((p: any) => p.destination_id === selectedDestId)
-          : pois;
-        if (filteredPois.length === 0) return null;
-        return (
-          <HorizontalScrollRow title="Places to explore">
-            {filteredPois.slice(0, 10).map((poi: any) => (
-              <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug || 'zanzibar'} />
-            ))}
-          </HorizontalScrollRow>
-        );
+        
+        if (selectedDestId) {
+          // City selected → show POIs for that city with ranked design
+          const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
+          if (cityPois.length === 0) return null;
+          return (
+            <HorizontalScrollRow 
+              title={`Top spots in ${selectedCity}`}
+              onTitleClick={() => navigate(`/${destSlug}`)}
+            >
+              {cityPois.slice(0, 10).map((poi: any, index: number) => (
+                <RankedCard
+                  key={poi.id}
+                  rank={index + 1}
+                  image={poi.cover_image}
+                  name={poi.name}
+                  subtitle={poi.poi_type}
+                  onClick={() => navigate(`/things-to-do/${destSlug}/${poi.slug}`)}
+                />
+              ))}
+            </HorizontalScrollRow>
+          );
+        } else {
+          // No city selected → show trending destinations
+          const topDestinations = allDestinations
+            .filter((d: any) => d.cover_image || true)
+            .slice(0, 10);
+          if (topDestinations.length === 0) return null;
+          return (
+            <HorizontalScrollRow 
+              title="Trending destinations"
+              onTitleClick={() => navigate('/search')}
+            >
+              {topDestinations.map((dest: any, index: number) => (
+                <RankedCard
+                  key={dest.id}
+                  rank={index + 1}
+                  image={dest.cover_image}
+                  name={dest.name}
+                  subtitle={dest.country_name}
+                  onClick={() => {
+                    setSelectedCity(dest.name);
+                    try { localStorage.setItem("swam_selected_city", dest.name); } catch {}
+                    navigate(`/?city=${encodeURIComponent(dest.name)}`);
+                  }}
+                />
+              ))}
+            </HorizontalScrollRow>
+          );
+        }
       })()}
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
