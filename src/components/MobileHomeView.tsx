@@ -309,7 +309,11 @@ const categoryLabelMap: Record<string, string> = {
 export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "");
+  const [selectedCity, setSelectedCity] = useState(() => {
+    const urlCity = searchParams.get("city");
+    if (urlCity) return urlCity;
+    try { return localStorage.getItem("swam_selected_city") || ""; } catch { return ""; }
+  });
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeCategory, setActiveCategory] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
