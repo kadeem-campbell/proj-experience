@@ -7,7 +7,7 @@ export interface HomeCarousel {
   slug: string;
   contentType: "itinerary" | "experience";
   displayOrder: number;
-  cityId: string | null;
+  destinationIds: string[]; // multi-city
   itemIds: string[];
 }
 
@@ -24,8 +24,13 @@ export const useHomeCarousels = () => {
 
       if (error || !collections) return [];
 
-      // Fetch linked items for each collection
       const collectionIds = collections.map((c: any) => c.id);
+
+      // Fetch multi-city assignments
+      const { data: cdLinks } = await (supabase as any)
+        .from("collection_destinations")
+        .select("collection_id, destination_id")
+        .in("collection_id", collectionIds);
 
       // Get experience links
       const { data: expLinks } = await (supabase as any)
@@ -39,6 +44,12 @@ export const useHomeCarousels = () => {
         .select("collection_id, item_id")
         .eq("item_type", "itinerary")
         .in("collection_id", collectionIds);
+
+      const destByCollection: Record<string, string[]> = {};
+      (cdLinks || []).forEach((l: any) => {
+        if (!destByCollection[l.collection_id]) destByCollection[l.collection_id] = [];
+        destByCollection[l.collection_id].push(l.destination_id);
+      });
 
       const expByCollection: Record<string, string[]> = {};
       (expLinks || []).forEach((l: any) => {
@@ -58,7 +69,7 @@ export const useHomeCarousels = () => {
         slug: c.slug,
         contentType: c.content_type || "itinerary",
         displayOrder: c.home_display_order || 0,
-        cityId: c.city_id,
+        destinationIds: destByCollection[c.id] || [],
         itemIds:
           c.content_type === "experience"
             ? expByCollection[c.id] || []

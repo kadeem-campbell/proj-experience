@@ -317,6 +317,22 @@ export const MobileHomeView = () => {
   const allExpsData = useExperiencesData();
   const { data: homeCarousels = [] } = useHomeCarousels();
 
+  // Fetch destinations to map selectedCity name → destination ID
+  const { data: allDestinations = [] } = useQuery({
+    queryKey: ["home-destinations"],
+    queryFn: async () => {
+      const { data } = await supabase.from("destinations").select("id, name, slug").eq("is_active", true);
+      return data || [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const selectedDestId = useMemo(() => {
+    if (!selectedCity) return null;
+    const d = allDestinations.find((d: any) => d.name.toLowerCase() === selectedCity.toLowerCase() || d.slug === selectedCity.toLowerCase());
+    return d?.id || null;
+  }, [selectedCity, allDestinations]);
+
   // POIs for third carousel
   const { data: pois = [] } = useQuery({
     queryKey: ["home-pois"],
@@ -495,45 +511,54 @@ export const MobileHomeView = () => {
         </div>
       ) : (
       <>
-      {/* Dynamic collection-driven carousels */}
+      {/* Dynamic collection-driven carousels — filtered by selected destination */}
       {homeCarousels.length > 0 ? (
-        homeCarousels.map((carousel) => {
-          const title = carousel.name.replace('{city}', selectedCity || 'your city');
+        homeCarousels
+          .filter((carousel) => {
+            // If carousel has no destination restrictions → show always
+            if (carousel.destinationIds.length === 0) return true;
+            // If no city selected → show all carousels
+            if (!selectedDestId) return true;
+            // Only show if the carousel is assigned to the selected destination
+            return carousel.destinationIds.includes(selectedDestId);
+          })
+          .map((carousel) => {
+            const title = carousel.name.replace('{city}', selectedCity || 'your city');
           
-          if (carousel.contentType === 'itinerary') {
-            const items = carousel.itemIds.length > 0
-              ? categoryItineraries.filter(it => carousel.itemIds.includes(it.dbId || it.id))
-              : categoryItineraries.slice(0, 6);
-            if (items.length === 0) return null;
-            return (
-              <HorizontalScrollRow
-                key={carousel.id}
-                title={activeCategory ? `${catLabel} — ${title}` : title}
-                onTitleClick={() => navigate(`/collections/${carousel.slug}`)}
-              >
-                {items.slice(0, 8).map((itinerary) => (
-                  <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-                ))}
-              </HorizontalScrollRow>
-            );
-          } else {
-            const items = carousel.itemIds.length > 0
-              ? categoryExperiences.filter(exp => carousel.itemIds.includes(exp.id))
-              : categoryExperiences.slice(0, 8);
-            if (items.length === 0) return null;
-            return (
-              <HorizontalScrollRow
-                key={carousel.id}
-                title={activeCategory ? `${catLabel} — ${title}` : title}
-                onTitleClick={() => navigate(`/collections/${carousel.slug}`)}
-              >
-                {items.slice(0, 10).map((experience) => (
-                  <MobileExperienceCard key={experience.id} experience={experience} />
-                ))}
-              </HorizontalScrollRow>
-            );
-          }
-        })
+            if (carousel.contentType === 'itinerary') {
+              const items = carousel.itemIds.length > 0
+                ? categoryItineraries.filter(it => carousel.itemIds.includes(it.dbId || it.id))
+                : categoryItineraries.slice(0, 6);
+              if (items.length === 0) return null;
+              return (
+                <HorizontalScrollRow
+                  key={carousel.id}
+                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  onTitleClick={() => navigate(`/collections/${carousel.slug}`)}
+                >
+                  {items.slice(0, 8).map((itinerary) => (
+                    <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
+                  ))}
+                </HorizontalScrollRow>
+              );
+            } else {
+              const items = carousel.itemIds.length > 0
+                ? categoryExperiences.filter(exp => carousel.itemIds.includes(exp.id))
+                : categoryExperiences.slice(0, 8);
+              if (items.length === 0) return null;
+              return (
+                <HorizontalScrollRow
+                  key={carousel.id}
+                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  onTitleClick={() => navigate(`/collections/${carousel.slug}`)}
+                >
+                  {items.slice(0, 10).map((experience) => (
+                    <MobileExperienceCard key={experience.id} experience={experience} />
+                  ))}
+                </HorizontalScrollRow>
+              );
+            }
+          })
       ) : (
         <>
           {categoryItineraries.length > 0 && (

@@ -285,6 +285,42 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_destinations: {
+        Row: {
+          collection_id: string
+          created_at: string | null
+          destination_id: string
+          id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string | null
+          destination_id: string
+          id?: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string | null
+          destination_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_destinations_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_destinations_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_experiences: {
         Row: {
           collection_id: string
