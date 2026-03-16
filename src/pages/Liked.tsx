@@ -44,7 +44,7 @@ const LikedPage = () => {
                   <h2 className="text-base font-bold mb-3">Experiences ({likedExperiences.length})</h2>
                   <div className="grid grid-cols-2 gap-3">
                     {likedExperiences.map((like) => (
-                      <ExperienceCard
+                      <ProductCard
                         key={like.id}
                         id={like.item_data.id || like.item_id}
                         title={like.item_data.title || "Experience"}
