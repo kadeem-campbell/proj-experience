@@ -314,7 +314,7 @@ export const MobileHomeView = () => {
   const [activeCategory, setActiveCategory] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const { data: allItinerariesData = [] } = usePublicItineraries();
-  const allExpsData = useExperiencesData();
+  const allExpsData = useProductListings();
   const { data: homeCarousels = [] } = useHomeCarousels();
 
   // Fetch destinations to map selectedCity name → destination ID

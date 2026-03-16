@@ -47,7 +47,7 @@ const AppStoreCardView = ({ experience }: AppStoreCardViewProps) => {
 
   return (
     <Link 
-      to={generateExperienceUrl(experience.location, experience.title, experience.slug)}
+      to={generateProductPageUrl(experience.location, experience.title, experience.slug)}
       className="block w-full"
     >
       <div className="relative w-full rounded-2xl overflow-hidden">

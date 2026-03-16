@@ -80,7 +80,7 @@ const MobileExpCard = ({ experience }: { experience: any }) => {
   };
 
   return (
-    <div className="cursor-pointer" onClick={() => navigate(generateExperienceUrl(experience.location || '', experience.title, experience.slug))}>
+    <div className="cursor-pointer" onClick={() => navigate(generateProductPageUrl(experience.location || '', experience.title, experience.slug))}>
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? (
           <img src={experience.videoThumbnail} alt={experience.title} loading="lazy" className="w-full h-full object-cover" />
