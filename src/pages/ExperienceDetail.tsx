@@ -904,6 +904,22 @@ export default function ExperienceDetail() {
                 </div>
               )}
 
+              {/* Save + Follow bar (desktop) */}
+              <SaveFollowBar
+                experienceId={experience.id}
+                hostId={productHosts.length > 0 ? productHosts[0]?.id : undefined}
+                hostName={creatorNames[0]}
+              />
+
+              {/* Best for */}
+              {product?.best_for && <BestForBlock bestFor={product.best_for as string[]} />}
+
+              {/* Pairing block */}
+              <PairingBlock experienceId={experience.id} />
+
+              {/* Included in itineraries */}
+              <IncludedInItineraries experienceId={experience.id} />
+
               {/* Questions - always shown */}
               <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />
             </div>
