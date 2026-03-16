@@ -10,10 +10,10 @@ export const slugify = (text: string): string => {
 };
 
 /**
- * Generate a product URL using the canonical route system.
+ * Generate a product page URL using the canonical route system.
  * Pattern: /things-to-do/{destination}/{product-slug}
  */
-export const generateExperienceUrl = (
+export const generateProductPageUrl = (
   location: string,
   title: string,
   slug?: string,
@@ -44,14 +44,4 @@ export const generateProductUrl = (destinationSlug: string, productSlug: string,
     return `/things-to-do/${destinationSlug}/${areaSlug}/${productSlug}`;
   }
   return `/things-to-do/${destinationSlug}/${productSlug}`;
-};
-
-export const generateExperienceSlug = (title: string): string => {
-  return slugify(title);
-};
-
-export const parseExperienceSlug = (slug: string): { title: string } => {
-  return {
-    title: slug.replace(/-/g, ' ')
-  };
 };
