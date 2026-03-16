@@ -641,60 +641,7 @@ export const MobileHomeView = () => {
         </>
       )}
 
-      {/* Ranked Row — 3rd carousel position */}
-      {(() => {
-        const destSlug = selectedCity ? slugify(selectedCity) : '';
-        
-        if (selectedDestId) {
-          // City selected → show POIs for that city with ranked design
-          const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
-          if (cityPois.length === 0) return null;
-          return (
-            <HorizontalScrollRow 
-              title={`Top spots in ${selectedCity}`}
-              onTitleClick={() => navigate(`/${destSlug}`)}
-            >
-              {cityPois.slice(0, 10).map((poi: any, index: number) => (
-                <RankedCard
-                  key={poi.id}
-                  rank={index + 1}
-                  image={poi.cover_image}
-                  name={poi.name}
-                  subtitle={poi.poi_type}
-                  onClick={() => navigate(`/things-to-do/${destSlug}/${poi.slug}`)}
-                />
-              ))}
-            </HorizontalScrollRow>
-          );
-        } else {
-          // No city selected → show trending destinations
-          const topDestinations = allDestinations
-            .filter((d: any) => d.cover_image || true)
-            .slice(0, 10);
-          if (topDestinations.length === 0) return null;
-          return (
-            <HorizontalScrollRow 
-              title="Trending destinations"
-              onTitleClick={() => navigate('/search')}
-            >
-              {topDestinations.map((dest: any, index: number) => (
-                <RankedCard
-                  key={dest.id}
-                  rank={index + 1}
-                  image={dest.cover_image}
-                  name={dest.name}
-                  subtitle={dest.country_name}
-                  onClick={() => {
-                    setSelectedCity(dest.name);
-                    try { localStorage.setItem("swam_selected_city", dest.name); } catch {}
-                    navigate(`/?city=${encodeURIComponent(dest.name)}`);
-                  }}
-                />
-              ))}
-            </HorizontalScrollRow>
-          );
-        }
-      })()}
+
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
         <div className="text-center py-12 px-4">
