@@ -27,7 +27,6 @@ export default function PoiDetail() {
   const { destination: destParam, slug } = useParams<{ destination: string; slug: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [shareOpen, setShareOpen] = useState(false);
 
   const { data: poi, isLoading: poiLoading } = usePoiBySlug(slug || "");
   const { data: destination } = useDestinationBySlug(destParam || "");
