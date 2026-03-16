@@ -654,7 +654,7 @@ const PublicItinerary = () => {
       <div
         key={experience.id}
         className="cursor-pointer group"
-        onClick={() => navigate(generateExperienceUrl(experience.location || '', experience.title, expSlug))}
+        onClick={() => navigate(generateProductPageUrl(experience.location || '', experience.title, expSlug))}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {experience.videoThumbnail ? (
