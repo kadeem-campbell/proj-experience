@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
+import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { 
   GripVertical, 
   Trash2, 
