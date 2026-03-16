@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePoiBySlug, usePoiProducts, usePoiExperiences } from "@/hooks/usePoiBySlug";
 import { useDestinationBySlug } from "@/hooks/useProducts";
@@ -6,41 +5,52 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { SEOHead } from "@/components/SEOHead";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Navigation, ExternalLink, Compass, ChevronRight } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation2, Share2, ChevronRight, Plus, Heart, Star, Clock } from "lucide-react";
 import { generateExperienceUrl } from "@/utils/slugUtils";
 import { cn } from "@/lib/utils";
+import { ShareDrawer } from "@/components/ShareDrawer";
+import { useState } from "react";
 
-const typeLabels: Record<string, { label: string; emoji: string; color: string }> = {
-  beach: { label: "Beach", emoji: "🏖️", color: "bg-sky-100 text-sky-800" },
-  attraction: { label: "Attraction", emoji: "🏛️", color: "bg-amber-100 text-amber-800" },
-  landmark: { label: "Landmark", emoji: "📍", color: "bg-rose-100 text-rose-800" },
-  nature: { label: "Nature", emoji: "🌿", color: "bg-emerald-100 text-emerald-800" },
-  marine: { label: "Marine", emoji: "🐠", color: "bg-blue-100 text-blue-800" },
-  island: { label: "Island", emoji: "🏝️", color: "bg-teal-100 text-teal-800" },
-  viewpoint: { label: "Viewpoint", emoji: "👁️", color: "bg-purple-100 text-purple-800" },
-  market: { label: "Market", emoji: "🛍️", color: "bg-orange-100 text-orange-800" },
-  forest: { label: "Forest", emoji: "🌳", color: "bg-green-100 text-green-800" },
-  cave: { label: "Cave", emoji: "🕳️", color: "bg-stone-100 text-stone-800" },
+const typeConfig: Record<string, { label: string; gradient: string }> = {
+  beach: { label: "Beach", gradient: "from-sky-500/90 to-cyan-400/90" },
+  attraction: { label: "Attraction", gradient: "from-amber-500/90 to-orange-400/90" },
+  landmark: { label: "Landmark", gradient: "from-rose-500/90 to-pink-400/90" },
+  nature: { label: "Nature", gradient: "from-emerald-500/90 to-green-400/90" },
+  marine: { label: "Marine Life", gradient: "from-blue-500/90 to-indigo-400/90" },
+  island: { label: "Island", gradient: "from-teal-500/90 to-cyan-400/90" },
+  viewpoint: { label: "Viewpoint", gradient: "from-violet-500/90 to-purple-400/90" },
+  market: { label: "Market", gradient: "from-orange-500/90 to-amber-400/90" },
+  forest: { label: "Forest", gradient: "from-green-600/90 to-emerald-500/90" },
+  cave: { label: "Cave", gradient: "from-stone-600/90 to-stone-500/90" },
 };
 
 export default function PoiDetail() {
   const { destination: destParam, slug } = useParams<{ destination: string; slug: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [shareOpen, setShareOpen] = useState(false);
 
   const { data: poi, isLoading: poiLoading } = usePoiBySlug(slug || "");
   const { data: destination } = useDestinationBySlug(destParam || "");
   const { data: linkedProducts = [] } = usePoiProducts(poi?.id || "");
   const { data: linkedExperiences = [] } = usePoiExperiences(poi?.id || "", poi?.destination_id || null);
 
-  const typeInfo = typeLabels[poi?.poi_type || ""] || { label: poi?.poi_type || "Place", emoji: "📍", color: "bg-muted text-muted-foreground" };
+  const typeInfo = typeConfig[poi?.poi_type || ""] || { label: poi?.poi_type || "Place", gradient: "from-primary/90 to-primary/70" };
 
   const handleGoBack = () => {
     if (window.history.state?.idx > 0) navigate(-1);
     else navigate("/things-to-do");
   };
+
+  const mapsUrl = poi?.latitude && poi?.longitude
+    ? `https://www.google.com/maps/dir/?api=1&destination=${poi.latitude},${poi.longitude}`
+    : poi?.google_place_id
+      ? `https://www.google.com/maps/dir/?api=1&destination_place_id=${poi.google_place_id}`
+      : null;
+
+  const shareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/things-to-do/${destParam}/${slug}`
+    : "";
 
   if (poiLoading) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
@@ -53,12 +63,25 @@ export default function PoiDetail() {
     );
   }
 
-  if (!poi) return null; // Will be handled by ExperienceDetail's 404
+  if (!poi) return null;
 
   const canonicalPath = `/things-to-do/${destParam}/${slug}`;
+  const allActivities = [
+    ...linkedProducts.map((p: any) => ({ ...p, type: "product" as const })),
+    ...linkedExperiences.map((e: any) => ({
+      id: e.id,
+      title: e.title,
+      cover_image: e.video_thumbnail,
+      slug: e.slug,
+      location: e.location,
+      price: e.price,
+      duration: e.duration,
+      type: "experience" as const,
+    })),
+  ];
 
   const content = (
-    <>
+    <div className="min-h-screen bg-background">
       <SEOHead
         title={`${poi.name} — ${destination?.name || "Things to Do"}`}
         description={poi.description || `Discover ${poi.name}, a must-visit ${typeInfo.label.toLowerCase()} in ${destination?.name || "East Africa"}`}
@@ -66,138 +89,182 @@ export default function PoiDetail() {
         indexability={poi.is_public_page ? "public_indexed" : "public_noindex"}
       />
 
-      {/* Hero */}
+      {/* ─── Immersive Hero ─── */}
       <div className="relative">
-        <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
+        <div className="aspect-[3/4] max-h-[70vh] w-full overflow-hidden">
           {poi.cover_image ? (
-            <img src={poi.cover_image} alt={poi.name} className="w-full h-full object-cover" />
+            <img
+              src={poi.cover_image}
+              alt={poi.name}
+              className="w-full h-full object-cover"
+            />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-accent/40 to-accent/10 flex items-center justify-center">
-              <span className="text-6xl">{typeInfo.emoji}</span>
-            </div>
+            <div className={cn("w-full h-full bg-gradient-to-br", typeInfo.gradient)} />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {/* Multi-layer gradient for depth */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent" />
         </div>
 
-        {/* Back button */}
-        <button
-          onClick={handleGoBack}
-          className="absolute top-4 left-4 w-9 h-9 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center active:scale-95 transition-transform z-10"
-        >
-          <ArrowLeft className="w-4 h-4 text-white" />
-        </button>
+        {/* Floating header controls */}
+        <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-20">
+          <button
+            onClick={handleGoBack}
+            className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-2xl border border-white/10 flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <ArrowLeft className="w-[18px] h-[18px] text-white" />
+          </button>
+          <button
+            onClick={() => setShareOpen(true)}
+            className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-2xl border border-white/10 flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <Share2 className="w-[18px] h-[18px] text-white" />
+          </button>
+        </div>
 
-        {/* Hero overlay text */}
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-          <Badge className={cn("mb-2 text-[10px] font-semibold uppercase tracking-wider", typeInfo.color)}>
-            {typeInfo.emoji} {typeInfo.label}
-          </Badge>
-          <h1 className="text-2xl font-extrabold text-white leading-tight tracking-tight">{poi.name}</h1>
+        {/* Hero content overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 z-10">
+          {/* Type pill */}
+          <div className={cn(
+            "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider mb-3 backdrop-blur-xl",
+            "bg-white/15 text-white border border-white/20"
+          )}>
+            <MapPin className="w-3 h-3" />
+            {typeInfo.label}
+          </div>
+
+          <h1 className="text-[28px] font-extrabold text-white leading-[1.1] tracking-tight">
+            {poi.name}
+          </h1>
+
           {destination && (
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <MapPin className="w-3.5 h-3.5 text-white/70" />
-              <span className="text-sm text-white/80 font-medium">{destination.name}</span>
-            </div>
+            <p className="text-[15px] text-white/70 font-medium mt-1.5">
+              {destination.name}
+            </p>
+          )}
+
+          {/* Directions CTA — primary action */}
+          {mapsUrl && (
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl bg-white text-black font-semibold text-[15px] active:scale-[0.97] transition-transform shadow-lg"
+            >
+              <Navigation2 className="w-[18px] h-[18px]" />
+              Open in Maps
+            </a>
           )}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-4 pt-5 pb-8 space-y-6">
+      {/* ─── Content body ─── */}
+      <div className="px-4 pt-5 pb-10 space-y-7">
+
         {/* Description */}
         {poi.description && (
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground leading-relaxed">{poi.description}</p>
-          </div>
-        )}
-
-        {/* Quick info cards */}
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide">
-          {poi.latitude && poi.longitude && (
-            <a
-              href={`https://www.google.com/maps?q=${poi.latitude},${poi.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 flex items-center gap-2 px-4 py-3 rounded-xl bg-card border border-border active:scale-[0.97] transition-transform"
-            >
-              <Navigation className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium text-foreground">Get directions</span>
-              <ExternalLink className="w-3 h-3 text-muted-foreground" />
-            </a>
-          )}
-          {poi.google_place_id && (
-            <a
-              href={`https://www.google.com/maps/place/?q=place_id:${poi.google_place_id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 flex items-center gap-2 px-4 py-3 rounded-xl bg-card border border-border active:scale-[0.97] transition-transform"
-            >
-              <MapPin className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium text-foreground">View on Google Maps</span>
-              <ExternalLink className="w-3 h-3 text-muted-foreground" />
-            </a>
-          )}
-        </div>
-
-        {/* Connected experiences */}
-        {(linkedProducts.length > 0 || linkedExperiences.length > 0) && (
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold text-foreground">Things to do here</h2>
-              <Compass className="w-4 h-4 text-muted-foreground" />
+            <p className="text-[15px] text-foreground/80 leading-relaxed">
+              {poi.description}
+            </p>
+          </div>
+        )}
+
+        {/* Location info row */}
+        {(poi.latitude || poi.google_place_id) && (
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5 text-primary" />
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">{poi.name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{destination?.name || destParam}</p>
+            </div>
+            {mapsUrl && (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold active:scale-95 transition-transform"
+              >
+                Directions
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* ─── Activities at this place ─── */}
+        {allActivities.length > 0 && (
+          <div>
+            <h2 className="text-[17px] font-bold text-foreground mb-4">
+              Things to do at {poi.name}
+            </h2>
             <div className="space-y-3">
-              {linkedProducts.map((product: any) => (
+              {allActivities.map((item: any) => (
                 <button
-                  key={product.id}
-                  onClick={() => navigate(`/things-to-do/${destParam}/${product.slug}`)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border active:scale-[0.98] transition-transform text-left"
+                  key={item.id}
+                  onClick={() =>
+                    item.type === "product"
+                      ? navigate(`/things-to-do/${destParam}/${item.slug}`)
+                      : navigate(generateExperienceUrl(item.location || "", item.title, item.slug))
+                  }
+                  className="w-full flex items-center gap-3.5 p-3 rounded-2xl bg-card border border-border active:scale-[0.98] transition-transform text-left group"
                 >
-                  {product.cover_image ? (
-                    <img src={product.cover_image} alt={product.title} className="w-16 h-16 rounded-lg object-cover shrink-0" />
-                  ) : (
-                    <div className="w-16 h-16 rounded-lg bg-muted shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-foreground line-clamp-1">{product.title}</h3>
-                    {product.duration && <p className="text-xs text-muted-foreground mt-0.5">{product.duration}</p>}
+                  <div className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-muted shrink-0">
+                    {item.cover_image || item.video_thumbnail ? (
+                      <img
+                        src={item.cover_image || item.video_thumbnail}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5" />
+                    )}
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                </button>
-              ))}
-              {linkedExperiences.map((exp: any) => (
-                <button
-                  key={exp.id}
-                  onClick={() => navigate(generateExperienceUrl(exp.location || "", exp.title, exp.slug))}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border active:scale-[0.98] transition-transform text-left"
-                >
-                  {exp.video_thumbnail ? (
-                    <img src={exp.video_thumbnail} alt={exp.title} className="w-16 h-16 rounded-lg object-cover shrink-0" />
-                  ) : (
-                    <div className="w-16 h-16 rounded-lg bg-muted shrink-0" />
-                  )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-foreground line-clamp-1">{exp.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{exp.location}</p>
-                    {exp.price && <p className="text-xs text-muted-foreground">{exp.price}</p>}
+                    <h3 className="text-[14px] font-semibold text-foreground line-clamp-2 leading-snug">
+                      {item.title}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      {item.price && (
+                        <span className="text-xs text-muted-foreground">{item.price}</span>
+                      )}
+                      {item.duration && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {item.duration}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-active:text-foreground shrink-0 transition-colors" />
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Empty state for connected experiences */}
-        {linkedProducts.length === 0 && linkedExperiences.length === 0 && (
-          <div className="text-center py-8 px-4 rounded-xl bg-muted/30 border border-border/50">
-            <Compass className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No activities linked to this place yet</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Check back soon for experiences at {poi.name}</p>
+        {/* Empty state */}
+        {allActivities.length === 0 && (
+          <div className="text-center py-10 px-6">
+            <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-6 h-6 text-muted-foreground/30" />
+            </div>
+            <p className="text-[15px] font-semibold text-foreground mb-1">No activities yet</p>
+            <p className="text-sm text-muted-foreground">
+              Experiences at {poi.name} coming soon
+            </p>
           </div>
         )}
       </div>
-    </>
+
+      <ShareDrawer
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        title={poi.name}
+        url={shareUrl}
+      />
+    </div>
   );
 
   if (isMobile) {
@@ -206,7 +273,7 @@ export default function PoiDetail() {
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto py-6">
+      <div className="max-w-2xl mx-auto py-6">
         {content}
       </div>
     </MainLayout>
