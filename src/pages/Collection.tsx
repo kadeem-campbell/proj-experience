@@ -185,13 +185,13 @@ const CollectionPage = () => {
         const allExpIds = [...new Set([...itemExpIds, ...ceExpIds])];
 
         let linkedItems = allExpIds
-          .map((id: string) => allExperiences.find((e: any) => e.id === id))
+          .map((id: string) => productListings.find((product) => product.id === id))
           .filter(Boolean);
 
         if (linkedItems.length === 0) {
-          linkedItems = allExperiences;
+          linkedItems = productListings;
           if (collectionRow.city_id) {
-            linkedItems = linkedItems.filter((e: any) => e.cityId === collectionRow.city_id);
+            linkedItems = linkedItems.filter((product) => product.cityId === collectionRow.city_id);
           }
           linkedItems = linkedItems.slice(0, 30);
         }
