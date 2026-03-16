@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import Search from "./pages/Search";
@@ -29,6 +29,7 @@ import ExperienceCollection from "./pages/ExperienceCollection";
 import NotFound from "./pages/NotFound";
 import HostProfile from "./pages/HostProfile";
 import DestinationPage from "./pages/DestinationPage";
+import LegacyExperienceRedirect, { LegacyExperienceListRedirect } from "./components/LegacyRedirect";
 
 const queryClient = new QueryClient();
 
@@ -72,8 +73,9 @@ const App = () => (
             <Route path="/travelers/:id" element={<Travellers />} />
             <Route path="/travellers" element={<Travellers />} />
 
-            {/* Legacy experience URLs */}
-            <Route path="/experiences/:slug" element={<ExperienceDetail />} />
+            {/* Legacy /experiences routes — 301 redirect to canonical */}
+            <Route path="/experiences/:slug" element={<LegacyExperienceRedirect />} />
+            <Route path="/experiences" element={<LegacyExperienceListRedirect />} />
 
             <Route path="/create-experience" element={<CreateExperience />} />
             <Route path="/monetise" element={<Monetise />} />
@@ -83,7 +85,7 @@ const App = () => (
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/management" element={<ManagementDashboard />} />
             <Route path="/search" element={<Search />} />
-            <Route path="/discover" element={<Search />} />
+            <Route path="/discover" element={<Navigate to="/" replace />} />
             <Route path="/social-finder" element={<SocialFinder />} />
             <Route path="/trip/:id" element={<Trip />} />
             <Route path="/profile" element={<Profile />} />
