@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
-import { Heart, Plus, Layers, MapPin, Search, Check, ChevronRight, Compass } from "lucide-react";
+import { Layers, MapPin, Search, ChevronRight, Bookmark } from "lucide-react";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -14,7 +14,7 @@ import { generateProductPageUrl } from "@/utils/slugUtils";
 import { useHomeCarousels } from "@/hooks/useHomeCarousels";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
-import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { CardActionMenu } from "@/components/CardActionMenu";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
 import { useQuery } from "@tanstack/react-query";
