@@ -1,8 +1,9 @@
 # SWAM — Final Pre-Launch Crawl Policy
-# Only canonical route families are allowed.
+# Only canonical route families are allowed. No legacy paths.
 
 # Search engines
 User-agent: Googlebot
+Allow: /
 Allow: /things-to-do/
 Allow: /itineraries/
 Allow: /hosts/
@@ -17,8 +18,10 @@ Disallow: /auth
 Disallow: /create-experience
 Disallow: /liked
 Disallow: /monetise
+Disallow: /search
 
 User-agent: Bingbot
+Allow: /
 Allow: /things-to-do/
 Allow: /itineraries/
 Allow: /hosts/
@@ -29,6 +32,7 @@ Disallow: /profile
 Disallow: /my-itineraries
 Disallow: /my-trips
 Disallow: /auth
+Disallow: /search
 
 User-agent: Twitterbot
 Allow: /
@@ -48,6 +52,7 @@ Disallow: /profile
 Disallow: /auth
 Disallow: /my-trips
 Disallow: /my-itineraries
+Disallow: /search
 
 User-agent: Claude-Web
 Allow: /things-to-do/
@@ -56,12 +61,14 @@ Allow: /hosts/
 Allow: /collections/
 Disallow: /admin
 Disallow: /management
+Disallow: /search
 
 User-agent: Anthropic-ai
 Allow: /things-to-do/
 Allow: /itineraries/
 Allow: /hosts/
 Disallow: /admin
+Disallow: /search
 
 User-agent: Google-Extended
 Allow: /things-to-do/
@@ -69,9 +76,11 @@ Allow: /itineraries/
 Allow: /hosts/
 Allow: /collections/
 Disallow: /admin
+Disallow: /search
 
 # Catch-all
 User-agent: *
+Allow: /
 Allow: /things-to-do/
 Allow: /itineraries/
 Allow: /hosts/
@@ -86,6 +95,7 @@ Disallow: /auth
 Disallow: /create-experience
 Disallow: /liked
 Disallow: /monetise
+Disallow: /search
 
 # Sitemaps
 Sitemap: https://swam.app/sitemap.xml
