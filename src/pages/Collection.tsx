@@ -287,26 +287,7 @@ const CollectionPage = () => {
     />
   );
 
-  const cityChips = isDynamic && destinations.length > 0 ? (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none' }}>
-      <button
-        onClick={() => setSelectedCityId(null)}
-        className={cn("shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors", !selectedCityId ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}
-      >
-        All
-      </button>
-      {destinations.slice(0, 10).map(dest => (
-        <button
-          key={dest.id}
-          onClick={() => setSelectedCityId(selectedCityId === dest.id ? null : dest.id)}
-          className={cn("shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1", selectedCityId === dest.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}
-        >
-          {dest.flag_emoji && <span>{dest.flag_emoji}</span>}
-          {dest.name}
-        </button>
-      ))}
-    </div>
-  ) : null;
+  const cityChips = null;
 
   if (isMobile) {
     return (
