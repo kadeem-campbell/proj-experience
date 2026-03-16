@@ -1,20 +1,34 @@
-# SWAM — Crawl Policy
+# SWAM — Final Pre-Launch Crawl Policy
+# Only canonical route families are allowed.
+
 # Search engines
 User-agent: Googlebot
-Allow: /
+Allow: /things-to-do/
+Allow: /itineraries/
+Allow: /hosts/
+Allow: /collections/
+Allow: /about
 Disallow: /admin
 Disallow: /management
 Disallow: /profile
 Disallow: /my-itineraries
+Disallow: /my-trips
 Disallow: /auth
 Disallow: /create-experience
-Disallow: /social-finder
+Disallow: /liked
+Disallow: /monetise
 
 User-agent: Bingbot
-Allow: /
+Allow: /things-to-do/
+Allow: /itineraries/
+Allow: /hosts/
+Allow: /collections/
 Disallow: /admin
 Disallow: /management
 Disallow: /profile
+Disallow: /my-itineraries
+Disallow: /my-trips
+Disallow: /auth
 
 User-agent: Twitterbot
 Allow: /
@@ -32,6 +46,8 @@ Disallow: /admin
 Disallow: /management
 Disallow: /profile
 Disallow: /auth
+Disallow: /my-trips
+Disallow: /my-itineraries
 
 User-agent: Claude-Web
 Allow: /things-to-do/
@@ -48,18 +64,28 @@ Allow: /hosts/
 Disallow: /admin
 
 User-agent: Google-Extended
-Allow: /
+Allow: /things-to-do/
+Allow: /itineraries/
+Allow: /hosts/
+Allow: /collections/
+Disallow: /admin
 
 # Catch-all
 User-agent: *
-Allow: /
+Allow: /things-to-do/
+Allow: /itineraries/
+Allow: /hosts/
+Allow: /collections/
+Allow: /about
 Disallow: /admin
 Disallow: /management
 Disallow: /profile
 Disallow: /my-itineraries
+Disallow: /my-trips
 Disallow: /auth
 Disallow: /create-experience
-Disallow: /social-finder
+Disallow: /liked
+Disallow: /monetise
 
 # Sitemaps
 Sitemap: https://swam.app/sitemap.xml

@@ -5,6 +5,9 @@ import { indexabilityToRobots } from "@/services/canonicalRegistry";
 interface SEOHeadProps {
   title: string;
   description: string;
+  /** Preferred: explicit canonical path like "/things-to-do/zanzibar/sunset-cruise" */
+  canonicalPath?: string;
+  /** @deprecated Use canonicalPath instead */
   url?: string;
   image?: string;
   type?: "website" | "article";
@@ -13,9 +16,12 @@ interface SEOHeadProps {
   robots?: string;
 }
 
+const BASE_URL = "https://swam.app";
+
 export const SEOHead = ({
   title,
   description,
+  canonicalPath,
   url,
   image,
   type = "website",
@@ -25,7 +31,12 @@ export const SEOHead = ({
 }: SEOHeadProps) => {
   const siteName = "swam.app";
   const fullTitle = `${title} | ${siteName}`;
-  const canonical = url || (typeof window !== "undefined" ? window.location.href : "");
+
+  // Canonical URL: prefer canonicalPath, fall back to deprecated url prop, never use window.location
+  const rawCanonical = canonicalPath || url;
+  const canonical = rawCanonical
+    ? (rawCanonical.startsWith("http") ? rawCanonical : `${BASE_URL}${rawCanonical}`)
+    : undefined;
 
   // Compute robots directive from indexability state or explicit override
   const robotsDirective = robotsOverride
@@ -38,14 +49,14 @@ export const SEOHead = ({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      <link rel="canonical" href={canonical} />
+      {canonical && <link rel="canonical" href={canonical} />}
       <meta name="robots" content={robotsDirective} />
 
       {/* Open Graph */}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
-      <meta property="og:url" content={canonical} />
+      {canonical && <meta property="og:url" content={canonical} />}
       <meta property="og:site_name" content={siteName} />
       {image && <meta property="og:image" content={image} />}
 
@@ -65,7 +76,7 @@ export const SEOHead = ({
   );
 };
 
-// Helpers for structured data — kept for backward compat during migration
+// Helpers for structured data
 export const createExperienceJsonLd = (exp: {
   title: string;
   description?: string;

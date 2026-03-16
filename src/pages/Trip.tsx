@@ -1041,7 +1041,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
         <div className="p-6 max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold mb-4">Itinerary Not Found</h1>
           <p className="text-muted-foreground mb-6">This itinerary doesn't exist or has been removed.</p>
-          <Link to="/experiences">
+          <Link to="/things-to-do">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Experiences
@@ -1507,7 +1507,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     <p className="text-sm text-muted-foreground mb-4">
                       Start adding experiences to build your perfect trip
                     </p>
-                    <Link to="/experiences">
+                    <Link to="/things-to-do">
                       <Button variant="outline" size="sm">
                         Discover Experiences
                       </Button>

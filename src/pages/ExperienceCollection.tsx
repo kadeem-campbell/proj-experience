@@ -422,7 +422,7 @@ const ExperienceCollectionPage = () => {
         <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 lg:px-10 py-4">
           <div className="max-w-[1600px] mx-auto flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
-              <Link to="/experiences">
+              <Link to="/things-to-do">
                 <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 hover:bg-muted/70">
                   <ArrowLeft className="w-4 h-4" />
                 </Button>

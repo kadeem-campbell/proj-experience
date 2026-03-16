@@ -350,8 +350,8 @@ const PublicItinerary = () => {
         <div className="p-6 max-w-4xl mx-auto text-center">
           <h1 className="text-2xl font-bold mb-4">Itinerary Not Found</h1>
           <p className="text-muted-foreground mb-6">This itinerary doesn't exist or has been removed.</p>
-          <Link to="/experiences">
-            <Button><ArrowLeft className="w-4 h-4 mr-2" />Back to Experiences</Button>
+          <Link to="/things-to-do">
+            <Button><ArrowLeft className="w-4 h-4 mr-2" />Back to Things to Do</Button>
           </Link>
         </div>
       </Wrapper>
