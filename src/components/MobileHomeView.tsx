@@ -317,6 +317,22 @@ export const MobileHomeView = () => {
   const allExpsData = useExperiencesData();
   const { data: homeCarousels = [] } = useHomeCarousels();
 
+  // Fetch destinations to map selectedCity name → destination ID
+  const { data: allDestinations = [] } = useQuery({
+    queryKey: ["home-destinations"],
+    queryFn: async () => {
+      const { data } = await supabase.from("destinations").select("id, name, slug").eq("is_active", true);
+      return data || [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const selectedDestId = useMemo(() => {
+    if (!selectedCity) return null;
+    const d = allDestinations.find((d: any) => d.name.toLowerCase() === selectedCity.toLowerCase() || d.slug === selectedCity.toLowerCase());
+    return d?.id || null;
+  }, [selectedCity, allDestinations]);
+
   // POIs for third carousel
   const { data: pois = [] } = useQuery({
     queryKey: ["home-pois"],
