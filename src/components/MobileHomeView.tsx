@@ -166,7 +166,7 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
-        <div className="absolute bottom-2.5 right-2.5 z-10 opacity-0 group-hover/card:opacity-100 md:transition-opacity md:duration-200 max-md:opacity-100" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
             entityId={experience.id}
             entityType="experience"
