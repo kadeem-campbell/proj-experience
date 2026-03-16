@@ -35,6 +35,7 @@ export const useExperiencesData = () => {
       location: exp.location || "",
       price: exp.price || "",
       slug: exp.slug || undefined,
+      cityId: exp.city_id || null,
     }));
   }, [experiences]);
 };
