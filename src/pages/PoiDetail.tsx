@@ -5,11 +5,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { SEOHead } from "@/components/SEOHead";
-import { ArrowLeft, MapPin, Navigation2, Share2, ChevronRight, Plus, Heart, Star, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation2, Share2, ChevronRight, Clock } from "lucide-react";
 import { generateExperienceUrl } from "@/utils/slugUtils";
 import { cn } from "@/lib/utils";
 import { ShareDrawer } from "@/components/ShareDrawer";
-import { useState } from "react";
 
 const typeConfig: Record<string, { label: string; gradient: string }> = {
   beach: { label: "Beach", gradient: "from-sky-500/90 to-cyan-400/90" },
