@@ -69,8 +69,13 @@ const AdminPanel = () => {
       case 'itineraries': return <AdminItinerariesSection />;
       case 'taxonomy': return <AdminTaxonomySection />;
       case 'media': return <AdminMediaSection />;
+      case 'questions': return <AdminQuestionsSection />;
       case 'validation': return <AdminValidationCenter />;
+      case 'quality': return <AdminQualitySection />;
       case 'slugs': return <AdminSlugCenter />;
+      case 'redirects': return <AdminRedirectsSection />;
+      case 'graph': return <AdminGraphInspector />;
+      case 'notifications': return <AdminNotificationsSection />;
       case 'bulk': return <AdminBulkOps />;
       case 'json': return <AdminJsonTools />;
       case 'legacy': return <AdminLegacySection />;
