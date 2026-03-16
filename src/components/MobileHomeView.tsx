@@ -594,16 +594,21 @@ export const MobileHomeView = () => {
         </>
       )}
 
-      {/* POI Carousel — always show if POIs exist */}
-      {pois.length > 0 && (
-        <HorizontalScrollRow
-          title="Places to explore"
-          onTitleClick={() => navigate(`/${selectedCity ? slugify(selectedCity) : 'zanzibar'}/map`)}
-        >
-          {pois.slice(0, 10).map((poi: any) => (
-            <MobilePoiCard key={poi.id} poi={poi} />
-          ))}
-        </HorizontalScrollRow>
+      {/* POI Carousel — filtered by destination, links to POI pages */}
+      {pois.length > 0 && (() => {
+        const destSlug = selectedCity ? slugify(selectedCity) : '';
+        const filteredPois = selectedDestId
+          ? pois.filter((p: any) => p.destination_id === selectedDestId)
+          : pois;
+        if (filteredPois.length === 0) return null;
+        return (
+          <HorizontalScrollRow title="Places to explore">
+            {filteredPois.slice(0, 10).map((poi: any) => (
+              <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug || 'zanzibar'} />
+            ))}
+          </HorizontalScrollRow>
+        );
+      })()}
       )}
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
