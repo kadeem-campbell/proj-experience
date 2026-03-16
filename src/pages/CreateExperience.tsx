@@ -406,7 +406,7 @@ export default function CreateExperience() {
       case 'confirmation':
         return (
           <Card className="p-6 text-center space-y-4">
-            <CheckCircle2 className="w-16 h-16 mx-auto text-green-500" />
+            <CheckCircle2 className="w-16 h-16 mx-auto text-primary" />
             <h2 className="text-xl font-bold">Experience Created!</h2>
             <p className="text-muted-foreground">Your experience has been created with normalized product, option, and pricing data.</p>
             <Button onClick={() => navigate('/admin')}>Go to Admin</Button>
