@@ -106,7 +106,7 @@ export const validateProduct = (
   // === CANONICAL ===
   checks.push(check("slug", "non_empty", !!product.slug?.trim(), "blocker", product.slug ? "Slug present" : "Slug is required", "canonical"));
   checks.push(check("canonical_url", "has_canonical", !!product.canonical_url, "warning", "Canonical URL should be stored", "canonical"));
-  checks.push(check("indexability", "explicit_state", !!product.indexability_state, "warning", "Indexability state should be explicit", "canonical"));
+  checks.push(check("indexability", "explicit_state", !!(product as any).indexability_state, "warning", "Indexability state should be explicit", "canonical"));
 
   // === TAXONOMY ===
   checks.push(check("destination", "linked", !!product.destination_id, "blocker", product.destination_id ? "Destination linked" : "Product must be linked to a destination", "taxonomy"));
