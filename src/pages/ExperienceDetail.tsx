@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
+import { IncludedInItineraries, PairingBlock, BestForBlock, SaveFollowBar } from "@/components/ExperienceDecisionBlocks";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
@@ -678,6 +679,22 @@ export default function ExperienceDetail() {
               </div>
             )}
 
+            {/* Save + Follow bar */}
+            <SaveFollowBar
+              experienceId={experience.id}
+              hostId={productHosts.length > 0 ? productHosts[0]?.id : undefined}
+              hostName={creatorNames[0]}
+            />
+
+            {/* Best for personas */}
+            {product?.best_for && <BestForBlock bestFor={product.best_for as string[]} />}
+
+            {/* Pairing & substitution recommendations */}
+            <PairingBlock experienceId={experience.id} />
+
+            {/* Included in itineraries */}
+            <IncludedInItineraries experienceId={experience.id} />
+
             {/* Questions Section - always shown as fallback */}
             <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />
 
@@ -886,6 +903,22 @@ export default function ExperienceDetail() {
                   </div>
                 </div>
               )}
+
+              {/* Save + Follow bar (desktop) */}
+              <SaveFollowBar
+                experienceId={experience.id}
+                hostId={productHosts.length > 0 ? productHosts[0]?.id : undefined}
+                hostName={creatorNames[0]}
+              />
+
+              {/* Best for */}
+              {product?.best_for && <BestForBlock bestFor={product.best_for as string[]} />}
+
+              {/* Pairing block */}
+              <PairingBlock experienceId={experience.id} />
+
+              {/* Included in itineraries */}
+              <IncludedInItineraries experienceId={experience.id} />
 
               {/* Questions - always shown */}
               <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />

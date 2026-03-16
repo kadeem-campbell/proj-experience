@@ -29,6 +29,8 @@ export interface Product {
   area_id: string | null;
   activity_type_id: string | null;
   legacy_experience_id: string | null;
+  best_for: string[] | null;
+  pair_with_ids: string[] | null;
   created_at: string;
   updated_at: string;
 }

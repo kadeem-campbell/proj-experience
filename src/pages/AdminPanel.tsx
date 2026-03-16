@@ -27,6 +27,11 @@ import { AdminValidationCenter, AdminSlugCenter } from '@/components/admin/Admin
 import { AdminBulkOps } from '@/components/admin/AdminBulkOps';
 import { AdminJsonTools } from '@/components/admin/AdminJsonTools';
 import { AdminLegacySection } from '@/components/admin/AdminLegacySection';
+import { AdminRedirectsSection } from '@/components/admin/AdminRedirectsSection';
+import { AdminQualitySection } from '@/components/admin/AdminQualitySection';
+import { AdminQuestionsSection } from '@/components/admin/AdminQuestionsSection';
+import { AdminNotificationsSection } from '@/components/admin/AdminNotificationsSection';
+import { AdminGraphInspector } from '@/components/admin/AdminGraphInspector';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, group: 'Main' },
@@ -37,8 +42,13 @@ const SECTIONS = [
   { id: 'itineraries', label: 'Itineraries', icon: MapPin, group: 'Content' },
   { id: 'taxonomy', label: 'Taxonomy & Pricing', icon: Tag, group: 'Content' },
   { id: 'media', label: 'Media', icon: Image, group: 'Content' },
+  { id: 'questions', label: 'Questions', icon: Send, group: 'Content' },
   { id: 'validation', label: 'Validation', icon: CheckCircle, group: 'Governance' },
+  { id: 'quality', label: 'Quality Scores', icon: Brain, group: 'Governance' },
   { id: 'slugs', label: 'Slugs / Routes', icon: Link2, group: 'Governance' },
+  { id: 'redirects', label: 'Redirects', icon: Route, group: 'Governance' },
+  { id: 'graph', label: 'Graph Inspector', icon: Settings, group: 'Governance' },
+  { id: 'notifications', label: 'Notifications', icon: Send, group: 'Governance' },
   { id: 'bulk', label: 'Bulk Operations', icon: Upload, group: 'Operations' },
   { id: 'json', label: 'JSON Tools', icon: Code2, group: 'Operations' },
   { id: 'legacy', label: 'Legacy Data', icon: Database, group: 'Operations' },
@@ -59,8 +69,13 @@ const AdminPanel = () => {
       case 'itineraries': return <AdminItinerariesSection />;
       case 'taxonomy': return <AdminTaxonomySection />;
       case 'media': return <AdminMediaSection />;
+      case 'questions': return <AdminQuestionsSection />;
       case 'validation': return <AdminValidationCenter />;
+      case 'quality': return <AdminQualitySection />;
       case 'slugs': return <AdminSlugCenter />;
+      case 'redirects': return <AdminRedirectsSection />;
+      case 'graph': return <AdminGraphInspector />;
+      case 'notifications': return <AdminNotificationsSection />;
       case 'bulk': return <AdminBulkOps />;
       case 'json': return <AdminJsonTools />;
       case 'legacy': return <AdminLegacySection />;
