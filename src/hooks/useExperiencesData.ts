@@ -12,6 +12,7 @@ export interface Experience {
   location: string;
   price: string;
   slug?: string;
+  cityId?: string | null;
 }
 
 /** @deprecated Use useDbExperiences() directly for new code */
