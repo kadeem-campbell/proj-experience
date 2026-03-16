@@ -248,18 +248,19 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 };
 
 // POI card
-const MobilePoiCard = ({ poi }: { poi: any }) => {
+const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
   const navigate = useNavigate();
   const typeEmojis: Record<string, string> = {
     beach: '🏖️', attraction: '🏛️', landmark: '📍', nature: '🌿',
     marine: '🐠', island: '🏝️', viewpoint: '👁️', market: '🛍️',
+    forest: '🌳', cave: '🕳️',
   };
   const emoji = typeEmojis[poi.poi_type] || '📍';
 
   return (
     <div 
       className="flex-shrink-0 w-[36vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
-      onClick={() => navigate(`/zanzibar/map?poi=${poi.slug}`)}
+      onClick={() => navigate(`/things-to-do/${destinationSlug || 'zanzibar'}/${poi.slug}`)}
     >
       <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
         {poi.cover_image ? (
