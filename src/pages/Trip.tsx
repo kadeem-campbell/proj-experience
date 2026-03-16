@@ -1507,7 +1507,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     <p className="text-sm text-muted-foreground mb-4">
                       Start adding experiences to build your perfect trip
                     </p>
-                    <Link to="/experiences">
+                    <Link to="/things-to-do">
                       <Button variant="outline" size="sm">
                         Discover Experiences
                       </Button>

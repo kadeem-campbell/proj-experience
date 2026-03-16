@@ -144,14 +144,14 @@ export const ItinerarySidebar = ({
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === "/experiences"}
+                    isActive={location.pathname.startsWith("/things-to-do")}
                     tooltip="Discover"
                     className={cn(
                       "h-10 gap-4 text-[15px] font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname === "/experiences" && "text-foreground"
+                      location.pathname.startsWith("/things-to-do") && "text-foreground"
                     )}
                   >
-                    <Link to="/experiences">
+                    <Link to="/things-to-do">
                       <Compass className="w-5 h-5 shrink-0" />
                       {!isCollapsedView && <span>Experiences</span>}
                     </Link>

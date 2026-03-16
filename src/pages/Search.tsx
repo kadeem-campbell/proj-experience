@@ -420,7 +420,7 @@ const SearchPage = () => {
             )}
 
             {adventureExps.length > 0 && (
-              <DesktopScrollRow title="Adventure awaits" variant="experience" onViewAll={() => navigate("/experiences?tag=Adventure")}>
+              <DesktopScrollRow title="Adventure awaits" variant="experience" onViewAll={() => navigate("/things-to-do")}>
                 {adventureExps.map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
                     <ExperienceCard {...exp} compact />
