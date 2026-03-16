@@ -404,7 +404,7 @@ const SearchPage = () => {
               <DesktopScrollRow title={selectedCity ? `${selectedCity.name} — Available next weekend` : "Available next weekend"} variant="experience" onViewAll={() => navigate("/things-to-do")}>
                 {cityFilteredExperiences.slice(0, 8).map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
-                    <ExperienceCard {...exp} compact />
+                    <ProductCard {...exp} compact />
                   </div>
                 ))}
               </DesktopScrollRow>
