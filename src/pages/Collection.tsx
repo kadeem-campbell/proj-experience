@@ -5,7 +5,7 @@ import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { ExperienceCard } from "@/components/ExperienceCard";
 import { Button } from "@/components/ui/button";
 import { usePublicItineraries } from "@/hooks/usePublicItineraries";
-import { useExperiencesData } from "@/hooks/useExperiencesData";
+import { useProductListings } from "@/hooks/useExperiencesData";
 import { ArrowLeft, Layers, Heart, Search, MapPin, Plus, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
