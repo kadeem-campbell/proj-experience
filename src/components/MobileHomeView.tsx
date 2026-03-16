@@ -119,6 +119,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const { isAuthenticated } = useAuth();
 
   const liked = isAuthenticated ? isDbLiked(itinerary.id, 'itinerary') : localLiked;
+  // Use actual linked experiences count from itinerary_experiences, not legacy JSONB
   const experienceCount = itinerary.experiences?.length || 0;
   const coverImage = itinerary.coverImage || itinerary.experiences?.[0]?.videoThumbnail;
 
