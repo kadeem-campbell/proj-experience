@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { slugify } from "@/utils/slugUtils";
+import { slugify, generateExperienceUrl } from "@/utils/slugUtils";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useExperiencesData } from "@/hooks/useExperiencesData";
 
