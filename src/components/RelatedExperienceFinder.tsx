@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, MapPin, Star, Clock, Users, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { generateExperienceUrl } from '@/utils/slugUtils';
+import { generateProductPageUrl } from '@/utils/slugUtils';
 
 interface Experience {
   id: string;
