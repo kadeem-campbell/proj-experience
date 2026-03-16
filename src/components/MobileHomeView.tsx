@@ -557,7 +557,7 @@ export const MobileHomeView = () => {
       {pois.length > 0 && (
         <HorizontalScrollRow
           title="Places to explore"
-          onTitleClick={() => navigate("/explore/map")}
+          onTitleClick={() => navigate(`/${selectedCity ? slugify(selectedCity) : 'zanzibar'}/map`)}
         >
           {pois.slice(0, 10).map((poi: any) => (
             <MobilePoiCard key={poi.id} poi={poi} />
