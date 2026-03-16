@@ -8,6 +8,8 @@ import { useCreators } from "@/hooks/useAppData";
 import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateProductSchema } from "@/services/schemaGenerator";
+import { usePoiBySlug } from "@/hooks/usePoiBySlug";
+import PoiDetail from "@/pages/PoiDetail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
