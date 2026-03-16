@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { SEOHead, createCollectionJsonLd } from "@/components/SEOHead";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { generateExperienceUrl } from "@/utils/slugUtils";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 
 // Itinerary card for mobile
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
