@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
-import { Heart, Plus, Layers, MapPin, Search, Check, ChevronRight } from "lucide-react";
+import { Heart, Plus, Layers, MapPin, Search, Check, ChevronRight, Compass } from "lucide-react";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -17,6 +17,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const filterCategories = [
   { label: "Beaches", category: "Beach", icon: catBeaches },
@@ -34,8 +36,6 @@ const rotatingPlaceholders = [
   "Search hidden gems",
   "Search sunset spots",
 ];
-
-// Removed cityDisplayMap - now handled by MobileShell globe button
 
 const CategoryFilterPills = ({ 
   activeCategory, 
@@ -119,7 +119,6 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const { isAuthenticated } = useAuth();
 
   const liked = isAuthenticated ? isDbLiked(itinerary.id, 'itinerary') : localLiked;
-  // Use actual linked experiences count from itinerary_experiences, not legacy JSONB
   const experienceCount = itinerary.experiences?.length || 0;
   const coverImage = itinerary.coverImage || itinerary.experiences?.[0]?.videoThumbnail;
 
@@ -248,6 +247,37 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   );
 };
 
+// POI card
+const MobilePoiCard = ({ poi }: { poi: any }) => {
+  const navigate = useNavigate();
+  const typeEmojis: Record<string, string> = {
+    beach: '🏖️', attraction: '🏛️', landmark: '📍', nature: '🌿',
+    marine: '🐠', island: '🏝️', viewpoint: '👁️', market: '🛍️',
+  };
+  const emoji = typeEmojis[poi.poi_type] || '📍';
+
+  return (
+    <div 
+      className="flex-shrink-0 w-[36vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
+      onClick={() => navigate(`/explore/map?poi=${poi.slug}`)}
+    >
+      <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
+        {poi.cover_image ? (
+          <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center">
+            <span className="text-3xl">{emoji}</span>
+          </div>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2.5">
+          <p className="text-white text-xs font-semibold line-clamp-1">{poi.name}</p>
+          <p className="text-white/70 text-[10px] capitalize">{poi.poi_type}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Static alias map
 const cityAliases: Record<string, string[]> = {
   "Zanzibar": ["Zanzibar", "Stone Town", "Kendwa", "Nungwi", "Paje", "Jambiani"],
@@ -265,8 +295,6 @@ const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
   if (itinerary.name?.toLowerCase().includes(city.toLowerCase())) return true;
   return itinerary.experiences?.some((e: any) => matchesCity(e.location || "", city)) || false;
 };
-
-// Data now fetched inside component via hooks
 
 const categoryLabelMap: Record<string, string> = {
   "Beach": "Beaches",
@@ -288,6 +316,21 @@ export const MobileHomeView = () => {
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useExperiencesData();
   const { data: homeCarousels = [] } = useHomeCarousels();
+
+  // POIs for third carousel
+  const { data: pois = [] } = useQuery({
+    queryKey: ["home-pois"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pois")
+        .select("id, name, slug, poi_type, cover_image, destination_id")
+        .eq("is_active", true)
+        .order("name");
+      if (error) return [];
+      return data || [];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -320,15 +363,12 @@ export const MobileHomeView = () => {
     return filtered;
   }, [selectedCity, allExpsData]);
 
-  // Category matching: Nature matches "Nature" and "Wildlife", Safari matches "Safari" and "Wildlife"
   const matchesCategory = useCallback((expCategory: string, filterCategory: string) => {
     if (!filterCategory) return true;
     const norm = expCategory?.toLowerCase() || '';
     const filter = filterCategory.toLowerCase();
     if (norm === filter) return true;
-    // Nature filter also matches Wildlife that isn't explicitly Safari
     if (filter === 'nature' && norm === 'wildlife') return true;
-    // Safari filter matches Safari category
     if (filter === 'safari' && norm === 'safari') return true;
     return false;
   }, []);
@@ -385,11 +425,6 @@ export const MobileHomeView = () => {
 
   const cityLabel = selectedCity || "your city";
   const catLabel = activeCategory ? categoryLabelMap[activeCategory] || activeCategory : "";
-
-  const rowTitle = (base: string, catOverride?: string) => {
-    if (activeCategory && catOverride) return catOverride;
-    return base;
-  };
 
   return (
     <MobileShell hideAvatar notFixed>
@@ -466,7 +501,6 @@ export const MobileHomeView = () => {
           const title = carousel.name.replace('{city}', selectedCity || 'your city');
           
           if (carousel.contentType === 'itinerary') {
-            // Filter itineraries by linked IDs if any, otherwise fall back to all
             const items = carousel.itemIds.length > 0
               ? categoryItineraries.filter(it => carousel.itemIds.includes(it.dbId || it.id))
               : categoryItineraries.slice(0, 6);
@@ -483,7 +517,6 @@ export const MobileHomeView = () => {
               </HorizontalScrollRow>
             );
           } else {
-            // Experience carousel
             const items = carousel.itemIds.length > 0
               ? categoryExperiences.filter(exp => carousel.itemIds.includes(exp.id))
               : categoryExperiences.slice(0, 8);
@@ -502,7 +535,6 @@ export const MobileHomeView = () => {
           }
         })
       ) : (
-        /* Fallback: show all itineraries + experiences if no carousels configured */
         <>
           {categoryItineraries.length > 0 && (
             <HorizontalScrollRow title={selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss"}>
@@ -519,6 +551,18 @@ export const MobileHomeView = () => {
             </HorizontalScrollRow>
           )}
         </>
+      )}
+
+      {/* POI Carousel — always show if POIs exist */}
+      {pois.length > 0 && (
+        <HorizontalScrollRow
+          title="Places to explore"
+          onTitleClick={() => navigate("/explore/map")}
+        >
+          {pois.slice(0, 10).map((poi: any) => (
+            <MobilePoiCard key={poi.id} poi={poi} />
+          ))}
+        </HorizontalScrollRow>
       )}
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (

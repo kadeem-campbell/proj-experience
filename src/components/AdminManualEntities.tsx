@@ -2,7 +2,8 @@ import { useMemo, useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { useCategories, useCities, useCreators } from '@/hooks/useAppData';
+import { useCategories, useCreators } from '@/hooks/useAppData';
+import { useDestinations } from '@/hooks/useProducts';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Pencil, Check, X, Trash2, Tag } from 'lucide-react';
+import { Pencil, Check, X, Trash2, Tag, CheckSquare } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 
@@ -20,7 +21,6 @@ const toSlug = (value: string) =>
 // Common country codes for hatscripts circle-flags
 const COUNTRY_OPTIONS = [
   { code: 'tz', name: 'Tanzania' },
-  { code: 'tz-zanzibar', name: 'Tanzania - Zanzibar' },
   { code: 'ke', name: 'Kenya' },
   { code: 'za', name: 'South Africa' },
   { code: 'gb', name: 'United Kingdom' },
@@ -28,72 +28,39 @@ const COUNTRY_OPTIONS = [
   { code: 'ae', name: 'United Arab Emirates' },
   { code: 'fr', name: 'France' },
   { code: 'es', name: 'Spain' },
-  { code: 'it', name: 'Italy' },
-  { code: 'pt', name: 'Portugal' },
-  { code: 'gr', name: 'Greece' },
   { code: 'th', name: 'Thailand' },
   { code: 'id', name: 'Indonesia' },
-  { code: 'jp', name: 'Japan' },
   { code: 'au', name: 'Australia' },
-  { code: 'br', name: 'Brazil' },
-  { code: 'mx', name: 'Mexico' },
-  { code: 'co', name: 'Colombia' },
   { code: 'ma', name: 'Morocco' },
   { code: 'eg', name: 'Egypt' },
-  { code: 'ng', name: 'Nigeria' },
-  { code: 'gh', name: 'Ghana' },
-  { code: 'et', name: 'Ethiopia' },
-  { code: 'ug', name: 'Uganda' },
-  { code: 'rw', name: 'Rwanda' },
-  { code: 'mz', name: 'Mozambique' },
   { code: 'mu', name: 'Mauritius' },
   { code: 'sc', name: 'Seychelles' },
-  { code: 'mg', name: 'Madagascar' },
   { code: 'in', name: 'India' },
-  { code: 'cn', name: 'China' },
-  { code: 'kr', name: 'South Korea' },
-  { code: 'sg', name: 'Singapore' },
-  { code: 'my', name: 'Malaysia' },
-  { code: 'ph', name: 'Philippines' },
-  { code: 'vn', name: 'Vietnam' },
-  { code: 'tr', name: 'Turkey' },
+  { code: 'pt', name: 'Portugal' },
+  { code: 'gr', name: 'Greece' },
+  { code: 'it', name: 'Italy' },
   { code: 'hr', name: 'Croatia' },
-  { code: 'me', name: 'Montenegro' },
-  { code: 'de', name: 'Germany' },
-  { code: 'nl', name: 'Netherlands' },
-  { code: 'se', name: 'Sweden' },
-  { code: 'no', name: 'Norway' },
-  { code: 'dk', name: 'Denmark' },
-  { code: 'fi', name: 'Finland' },
-  { code: 'is', name: 'Iceland' },
-  { code: 'ca', name: 'Canada' },
-  { code: 'ar', name: 'Argentina' },
-  { code: 'pe', name: 'Peru' },
-  { code: 'cl', name: 'Chile' },
-  { code: 'cr', name: 'Costa Rica' },
-  { code: 'jm', name: 'Jamaica' },
-  { code: 'cu', name: 'Cuba' },
-  { code: 'do', name: 'Dominican Republic' },
   { code: 'mv', name: 'Maldives' },
   { code: 'lk', name: 'Sri Lanka' },
-  { code: 'np', name: 'Nepal' },
   { code: 'nz', name: 'New Zealand' },
   { code: 'fj', name: 'Fiji' },
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 const flagUrl = (code: string) => `https://hatscripts.github.io/circle-flags/flags/${code}.svg`;
 
-// --- Inline editable row ---
+// --- Inline editable row with delete ---
 const EditableRow = ({
   record,
   fields,
   table,
   invalidateKeys,
+  onDelete,
 }: {
   record: Record<string, any>;
   fields: { key: string; label: string; type?: string; options?: { value: string; label: string }[] }[];
   table: string;
   invalidateKeys: string[];
+  onDelete?: () => void;
 }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -134,11 +101,17 @@ const EditableRow = ({
           <span className="font-medium truncate">{record.name || record.username || record.title || '—'}</span>
           {record.airport_code && <span className="text-muted-foreground">({record.airport_code})</span>}
           {record.slug && <span className="text-muted-foreground">/{record.slug}</span>}
-          {record.country && <span className="text-muted-foreground">{record.country}</span>}
         </div>
-        <button onClick={startEdit} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-muted">
-          <Pencil className="w-3 h-3" />
-        </button>
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={startEdit} className="p-1 rounded hover:bg-muted">
+            <Pencil className="w-3 h-3" />
+          </button>
+          {onDelete && (
+            <button onClick={() => { if (confirm('Delete this item?')) onDelete(); }} className="p-1 rounded hover:bg-destructive/10 text-destructive/60 hover:text-destructive">
+              <Trash2 className="w-3 h-3" />
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -151,13 +124,8 @@ const EditableRow = ({
             <Label className="text-[10px] mb-0.5 block">{f.label}</Label>
             {f.key === 'flag_svg_url' ? (
               <div className="space-y-1">
-                <Select
-                  value=""
-                  onValueChange={(code) => setForm(p => ({ ...p, flag_svg_url: flagUrl(code) }))}
-                >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue placeholder="Pick country flag" />
-                  </SelectTrigger>
+                <Select value="" onValueChange={(code) => setForm(p => ({ ...p, flag_svg_url: flagUrl(code) }))}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Pick flag" /></SelectTrigger>
                   <SelectContent className="max-h-60">
                     {COUNTRY_OPTIONS.map(c => (
                       <SelectItem key={c.code} value={c.code}>
@@ -195,49 +163,34 @@ const EditableRow = ({
   );
 };
 
-// --- Creator Category Editor (for existing creators) ---
+// --- Creator Category Editor ---
 const CreatorCategoryEditor = ({ creatorId, categories }: { creatorId: string; categories: any[] }) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const { data: creatorCats = [], isLoading } = useQuery({
+  const { data: creatorCats = [] } = useQuery({
     queryKey: ['creator-categories', creatorId],
     queryFn: async () => {
-      const { data } = await (supabase as any)
-        .from('creator_categories')
-        .select('category_id')
-        .eq('creator_id', creatorId);
+      const { data } = await (supabase as any).from('creator_categories').select('category_id').eq('creator_id', creatorId);
       return (data || []).map((r: any) => r.category_id);
     },
   });
 
-  const startEdit = () => {
-    setSelectedIds([...creatorCats]);
-    setEditing(true);
-  };
+  const startEdit = () => { setSelectedIds([...creatorCats]); setEditing(true); };
 
   const handleSave = async () => {
-    // Remove all existing, then insert new
     await (supabase as any).from('creator_categories').delete().eq('creator_id', creatorId);
     if (selectedIds.length > 0) {
-      await (supabase as any).from('creator_categories').insert(
-        selectedIds.map(cid => ({ creator_id: creatorId, category_id: cid }))
-      );
+      await (supabase as any).from('creator_categories').insert(selectedIds.map(cid => ({ creator_id: creatorId, category_id: cid })));
     }
     queryClient.invalidateQueries({ queryKey: ['creator-categories', creatorId] });
-    queryClient.invalidateQueries({ queryKey: ['creator-categories'] });
     toast({ title: 'Categories updated' });
     setEditing(false);
   };
 
-  if (isLoading) return null;
-
-  const catNames = creatorCats
-    .map((cid: string) => categories.find((c: any) => c.id === cid))
-    .filter(Boolean)
-    .map((c: any) => `${c.emoji || ''} ${c.name}`.trim());
+  const catNames = creatorCats.map((cid: string) => categories.find((c: any) => c.id === cid)).filter(Boolean).map((c: any) => `${c.emoji || ''} ${c.name}`.trim());
 
   if (!editing) {
     return (
@@ -251,30 +204,16 @@ const CreatorCategoryEditor = ({ creatorId, categories }: { creatorId: string; c
   return (
     <div className="mt-1 p-2 border rounded-md bg-muted/20 space-y-2">
       <div className="flex flex-wrap gap-1.5">
-        {categories.map((cat: any) => {
-          const isSelected = selectedIds.includes(cat.id);
-          return (
-            <label key={cat.id} className="flex items-center gap-1 cursor-pointer text-xs">
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => {
-                  setSelectedIds(prev =>
-                    isSelected ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
-                  );
-                }}
-              />
-              <span>{cat.emoji} {cat.name}</span>
-            </label>
-          );
-        })}
+        {categories.map((cat: any) => (
+          <label key={cat.id} className="flex items-center gap-1 cursor-pointer text-xs">
+            <Checkbox checked={selectedIds.includes(cat.id)} onCheckedChange={() => setSelectedIds(prev => prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id])} />
+            <span>{cat.emoji} {cat.name}</span>
+          </label>
+        ))}
       </div>
       <div className="flex gap-1">
-        <Button size="sm" className="h-5 text-[10px] px-2" onClick={handleSave}>
-          <Check className="w-2.5 h-2.5 mr-0.5" /> Save
-        </Button>
-        <Button size="sm" variant="ghost" className="h-5 text-[10px] px-2" onClick={() => setEditing(false)}>
-          Cancel
-        </Button>
+        <Button size="sm" className="h-5 text-[10px] px-2" onClick={handleSave}><Check className="w-2.5 h-2.5 mr-0.5" /> Save</Button>
+        <Button size="sm" variant="ghost" className="h-5 text-[10px] px-2" onClick={() => setEditing(false)}>Cancel</Button>
       </div>
     </div>
   );
@@ -285,14 +224,13 @@ export const AdminManualEntities = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
-  const { data: cities = [] } = useCities();
+  const { data: destinations = [] } = useDestinations();
   const { data: creators = [] } = useCreators();
 
   const { data: publicItineraries = [] } = useQuery({
     queryKey: ['admin-manual-itineraries'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('public_itineraries').select('*').order('created_at', { ascending: false }).limit(200);
-      if (error) return [];
+      const { data } = await supabase.from('public_itineraries').select('*').order('created_at', { ascending: false }).limit(200);
       return data || [];
     },
   });
@@ -300,15 +238,13 @@ export const AdminManualEntities = () => {
   const { data: collections = [] } = useQuery({
     queryKey: ['admin-manual-collections'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('collections').select('*').order('created_at', { ascending: false }).limit(200);
-      if (error) return [];
+      const { data } = await supabase.from('collections').select('*').order('created_at', { ascending: false }).limit(200);
       return data || [];
     },
   });
 
-  // ---- Add forms state ----
+  // Add forms state
   const [categoryForm, setCategoryForm] = useState({ name: '', emoji: '', description: '' });
-  const [cityForm, setCityForm] = useState({ name: '', country: '', flag_emoji: '', flag_svg_url: '', airport_code: '', launch_date: '', latitude: '', longitude: '' });
   const [creatorForm, setCreatorForm] = useState({ username: '', display_name: '', bio: '', avatar_url: '', instagram: '', tiktok: '', website: '', category_ids: [] as string[] });
   const [itineraryForm, setItineraryForm] = useState({ name: '', slug: '', description: '', tag: 'popular' });
   const [collectionForm, setCollectionForm] = useState({ name: '', slug: '', description: '', collection_type: 'experiences', tag: '' });
@@ -325,28 +261,35 @@ export const AdminManualEntities = () => {
     onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
+  const deleteRecord = async (table: string, id: string, invalidateKeys: string[]) => {
+    if (!confirm('Delete this item permanently?')) return;
+    const { error } = await (supabase as any).from(table).delete().eq('id', id);
+    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    invalidateKeys.forEach(k => queryClient.invalidateQueries({ queryKey: [k] }));
+    toast({ title: 'Deleted' });
+  };
+
   return (
     <Card className="p-4 mb-6">
       <div className="mb-4">
-        <h3 className="font-semibold">Manage — All Content Types</h3>
-        <p className="text-xs text-muted-foreground">Add new or edit existing entities. Click the pencil to edit.</p>
+        <h3 className="font-semibold">Manage — Categories, Hosts, Itineraries, Collections</h3>
+        <p className="text-xs text-muted-foreground">Add, edit, or delete entities. Hover to see edit/delete controls.</p>
       </div>
 
-      <Tabs defaultValue="cities">
-        <TabsList className="grid grid-cols-5 mb-4">
+      <Tabs defaultValue="categories">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="categories">Categories</TabsTrigger>
-          <TabsTrigger value="cities">Cities</TabsTrigger>
           <TabsTrigger value="creators">Hosts</TabsTrigger>
           <TabsTrigger value="itineraries">Itineraries</TabsTrigger>
           <TabsTrigger value="collections">Collections</TabsTrigger>
         </TabsList>
 
-        {/* ===== CATEGORIES ===== */}
+        {/* CATEGORIES */}
         <TabsContent value="categories" className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div><Label className="text-xs mb-1 block">Name *</Label><Input value={categoryForm.name} onChange={e => setCategoryForm(p => ({ ...p, name: e.target.value }))} placeholder="Adventure" /></div>
             <div><Label className="text-xs mb-1 block">Emoji</Label><Input value={categoryForm.emoji} onChange={e => setCategoryForm(p => ({ ...p, emoji: e.target.value }))} placeholder="🏄" /></div>
-            <div><Label className="text-xs mb-1 block">Description</Label><Input value={categoryForm.description} onChange={e => setCategoryForm(p => ({ ...p, description: e.target.value }))} placeholder="Short description" /></div>
+            <div><Label className="text-xs mb-1 block">Description</Label><Input value={categoryForm.description} onChange={e => setCategoryForm(p => ({ ...p, description: e.target.value }))} /></div>
           </div>
           <Button size="sm" disabled={!categoryForm.name.trim() || createMutation.isPending} onClick={() => {
             createMutation.mutate({ table: 'categories', payload: { name: categoryForm.name.trim(), emoji: categoryForm.emoji.trim(), description: categoryForm.description.trim() }, successTitle: 'Category created', invalidateKeys: ['categories'] });
@@ -362,104 +305,22 @@ export const AdminManualEntities = () => {
                   { key: 'description', label: 'Description' },
                   { key: 'display_order', label: 'Order', type: 'number' },
                 ]}
+                onDelete={() => deleteRecord('categories', cat.id, ['categories'])}
               />
             ))}
           </div>
         </TabsContent>
 
-        {/* ===== CITIES ===== */}
-        <TabsContent value="cities" className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div><Label className="text-xs mb-1 block">City *</Label><Input value={cityForm.name} onChange={e => setCityForm(p => ({ ...p, name: e.target.value }))} placeholder="London" /></div>
-            <div><Label className="text-xs mb-1 block">Country</Label><Input value={cityForm.country} onChange={e => setCityForm(p => ({ ...p, country: e.target.value }))} placeholder="United Kingdom" /></div>
-            <div>
-              <Label className="text-xs mb-1 block">Country Flag</Label>
-              <Select value="" onValueChange={(code) => setCityForm(p => ({ ...p, flag_svg_url: flagUrl(code) }))}>
-                <SelectTrigger><SelectValue placeholder="Pick flag" /></SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {COUNTRY_OPTIONS.map(c => (
-                    <SelectItem key={c.code} value={c.code}>
-                      <span className="flex items-center gap-2">
-                        <img src={flagUrl(c.code)} className="w-4 h-4 rounded-full" alt="" />
-                        {c.name}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {cityForm.flag_svg_url && (
-                <div className="flex items-center gap-2 mt-1">
-                  <img src={cityForm.flag_svg_url} className="w-6 h-6 rounded-full" alt="flag preview" />
-                  <span className="text-[10px] text-muted-foreground truncate">{cityForm.flag_svg_url}</span>
-                </div>
-              )}
-            </div>
-            <div><Label className="text-xs mb-1 block">Airport Code</Label><Input value={cityForm.airport_code} onChange={e => setCityForm(p => ({ ...p, airport_code: e.target.value.toUpperCase() }))} placeholder="LHR" /></div>
-            <div><Label className="text-xs mb-1 block">Launch Date</Label><Input type="date" value={cityForm.launch_date} onChange={e => setCityForm(p => ({ ...p, launch_date: e.target.value }))} /></div>
-            <div><Label className="text-xs mb-1 block">Latitude</Label><Input value={cityForm.latitude} onChange={e => setCityForm(p => ({ ...p, latitude: e.target.value }))} placeholder="-6.16" /></div>
-            <div><Label className="text-xs mb-1 block">Longitude</Label><Input value={cityForm.longitude} onChange={e => setCityForm(p => ({ ...p, longitude: e.target.value }))} placeholder="39.19" /></div>
-          </div>
-          <Button size="sm" disabled={!cityForm.name.trim() || createMutation.isPending} onClick={() => {
-            const payload: Record<string, any> = { name: cityForm.name.trim(), country: cityForm.country.trim(), airport_code: cityForm.airport_code.trim() };
-            if (cityForm.flag_svg_url.trim()) payload.flag_svg_url = cityForm.flag_svg_url.trim();
-            if (cityForm.launch_date) payload.launch_date = cityForm.launch_date;
-            if (cityForm.latitude) payload.latitude = parseFloat(cityForm.latitude);
-            if (cityForm.longitude) payload.longitude = parseFloat(cityForm.longitude);
-            createMutation.mutate({ table: 'cities', payload, successTitle: 'City created', invalidateKeys: ['cities'] });
-            setCityForm({ name: '', country: '', flag_emoji: '', flag_svg_url: '', airport_code: '', launch_date: '', latitude: '', longitude: '' });
-          }}>Add City</Button>
-          <p className="text-xs text-muted-foreground font-medium">{cities.length} existing cities</p>
-          <div className="space-y-0.5 max-h-72 overflow-y-auto border rounded-md p-2">
-            {cities.map((city: any) => (
-              <EditableRow key={city.id} record={city} table="cities" invalidateKeys={['cities']}
-                fields={[
-                  { key: 'name', label: 'City' },
-                  { key: 'country', label: 'Country' },
-                  { key: 'flag_svg_url', label: 'Flag SVG' },
-                  { key: 'airport_code', label: 'Airport Code' },
-                  { key: 'launch_date', label: 'Launch Date', type: 'date' },
-                  { key: 'latitude', label: 'Lat', type: 'number' },
-                  { key: 'longitude', label: 'Lng', type: 'number' },
-                ]}
-              />
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* ===== CREATORS/HOSTS ===== */}
+        {/* CREATORS/HOSTS */}
         <TabsContent value="creators" className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div><Label className="text-xs mb-1 block">Username *</Label><Input value={creatorForm.username} onChange={e => setCreatorForm(p => ({ ...p, username: e.target.value }))} placeholder="kadeem" /></div>
-            <div><Label className="text-xs mb-1 block">Display name</Label><Input value={creatorForm.display_name} onChange={e => setCreatorForm(p => ({ ...p, display_name: e.target.value }))} placeholder="Kadeem" /></div>
-            <div><Label className="text-xs mb-1 block">Avatar URL</Label><Input value={creatorForm.avatar_url} onChange={e => setCreatorForm(p => ({ ...p, avatar_url: e.target.value }))} placeholder="https://..." /></div>
+            <div><Label className="text-xs mb-1 block">Display name</Label><Input value={creatorForm.display_name} onChange={e => setCreatorForm(p => ({ ...p, display_name: e.target.value }))} /></div>
+            <div><Label className="text-xs mb-1 block">Avatar URL</Label><Input value={creatorForm.avatar_url} onChange={e => setCreatorForm(p => ({ ...p, avatar_url: e.target.value }))} /></div>
             <div className="md:col-span-3"><Label className="text-xs mb-1 block">Bio</Label><Textarea rows={2} value={creatorForm.bio} onChange={e => setCreatorForm(p => ({ ...p, bio: e.target.value }))} /></div>
-            <div><Label className="text-xs mb-1 block">Instagram</Label><Input value={creatorForm.instagram} onChange={e => setCreatorForm(p => ({ ...p, instagram: e.target.value }))} placeholder="@handle" /></div>
-            <div><Label className="text-xs mb-1 block">TikTok</Label><Input value={creatorForm.tiktok} onChange={e => setCreatorForm(p => ({ ...p, tiktok: e.target.value }))} placeholder="@handle" /></div>
-            <div><Label className="text-xs mb-1 block">Website</Label><Input value={creatorForm.website} onChange={e => setCreatorForm(p => ({ ...p, website: e.target.value }))} placeholder="https://..." /></div>
-            <div className="md:col-span-3">
-              <Label className="text-xs mb-1 block">Categories</Label>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((cat: any) => {
-                  const isSelected = creatorForm.category_ids.includes(cat.id);
-                  return (
-                    <label key={cat.id} className="flex items-center gap-1.5 cursor-pointer">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => {
-                          setCreatorForm(p => ({
-                            ...p,
-                            category_ids: isSelected
-                              ? p.category_ids.filter(id => id !== cat.id)
-                              : [...p.category_ids, cat.id]
-                          }));
-                        }}
-                      />
-                      <span className="text-sm">{cat.emoji} {cat.name}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
+            <div><Label className="text-xs mb-1 block">Instagram</Label><Input value={creatorForm.instagram} onChange={e => setCreatorForm(p => ({ ...p, instagram: e.target.value }))} /></div>
+            <div><Label className="text-xs mb-1 block">TikTok</Label><Input value={creatorForm.tiktok} onChange={e => setCreatorForm(p => ({ ...p, tiktok: e.target.value }))} /></div>
+            <div><Label className="text-xs mb-1 block">Website</Label><Input value={creatorForm.website} onChange={e => setCreatorForm(p => ({ ...p, website: e.target.value }))} /></div>
           </div>
           <Button size="sm" disabled={!creatorForm.username.trim() || createMutation.isPending} onClick={async () => {
             const categoryIds = [...creatorForm.category_ids];
@@ -489,6 +350,7 @@ export const AdminManualEntities = () => {
                     { key: 'bio', label: 'Bio' },
                     { key: 'avatar_url', label: 'Avatar URL' },
                   ]}
+                  onDelete={() => deleteRecord('creators', cr.id, ['creators'])}
                 />
                 <div className="px-2">
                   <CreatorCategoryEditor creatorId={cr.id} categories={categories} />
@@ -498,11 +360,11 @@ export const AdminManualEntities = () => {
           </div>
         </TabsContent>
 
-        {/* ===== ITINERARIES ===== */}
+        {/* ITINERARIES */}
         <TabsContent value="itineraries" className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div><Label className="text-xs mb-1 block">Name *</Label><Input value={itineraryForm.name} onChange={e => setItineraryForm(p => ({ ...p, name: e.target.value, slug: p.slug || toSlug(e.target.value) }))} placeholder="Best of Zanzibar" /></div>
-            <div><Label className="text-xs mb-1 block">Slug *</Label><Input value={itineraryForm.slug} onChange={e => setItineraryForm(p => ({ ...p, slug: toSlug(e.target.value) }))} placeholder="best-of-zanzibar" /></div>
+            <div><Label className="text-xs mb-1 block">Name *</Label><Input value={itineraryForm.name} onChange={e => setItineraryForm(p => ({ ...p, name: e.target.value, slug: p.slug || toSlug(e.target.value) }))} /></div>
+            <div><Label className="text-xs mb-1 block">Slug *</Label><Input value={itineraryForm.slug} onChange={e => setItineraryForm(p => ({ ...p, slug: toSlug(e.target.value) }))} /></div>
             <div>
               <Label className="text-xs mb-1 block">Tag</Label>
               <Select value={itineraryForm.tag} onValueChange={v => setItineraryForm(p => ({ ...p, tag: v }))}>
@@ -513,7 +375,7 @@ export const AdminManualEntities = () => {
             <div><Label className="text-xs mb-1 block">Description</Label><Input value={itineraryForm.description} onChange={e => setItineraryForm(p => ({ ...p, description: e.target.value }))} /></div>
           </div>
           <Button size="sm" disabled={!itineraryForm.name.trim() || !itineraryForm.slug.trim() || createMutation.isPending} onClick={() => {
-            createMutation.mutate({ table: 'public_itineraries', payload: { name: itineraryForm.name.trim(), slug: itineraryForm.slug.trim(), description: itineraryForm.description.trim(), tag: itineraryForm.tag, is_active: true }, successTitle: 'Itinerary created', invalidateKeys: ['public-itineraries', 'admin-manual-itineraries', 'link-manager-itineraries'] });
+            createMutation.mutate({ table: 'public_itineraries', payload: { name: itineraryForm.name.trim(), slug: itineraryForm.slug.trim(), description: itineraryForm.description.trim(), tag: itineraryForm.tag, is_active: true }, successTitle: 'Itinerary created', invalidateKeys: ['public-itineraries', 'admin-manual-itineraries'] });
             setItineraryForm({ name: '', slug: '', description: '', tag: 'popular' });
           }}>Add Itinerary</Button>
           <p className="text-xs text-muted-foreground font-medium">{publicItineraries.length} existing itineraries</p>
@@ -527,12 +389,13 @@ export const AdminManualEntities = () => {
                   { key: 'tag', label: 'Tag', options: [{ value: 'popular', label: 'popular' }, { value: 'fave', label: 'fave' }] },
                   { key: 'cover_image', label: 'Cover Image' },
                 ]}
+                onDelete={() => deleteRecord('public_itineraries', it.id, ['public-itineraries', 'admin-manual-itineraries'])}
               />
             ))}
           </div>
         </TabsContent>
 
-        {/* ===== COLLECTIONS ===== */}
+        {/* COLLECTIONS */}
         <TabsContent value="collections" className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div><Label className="text-xs mb-1 block">Name *</Label><Input value={collectionForm.name} onChange={e => setCollectionForm(p => ({ ...p, name: e.target.value, slug: p.slug || toSlug(e.target.value) }))} /></div>
@@ -563,6 +426,7 @@ export const AdminManualEntities = () => {
                   { key: 'tag', label: 'Tag' },
                   { key: 'cover_image', label: 'Cover Image' },
                 ]}
+                onDelete={() => deleteRecord('collections', col.id, ['admin-manual-collections', 'link-manager-collections'])}
               />
             ))}
           </div>
