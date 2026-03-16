@@ -112,12 +112,13 @@ export default function PoiDetail() {
           >
             <ArrowLeft className="w-[18px] h-[18px] text-white" />
           </button>
-          <button
-            onClick={() => setShareOpen(true)}
-            className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-2xl border border-white/10 flex items-center justify-center active:scale-90 transition-transform"
-          >
-            <Share2 className="w-[18px] h-[18px] text-white" />
-          </button>
+          <ShareDrawer title={poi.name} url={shareUrl}>
+            <button
+              className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-2xl border border-white/10 flex items-center justify-center active:scale-90 transition-transform"
+            >
+              <Share2 className="w-[18px] h-[18px] text-white" />
+            </button>
+          </ShareDrawer>
         </div>
 
         {/* Hero content overlay */}
