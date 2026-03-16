@@ -49,7 +49,7 @@ export default function PoiDetail() {
 
   const typeInfo = typeConfig[poi?.poi_type || ""] || { label: poi?.poi_type || "Place" };
 
-  const liked = poi ? (isAuthenticated ? isDbLiked(poi.id, "poi") : localLiked) : false;
+  const liked = poi ? (isAuthenticated ? isDbLiked(poi.id, "experience") : localLiked) : false;
 
   const handleGoBack = () => {
     if (window.history.state?.idx > 0) navigate(-1);
