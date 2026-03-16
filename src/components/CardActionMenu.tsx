@@ -58,9 +58,7 @@ const ActionMenuContent = ({
     removeExperienceFromItinerary,
   } = useItineraries();
 
-  const liked = isAuthenticated
-    ? isDbLiked(entityId, entityType)
-    : isLocalLiked(entityId);
+  const liked = isDbLiked(entityId, entityType) || isLocalLiked(entityId);
 
   const shareUrl =
     entityType === "itinerary"
@@ -77,9 +75,17 @@ const ActionMenuContent = ({
     if ("vibrate" in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
       await toggleDbLike(entityId, entityType, entityData);
-    } else {
-      toggleLocalLike(entityData);
     }
+    // Always toggle local likes too so card hearts stay in sync
+    toggleLocalLike({
+      id: entityId,
+      title: entityData?.title || title,
+      creator: entityData?.creator || "",
+      videoThumbnail: entityData?.videoThumbnail || entityData?.video_thumbnail || entityData?.coverImage || "",
+      category: entityData?.category || "",
+      location: entityData?.location || "",
+      price: entityData?.price || "",
+    });
   };
 
   const handleCopy = async () => {
@@ -234,7 +240,7 @@ const ActionMenuContent = ({
 
   // --- Main view ---
   const shareActions = [
-    { name: "Wishlist", icon: Heart, onClick: handleSave, active: liked },
+    { name: "Like", icon: Heart, onClick: handleSave, active: liked },
     { name: "Share", icon: Share2, onClick: handleShare },
     { name: "Copy Link", icon: copied ? Check : Copy, onClick: handleCopy, active: copied },
     { name: "WhatsApp", icon: MessageCircle, onClick: handleWhatsApp },
