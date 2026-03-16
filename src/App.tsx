@@ -38,6 +38,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <RedirectHandler />
           <Routes>
             {/* ═══════════════════════════════════════════════════
                 PUBLIC ROUTE ARCHITECTURE — FINAL LAUNCH SET
