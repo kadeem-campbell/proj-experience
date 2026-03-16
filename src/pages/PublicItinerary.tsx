@@ -1149,7 +1149,7 @@ const PublicItinerary = () => {
                         className="flex items-center gap-3 py-2 rounded-lg px-1 transition-colors"
                       >
                         <div
-                          onClick={() => navigate(generateExperienceUrl(exp.location || '', exp.title, slugify(exp.title)))}
+                          onClick={() => navigate(generateProductPageUrl(exp.location || '', exp.title, slugify(exp.title)))}
                           className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-muted/40 rounded-lg transition-colors"
                         >
                           <div className="w-9 h-9 rounded-md overflow-hidden bg-muted shrink-0">
