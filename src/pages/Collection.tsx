@@ -113,7 +113,7 @@ const CollectionPage = () => {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: publicItinerariesList = [], isLoading: itinerariesLoading } = usePublicItineraries();
-  const allExperiences = useProductListings();
+  const productListings = useProductListings();
 
   // Fetch destinations for city filtering
   const { data: destinations = [] } = useQuery({
