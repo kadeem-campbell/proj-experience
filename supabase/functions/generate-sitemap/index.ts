@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
       urls.push({ loc: `${baseUrl}/things-to-do`, lastmod: now, priority: '0.9', changefreq: 'daily' });
       urls.push({ loc: `${baseUrl}/itineraries`, lastmod: now, priority: '0.8', changefreq: 'weekly' });
       urls.push({ loc: `${baseUrl}/hosts`, lastmod: now, priority: '0.7', changefreq: 'weekly' });
-      urls.push({ loc: `${baseUrl}/explore/map`, lastmod: now, priority: '0.6', changefreq: 'weekly' });
+      // Map hub pages are destination-specific, generated in destinations sitemap
     }
 
     if (sitemapType === 'destinations') {
@@ -167,9 +167,9 @@ Deno.serve(async (req) => {
 
       (collections || []).forEach((c: any) => {
         if (c.indexability_state === 'public_indexed') {
-          const prefix = c.content_type === 'itinerary' ? 'itineraries' : 'experiences';
+          // Single canonical family: /collections/:slug — no subtype in path
           urls.push({
-            loc: `${baseUrl}/collections/${prefix}/${c.slug}`,
+            loc: `${baseUrl}/collections/${c.slug}`,
             lastmod: c.updated_at?.split('T')[0] || now,
             priority: '0.6',
             changefreq: 'weekly',

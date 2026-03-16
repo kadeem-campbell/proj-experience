@@ -281,7 +281,8 @@ const SearchPage = () => {
       <SEOHead
         title="Discover Experiences & Things to Do in East Africa"
         description="Explore curated experiences, activities and things to do in Zanzibar, Kilimanjaro, Nairobi and across East Africa. Build and share itineraries with friends."
-        url="https://swam.app"
+        canonicalPath="/"
+        indexability="public_indexed"
         jsonLd={createWebsiteJsonLd()}
       />
       <MobileHomeView />
@@ -440,7 +441,7 @@ const SearchPage = () => {
             )}
 
             {foodExps.length > 0 && (
-              <DesktopScrollRow title="Taste the local flavors" variant="experience" onViewAll={() => navigate("/experiences?tag=Food")}>
+              <DesktopScrollRow title="Taste the local flavors" variant="experience" onViewAll={() => navigate("/things-to-do")}>
                 {foodExps.map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
                     <ExperienceCard {...exp} compact />
@@ -460,7 +461,7 @@ const SearchPage = () => {
             )}
 
             {beachExps.length > 0 && (
-              <DesktopScrollRow title="Beach vibes" variant="experience" onViewAll={() => navigate("/experiences?tag=Beaches")}>
+              <DesktopScrollRow title="Beach vibes" variant="experience" onViewAll={() => navigate("/things-to-do")}>
                 {beachExps.map((exp) => (
                   <div key={exp.id} className="flex-shrink-0 w-[240px] lg:w-[260px] xl:w-[280px]">
                     <ExperienceCard {...exp} compact />

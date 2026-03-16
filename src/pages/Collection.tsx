@@ -14,7 +14,7 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
-import { Helmet } from "react-helmet-async";
+import { SEOHead, createCollectionJsonLd } from "@/components/SEOHead";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { generateExperienceUrl } from "@/utils/slugUtils";
@@ -273,11 +273,12 @@ const CollectionPage = () => {
   }
 
   const seoBlock = (
-    <Helmet>
-      <title>{collectionTitle} — Curated Collection | Swam</title>
-      <meta name="description" content={collectionDescription || `${collectionTitle} — curated collection on Swam`} />
-      <link rel="canonical" href={`https://swam.app/collections/${slug}`} />
-    </Helmet>
+    <SEOHead
+      title={`${collectionTitle} — Curated Collection`}
+      description={collectionDescription || `${collectionTitle} — curated collection on Swam`}
+      canonicalPath={`/collections/${slug}`}
+      indexability="public_indexed"
+    />
   );
 
   const cityChips = isDynamic && destinations.length > 0 ? (

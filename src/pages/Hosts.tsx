@@ -143,7 +143,8 @@ export default function Hosts() {
       <SEOHead
         title="Experience Hosts — Local Guides & Activity Providers"
         description="Discover verified local experience hosts and activity providers across East Africa. Book directly with trusted guides."
-        url="https://swam.app/hosts"
+        canonicalPath="/hosts"
+        indexability="public_indexed"
         jsonLd={jsonLd}
       />
 

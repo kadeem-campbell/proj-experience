@@ -429,7 +429,8 @@ export default function ExperienceDetail() {
           <SEOHead
             title={`${experience.title} in ${experience.location}`}
             description={`${experience.title} — ${experience.category} activity in ${experience.location}. ${experience.description?.slice(0, 120) || 'Discover and add to your itinerary.'}`}
-            url={shareUrl}
+            canonicalPath={shareUrl.replace('https://swam.app', '')}
+            indexability="public_indexed"
             image={experience.videoThumbnail}
             jsonLd={experienceJsonLd}
           />

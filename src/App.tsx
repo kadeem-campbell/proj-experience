@@ -23,7 +23,6 @@ import Profile from "./pages/Profile";
 import MyItineraries from "./pages/MyItineraries";
 import Liked from "./pages/Liked";
 import Collection from "./pages/Collection";
-import ExperienceCollection from "./pages/ExperienceCollection";
 import NotFound from "./pages/NotFound";
 import HostProfile from "./pages/HostProfile";
 import DestinationPage from "./pages/DestinationPage";
@@ -39,6 +38,11 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
+            {/* ═══════════════════════════════════════════════════
+                PUBLIC ROUTE ARCHITECTURE — FINAL LAUNCH SET
+                One canonical family per object type. No legacy.
+            ═══════════════════════════════════════════════════ */}
+
             {/* Home */}
             <Route path="/" element={<Search />} />
 
@@ -51,7 +55,7 @@ const App = () => (
             {/* Map — single canonical pattern */}
             <Route path="/:destination/map" element={<Map />} />
 
-            {/* Hosts */}
+            {/* Hosts — single canonical family */}
             <Route path="/hosts/:username" element={<HostProfile />} />
             <Route path="/hosts" element={<Hosts />} />
 
@@ -59,25 +63,28 @@ const App = () => (
             <Route path="/itineraries/:slug" element={<PublicItinerary />} />
             <Route path="/itineraries" element={<Itineraries />} />
 
-            {/* User's active trip (authenticated, noindex) */}
-            <Route path="/my-trips/:id" element={<Trip />} />
-            <Route path="/my-trips" element={<Trip useActiveItinerary={true} />} />
-
-            {/* Collections — single canonical family */}
+            {/* Collections — single canonical family (subtype in data, not path) */}
             <Route path="/collections/:slug" element={<Collection />} />
 
-            {/* Admin / internal (noindex, disallowed in robots) */}
+            {/* About */}
+            <Route path="/about" element={<About />} />
+
+            {/* ═══════════════════════════════════════════════════
+                INTERNAL / AUTHENTICATED — noindex, disallowed in robots
+            ═══════════════════════════════════════════════════ */}
+            <Route path="/my-trips/:id" element={<Trip />} />
+            <Route path="/my-trips" element={<Trip useActiveItinerary={true} />} />
             <Route path="/create-experience" element={<CreateExperience />} />
             <Route path="/monetise" element={<Monetise />} />
-            <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/management" element={<ManagementDashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/my-itineraries" element={<MyItineraries />} />
             <Route path="/liked" element={<Liked />} />
+            <Route path="/search" element={<Search />} />
 
-            {/* Destination hierarchy */}
+            {/* Destination hierarchy — public */}
             <Route path="/:destination/:area" element={<DestinationPage />} />
             <Route path="/:destination" element={<DestinationPage />} />
 

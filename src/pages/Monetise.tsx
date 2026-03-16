@@ -158,9 +158,9 @@ export default function Monetise() {
               <Button size="lg" disabled className="bg-muted text-muted-foreground cursor-not-allowed">
                 Coming Soon - Join Waitlist
               </Button>
-              <Link to="/creators">
+              <Link to="/hosts">
                 <Button variant="outline" size="lg">
-                  Become a Creator Instead
+                  Become a Host Instead
                 </Button>
               </Link>
             </div>

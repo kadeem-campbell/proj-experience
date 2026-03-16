@@ -188,7 +188,7 @@ export default function DestinationPage() {
   if (isMobile) {
     return (
       <MobileShell hideTopBar>
-        <SEOHead title={`${title} — Things to Do & Experiences`} description={description} url={`https://swam.app${canonicalPath}`} image={heroImage} jsonLd={jsonLd || undefined} />
+        <SEOHead title={`${title} — Things to Do & Experiences`} description={description} canonicalPath={canonicalPath} indexability="public_indexed" image={heroImage} jsonLd={jsonLd || undefined} />
         {content}
       </MobileShell>
     );
@@ -196,7 +196,7 @@ export default function DestinationPage() {
 
   return (
     <MainLayout>
-      <SEOHead title={`${title} — Things to Do & Experiences`} description={description} url={`https://swam.app${canonicalPath}`} image={heroImage} jsonLd={jsonLd || undefined} />
+      <SEOHead title={`${title} — Things to Do & Experiences`} description={description} canonicalPath={canonicalPath} indexability="public_indexed" image={heroImage} jsonLd={jsonLd || undefined} />
       <div className="max-w-6xl mx-auto">{content}</div>
     </MainLayout>
   );
