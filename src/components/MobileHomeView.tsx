@@ -250,29 +250,24 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
 // POI card
 const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
   const navigate = useNavigate();
-  const typeEmojis: Record<string, string> = {
-    beach: '🏖️', attraction: '🏛️', landmark: '📍', nature: '🌿',
-    marine: '🐠', island: '🏝️', viewpoint: '👁️', market: '🛍️',
-    forest: '🌳', cave: '🕳️',
-  };
-  const emoji = typeEmojis[poi.poi_type] || '📍';
 
   return (
     <div 
       className="flex-shrink-0 w-[36vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
       onClick={() => navigate(`/things-to-do/${destinationSlug || 'zanzibar'}/${poi.slug}`)}
     >
-      <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
+      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted">
         {poi.cover_image ? (
           <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center">
-            <span className="text-3xl">{emoji}</span>
+          <div className="w-full h-full bg-gradient-to-br from-foreground/10 to-foreground/5 flex items-center justify-center">
+            <MapPin className="w-6 h-6 text-muted-foreground/30" />
           </div>
         )}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2.5">
-          <p className="text-white text-xs font-semibold line-clamp-1">{poi.name}</p>
-          <p className="text-white/70 text-[10px] capitalize">{poi.poi_type}</p>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <p className="text-white text-[13px] font-bold line-clamp-2 leading-tight">{poi.name}</p>
+          <p className="text-white/60 text-[10px] font-medium mt-0.5 capitalize">{poi.poi_type}</p>
         </div>
       </div>
     </div>
