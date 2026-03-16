@@ -1,55 +1,86 @@
 /**
- * Canonical URL Registry & Indexability Service
+ * Canonical URL Registry, Indexability & Route Resolution Service
  * 
- * Determines canonical URL, page class, indexability, and sitemap inclusion
- * for every publishable entity.
+ * Single source of truth for:
+ * - canonical URL generation
+ * - indexability state management
+ * - route-priority conflict resolution
+ * - slug history & alias handling
+ * - parameter whitelisting & invalid-state enforcement
  */
 
 import { supabase } from "@/integrations/supabase/client";
+
+// ============ TYPE DEFINITIONS ============
 
 export type PageClass =
   | "destination"
   | "area"
   | "product"
-  | "itinerary"
-  | "collection"
-  | "host"
   | "poi"
+  | "collection"
+  | "itinerary"
+  | "host"
   | "theme"
-  | "map";
+  | "map_hub"
+  | "traveler";
 
 export type IndexabilityState =
-  | "indexed"          // public, in sitemap
-  | "noindex"          // renders but not indexed
-  | "redirect"         // redirects to canonical
-  | "not_found";       // 404
+  | "internal_only"
+  | "public_noindex"
+  | "public_indexed"
+  | "deprecated_redirect"
+  | "merged_redirect"
+  | "suppressed_duplicate"
+  | "draft_unpublished"
+  | "blocked_low_readiness";
 
-export interface CanonicalEntry {
-  entity_type: PageClass;
-  entity_id: string;
-  canonical_url: string;
+export interface CanonicalDecision {
+  winningPageType: PageClass;
+  winningUrl: string;
+  robotsDirective: string;
+  redirectAction: "none" | "301" | "404" | "410";
+  redirectTarget?: string;
   indexability: IndexabilityState;
-  sitemap_include: boolean;
-  redirect_target?: string;
-  page_class_priority: number;  // lower = higher priority to avoid cannibalization
+  sitemapInclude: boolean;
+  losingCandidates: Array<{
+    pageType: PageClass;
+    url: string;
+    action: "noindex" | "301" | "404" | "hold_unpublished";
+  }>;
 }
 
-// Priority order for anti-cannibalization
-const PAGE_CLASS_PRIORITY: Record<PageClass, number> = {
-  product: 1,
-  destination: 2,
-  itinerary: 3,
-  collection: 4,
-  host: 5,
-  area: 6,
-  theme: 7,
-  poi: 8,
-  map: 9,
-};
+export interface RouteValidationResult {
+  valid: boolean;
+  redirect?: string;
+  statusCode: 200 | 301 | 404 | 410;
+  canonical?: string;
+  reason?: string;
+}
+
+// ============ CONSTANTS ============
 
 const BASE_URL = "https://swam.app";
 
+/**
+ * Route priority — lower number = higher priority.
+ * When multiple pages could serve the same intent, lower-priority page wins.
+ */
+const ROUTE_PRIORITY: Record<PageClass, number> = {
+  product: 1,
+  area: 2,       // area + activity page
+  destination: 3, // destination + activity page
+  collection: 4,
+  itinerary: 5,
+  host: 6,
+  theme: 7,
+  poi: 8,
+  map_hub: 9,
+  traveler: 10,
+};
+
 // ============ URL BUILDERS ============
+
 export const buildCanonicalUrl = (
   pageClass: PageClass,
   slugParts: { slug: string; destinationSlug?: string; areaSlug?: string }
@@ -77,64 +108,226 @@ export const buildCanonicalUrl = (
       return destinationSlug
         ? `${BASE_URL}/things-to-do/${destinationSlug}/theme/${slug}`
         : `${BASE_URL}/themes/${slug}`;
-    case "map":
+    case "map_hub":
       return destinationSlug
         ? `${BASE_URL}/${destinationSlug}/map`
         : `${BASE_URL}/explore/map`;
+    case "traveler":
+      return `${BASE_URL}/travelers/${slug}`;
     default:
       return `${BASE_URL}/${slug}`;
   }
 };
 
-// ============ CANONICAL DECISION LOGIC ============
-export const resolveCanonical = (
-  pageClass: PageClass,
-  entity: {
-    id: string;
-    slug: string;
-    is_active?: boolean;
-    is_indexable?: boolean;
-    publish_score?: number;
-    destinationSlug?: string;
-    areaSlug?: string;
+// ============ INDEXABILITY → ROBOTS DIRECTIVE ============
+
+export const indexabilityToRobots = (state: IndexabilityState): string => {
+  switch (state) {
+    case "public_indexed":
+      return "index,follow";
+    case "public_noindex":
+      return "noindex,follow";
+    case "internal_only":
+    case "draft_unpublished":
+    case "blocked_low_readiness":
+    case "suppressed_duplicate":
+      return "noindex,nofollow";
+    case "deprecated_redirect":
+    case "merged_redirect":
+      return "noindex,follow"; // redirect handles it
+    default:
+      return "noindex,nofollow";
   }
-): CanonicalEntry => {
-  const canonicalUrl = buildCanonicalUrl(pageClass, {
-    slug: entity.slug,
-    destinationSlug: entity.destinationSlug,
-    areaSlug: entity.areaSlug,
+};
+
+// ============ INDEXABILITY → RENDER BEHAVIOR ============
+
+export const shouldRenderPage = (state: IndexabilityState, isAdmin: boolean): boolean => {
+  switch (state) {
+    case "public_indexed":
+    case "public_noindex":
+      return true;
+    case "internal_only":
+    case "draft_unpublished":
+    case "blocked_low_readiness":
+      return isAdmin;
+    case "deprecated_redirect":
+    case "merged_redirect":
+      return false; // redirect instead
+    case "suppressed_duplicate":
+      return false;
+    default:
+      return false;
+  }
+};
+
+// ============ CANONICAL CONFLICT RESOLVER ============
+
+export const resolveCanonicalPage = (
+  candidates: Array<{
+    pageType: PageClass;
+    entityId: string;
+    slug: string;
+    destinationSlug?: string;
+    indexability: IndexabilityState;
+    publishScore: number;
+  }>
+): CanonicalDecision => {
+  // Sort by priority (lower = higher priority), then by publish score (higher = better)
+  const sorted = [...candidates].sort((a, b) => {
+    const priorityDiff = ROUTE_PRIORITY[a.pageType] - ROUTE_PRIORITY[b.pageType];
+    if (priorityDiff !== 0) return priorityDiff;
+    return b.publishScore - a.publishScore;
   });
 
-  const isActive = entity.is_active !== false;
-  const isIndexable = entity.is_indexable !== false;
-  const publishScore = entity.publish_score ?? 0;
-  const meetsThreshold = publishScore >= 40;
+  const winner = sorted[0];
+  const losers = sorted.slice(1);
 
-  let indexability: IndexabilityState = "indexed";
-  if (!isActive) indexability = "not_found";
-  else if (!isIndexable || !meetsThreshold) indexability = "noindex";
+  const winningUrl = buildCanonicalUrl(winner.pageType, {
+    slug: winner.slug,
+    destinationSlug: winner.destinationSlug,
+  });
+
+  const isPublishable = winner.publishScore >= 40;
+  const finalIndexability: IndexabilityState = 
+    winner.indexability === "public_indexed" && isPublishable
+      ? "public_indexed"
+      : "public_noindex";
 
   return {
-    entity_type: pageClass,
-    entity_id: entity.id,
-    canonical_url: canonicalUrl,
-    indexability,
-    sitemap_include: indexability === "indexed",
-    page_class_priority: PAGE_CLASS_PRIORITY[pageClass],
+    winningPageType: winner.pageType,
+    winningUrl,
+    robotsDirective: indexabilityToRobots(finalIndexability),
+    redirectAction: "none",
+    indexability: finalIndexability,
+    sitemapInclude: finalIndexability === "public_indexed",
+    losingCandidates: losers.map(l => ({
+      pageType: l.pageType,
+      url: buildCanonicalUrl(l.pageType, { slug: l.slug, destinationSlug: l.destinationSlug }),
+      action: l.indexability === "public_indexed" ? "noindex" as const : "hold_unpublished" as const,
+    })),
   };
 };
 
+// ============ ROUTE PARAMETER VALIDATION ============
+
+export const validateRouteParams = (
+  path: string,
+  knownDestinations: string[],
+  knownAreas: Map<string, string[]>, // destinationSlug → areaSlug[]
+  knownActivityTypes: string[],
+): RouteValidationResult => {
+  const segments = path.split("/").filter(Boolean);
+
+  // /experiences/* → legacy, redirect to /things-to-do
+  if (segments[0] === "experiences") {
+    const slug = segments[1];
+    if (slug) {
+      return {
+        valid: false,
+        statusCode: 301,
+        redirect: `/things-to-do/${slug}`,
+        reason: "legacy_experience_url",
+      };
+    }
+    return {
+      valid: false,
+      statusCode: 301,
+      redirect: "/things-to-do",
+      reason: "legacy_experience_listing",
+    };
+  }
+
+  // /things-to-do/:dest/:area/:activity
+  if (segments[0] === "things-to-do" && segments.length === 4) {
+    const [, dest, area, activity] = segments;
+    if (!knownDestinations.includes(dest)) {
+      return { valid: false, statusCode: 404, reason: "unknown_destination" };
+    }
+    const destAreas = knownAreas.get(dest) || [];
+    if (!destAreas.includes(area)) {
+      return { valid: false, statusCode: 404, reason: "area_not_in_destination" };
+    }
+    if (!knownActivityTypes.includes(activity)) {
+      return {
+        valid: false,
+        statusCode: 301,
+        redirect: `/things-to-do/${dest}/${area}`,
+        reason: "unknown_activity_type",
+      };
+    }
+    return { valid: true, statusCode: 200 };
+  }
+
+  // /things-to-do/:dest/:slug
+  if (segments[0] === "things-to-do" && segments.length === 3) {
+    const [, dest] = segments;
+    if (!knownDestinations.includes(dest)) {
+      // dest might be interpreted as experience slug
+      return { valid: true, statusCode: 200 };
+    }
+    return { valid: true, statusCode: 200 };
+  }
+
+  // /:dest/:area
+  if (segments.length === 2 && !["things-to-do", "hosts", "itineraries", "collections", "travelers", "explore"].includes(segments[0])) {
+    const [dest, area] = segments;
+    if (!knownDestinations.includes(dest)) {
+      return { valid: false, statusCode: 404, reason: "unknown_destination" };
+    }
+    const destAreas = knownAreas.get(dest) || [];
+    if (!destAreas.includes(area)) {
+      return { valid: false, statusCode: 404, reason: "area_not_in_destination" };
+    }
+    return { valid: true, statusCode: 200 };
+  }
+
+  return { valid: true, statusCode: 200 };
+};
+
+// ============ LEGACY URL RESOLVER ============
+
+export const resolveLegacyUrl = (path: string): RouteValidationResult | null => {
+  const segments = path.split("/").filter(Boolean);
+
+  // /experiences/:slug → /things-to-do/:slug (will be resolved by ThingsToDo)
+  if (segments[0] === "experiences" && segments[1]) {
+    return {
+      valid: false,
+      statusCode: 301,
+      redirect: `/things-to-do/${segments[1]}`,
+      reason: "legacy_experience_url",
+    };
+  }
+
+  // /experiences → /things-to-do
+  if (segments[0] === "experiences" && !segments[1]) {
+    return {
+      valid: false,
+      statusCode: 301,
+      redirect: "/things-to-do",
+      reason: "legacy_listing",
+    };
+  }
+
+  return null;
+};
+
 // ============ LOG CANONICAL DECISION ============
+
 export const logCanonicalDecision = async (
-  entry: CanonicalEntry,
-  reason: string
+  entityType: string,
+  entityId: string,
+  canonicalUrl: string,
+  isIndexable: boolean,
+  reason: string,
 ): Promise<void> => {
   try {
     await (supabase as any).from("canonical_decisions").upsert({
-      entity_type: entry.entity_type,
-      entity_id: entry.entity_id,
-      canonical_url: entry.canonical_url,
-      is_indexable: entry.indexability === "indexed",
+      entity_type: entityType,
+      entity_id: entityId,
+      canonical_url: canonicalUrl,
+      is_indexable: isIndexable,
       reason,
       decided_at: new Date().toISOString(),
     }, {
@@ -146,20 +339,32 @@ export const logCanonicalDecision = async (
 };
 
 // ============ SLUG HISTORY ============
+
 export const logSlugChange = async (
   entityType: string,
   entityId: string,
   oldSlug: string,
   newSlug: string,
-  changedBy?: string
+  changedBy?: string,
+  reason: string = "rename",
 ): Promise<void> => {
   if (oldSlug === newSlug) return;
   try {
+    // Mark old slug as not current
+    await (supabase as any).from("entity_slug_history").update({ is_current: false })
+      .eq("entity_type", entityType)
+      .eq("entity_id", entityId)
+      .eq("is_current", true);
+
+    // Insert new slug record
     await (supabase as any).from("entity_slug_history").insert({
       entity_type: entityType,
       entity_id: entityId,
       old_slug: oldSlug,
       new_slug: newSlug,
+      is_current: true,
+      redirect_to_slug: newSlug,
+      reason,
       changed_by: changedBy || null,
     });
   } catch (err) {
@@ -167,29 +372,123 @@ export const logSlugChange = async (
   }
 };
 
-// ============ VALIDATE ROUTE PARAMETERS ============
-export const validateRouteParams = (
-  path: string,
-  knownDestinations: string[],
-  knownActivityTypes: string[]
-): { valid: boolean; redirect?: string; canonical?: string } => {
-  const segments = path.split("/").filter(Boolean);
+// ============ REGISTER PAGE ROUTE ============
 
-  // /things-to-do/:dest/:area/:activity - validate activity exists
-  if (segments[0] === "things-to-do" && segments.length === 4) {
-    const activity = segments[3];
-    if (!knownActivityTypes.includes(activity)) {
-      return { valid: false, redirect: `/things-to-do/${segments[1]}` };
-    }
+export const registerPageRoute = async (
+  pageType: PageClass,
+  entityId: string,
+  entityType: string,
+  slug: string,
+  destinationSlug?: string,
+  indexabilityState: IndexabilityState = "draft_unpublished",
+  publishScore: number = 0,
+): Promise<void> => {
+  const resolvedPath = buildCanonicalUrl(pageType, { slug, destinationSlug }).replace(BASE_URL, "");
+  const canonicalUrl = buildCanonicalUrl(pageType, { slug, destinationSlug });
+  const routePriority = ROUTE_PRIORITY[pageType];
+
+  try {
+    await (supabase as any).from("page_route_registry").upsert({
+      page_type: pageType,
+      entity_id: entityId,
+      entity_type: entityType,
+      resolved_path: resolvedPath,
+      canonical_url: canonicalUrl,
+      route_priority: routePriority,
+      indexability_state: indexabilityState,
+      status: "active",
+      generated_from_rule: `auto_${pageType}`,
+      updated_at: new Date().toISOString(),
+    }, {
+      onConflict: "entity_type,entity_id",
+    });
+  } catch (err) {
+    console.error("Failed to register page route:", err);
   }
+};
 
-  // Single segment - check if it's a known destination
-  if (segments.length === 1 && segments[0] !== "things-to-do") {
-    if (!knownDestinations.includes(segments[0])) {
-      // Could be a legacy route - return not_found
-      return { valid: false };
-    }
-  }
+// ============ PAGE CONTRACT DEFINITIONS ============
 
-  return { valid: true };
+export interface PageContractField {
+  field: string;
+  required: boolean;
+  description: string;
+}
+
+export const PAGE_CONTRACTS: Record<string, PageContractField[]> = {
+  destination: [
+    { field: "title", required: true, description: "Page title" },
+    { field: "summary", required: true, description: "Destination description" },
+    { field: "hero_media", required: true, description: "Cover image" },
+    { field: "schema", required: true, description: "TouristDestination JSON-LD" },
+    { field: "internal_links_areas", required: true, description: "Links to areas" },
+    { field: "internal_links_things_to_do", required: true, description: "Links to things-to-do" },
+    { field: "canonical_tag", required: true, description: "Canonical URL tag" },
+    { field: "breadcrumbs", required: true, description: "Breadcrumb navigation" },
+  ],
+  area: [
+    { field: "area_identity", required: true, description: "Area name and context" },
+    { field: "parent_destination", required: true, description: "Parent destination link" },
+    { field: "summary", required: true, description: "Area description" },
+    { field: "canonical_tag", required: true, description: "Canonical URL tag" },
+    { field: "breadcrumbs", required: true, description: "Breadcrumb navigation" },
+    { field: "schema", required: true, description: "Place JSON-LD" },
+  ],
+  product: [
+    { field: "product_identity", required: true, description: "Title and slug" },
+    { field: "product_summary", required: true, description: "Description" },
+    { field: "activity_type", required: true, description: "Activity type assignment" },
+    { field: "location_scope", required: true, description: "Destination/area context" },
+    { field: "pricing_module", required: true, description: "Option and price display" },
+    { field: "media_module", required: true, description: "Gallery and video" },
+    { field: "faq_questions", required: true, description: "FAQ section" },
+    { field: "booking_cta", required: true, description: "Booking/request CTA" },
+    { field: "canonical_tag", required: true, description: "Canonical URL tag" },
+    { field: "schema", required: true, description: "Product/TouristAttraction JSON-LD" },
+    { field: "structured_highlights", required: true, description: "Highlights list" },
+  ],
+  itinerary: [
+    { field: "creator", required: true, description: "Creator attribution" },
+    { field: "item_list", required: true, description: "List of items" },
+    { field: "destination_context", required: true, description: "Destination context" },
+    { field: "canonical_tag", required: true, description: "Canonical URL" },
+    { field: "schema", required: true, description: "ItemList JSON-LD" },
+    { field: "save_share_block", required: true, description: "Save/share UI" },
+  ],
+  collection: [
+    { field: "reason", required: true, description: "Why this collection exists" },
+    { field: "member_list", required: true, description: "Collection members" },
+    { field: "collection_intro", required: true, description: "Intro text" },
+    { field: "canonical_tag", required: true, description: "Canonical URL" },
+    { field: "schema", required: true, description: "CollectionPage JSON-LD" },
+  ],
+  host: [
+    { field: "host_identity", required: true, description: "Name and avatar" },
+    { field: "bio", required: true, description: "Bio / description" },
+    { field: "canonical_tag", required: true, description: "Canonical URL" },
+    { field: "schema", required: true, description: "LocalBusiness JSON-LD" },
+  ],
+};
+
+// ============ CRAWL POLICY BY CONTENT CLASS ============
+
+export interface CrawlPolicy {
+  searchEngineCrawl: boolean;
+  aiCrawlerAllowed: boolean;
+  snippetAllowed: boolean;
+  imageIndexing: boolean;
+  feedExport: boolean;
+}
+
+export const CRAWL_POLICIES: Record<PageClass, CrawlPolicy> = {
+  destination: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
+  area: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
+  product: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: true },
+  itinerary: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
+  collection: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: false, feedExport: false },
+  host: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
+  poi: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: true, feedExport: false },
+  theme: { searchEngineCrawl: true, aiCrawlerAllowed: true, snippetAllowed: true, imageIndexing: false, feedExport: false },
+  map_hub: { searchEngineCrawl: true, aiCrawlerAllowed: false, snippetAllowed: false, imageIndexing: false, feedExport: false },
+  traveler: { searchEngineCrawl: false, aiCrawlerAllowed: false, snippetAllowed: false, imageIndexing: false, feedExport: false },
 };

@@ -1,8 +1,20 @@
+# SWAM — Crawl Policy
+# Search engines
 User-agent: Googlebot
 Allow: /
+Disallow: /admin
+Disallow: /management
+Disallow: /profile
+Disallow: /my-itineraries
+Disallow: /auth
+Disallow: /create-experience
+Disallow: /social-finder
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin
+Disallow: /management
+Disallow: /profile
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +22,44 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# AI crawlers
+User-agent: GPTBot
+Allow: /things-to-do/
+Allow: /itineraries/
+Allow: /hosts/
+Allow: /collections/
+Disallow: /admin
+Disallow: /management
+Disallow: /profile
+Disallow: /auth
+
+User-agent: Claude-Web
+Allow: /things-to-do/
+Allow: /itineraries/
+Allow: /hosts/
+Allow: /collections/
+Disallow: /admin
+Disallow: /management
+
+User-agent: Anthropic-ai
+Allow: /things-to-do/
+Allow: /itineraries/
+Allow: /hosts/
+Disallow: /admin
+
+User-agent: Google-Extended
+Allow: /
+
+# Catch-all
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /management
+Disallow: /profile
+Disallow: /my-itineraries
+Disallow: /auth
+Disallow: /create-experience
+Disallow: /social-finder
+
+# Sitemaps
+Sitemap: https://swam.app/sitemap.xml
