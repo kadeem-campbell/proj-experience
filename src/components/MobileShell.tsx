@@ -251,7 +251,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const [searchParams] = useSearchParams();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: cities = [], isLoading: citiesLoading } = useCities();
+  const { data: cities = [], isLoading: citiesLoading } = useDestinations();
 
   // Global city state: URL param takes priority, fallback to localStorage
   const urlCity = searchParams.get("city") || "";
