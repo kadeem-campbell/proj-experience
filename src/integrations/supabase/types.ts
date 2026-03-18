@@ -744,6 +744,33 @@ export type Database = {
           },
         ]
       }
+      compare_sets: {
+        Row: {
+          context: string | null
+          created_at: string | null
+          entity_ids: string[]
+          entity_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string | null
+          entity_ids?: string[]
+          entity_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          context?: string | null
+          created_at?: string | null
+          entity_ids?: string[]
+          entity_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       content_sources: {
         Row: {
           confidence: number | null
@@ -1970,6 +1997,36 @@ export type Database = {
           min_product_readiness_to_index?: number | null
           min_product_readiness_to_publish?: number | null
           profile_key?: string
+        }
+        Relationships: []
+      }
+      geo_shapes: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          shape_json: Json | null
+          source_type: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          shape_json?: Json | null
+          source_type?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          shape_json?: Json | null
+          source_type?: string | null
         }
         Relationships: []
       }
