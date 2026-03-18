@@ -260,9 +260,9 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const countryFlags = useMemo(() => {
     const map: Record<string, string> = {};
     cities.forEach((city) => {
-      const key = city.country || "";
+      const key = city.name || "";
       if (!key || map[key]) return;
-      const flag = city.flag_svg_url || city.flag_emoji || "";
+      const flag = city.flag_svg_url || "";
       if (flag) map[key] = flag;
     });
     return map;
