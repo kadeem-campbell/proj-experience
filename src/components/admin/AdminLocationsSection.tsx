@@ -78,7 +78,6 @@ export const AdminLocationsSection = () => {
                 <div className="flex items-center gap-2">
                   {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full" alt="" />}
                   <span className="font-medium">{d.name}</span>
-                  {d.airport_code && <span className="text-xs text-muted-foreground">({d.airport_code})</span>}
                 </div>
               )},
               { key: 'slug', label: 'Slug', width: 'flex-1', render: (d: any) => <span className="text-xs font-mono text-muted-foreground">{d.slug}</span> },
