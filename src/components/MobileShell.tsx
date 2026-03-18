@@ -119,7 +119,7 @@ const CitySelectorSheet = ({
   <Drawer open={open} onOpenChange={onOpenChange}>
     <DrawerContent className="max-h-[80vh] overflow-hidden">
       <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <h2 className="text-lg font-bold text-foreground mb-1">Select city</h2>
+        <h2 className="text-lg font-bold text-foreground mb-1">Select destination</h2>
         <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
 
         {loading ? (
@@ -144,7 +144,6 @@ const CitySelectorSheet = ({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn("font-semibold text-sm", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
-                      <p className="text-xs text-muted-foreground">{city.destination_type}</p>
                     </div>
                   </button>
                 );
