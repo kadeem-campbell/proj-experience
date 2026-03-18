@@ -12,7 +12,7 @@ export interface ProductListing {
   location: string;
   price: string;
   slug?: string;
-  cityId?: string | null;
+  destinationId?: string | null;
 }
 
 /** @deprecated Use useDbExperiences() directly for new code */
