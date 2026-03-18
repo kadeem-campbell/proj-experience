@@ -163,6 +163,14 @@ export const AdminLocationsSection = () => {
             )}
             onSave={(item, isNew) => saveEntity('countries', item, isNew)}
             onDelete={(ids) => deleteEntity('countries', ids)}
+            onBulkUpdate={(ids, field, value) => bulkUpdateEntity('countries', ids, field, value)}
+            bulkFields={[
+              { key: 'is_active', label: 'Active', type: 'boolean' },
+              { key: 'continent', label: 'Continent', type: 'text' },
+              { key: 'region', label: 'Region', type: 'text' },
+              { key: 'currency_code', label: 'Currency', type: 'text' },
+              { key: 'default_language', label: 'Language', type: 'text' },
+            ]}
           />
         </TabsContent>
 
