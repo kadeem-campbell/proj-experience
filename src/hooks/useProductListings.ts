@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useDbExperiences } from "@/hooks/useDbExperiences";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface ProductListing {
   id: string;
@@ -15,28 +15,39 @@ export interface ProductListing {
   destinationId?: string | null;
 }
 
-/** @deprecated Use useDbExperiences() directly for new code */
 export const emptyProductListings: ProductListing[] = [];
 
-/** Normalized listing data from the products/experiences source */
+/** Normalized listing data sourced exclusively from the products table */
 export const useProductListings = () => {
-  const { data: experiences = [] } = useDbExperiences();
+  const { data = [] } = useQuery({
+    queryKey: ["product-listings"],
+    queryFn: async (): Promise<ProductListing[]> => {
+      const { data: products, error } = await supabase
+        .from("products")
+        .select("id, title, slug, cover_image, video_url, duration, destination_id, like_count, view_count, tier")
+        .eq("is_active", true);
 
-  return useMemo<ProductListing[]>(() => {
-    if (experiences.length === 0) return [];
+      if (error) {
+        console.error("Failed to fetch product listings:", error);
+        return [];
+      }
 
-    return experiences.map((exp) => ({
-      id: exp.id,
-      title: exp.title,
-      creator: exp.creator || "",
-      views: exp.views || String(exp.view_count || 0),
-      videoThumbnail: exp.video_thumbnail || "",
-      videoUrl: exp.video_url || undefined,
-      category: exp.category || "",
-      location: exp.location || "",
-      price: exp.price || "",
-      slug: exp.slug || undefined,
-      destinationId: exp.destination_id || null,
-    }));
-  }, [experiences]);
+      return (products || []).map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        creator: "",
+        views: String(p.view_count || 0),
+        videoThumbnail: p.cover_image || "",
+        videoUrl: p.video_url || undefined,
+        category: "",
+        location: "",
+        price: "",
+        slug: p.slug || undefined,
+        destinationId: p.destination_id || null,
+      }));
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return data;
 };

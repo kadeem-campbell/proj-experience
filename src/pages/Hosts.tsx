@@ -11,7 +11,7 @@ import { Search, X, CheckCircle2, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// Count products per host
+// Count products per host via the product_hosts join table
 const useHostProductCounts = () => {
   return useQuery({
     queryKey: ["host-product-counts"],
@@ -29,33 +29,6 @@ const useHostProductCounts = () => {
   });
 };
 
-// Fallback: count experiences per creator name for hosts with legacy links
-const useHostExperienceCounts = () => {
-  return useQuery({
-    queryKey: ["host-experience-counts-v2"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("experiences")
-        .select("creator, location")
-        .eq("is_active", true);
-      const counts: Record<string, number> = {};
-      const locations: Record<string, Set<string>> = {};
-      (data || []).forEach((e: any) => {
-        const name = (e.creator || "").trim().toLowerCase();
-        if (name) {
-          counts[name] = (counts[name] || 0) + 1;
-          if (e.location) {
-            if (!locations[name]) locations[name] = new Set();
-            locations[name].add(e.location);
-          }
-        }
-      });
-      return { counts, locations };
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
 export default function Hosts() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -63,19 +36,10 @@ export default function Hosts() {
   const { data: activityTypes = [] } = useActivityTypes();
   const { data: destinations = [] } = useDestinations();
   const { data: productCounts = {} } = useHostProductCounts();
-  const { data: expData } = useHostExperienceCounts();
-  const expCounts = expData?.counts || {};
-  const expLocations = expData?.locations || {};
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedActivity, setSelectedActivity] = useState("");
   const [selectedDestination, setSelectedDestination] = useState("");
-
-  const allLocations = useMemo(() => {
-    const locs = new Set<string>();
-    Object.values(expLocations).forEach(s => s.forEach(l => locs.add(l)));
-    return Array.from(locs).sort();
-  }, [expLocations]);
 
   const filteredHosts = useMemo(() => {
     let result = hosts;
@@ -88,35 +52,19 @@ export default function Hosts() {
       );
     }
     if (selectedDestination) {
-      result = result.filter(h => {
-        if (h.destination_id === selectedDestination) return true;
-        // Fallback: check experience locations
-        const name = (h.username || h.display_name || "").toLowerCase();
-        const dest = destinations.find(d => d.id === selectedDestination);
-        if (!dest) return false;
-        const locs = expLocations[name];
-        return locs && Array.from(locs).some(l => l.toLowerCase().includes(dest.name.toLowerCase()));
-      });
+      result = result.filter(h => h.destination_id === selectedDestination);
     }
     return result;
-  }, [hosts, searchQuery, selectedDestination, destinations, expLocations]);
+  }, [hosts, searchQuery, selectedDestination]);
 
-  const getExpCount = (host: Host) => {
-    const pc = productCounts[host.id] || 0;
-    if (pc > 0) return pc;
-    const name = (host.username || host.display_name || "").toLowerCase();
-    return expCounts[name] || 0;
-  };
+  const getExpCount = (host: Host) => productCounts[host.id] || 0;
 
   const getHostLocation = (host: Host) => {
     if (host.destination_id) {
       const dest = destinations.find(d => d.id === host.destination_id);
       if (dest) return dest.name;
     }
-    const name = (host.username || host.display_name || "").toLowerCase();
-    const locs = expLocations[name];
-    if (!locs || locs.size === 0) return "";
-    return Array.from(locs)[0];
+    return "";
   };
 
   const jsonLd = {

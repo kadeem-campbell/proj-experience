@@ -70,27 +70,3 @@ export const usePoiProducts = (poiId: string) => {
     enabled: !!poiId,
   });
 };
-
-export const usePoiExperiences = (poiId: string, destinationId: string | null) => {
-  return useQuery({
-    queryKey: ["poi-experiences", poiId, destinationId],
-    queryFn: async () => {
-      const { data: poiData } = await supabase
-        .from("pois")
-        .select("name, area_id, destination_id")
-        .eq("id", poiId)
-        .single();
-
-      if (!poiData) return [];
-
-      const { data: exps } = await supabase
-        .from("experiences")
-        .select("*")
-        .eq("is_active", true)
-        .ilike("location", `%${poiData.name}%`);
-
-      return exps || [];
-    },
-    enabled: !!poiId,
-  });
-};
