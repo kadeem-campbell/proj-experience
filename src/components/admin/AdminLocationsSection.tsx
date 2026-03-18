@@ -180,12 +180,36 @@ export const AdminLocationsSection = () => {
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Continent</Label><Input value={item.continent || ''} onChange={e => onChange('continent', e.target.value)} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Region</Label><Input value={item.region || ''} onChange={e => onChange('region', e.target.value)} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Currency</Label><Input value={item.currency_code || ''} onChange={e => onChange('currency_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Continent</Label>
+                    <Select value={item.continent || ''} onValueChange={v => onChange('continent', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{CONTINENTS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Region</Label>
+                    <Select value={item.region || ''} onValueChange={v => onChange('region', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{REGIONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Currency</Label>
+                    <Select value={item.currency_code || ''} onValueChange={v => onChange('currency_code', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Default Language</Label><Input value={item.default_language || ''} onChange={e => onChange('default_language', e.target.value)} /></div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Default Language</Label>
+                    <Select value={item.default_language || ''} onValueChange={v => onChange('default_language', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
                   <div><Label className="text-xs text-muted-foreground">Calling Code</Label><Input value={item.calling_code || ''} onChange={e => onChange('calling_code', e.target.value)} placeholder="+255" /></div>
                   <div><Label className="text-xs text-muted-foreground">TLD</Label><Input value={item.tld || ''} onChange={e => onChange('tld', e.target.value)} placeholder=".tz" /></div>
                 </div>
