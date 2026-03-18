@@ -144,7 +144,7 @@ const CitySelectorSheet = ({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn("font-semibold text-sm", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
-                      <p className="text-xs text-muted-foreground">{city.airport_code || city.country}</p>
+                      <p className="text-xs text-muted-foreground">{city.destination_type}</p>
                     </div>
                   </button>
                 );
