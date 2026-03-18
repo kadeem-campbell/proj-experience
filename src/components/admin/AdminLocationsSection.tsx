@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CountryFlagPicker } from './CountryFlagPicker';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
@@ -77,7 +78,6 @@ export const AdminLocationsSection = () => {
                 <div className="flex items-center gap-2">
                   {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full" alt="" />}
                   <span className="font-medium">{d.name}</span>
-                  {d.airport_code && <span className="text-xs text-muted-foreground">({d.airport_code})</span>}
                 </div>
               )},
               { key: 'slug', label: 'Slug', width: 'flex-1', render: (d: any) => <span className="text-xs font-mono text-muted-foreground">{d.slug}</span> },
@@ -91,10 +91,15 @@ export const AdminLocationsSection = () => {
                   <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
                 </div>
                 <div><Label className="text-xs text-muted-foreground">Description</Label><Textarea value={item.description || ''} onChange={e => onChange('description', e.target.value)} rows={2} /></div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Airport Code</Label><Input value={item.airport_code || ''} onChange={e => onChange('airport_code', e.target.value)} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Flag Emoji</Label><Input value={item.flag_emoji || ''} onChange={e => onChange('flag_emoji', e.target.value)} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Flag SVG URL</Label><Input value={item.flag_svg_url || ''} onChange={e => onChange('flag_svg_url', e.target.value)} /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Country Flag</Label>
+                    <CountryFlagPicker
+                      value={item.flag_svg_url || ''}
+                      onSelect={(url, emoji) => { onChange('flag_svg_url', url); onChange('flag_emoji', emoji); }}
+                    />
+                  </div>
+                  <div><Label className="text-xs text-muted-foreground">Flag Emoji</Label><Input value={item.flag_emoji || ''} onChange={e => onChange('flag_emoji', e.target.value)} readOnly className="bg-muted/50" /></div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Cover Image</Label><Input value={item.cover_image || ''} onChange={e => onChange('cover_image', e.target.value)} /></div>
