@@ -91,10 +91,15 @@ export const AdminLocationsSection = () => {
                   <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
                 </div>
                 <div><Label className="text-xs text-muted-foreground">Description</Label><Textarea value={item.description || ''} onChange={e => onChange('description', e.target.value)} rows={2} /></div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Airport Code</Label><Input value={item.airport_code || ''} onChange={e => onChange('airport_code', e.target.value)} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Flag Emoji</Label><Input value={item.flag_emoji || ''} onChange={e => onChange('flag_emoji', e.target.value)} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Flag SVG URL</Label><Input value={item.flag_svg_url || ''} onChange={e => onChange('flag_svg_url', e.target.value)} /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Country Flag</Label>
+                    <CountryFlagPicker
+                      value={item.flag_svg_url || ''}
+                      onSelect={(url, emoji) => { onChange('flag_svg_url', url); onChange('flag_emoji', emoji); }}
+                    />
+                  </div>
+                  <div><Label className="text-xs text-muted-foreground">Flag Emoji</Label><Input value={item.flag_emoji || ''} onChange={e => onChange('flag_emoji', e.target.value)} readOnly className="bg-muted/50" /></div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Cover Image</Label><Input value={item.cover_image || ''} onChange={e => onChange('cover_image', e.target.value)} /></div>
