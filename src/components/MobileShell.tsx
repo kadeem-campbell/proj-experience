@@ -111,8 +111,8 @@ const CitySelectorSheet = ({
   onOpenChange: (v: boolean) => void;
   selectedCity: string;
   onCityChange: (city: string) => void;
-  selectableCities: DbCity[];
-  comingSoonCities: DbCity[];
+  selectableCities: DbDestination[];
+  comingSoonCities: DbDestination[];
   countryFlags: Record<string, string>;
   loading: boolean;
 }) => (
