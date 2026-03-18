@@ -23,7 +23,10 @@ const isLaunched = (dest: DbDestination) => {
 };
 const formatLaunchMonth = (launchDate?: string | null) => {
   if (!launchDate) return "Coming soon";
-  return new Date(`${launchDate}T00:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const d = new Date(`${launchDate}T00:00:00`);
+  const mon = d.toLocaleDateString("en-US", { month: "short" });
+  const yr = String(d.getFullYear()).slice(-2);
+  return `Coming ${mon} '${yr}`;
 };
 const isSvg = (value?: string | null) => !!value && (value.includes(".svg") || value.startsWith("data:image/svg"));
 
