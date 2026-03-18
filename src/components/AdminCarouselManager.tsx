@@ -41,7 +41,7 @@ export const AdminCarouselManager = () => {
   const { data: destinations = [] } = useQuery({
     queryKey: ['admin-destinations-list'],
     queryFn: async () => {
-      const { data } = await supabase.from('destinations').select('id, name, slug, flag_emoji').eq('is_active', true).order('name');
+      const { data } = await supabase.from('destinations').select('id, name, slug, flag_svg_url').eq('is_active', true).order('name');
       return data || [];
     },
     staleTime: 10 * 60 * 1000,

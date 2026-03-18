@@ -44,7 +44,7 @@ export const BulkUpdatePanel = () => {
     { key: 'slug', label: 'Slug' },
     { key: 'rating', label: 'Rating' },
     { key: 'is_active', label: 'Active (true/false)' },
-    { key: 'city_id', label: 'City ID (UUID)' },
+    { key: 'destination_id', label: 'Destination ID (UUID)' },
     { key: 'creator_id', label: 'Creator ID (UUID)' },
   ];
 

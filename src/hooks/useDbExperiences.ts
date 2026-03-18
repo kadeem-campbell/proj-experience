@@ -27,7 +27,7 @@ export interface DbExperience {
   views: string;
   like_count: number;
   view_count: number;
-  city_id: string | null;
+  destination_id: string | null;
   creator_id: string | null;
   is_active: boolean;
   created_at: string;
@@ -46,7 +46,6 @@ const fetchExperiences = async (): Promise<DbExperience[]> => {
   }
 
   return (data || []).map((row: any) => {
-    // Prefer experience_faqs table, fall back to JSONB faqs column
     const faqsFromTable = Array.isArray(row.experience_faqs) && row.experience_faqs.length > 0
       ? row.experience_faqs
           .filter((f: any) => f.is_active)
@@ -81,7 +80,7 @@ const fetchExperiences = async (): Promise<DbExperience[]> => {
       views: row.views || "0",
       like_count: row.like_count || 0,
       view_count: row.view_count || 0,
-      city_id: row.city_id,
+      destination_id: row.destination_id,
       creator_id: row.creator_id,
       is_active: row.is_active,
       created_at: row.created_at,
@@ -94,7 +93,7 @@ export const useDbExperiences = () => {
   return useQuery({
     queryKey: ["db-experiences"],
     queryFn: fetchExperiences,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 };
 

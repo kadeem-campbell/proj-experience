@@ -242,7 +242,7 @@ const CollectionPage = () => {
     : featuredItems;
 
   // Show city filter chips if this is a dynamic collection (name contains {city} or no city_id)
-  const isDynamic = rawTitle.includes('{city}') || !dbCollection?.cityId;
+  const isDynamic = rawTitle.includes('{city}') || !dbCollection?.destinationId;
 
   if (isInitialLoading) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
