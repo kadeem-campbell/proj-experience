@@ -18,9 +18,8 @@ const persistCity = (city: string) => {
 };
 
 const normalize = (value: string) => value.trim().toLowerCase();
-const isLaunched = (_dest: DbDestination) => {
-  // All destinations are considered launched now
-  return true;
+const isLaunched = (dest: DbDestination) => {
+  return dest.launch_status === 'live';
 };
 const formatLaunchMonth = (launchDate?: string | null) => {
   if (!launchDate) return "Coming soon";
