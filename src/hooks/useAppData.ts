@@ -24,6 +24,9 @@ export interface DbDestination {
   is_active: boolean;
   launch_status: string | null;
   launch_date: string | null;
+  timezone: string | null;
+  iata_code: string | null;
+  currency_code: string | null;
 }
 
 export interface DbCategory {
