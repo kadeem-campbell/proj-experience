@@ -165,8 +165,7 @@ export default function ExperienceDetail() {
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
-  const { data: dbExperiences, isLoading: dbExperiencesLoading } = useDbExperiences();
-  const { data: allCreators = [] } = useCreators();
+  const { trackPageView, trackClick } = useInteractions();
   const { trackPageView, trackClick } = useInteractions();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
