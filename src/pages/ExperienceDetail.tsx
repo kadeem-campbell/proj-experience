@@ -311,7 +311,7 @@ export default function ExperienceDetail() {
     (!experience && !productLoading) ? resolvedSlug : ""
   );
 
-  if (!experience && (dbExperiencesLoading || productLoading)) {
+  if (!experience && productLoading) {
     return isMobile ? (
       <MobileShell hideTopBar>
         <div className="flex justify-center items-center min-h-[60vh]">
