@@ -269,7 +269,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   }, [cities]);
 
   const selectableCities = useMemo(() => cities.filter(isLaunched).sort((a, b) => a.name.localeCompare(b.name)), [cities]);
-  const comingSoonCities = useMemo(() => cities.filter((c) => !isLaunched(c)).sort((a, b) => (a.launch_date || "").localeCompare(b.launch_date || "")), [cities]);
+  const comingSoonCities = useMemo(() => cities.filter((c) => !isLaunched(c)), [cities]);
 
   const selectedCityData = useMemo(() => {
     if (!selectedCity) return null;
