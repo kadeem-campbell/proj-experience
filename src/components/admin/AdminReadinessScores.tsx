@@ -54,7 +54,7 @@ export const AdminReadinessScores = () => {
           <Card key={state}>
             <CardContent className="pt-4 text-center">
               <div className={`w-2 h-2 rounded-full ${stateColors[state] || 'bg-muted'} mx-auto mb-1`} />
-              <p className="text-2xl font-bold">{count}</p>
+              <p className="text-2xl font-bold">{count as number}</p>
               <p className="text-[10px] text-muted-foreground">{state.replace(/_/g, ' ')}</p>
             </CardContent>
           </Card>
