@@ -9,8 +9,8 @@ import { ArrowLeft, Star, MapPin, ExternalLink, MessageCircle, Globe, Instagram,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
-import { useActivityTypes } from "@/hooks/useProducts";
+import { generateProductPageUrl } from "@/utils/slugUtils";
+import { useActivityTypes, useDestinations } from "@/hooks/useProducts";
 import type { Host } from "@/hooks/useProducts";
 
 // Lookup host from hosts table only
@@ -31,9 +31,9 @@ const useHostByUsername = (username: string) => {
   });
 };
 
-const useHostCategories = (hostId: string, source: string) => {
+const useHostCategories = (hostId: string) => {
   return useQuery({
-    queryKey: ["host-categories", hostId, source],
+    queryKey: ["host-categories", hostId],
     queryFn: async () => {
       const { data } = await supabase
         .from("creator_categories")
@@ -45,18 +45,18 @@ const useHostCategories = (hostId: string, source: string) => {
   });
 };
 
-const useHostExperiences = (hostName: string) => {
+// Fetch products linked to a host via product_hosts join
+const useHostProducts = (hostId: string) => {
   return useQuery({
-    queryKey: ["host-experiences", hostName],
+    queryKey: ["host-products", hostId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("experiences")
-        .select("id, title, slug, video_thumbnail, category, location, price, rating")
-        .eq("is_active", true)
-        .ilike("creator", `%${hostName}%`);
-      return data || [];
+        .from("product_hosts")
+        .select("product_id, products(id, title, slug, cover_image, duration, rating, destination_id)")
+        .eq("host_id", hostId);
+      return (data || []).map((r: any) => r.products).filter(Boolean);
     },
-    enabled: !!hostName,
+    enabled: !!hostId,
   });
 };
 
@@ -80,11 +80,12 @@ export default function HostProfile() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { data: host, isLoading } = useHostByUsername(username || "");
-  const lookupId = host?._source === "hosts" ? (host as any).legacy_creator_id || host?.id : host?.id;
-  const { data: experiences = [] } = useHostExperiences(host?.username || host?.display_name || "");
-  const { data: itineraries = [] } = useHostItineraries(lookupId || "");
-  const { data: categoryIds = [] } = useHostCategories(lookupId || "", host?._source || "");
+  const hostId = host?.id || "";
+  const { data: products = [] } = useHostProducts(hostId);
+  const { data: itineraries = [] } = useHostItineraries(hostId);
+  const { data: categoryIds = [] } = useHostCategories(hostId);
   const { data: allActivityTypes = [] } = useActivityTypes();
+  const { data: destinations = [] } = useDestinations();
   const hostCategories = allActivityTypes.filter(c => categoryIds.includes(c.id));
 
   const socialLinks = (host?.social_links && typeof host.social_links === "object") ? host.social_links as Record<string, string> : {};
@@ -101,6 +102,11 @@ export default function HostProfile() {
   const handleGoBack = () => {
     if (window.history.state?.idx > 0) navigate(-1);
     else navigate('/');
+  };
+
+  const getDestName = (destId: string | null) => {
+    if (!destId) return "";
+    return destinations.find(d => d.id === destId)?.name || "";
   };
 
   const hostForSchema = host ? {
@@ -174,7 +180,7 @@ export default function HostProfile() {
             <p className="text-sm text-muted-foreground">@{host.username}</p>
             <div className="flex items-center gap-3 mt-1.5">
               {host.is_verified && <Badge variant="secondary" className="text-[10px]">Verified</Badge>}
-              <span className="text-xs text-muted-foreground">{experiences.length} experiences</span>
+              <span className="text-xs text-muted-foreground">{products.length} experiences</span>
               <span className="text-xs text-muted-foreground">{itineraries.length} itineraries</span>
             </div>
             {hostCategories.length > 0 && (
@@ -211,36 +217,39 @@ export default function HostProfile() {
         )}
       </div>
 
-      {/* Experiences */}
-      {experiences.length > 0 && (
+      {/* Products (Things to do) */}
+      {products.length > 0 && (
         <div className="px-4 pb-6">
-          <h2 className="text-lg font-semibold mb-3">Experiences</h2>
+          <h2 className="text-lg font-semibold mb-3">Things to Do</h2>
           <div className="space-y-2">
-            {experiences.map((exp: any) => (
-              <div
-                key={exp.id}
-                onClick={() => navigate(generateProductPageUrl(exp.location || '', exp.title, exp.slug))}
-                className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer hover:bg-muted/40 active:bg-muted/60 transition-colors"
-              >
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-                  {exp.video_thumbnail ? (
-                    <img src={exp.video_thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <MapPin className="w-4 h-4 text-muted-foreground/40" />
-                    </div>
-                  )}
+            {products.map((prod: any) => {
+              const destName = getDestName(prod.destination_id);
+              return (
+                <div
+                  key={prod.id}
+                  onClick={() => navigate(generateProductPageUrl(destName, prod.title, prod.slug))}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer hover:bg-muted/40 active:bg-muted/60 transition-colors"
+                >
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
+                    {prod.cover_image ? (
+                      <img src={prod.cover_image} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <MapPin className="w-4 h-4 text-muted-foreground/40" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-foreground truncate">{prod.title}</h3>
+                    {destName && <p className="text-xs text-muted-foreground truncate">{destName}</p>}
+                  </div>
+                  <div className="flex items-center gap-1 text-sm shrink-0">
+                    <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                    <span className="font-medium text-xs">{prod.rating || 4.7}</span>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{exp.title}</h3>
-                  <p className="text-xs text-muted-foreground truncate">{exp.location} · {exp.category}</p>
-                </div>
-                <div className="flex items-center gap-1 text-sm shrink-0">
-                  <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                  <span className="font-medium text-xs">{exp.rating || 4.7}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

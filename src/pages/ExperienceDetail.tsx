@@ -2,9 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
 import { MobileShell } from "@/components/MobileShell";
-import { useDbExperiences, DbExperience } from "@/hooks/useDbExperiences"; // kept for backward compat during migration
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useCreators } from "@/hooks/useAppData";
 import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateProductSchema } from "@/services/schemaGenerator";
@@ -167,8 +165,6 @@ export default function ExperienceDetail() {
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
-  const { data: dbExperiences, isLoading: dbExperiencesLoading } = useDbExperiences();
-  const { data: allCreators = [] } = useCreators();
   const { trackPageView, trackClick } = useInteractions();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -198,83 +194,39 @@ export default function ExperienceDetail() {
   };
 
   const experience = useMemo(() => {
-    // First priority: legacy experiences table (has full data with location, price, category)
-    const fromDb = (db: DbExperience) => ({
-      id: db.id,
-      title: db.title,
-      creator: db.creator,
-      videoThumbnail: db.video_thumbnail,
-      videoUrl: db.video_url,
-      category: db.category,
-      location: db.location,
-      description: db.description,
-      duration: db.duration,
-      groupSize: db.group_size,
-      rating: db.rating,
-      price: db.price,
-      highlights: db.highlights,
-      gallery: db.gallery.length > 0 ? db.gallery : [db.video_thumbnail],
-      bestTime: db.best_time,
-      weather: db.weather,
-      meetingPoints: db.meeting_points,
-      faqs: db.faqs,
-      tiktokVideos: db.tiktok_videos,
-      instagramEmbed: db.instagram_embed,
-      socialLinks: db.social_links,
-      likeCount: db.like_count,
-      slug: db.slug,
-      isProduct: false,
-    });
+    if (!product) return null;
 
-    if (dbExperiences && dbExperiences.length > 0) {
-      if (resolvedSlug) {
-        const dbMatch = dbExperiences.find(e => e.slug === resolvedSlug || slugify(e.title) === resolvedSlug);
-        if (dbMatch) return fromDb(dbMatch);
-      }
-      if (locationParam && legacySlug) {
-        const dbMatch = dbExperiences.find(e => e.slug === legacySlug || slugify(e.title) === legacySlug);
-        if (dbMatch) return fromDb(dbMatch);
-      }
-      if (id) {
-        const dbMatch = dbExperiences.find(e => e.id === id);
-        if (dbMatch) return fromDb(dbMatch);
-      }
-    }
+    const hostNames = productHosts.map(h => h.display_name || h.username).join(', ');
 
-    // Second: try product table (new entity system)
-    if (product) {
-      return {
-        id: product.id,
-        title: product.title,
-        creator: '',
-        videoThumbnail: product.cover_image,
-        videoUrl: product.video_url,
-        category: '',
-        location: productDestination?.name || '',
-        description: product.description,
-        duration: product.duration,
-        groupSize: '',
-        rating: product.rating,
-        price: productOptions.length > 0
-          ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
-          : '',
-        highlights: product.highlights || [],
-        gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
-        bestTime: product.best_time,
-        weather: product.weather,
-        meetingPoints: product.meeting_points || [],
-        faqs: [],
-        tiktokVideos: [],
-        instagramEmbed: '',
-        socialLinks: {},
-        likeCount: product.like_count,
-        slug: product.slug,
-        isProduct: true,
-      };
-    }
-
-    return null;
-  }, [id, locationParam, legacySlug, resolvedSlug, product, productOptions, productDestination, dbExperiences]);
+    return {
+      id: product.id,
+      title: product.title,
+      creator: hostNames,
+      videoThumbnail: product.cover_image,
+      videoUrl: product.video_url,
+      category: '',
+      location: productDestination?.name || '',
+      description: product.description,
+      duration: product.duration,
+      groupSize: '',
+      rating: product.rating,
+      price: productOptions.length > 0
+        ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
+        : '',
+      highlights: product.highlights || [],
+      gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
+      bestTime: product.best_time,
+      weather: product.weather,
+      meetingPoints: product.meeting_points || [],
+      faqs: [] as any[],
+      tiktokVideos: [] as any[],
+      instagramEmbed: '',
+      socialLinks: {} as Record<string, string>,
+      likeCount: product.like_count,
+      slug: product.slug,
+      isProduct: true,
+    };
+  }, [product, productOptions, productDestination, productHosts]);
 
   // Analytics: track page view
   useEffect(() => {
@@ -356,10 +308,10 @@ export default function ExperienceDetail() {
 
   // Check for POI match when no experience/product found
   const { data: poiMatch, isLoading: poiLoading } = usePoiBySlug(
-    (!experience && !dbExperiencesLoading && !productLoading) ? resolvedSlug : ""
+    (!experience && !productLoading) ? resolvedSlug : ""
   );
 
-  if (!experience && (dbExperiencesLoading || productLoading)) {
+  if (!experience && productLoading) {
     return isMobile ? (
       <MobileShell hideTopBar>
         <div className="flex justify-center items-center min-h-[60vh]">
@@ -436,16 +388,14 @@ export default function ExperienceDetail() {
     return Array.from(new Set(splitNames));
   })();
 
-  // Resolve creator name to DB username for host profile link
+  // Resolve creator name to host profile link via productHosts
   const getHostUrl = (creatorName: string) => {
-    const slug = creatorName.toLowerCase().replace(/\s+/g, '-');
-    const match = allCreators.find(c =>
-      c.username === creatorName ||
-      c.username === slug ||
-      (c.display_name || '').toLowerCase() === creatorName.toLowerCase() ||
-      (c.display_name || '').toLowerCase().replace(/\s+/g, '-') === slug
+    const match = productHosts.find(h =>
+      h.display_name === creatorName ||
+      h.username === creatorName ||
+      h.display_name?.toLowerCase() === creatorName.toLowerCase()
     );
-    return `/hosts/${match ? match.username : slug}`;
+    return `/hosts/${match ? match.slug || match.username : creatorName.toLowerCase().replace(/\s+/g, '-')}`;
   };
 
 

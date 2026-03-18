@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usePoiBySlug, usePoiMedia, usePoiProducts, usePoiExperiences } from "@/hooks/usePoiBySlug";
+import { usePoiBySlug, usePoiMedia, usePoiProducts } from "@/hooks/usePoiBySlug";
 import { useDestinationBySlug } from "@/hooks/useProducts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
@@ -45,7 +45,6 @@ export default function PoiDetail() {
   const { data: destination } = useDestinationBySlug(destParam || "");
   const { data: mediaAssets = [] } = usePoiMedia(poi?.id || "");
   const { data: linkedProducts = [] } = usePoiProducts(poi?.id || "");
-  const { data: linkedExperiences = [] } = usePoiExperiences(poi?.id || "", poi?.destination_id || null);
 
   const typeInfo = typeConfig[poi?.poi_type || ""] || { label: poi?.poi_type || "Place" };
 
@@ -103,15 +102,9 @@ export default function PoiDetail() {
   const hasSocialContent = tiktokVideos.length > 0 || !!instagramEmbed;
 
   // All linked activities
-  const allActivities = useMemo(() => [
-    ...linkedProducts.map((p: any) => ({ ...p, itemType: "product" as const })),
-    ...linkedExperiences.map((e: any) => ({
-      id: e.id, title: e.title, cover_image: e.video_thumbnail,
-      slug: e.slug, location: e.location, price: e.price,
-      duration: e.duration, category: e.category,
-      itemType: "experience" as const,
-    })),
-  ], [linkedProducts, linkedExperiences]);
+  const allActivities = useMemo(() =>
+    linkedProducts.map((p: any) => ({ ...p, itemType: "product" as const })),
+  [linkedProducts]);
 
   if (poiLoading) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
