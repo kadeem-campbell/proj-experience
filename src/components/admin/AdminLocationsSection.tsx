@@ -17,6 +17,44 @@ import { Slider } from '@/components/ui/slider';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
+const CONTINENTS = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Antarctica'];
+const REGIONS = [
+  'East Africa', 'West Africa', 'North Africa', 'Southern Africa', 'Central Africa',
+  'Caribbean', 'Central America', 'Northern Europe', 'Western Europe', 'Southern Europe', 'Eastern Europe',
+  'South Asia', 'Southeast Asia', 'East Asia', 'Central Asia', 'Middle East',
+  'Oceania', 'South America',
+];
+const CURRENCIES = [
+  'TZS', 'KES', 'UGX', 'RWF', 'ETB', 'EGP', 'GHS', 'NGN', 'ZAR', 'JMD',
+  'GBP', 'USD', 'EUR', 'CAD', 'AUD', 'INR', 'AED', 'SAR', 'JPY', 'CNY', 'BRL', 'MXN', 'THB',
+];
+const LANGUAGES = [
+  'English', 'Swahili', 'French', 'Arabic', 'Amharic', 'Portuguese', 'Spanish',
+  'Kinyarwanda', 'Yoruba', 'Hausa', 'Zulu', 'Afrikaans', 'Mandarin', 'Hindi',
+];
+const TIMEZONES = [
+  'Africa/Dar_es_Salaam', 'Africa/Nairobi', 'Africa/Kampala', 'Africa/Kigali',
+  'Africa/Addis_Ababa', 'Africa/Cairo', 'Africa/Accra', 'Africa/Lagos',
+  'Africa/Johannesburg', 'Africa/Cape_Town',
+  'America/Kingston', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+  'Europe/London', 'Europe/Paris', 'Europe/Berlin',
+  'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 'Asia/Tokyo',
+  'Australia/Sydney', 'Pacific/Auckland',
+];
+const BEST_TIME_OPTIONS = [
+  { value: 'year_round', label: 'Year Round' },
+  { value: 'jan_mar', label: 'Jan – Mar' },
+  { value: 'apr_jun', label: 'Apr – Jun' },
+  { value: 'jul_sep', label: 'Jul – Sep' },
+  { value: 'oct_dec', label: 'Oct – Dec' },
+  { value: 'jan_feb', label: 'Jan – Feb' },
+  { value: 'mar_may', label: 'Mar – May' },
+  { value: 'jun_aug', label: 'Jun – Aug' },
+  { value: 'sep_nov', label: 'Sep – Nov' },
+  { value: 'dec_feb', label: 'Dec – Feb' },
+  { value: 'jun_oct', label: 'Jun – Oct' },
+];
+
 export const AdminLocationsSection = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
