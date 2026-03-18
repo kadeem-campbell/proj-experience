@@ -73,6 +73,13 @@ export const AdminLocationsSection = () => {
     toast({ title: `Deleted ${ids.length} item(s)` });
   };
 
+  const bulkUpdateEntity = async (table: string, ids: string[], field: string, value: any) => {
+    const { error } = await (supabase as any).from(table).update({ [field]: value }).in('id', ids);
+    if (error) { toast({ title: 'Bulk update failed', description: error.message, variant: 'destructive' }); return; }
+    invalidate();
+    toast({ title: `Updated ${ids.length} item(s)`, description: `Set ${field} → ${String(value)}` });
+  };
+
   // Helper to find entity name for display
   const entityName = (type: string, id: string) => {
     if (type === 'destination') return destinations.find((d: any) => d.id === id)?.name || id;
