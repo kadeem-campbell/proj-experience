@@ -471,6 +471,23 @@ export const AdminLocationsSection = () => {
             )}
             onSave={(item, isNew) => saveEntity('pois', item, isNew)}
             onDelete={(ids) => deleteEntity('pois', ids)}
+            onBulkUpdate={(ids, field, value) => bulkUpdateEntity('pois', ids, field, value)}
+            bulkFields={[
+              { key: 'is_active', label: 'Active', type: 'boolean' },
+              { key: 'poi_type', label: 'Type', type: 'select', options: [
+                { value: 'restaurant', label: 'Restaurant' }, { value: 'bar', label: 'Bar' },
+                { value: 'hotel', label: 'Hotel' }, { value: 'attraction', label: 'Attraction' },
+                { value: 'shop', label: 'Shop' }, { value: 'beach', label: 'Beach' },
+                { value: 'activity', label: 'Activity' }, { value: 'other', label: 'Other' },
+              ]},
+              { key: 'visibility_state', label: 'Visibility', type: 'select', options: [
+                { value: 'draft', label: 'Draft' }, { value: 'soft_live', label: 'Soft Live' },
+                { value: 'live', label: 'Live' }, { value: 'archived', label: 'Archived' },
+              ]},
+              { key: 'is_public_page', label: 'Public Page', type: 'boolean' },
+              { key: 'readiness_score', label: 'Readiness Score', type: 'number' },
+              { key: 'price_level', label: 'Price Level', type: 'number' },
+            ]}
           />
         </TabsContent>
 
