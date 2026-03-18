@@ -115,11 +115,11 @@ const CollectionPage = () => {
   const { data: publicItinerariesList = [], isLoading: itinerariesLoading } = usePublicItineraries();
   const productListings = useProductListings();
 
-  // Fetch destinations for city filtering
+  // Fetch destinations for filtering
   const { data: destinations = [] } = useQuery({
     queryKey: ["destinations-for-collections"],
     queryFn: async () => {
-      const { data } = await supabase.from("destinations").select("id, name, slug, flag_emoji, legacy_city_id").eq("is_active", true).order("name");
+      const { data } = await supabase.from("destinations").select("id, name, slug, flag_svg_url").eq("is_active", true).order("name");
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
