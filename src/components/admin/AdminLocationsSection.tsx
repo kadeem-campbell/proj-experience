@@ -166,13 +166,17 @@ export const AdminLocationsSection = () => {
             entityName="Destination"
             isLoading={loadingDest}
             columns={[
-              { key: 'name', label: 'Name', width: 'flex-[2]', render: (d: any) => (
+              { key: 'name', label: 'Name', width: 'flex-[2]', render: (d: any) => {
+                const c = countries.find((x: any) => x.id === d.country_id);
+                const flag = c?.flag_svg_url || d.flag_svg_url;
+                return (
                 <div className="flex items-center gap-2">
-                  {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full" alt="" />}
+                  {flag && <img src={flag} className="w-4 h-4 rounded-full" alt="" />}
                   <span className="font-medium">{d.name}</span>
+                  {d.short_name && <span className="text-xs text-muted-foreground">({d.short_name})</span>}
                   <Badge variant="outline" className="text-[9px]">{d.destination_type}</Badge>
                 </div>
-              )},
+              );}},
               { key: 'country_id', label: 'Country', width: 'flex-1', render: (d: any) => {
                 const c = countries.find((x: any) => x.id === d.country_id);
                 return c ? (
@@ -218,13 +222,7 @@ export const AdminLocationsSection = () => {
                     </Select>
                   </div>
                 </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Country Flag</Label>
-                  <CountryFlagPicker
-                    value={item.flag_svg_url || ''}
-                    onSelect={(url) => { onChange('flag_svg_url', url); }}
-                  />
-                </div>
+                <div><Label className="text-xs text-muted-foreground">Short Name (for picker)</Label><Input value={item.short_name || ''} onChange={e => onChange('short_name', e.target.value)} placeholder="e.g. Dar" /></div>
                 <div><Label className="text-xs text-muted-foreground">Short Description</Label><Textarea value={item.short_description || item.description || ''} onChange={e => { onChange('short_description', e.target.value); onChange('description', e.target.value); }} rows={2} /></div>
                 <div><Label className="text-xs text-muted-foreground">Long Description</Label><Textarea value={item.long_description || ''} onChange={e => onChange('long_description', e.target.value)} rows={3} /></div>
                 <div className="grid grid-cols-3 gap-3">

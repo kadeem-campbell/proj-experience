@@ -14,6 +14,7 @@ export interface DbCountry {
 export interface DbDestination {
   id: string;
   name: string;
+  short_name: string | null;
   slug: string;
   country_id: string | null;
   destination_type: string;

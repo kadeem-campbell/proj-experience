@@ -24,9 +24,9 @@ const isLaunched = (dest: DbDestination) => {
 const formatLaunchMonth = (launchDate?: string | null) => {
   if (!launchDate) return "Coming soon";
   const d = new Date(`${launchDate}T00:00:00`);
-  const mon = d.toLocaleDateString("en-US", { month: "short" });
-  const yr = String(d.getFullYear()).slice(-2);
-  return `Coming ${mon} '${yr}`;
+  const mon = d.toLocaleDateString("en-US", { month: "long" });
+  const yr = d.getFullYear();
+  return `${mon} ${yr}`;
 };
 const isSvg = (value?: string | null) => !!value && (value.includes(".svg") || value.startsWith("data:image/svg"));
 
@@ -183,7 +183,7 @@ const CitySelectorSheet = ({
 // City button - map icon default, selected city flag/code when active
 const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbDestination | null; countryFlags: Record<string, string>; onTap: () => void }) => {
   const isActive = !!selectedCityData;
-  const displayName = selectedCityData?.name || "";
+  const displayName = selectedCityData?.short_name || selectedCityData?.name || "";
   const flag = selectedCityData ? (selectedCityData.flag_svg_url || '') : "";
 
   return (
@@ -270,7 +270,13 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   }, [cities]);
 
   const selectableCities = useMemo(() => cities.filter(isLaunched).sort((a, b) => a.name.localeCompare(b.name)), [cities]);
-  const comingSoonCities = useMemo(() => cities.filter((c) => !isLaunched(c)), [cities]);
+  const comingSoonCities = useMemo(() => cities.filter((c) => !isLaunched(c)).sort((a, b) => {
+    // Sort by launch_date ascending; no date goes last
+    if (!a.launch_date && !b.launch_date) return a.name.localeCompare(b.name);
+    if (!a.launch_date) return 1;
+    if (!b.launch_date) return -1;
+    return a.launch_date.localeCompare(b.launch_date);
+  }), [cities]);
 
   const selectedCityData = useMemo(() => {
     if (!selectedCity) return null;
