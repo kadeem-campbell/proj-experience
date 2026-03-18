@@ -308,8 +308,23 @@ export const AdminLocationsSection = () => {
                   <div><Label className="text-xs text-muted-foreground">Longitude</Label><Input type="number" step="any" value={item.longitude || ''} onChange={e => onChange('longitude', parseFloat(e.target.value) || null)} /></div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Timezone</Label><Input value={item.timezone || ''} onChange={e => onChange('timezone', e.target.value)} placeholder="Africa/Dar_es_Salaam" /></div>
-                  <div><Label className="text-xs text-muted-foreground">Currency</Label><Input value={item.currency_code || ''} onChange={e => onChange('currency_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Timezone</Label>
+                    <Select value={item.timezone || ''} onValueChange={v => onChange('timezone', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select timezone" /></SelectTrigger>
+                      <SelectContent>{TIMEZONES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Currency (override)</Label>
+                    <Select value={item.currency_code || ''} onValueChange={v => onChange('currency_code', v)}>
+                      <SelectTrigger><SelectValue placeholder={(() => { const c = countries.find((x: any) => x.id === item.country_id); return c?.currency_code ? `Inherit: ${c.currency_code}` : 'Select'; })()} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__inherit">Inherit from country</SelectItem>
+                        {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div><Label className="text-xs text-muted-foreground">IATA Code</Label><Input value={item.iata_code || ''} onChange={e => onChange('iata_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
                 </div>
                 <div><Label className="text-xs text-muted-foreground">Readiness Score</Label><Input type="number" min={0} max={100} value={item.readiness_score || ''} onChange={e => onChange('readiness_score', parseFloat(e.target.value) || null)} /></div>
@@ -325,7 +340,13 @@ export const AdminLocationsSection = () => {
                   </div>
                   <div><Label className="text-xs text-muted-foreground">Launch Date</Label><Input type="date" value={item.launch_date || ''} onChange={e => onChange('launch_date', e.target.value || null)} /></div>
                 </div>
-                <div><Label className="text-xs text-muted-foreground">Best Time to Visit</Label><Input value={item.best_time_to_visit_text || ''} onChange={e => onChange('best_time_to_visit_text', e.target.value)} /></div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Best Time to Visit</Label>
+                  <Select value={item.best_time_to_visit_text || ''} onValueChange={v => onChange('best_time_to_visit_text', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select season" /></SelectTrigger>
+                    <SelectContent>{BEST_TIME_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2"><Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} /><span className="text-xs">{item.is_active ? 'Active' : 'Inactive'}</span></div>
                   <div className="flex items-center gap-2"><Switch checked={item.is_marketplace_enabled ?? false} onCheckedChange={v => onChange('is_marketplace_enabled', v)} /><span className="text-xs">Marketplace</span></div>
