@@ -228,10 +228,10 @@ export const AdminLocationsSection = () => {
             onBulkUpdate={(ids, field, value) => bulkUpdateEntity('countries', ids, field, value)}
             bulkFields={[
               { key: 'is_active', label: 'Active', type: 'boolean' },
-              { key: 'continent', label: 'Continent', type: 'text' },
-              { key: 'region', label: 'Region', type: 'text' },
-              { key: 'currency_code', label: 'Currency', type: 'text' },
-              { key: 'default_language', label: 'Language', type: 'text' },
+              { key: 'continent', label: 'Continent', type: 'select', options: CONTINENTS.map(c => ({ value: c, label: c })) },
+              { key: 'region', label: 'Region', type: 'select', options: REGIONS.map(r => ({ value: r, label: r })) },
+              { key: 'currency_code', label: 'Currency', type: 'select', options: CURRENCIES.map(c => ({ value: c, label: c })) },
+              { key: 'default_language', label: 'Language', type: 'select', options: LANGUAGES.map(l => ({ value: l, label: l })) },
             ]}
           />
         </TabsContent>
