@@ -1128,6 +1128,7 @@ export type Database = {
           is_marketplace_enabled: boolean | null
           is_partner_feed_enabled: boolean | null
           latitude: number | null
+          launch_date: string | null
           launch_profile_id: string | null
           launch_status: string | null
           long_description: string | null
@@ -1158,6 +1159,7 @@ export type Database = {
           is_marketplace_enabled?: boolean | null
           is_partner_feed_enabled?: boolean | null
           latitude?: number | null
+          launch_date?: string | null
           launch_profile_id?: string | null
           launch_status?: string | null
           long_description?: string | null
@@ -1188,6 +1190,7 @@ export type Database = {
           is_marketplace_enabled?: boolean | null
           is_partner_feed_enabled?: boolean | null
           latitude?: number | null
+          launch_date?: string | null
           launch_profile_id?: string | null
           launch_status?: string | null
           long_description?: string | null
