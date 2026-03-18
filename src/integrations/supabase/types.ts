@@ -292,6 +292,7 @@ export type Database = {
       }
       areas: {
         Row: {
+          area_type: string
           cover_image: string | null
           created_at: string | null
           description: string | null
@@ -300,15 +301,23 @@ export type Database = {
           id: string
           indexability_state: string | null
           is_active: boolean | null
+          is_marketplace_enabled: boolean | null
+          is_partner_feed_enabled: boolean | null
           latitude: number | null
           launch_profile_id: string | null
           launch_status: string | null
           longitude: number | null
           name: string
+          readiness_score: number | null
+          safety_score: number | null
+          short_description: string | null
           slug: string
           updated_at: string | null
+          vibe_description: string | null
+          visibility_state: string
         }
         Insert: {
+          area_type?: string
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
@@ -317,15 +326,23 @@ export type Database = {
           id?: string
           indexability_state?: string | null
           is_active?: boolean | null
+          is_marketplace_enabled?: boolean | null
+          is_partner_feed_enabled?: boolean | null
           latitude?: number | null
           launch_profile_id?: string | null
           launch_status?: string | null
           longitude?: number | null
           name: string
+          readiness_score?: number | null
+          safety_score?: number | null
+          short_description?: string | null
           slug: string
           updated_at?: string | null
+          vibe_description?: string | null
+          visibility_state?: string
         }
         Update: {
+          area_type?: string
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
@@ -334,13 +351,20 @@ export type Database = {
           id?: string
           indexability_state?: string | null
           is_active?: boolean | null
+          is_marketplace_enabled?: boolean | null
+          is_partner_feed_enabled?: boolean | null
           latitude?: number | null
           launch_profile_id?: string | null
           launch_status?: string | null
           longitude?: number | null
           name?: string
+          readiness_score?: number | null
+          safety_score?: number | null
+          short_description?: string | null
           slug?: string
           updated_at?: string | null
+          vibe_description?: string | null
+          visibility_state?: string
         }
         Relationships: [
           {
@@ -518,54 +542,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cities: {
-        Row: {
-          airport_code: string | null
-          country: string
-          cover_image: string | null
-          created_at: string | null
-          flag_emoji: string | null
-          flag_svg_url: string | null
-          id: string
-          is_active: boolean | null
-          latitude: number | null
-          launch_date: string | null
-          longitude: number | null
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          airport_code?: string | null
-          country?: string
-          cover_image?: string | null
-          created_at?: string | null
-          flag_emoji?: string | null
-          flag_svg_url?: string | null
-          id?: string
-          is_active?: boolean | null
-          latitude?: number | null
-          launch_date?: string | null
-          longitude?: number | null
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          airport_code?: string | null
-          country?: string
-          cover_image?: string | null
-          created_at?: string | null
-          flag_emoji?: string | null
-          flag_svg_url?: string | null
-          id?: string
-          is_active?: boolean | null
-          latitude?: number | null
-          launch_date?: string | null
-          longitude?: number | null
-          name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       collection_destinations: {
         Row: {
           collection_id: string
@@ -678,12 +654,12 @@ export type Database = {
       }
       collections: {
         Row: {
-          city_id: string | null
           collection_type: string
           content_type: string | null
           cover_image: string | null
           created_at: string | null
           description: string | null
+          destination_id: string | null
           display_order: number | null
           home_display_order: number | null
           id: string
@@ -697,12 +673,12 @@ export type Database = {
           url: string | null
         }
         Insert: {
-          city_id?: string | null
           collection_type?: string
           content_type?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
+          destination_id?: string | null
           display_order?: number | null
           home_display_order?: number | null
           id?: string
@@ -716,12 +692,12 @@ export type Database = {
           url?: string | null
         }
         Update: {
-          city_id?: string | null
           collection_type?: string
           content_type?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
+          destination_id?: string | null
           display_order?: number | null
           home_display_order?: number | null
           id?: string
@@ -736,10 +712,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "collections_city_id_fkey"
-            columns: ["city_id"]
+            foreignKeyName: "collections_destination_id_fkey"
+            columns: ["destination_id"]
             isOneToOne: false
-            referencedRelation: "cities"
+            referencedRelation: "destinations"
             referencedColumns: ["id"]
           },
         ]
@@ -803,36 +779,86 @@ export type Database = {
       }
       countries: {
         Row: {
+          area_sq_km: number | null
+          calling_code: string | null
+          capital_destination_id: string | null
+          continent: string | null
           created_at: string | null
-          flag_emoji: string | null
+          currency_code: string | null
+          default_language: string | null
           flag_svg_url: string | null
           id: string
           is_active: boolean | null
+          iso_alpha2: string | null
+          iso_alpha3: string | null
           iso_code: string
+          iso_numeric: string | null
           name: string
+          name_common: string | null
+          name_official: string | null
+          population: number | null
+          region: string | null
+          slug: string | null
+          tld: string | null
           updated_at: string | null
         }
         Insert: {
+          area_sq_km?: number | null
+          calling_code?: string | null
+          capital_destination_id?: string | null
+          continent?: string | null
           created_at?: string | null
-          flag_emoji?: string | null
+          currency_code?: string | null
+          default_language?: string | null
           flag_svg_url?: string | null
           id?: string
           is_active?: boolean | null
+          iso_alpha2?: string | null
+          iso_alpha3?: string | null
           iso_code: string
+          iso_numeric?: string | null
           name: string
+          name_common?: string | null
+          name_official?: string | null
+          population?: number | null
+          region?: string | null
+          slug?: string | null
+          tld?: string | null
           updated_at?: string | null
         }
         Update: {
+          area_sq_km?: number | null
+          calling_code?: string | null
+          capital_destination_id?: string | null
+          continent?: string | null
           created_at?: string | null
-          flag_emoji?: string | null
+          currency_code?: string | null
+          default_language?: string | null
           flag_svg_url?: string | null
           id?: string
           is_active?: boolean | null
+          iso_alpha2?: string | null
+          iso_alpha3?: string | null
           iso_code?: string
+          iso_numeric?: string | null
           name?: string
+          name_common?: string | null
+          name_official?: string | null
+          population?: number | null
+          region?: string | null
+          slug?: string | null
+          tld?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "countries_capital_destination_id_fkey"
+            columns: ["capital_destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crawl_observations: {
         Row: {
@@ -1085,14 +1111,17 @@ export type Database = {
       }
       destinations: {
         Row: {
-          airport_code: string | null
+          best_time_to_visit_text: string | null
           country_id: string | null
           cover_image: string | null
           created_at: string | null
+          currency_code: string | null
           description: string | null
+          destination_type: string
           display_order: number | null
-          flag_emoji: string | null
           flag_svg_url: string | null
+          hero_image_url: string | null
+          iata_code: string | null
           id: string
           indexability_state: string | null
           is_active: boolean | null
@@ -1101,21 +1130,28 @@ export type Database = {
           latitude: number | null
           launch_profile_id: string | null
           launch_status: string | null
-          legacy_city_id: string | null
+          long_description: string | null
           longitude: number | null
           name: string
+          readiness_score: number | null
+          short_description: string | null
           slug: string
+          timezone: string | null
           updated_at: string | null
+          visibility_state: string
         }
         Insert: {
-          airport_code?: string | null
+          best_time_to_visit_text?: string | null
           country_id?: string | null
           cover_image?: string | null
           created_at?: string | null
+          currency_code?: string | null
           description?: string | null
+          destination_type?: string
           display_order?: number | null
-          flag_emoji?: string | null
           flag_svg_url?: string | null
+          hero_image_url?: string | null
+          iata_code?: string | null
           id?: string
           indexability_state?: string | null
           is_active?: boolean | null
@@ -1124,21 +1160,28 @@ export type Database = {
           latitude?: number | null
           launch_profile_id?: string | null
           launch_status?: string | null
-          legacy_city_id?: string | null
+          long_description?: string | null
           longitude?: number | null
           name: string
+          readiness_score?: number | null
+          short_description?: string | null
           slug: string
+          timezone?: string | null
           updated_at?: string | null
+          visibility_state?: string
         }
         Update: {
-          airport_code?: string | null
+          best_time_to_visit_text?: string | null
           country_id?: string | null
           cover_image?: string | null
           created_at?: string | null
+          currency_code?: string | null
           description?: string | null
+          destination_type?: string
           display_order?: number | null
-          flag_emoji?: string | null
           flag_svg_url?: string | null
+          hero_image_url?: string | null
+          iata_code?: string | null
           id?: string
           indexability_state?: string | null
           is_active?: boolean | null
@@ -1147,11 +1190,15 @@ export type Database = {
           latitude?: number | null
           launch_profile_id?: string | null
           launch_status?: string | null
-          legacy_city_id?: string | null
+          long_description?: string | null
           longitude?: number | null
           name?: string
+          readiness_score?: number | null
+          short_description?: string | null
           slug?: string
+          timezone?: string | null
           updated_at?: string | null
+          visibility_state?: string
         }
         Relationships: [
           {
@@ -1166,13 +1213,6 @@ export type Database = {
             columns: ["launch_profile_id"]
             isOneToOne: false
             referencedRelation: "geo_launch_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "destinations_legacy_city_id_fkey"
-            columns: ["legacy_city_id"]
-            isOneToOne: false
-            referencedRelation: "cities"
             referencedColumns: ["id"]
           },
         ]
@@ -1662,11 +1702,11 @@ export type Database = {
         Row: {
           best_time: string | null
           category: string
-          city_id: string | null
           created_at: string | null
           creator: string
           creator_id: string | null
           description: string | null
+          destination_id: string | null
           duration: string | null
           faqs: Json | null
           gallery: Json | null
@@ -1694,11 +1734,11 @@ export type Database = {
         Insert: {
           best_time?: string | null
           category?: string
-          city_id?: string | null
           created_at?: string | null
           creator?: string
           creator_id?: string | null
           description?: string | null
+          destination_id?: string | null
           duration?: string | null
           faqs?: Json | null
           gallery?: Json | null
@@ -1726,11 +1766,11 @@ export type Database = {
         Update: {
           best_time?: string | null
           category?: string
-          city_id?: string | null
           created_at?: string | null
           creator?: string
           creator_id?: string | null
           description?: string | null
+          destination_id?: string | null
           duration?: string | null
           faqs?: Json | null
           gallery?: Json | null
@@ -1757,17 +1797,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "experiences_city_id_fkey"
-            columns: ["city_id"]
-            isOneToOne: false
-            referencedRelation: "cities"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "experiences_creator_id_fkey"
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "experiences_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
             referencedColumns: ["id"]
           },
         ]
@@ -1971,32 +2011,38 @@ export type Database = {
         Row: {
           created_at: string | null
           default_output_policy_json: Json | null
+          description: string | null
           id: string
           min_host_readiness_to_publish: number | null
           min_itinerary_readiness_to_publish: number | null
           min_product_readiness_to_index: number | null
           min_product_readiness_to_publish: number | null
           profile_key: string
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           default_output_policy_json?: Json | null
+          description?: string | null
           id?: string
           min_host_readiness_to_publish?: number | null
           min_itinerary_readiness_to_publish?: number | null
           min_product_readiness_to_index?: number | null
           min_product_readiness_to_publish?: number | null
           profile_key: string
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           default_output_policy_json?: Json | null
+          description?: string | null
           id?: string
           min_host_readiness_to_publish?: number | null
           min_itinerary_readiness_to_publish?: number | null
           min_product_readiness_to_index?: number | null
           min_product_readiness_to_publish?: number | null
           profile_key?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2848,6 +2894,7 @@ export type Database = {
       }
       place_relationships: {
         Row: {
+          created_at: string | null
           id: string
           relationship_type: string
           source_id: string
@@ -2859,6 +2906,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
           id?: string
           relationship_type?: string
           source_id: string
@@ -2870,6 +2918,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
           id?: string
           relationship_type?: string
           source_id?: string
@@ -2920,7 +2969,9 @@ export type Database = {
       }
       pois: {
         Row: {
+          address_text: string | null
           area_id: string | null
+          category: string | null
           cover_image: string | null
           created_at: string | null
           description: string | null
@@ -2931,15 +2982,25 @@ export type Database = {
           is_active: boolean | null
           is_public_page: boolean | null
           latitude: number | null
+          long_description: string | null
           longitude: number | null
           name: string
+          opening_hours_json: Json | null
+          phone: string | null
           poi_type: string | null
+          price_level: number | null
+          readiness_score: number | null
+          short_description: string | null
           slug: string
           updated_at: string | null
+          visibility_state: string
+          website_url: string | null
           wikidata_id: string | null
         }
         Insert: {
+          address_text?: string | null
           area_id?: string | null
+          category?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
@@ -2950,15 +3011,25 @@ export type Database = {
           is_active?: boolean | null
           is_public_page?: boolean | null
           latitude?: number | null
+          long_description?: string | null
           longitude?: number | null
           name: string
+          opening_hours_json?: Json | null
+          phone?: string | null
           poi_type?: string | null
+          price_level?: number | null
+          readiness_score?: number | null
+          short_description?: string | null
           slug: string
           updated_at?: string | null
+          visibility_state?: string
+          website_url?: string | null
           wikidata_id?: string | null
         }
         Update: {
+          address_text?: string | null
           area_id?: string | null
+          category?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
@@ -2969,11 +3040,19 @@ export type Database = {
           is_active?: boolean | null
           is_public_page?: boolean | null
           latitude?: number | null
+          long_description?: string | null
           longitude?: number | null
           name?: string
+          opening_hours_json?: Json | null
+          phone?: string | null
           poi_type?: string | null
+          price_level?: number | null
+          readiness_score?: number | null
+          short_description?: string | null
           slug?: string
           updated_at?: string | null
+          visibility_state?: string
+          website_url?: string | null
           wikidata_id?: string | null
         }
         Relationships: [
@@ -3486,12 +3565,12 @@ export type Database = {
       }
       public_itineraries: {
         Row: {
-          city_id: string | null
           copy_count: number | null
           cover_image: string | null
           created_at: string | null
           creator_id: string | null
           description: string | null
+          destination_id: string | null
           experiences: Json | null
           id: string
           indexability_state: string | null
@@ -3507,12 +3586,12 @@ export type Database = {
           view_count: number | null
         }
         Insert: {
-          city_id?: string | null
           copy_count?: number | null
           cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
           description?: string | null
+          destination_id?: string | null
           experiences?: Json | null
           id?: string
           indexability_state?: string | null
@@ -3528,12 +3607,12 @@ export type Database = {
           view_count?: number | null
         }
         Update: {
-          city_id?: string | null
           copy_count?: number | null
           cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
           description?: string | null
+          destination_id?: string | null
           experiences?: Json | null
           id?: string
           indexability_state?: string | null
@@ -3550,17 +3629,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "public_itineraries_city_id_fkey"
-            columns: ["city_id"]
-            isOneToOne: false
-            referencedRelation: "cities"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "public_itineraries_creator_id_fkey"
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_itineraries_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
             referencedColumns: ["id"]
           },
         ]
