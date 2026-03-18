@@ -87,9 +87,21 @@ export const AdminLocationsSection = () => {
     queryKey: ['admin-weather-snapshots'],
     queryFn: async () => { const { data } = await supabase.from('weather_snapshots').select('*').order('created_at', { ascending: false }).limit(100); return data || []; },
   });
+  const { data: geoShapes = [], isLoading: loadingGeoShapes } = useQuery({
+    queryKey: ['admin-geo-shapes'],
+    queryFn: async () => { const { data } = await supabase.from('geo_shapes').select('*').order('entity_type'); return data || []; },
+  });
+  const { data: placeRels = [], isLoading: loadingPlaceRels } = useQuery({
+    queryKey: ['admin-place-relationships'],
+    queryFn: async () => { const { data } = await supabase.from('place_relationships').select('*').order('source_type'); return data || []; },
+  });
+  const { data: travelEdges = [], isLoading: loadingTravelEdges } = useQuery({
+    queryKey: ['admin-travel-edges'],
+    queryFn: async () => { const { data } = await supabase.from('travel_time_edges').select('*').order('origin_type'); return data || []; },
+  });
 
   const invalidate = () => {
-    ['admin-countries-full', 'admin-dest-full', 'admin-areas-full', 'admin-pois-full', 'admin-semantic-profiles', 'admin-seasonality-profiles', 'admin-weather-snapshots', 'admin-overview-counts', 'destinations'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
+    ['admin-countries-full', 'admin-dest-full', 'admin-areas-full', 'admin-pois-full', 'admin-semantic-profiles', 'admin-seasonality-profiles', 'admin-weather-snapshots', 'admin-geo-shapes', 'admin-place-relationships', 'admin-travel-edges', 'admin-overview-counts', 'destinations'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
   };
 
   const saveEntity = async (table: string, item: any, isNew: boolean) => {
@@ -140,6 +152,9 @@ export const AdminLocationsSection = () => {
           <TabsTrigger value="destinations">Destinations ({destinations.length})</TabsTrigger>
           <TabsTrigger value="areas">Areas ({areas.length})</TabsTrigger>
           <TabsTrigger value="pois">POIs ({pois.length})</TabsTrigger>
+          <TabsTrigger value="relationships">Relationships ({placeRels.length})</TabsTrigger>
+          <TabsTrigger value="travel">Travel ({travelEdges.length})</TabsTrigger>
+          <TabsTrigger value="geo">Geo Shapes ({geoShapes.length})</TabsTrigger>
           <TabsTrigger value="semantic">Semantic ({semanticProfiles.length})</TabsTrigger>
           <TabsTrigger value="seasonality">Seasonality ({seasonalityProfiles.length})</TabsTrigger>
           <TabsTrigger value="weather">Weather ({weatherSnapshots.length})</TabsTrigger>
@@ -577,7 +592,198 @@ export const AdminLocationsSection = () => {
           />
         </TabsContent>
 
-        {/* ── Semantic Place Profiles ── */}
+        {/* ── Place Relationships ── */}
+        <TabsContent value="relationships">
+          <AdminEntityTable
+            items={placeRels}
+            entityName="Relationship"
+            isLoading={loadingPlaceRels}
+            columns={[
+              { key: 'source_type', label: 'Source Type', width: 'w-[80px]', render: (r: any) => <Badge variant="outline" className="text-[10px]">{r.source_type}</Badge> },
+              { key: 'source_id', label: 'Source', width: 'flex-1', render: (r: any) => <span className="text-xs font-medium">{entityName(r.source_type, r.source_id)}</span> },
+              { key: 'relationship_type', label: 'Rel', width: 'w-[90px]', render: (r: any) => <Badge className="text-[10px]">{r.relationship_type}</Badge> },
+              { key: 'target_type', label: 'Target Type', width: 'w-[80px]', render: (r: any) => <Badge variant="outline" className="text-[10px]">{r.target_type}</Badge> },
+              { key: 'target_id', label: 'Target', width: 'flex-1', render: (r: any) => <span className="text-xs font-medium">{entityName(r.target_type, r.target_id)}</span> },
+              { key: 'strength', label: 'Strength', width: 'w-[70px]', render: (r: any) => <span className="text-xs">{r.strength ?? '—'}</span> },
+            ]}
+            defaultItem={{ source_type: 'destination', source_id: '', target_type: 'area', target_id: '', relationship_type: 'contains', strength: 1.0 }}
+            renderForm={(item: any, onChange) => (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Source Type</Label>
+                    <Select value={item.source_type || 'destination'} onValueChange={v => onChange('source_type', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{['country', 'destination', 'area', 'poi'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Source</Label>
+                    <Select value={item.source_id || ''} onValueChange={v => onChange('source_id', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        {(item.source_type === 'destination' ? destinations : item.source_type === 'area' ? areas : item.source_type === 'poi' ? pois : countries).map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Relationship</Label>
+                    <Select value={item.relationship_type || 'contains'} onValueChange={v => onChange('relationship_type', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{['contains', 'proximity', 'adjacent', 'overlaps', 'serves'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Target Type</Label>
+                    <Select value={item.target_type || 'area'} onValueChange={v => onChange('target_type', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{['country', 'destination', 'area', 'poi'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Strength</Label>
+                    <Input type="number" min={0} max={1} step={0.1} value={item.strength ?? ''} onChange={e => onChange('strength', parseFloat(e.target.value) || null)} />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Target</Label>
+                  <Select value={item.target_id || ''} onValueChange={v => onChange('target_id', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      {(item.target_type === 'destination' ? destinations : item.target_type === 'area' ? areas : item.target_type === 'poi' ? pois : countries).map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div><Label className="text-xs text-muted-foreground">Source Origin</Label><Input value={item.source_origin || ''} onChange={e => onChange('source_origin', e.target.value)} placeholder="manual, inferred, import" /></div>
+              </div>
+            )}
+            onSave={(item, isNew) => saveEntity('place_relationships', item, isNew)}
+            onDelete={(ids) => deleteEntity('place_relationships', ids)}
+          />
+        </TabsContent>
+
+        {/* ── Travel Time Edges ── */}
+        <TabsContent value="travel">
+          <AdminEntityTable
+            items={travelEdges}
+            entityName="Travel Edge"
+            isLoading={loadingTravelEdges}
+            columns={[
+              { key: 'origin_type', label: 'From Type', width: 'w-[80px]', render: (e: any) => <Badge variant="outline" className="text-[10px]">{e.origin_type}</Badge> },
+              { key: 'origin_id', label: 'From', width: 'flex-1', render: (e: any) => <span className="text-xs font-medium">{entityName(e.origin_type, e.origin_id)}</span> },
+              { key: 'mode', label: 'Mode', width: 'w-[70px]', render: (e: any) => <Badge className="text-[10px]">{e.mode}</Badge> },
+              { key: 'dest_type', label: 'To Type', width: 'w-[80px]', render: (e: any) => <Badge variant="outline" className="text-[10px]">{e.dest_type}</Badge> },
+              { key: 'dest_id', label: 'To', width: 'flex-1', render: (e: any) => <span className="text-xs font-medium">{entityName(e.dest_type, e.dest_id)}</span> },
+              { key: 'duration_minutes_typical', label: 'Mins', width: 'w-[50px]', render: (e: any) => <span className="text-xs">{e.duration_minutes_typical ?? '—'}</span> },
+              { key: 'friction_score', label: 'Friction', width: 'w-[60px]', render: (e: any) => <span className="text-xs">{e.friction_score ?? '—'}</span> },
+            ]}
+            defaultItem={{ origin_type: 'destination', origin_id: '', dest_type: 'destination', dest_id: '', mode: 'drive', duration_minutes_typical: null, duration_minutes_peak: null, friction_score: null }}
+            renderForm={(item: any, onChange) => (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Origin Type</Label>
+                    <Select value={item.origin_type || 'destination'} onValueChange={v => onChange('origin_type', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{['country', 'destination', 'area', 'poi'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Origin</Label>
+                    <Select value={item.origin_id || ''} onValueChange={v => onChange('origin_id', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        {(item.origin_type === 'destination' ? destinations : item.origin_type === 'area' ? areas : item.origin_type === 'poi' ? pois : countries).map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Dest Type</Label>
+                    <Select value={item.dest_type || 'destination'} onValueChange={v => onChange('dest_type', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{['country', 'destination', 'area', 'poi'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Destination</Label>
+                    <Select value={item.dest_id || ''} onValueChange={v => onChange('dest_id', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        {(item.dest_type === 'destination' ? destinations : item.dest_type === 'area' ? areas : item.dest_type === 'poi' ? pois : countries).map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Mode</Label>
+                    <Select value={item.mode || 'drive'} onValueChange={v => onChange('mode', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{['drive', 'walk', 'ferry', 'flight', 'bus', 'train', 'taxi'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label className="text-xs text-muted-foreground">Typical (min)</Label><Input type="number" value={item.duration_minutes_typical ?? ''} onChange={e => onChange('duration_minutes_typical', parseInt(e.target.value) || null)} /></div>
+                  <div><Label className="text-xs text-muted-foreground">Peak (min)</Label><Input type="number" value={item.duration_minutes_peak ?? ''} onChange={e => onChange('duration_minutes_peak', parseInt(e.target.value) || null)} /></div>
+                  <div><Label className="text-xs text-muted-foreground">Friction</Label><Input type="number" min={0} max={1} step={0.05} value={item.friction_score ?? ''} onChange={e => onChange('friction_score', parseFloat(e.target.value) || null)} /></div>
+                </div>
+                <div><Label className="text-xs text-muted-foreground">Source</Label><Input value={item.source_type || ''} onChange={e => onChange('source_type', e.target.value)} placeholder="manual, google_maps, inferred" /></div>
+              </div>
+            )}
+            onSave={(item, isNew) => saveEntity('travel_time_edges', item, isNew)}
+            onDelete={(ids) => deleteEntity('travel_time_edges', ids)}
+          />
+        </TabsContent>
+
+        {/* ── Geo Shapes ── */}
+        <TabsContent value="geo">
+          <AdminEntityTable
+            items={geoShapes}
+            entityName="Geo Shape"
+            isLoading={loadingGeoShapes}
+            columns={[
+              { key: 'entity_type', label: 'Type', width: 'w-[80px]', render: (g: any) => <Badge variant="outline" className="text-[10px]">{g.entity_type}</Badge> },
+              { key: 'entity_id', label: 'Name', width: 'flex-[2]', render: (g: any) => <span className="text-xs font-medium">{entityName(g.entity_type, g.entity_id)}</span> },
+              { key: 'source_type', label: 'Source', width: 'w-[80px]', render: (g: any) => <span className="text-xs text-muted-foreground">{g.source_type || '—'}</span> },
+              { key: 'confidence_score', label: 'Confidence', width: 'w-[80px]', render: (g: any) => <span className="text-xs">{g.confidence_score ?? '—'}</span> },
+            ]}
+            defaultItem={{ entity_type: 'destination', entity_id: '', shape_json: {}, source_type: 'manual', confidence_score: 0.5 }}
+            renderForm={(item: any, onChange) => (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Entity Type</Label>
+                    <Select value={item.entity_type || 'destination'} onValueChange={v => onChange('entity_type', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{['country', 'destination', 'area', 'poi'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Entity</Label>
+                    <Select value={item.entity_id || ''} onValueChange={v => onChange('entity_id', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        {(item.entity_type === 'destination' ? destinations : item.entity_type === 'area' ? areas : item.entity_type === 'poi' ? pois : countries).map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div><Label className="text-xs text-muted-foreground">Shape (GeoJSON)</Label><Textarea value={typeof item.shape_json === 'object' ? JSON.stringify(item.shape_json, null, 2) : item.shape_json || '{}'} onChange={e => { try { onChange('shape_json', JSON.parse(e.target.value)); } catch {} }} rows={5} className="font-mono text-xs" /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">Source</Label><Input value={item.source_type || ''} onChange={e => onChange('source_type', e.target.value)} placeholder="manual, osm, google" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Confidence</Label><Input type="number" min={0} max={1} step={0.1} value={item.confidence_score ?? ''} onChange={e => onChange('confidence_score', parseFloat(e.target.value) || null)} /></div>
+                </div>
+              </div>
+            )}
+            onSave={(item, isNew) => saveEntity('geo_shapes', item, isNew)}
+            onDelete={(ids) => deleteEntity('geo_shapes', ids)}
+          />
+        </TabsContent>
+
+
         <TabsContent value="semantic">
           <AdminEntityTable
             items={semanticProfiles}
