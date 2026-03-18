@@ -158,7 +158,7 @@ const CitySelectorSheet = ({
                 </div>
                 <div className="space-y-1.5">
                   {comingSoonCities.map((city) => {
-                    const csFlag = city.flag_svg_url || countryFlags[city.country] || city.flag_emoji;
+                    const csFlag = city.flag_svg_url || '';
                     return (
                     <div key={city.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50">
                       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
