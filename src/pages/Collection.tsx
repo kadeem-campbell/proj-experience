@@ -222,12 +222,8 @@ const CollectionPage = () => {
     
     if (contentType === 'itineraries') {
       return items.filter((it: any) => {
-        // Match by cityId (legacy city_id on public_itineraries)
-        if (it.cityId === selectedCityId) return true;
-        // Also check legacy_city_id match via destinations
+        if (it.destinationId === selectedCityId) return true;
         const dest = destinations.find(d => d.id === selectedCityId);
-        if (dest?.legacy_city_id && it.cityId === dest.legacy_city_id) return true;
-        // Name match
         if (dest && it.name?.toLowerCase().includes(dest.name.toLowerCase())) return true;
         return false;
       });
@@ -235,12 +231,8 @@ const CollectionPage = () => {
     return items.filter((e: any) => {
       const dest = destinations.find(d => d.id === selectedCityId);
       if (!dest) return true;
-      // Match by location name
       if ((e.location || '').toLowerCase().includes(dest.name.toLowerCase())) return true;
-      // Match by cityId === destination id
-      if (e.cityId === selectedCityId) return true;
-      // Match by cityId === legacy_city_id on destination
-      if (dest.legacy_city_id && e.cityId === dest.legacy_city_id) return true;
+      if (e.destinationId === selectedCityId) return true;
       return false;
     });
   }, [dbCollection?.items, selectedCityId, contentType, destinations]);
