@@ -273,6 +273,24 @@ export const AdminLocationsSection = () => {
             )}
             onSave={(item, isNew) => saveEntity('destinations', item, isNew)}
             onDelete={(ids) => deleteEntity('destinations', ids)}
+            onBulkUpdate={(ids, field, value) => bulkUpdateEntity('destinations', ids, field, value)}
+            bulkFields={[
+              { key: 'is_active', label: 'Active', type: 'boolean' },
+              { key: 'launch_status', label: 'Launch Status', type: 'select', options: [
+                { value: 'planned', label: 'Planned' }, { value: 'soft_live', label: 'Soft Live' },
+                { value: 'live', label: 'Live' }, { value: 'paused', label: 'Paused' }, { value: 'retired', label: 'Retired' },
+              ]},
+              { key: 'destination_type', label: 'Type', type: 'select', options: [
+                { value: 'city', label: 'City' }, { value: 'island', label: 'Island' },
+                { value: 'region', label: 'Region' }, { value: 'national_park', label: 'National Park' }, { value: 'coastal_zone', label: 'Coastal Zone' },
+              ]},
+              { key: 'currency_code', label: 'Currency', type: 'text' },
+              { key: 'timezone', label: 'Timezone', type: 'text' },
+              { key: 'is_marketplace_enabled', label: 'Marketplace', type: 'boolean' },
+              { key: 'is_partner_feed_enabled', label: 'Partner Feed', type: 'boolean' },
+              { key: 'readiness_score', label: 'Readiness Score', type: 'number' },
+              { key: 'launch_date', label: 'Launch Date', type: 'text' },
+            ]}
           />
         </TabsContent>
 
