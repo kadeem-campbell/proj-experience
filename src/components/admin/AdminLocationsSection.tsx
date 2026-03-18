@@ -365,6 +365,23 @@ export const AdminLocationsSection = () => {
             )}
             onSave={(item, isNew) => saveEntity('areas', item, isNew)}
             onDelete={(ids) => deleteEntity('areas', ids)}
+            onBulkUpdate={(ids, field, value) => bulkUpdateEntity('areas', ids, field, value)}
+            bulkFields={[
+              { key: 'is_active', label: 'Active', type: 'boolean' },
+              { key: 'area_type', label: 'Type', type: 'select', options: [
+                { value: 'neighbourhood', label: 'Neighbourhood' }, { value: 'town', label: 'Town' },
+                { value: 'village', label: 'Village' }, { value: 'district', label: 'District' },
+                { value: 'beach_zone', label: 'Beach Zone' }, { value: 'coastal_strip', label: 'Coastal Strip' },
+              ]},
+              { key: 'visibility_state', label: 'Visibility', type: 'select', options: [
+                { value: 'draft', label: 'Draft' }, { value: 'soft_live', label: 'Soft Live' },
+                { value: 'live', label: 'Live' }, { value: 'archived', label: 'Archived' },
+              ]},
+              { key: 'is_marketplace_enabled', label: 'Marketplace', type: 'boolean' },
+              { key: 'is_partner_feed_enabled', label: 'Partner Feed', type: 'boolean' },
+              { key: 'readiness_score', label: 'Readiness Score', type: 'number' },
+              { key: 'safety_score', label: 'Safety Score', type: 'number' },
+            ]}
           />
         </TabsContent>
 
