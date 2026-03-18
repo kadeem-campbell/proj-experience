@@ -87,9 +87,21 @@ export const AdminLocationsSection = () => {
     queryKey: ['admin-weather-snapshots'],
     queryFn: async () => { const { data } = await supabase.from('weather_snapshots').select('*').order('created_at', { ascending: false }).limit(100); return data || []; },
   });
+  const { data: geoShapes = [], isLoading: loadingGeoShapes } = useQuery({
+    queryKey: ['admin-geo-shapes'],
+    queryFn: async () => { const { data } = await supabase.from('geo_shapes').select('*').order('entity_type'); return data || []; },
+  });
+  const { data: placeRels = [], isLoading: loadingPlaceRels } = useQuery({
+    queryKey: ['admin-place-relationships'],
+    queryFn: async () => { const { data } = await supabase.from('place_relationships').select('*').order('source_type'); return data || []; },
+  });
+  const { data: travelEdges = [], isLoading: loadingTravelEdges } = useQuery({
+    queryKey: ['admin-travel-edges'],
+    queryFn: async () => { const { data } = await supabase.from('travel_time_edges').select('*').order('origin_type'); return data || []; },
+  });
 
   const invalidate = () => {
-    ['admin-countries-full', 'admin-dest-full', 'admin-areas-full', 'admin-pois-full', 'admin-semantic-profiles', 'admin-seasonality-profiles', 'admin-weather-snapshots', 'admin-overview-counts', 'destinations'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
+    ['admin-countries-full', 'admin-dest-full', 'admin-areas-full', 'admin-pois-full', 'admin-semantic-profiles', 'admin-seasonality-profiles', 'admin-weather-snapshots', 'admin-geo-shapes', 'admin-place-relationships', 'admin-travel-edges', 'admin-overview-counts', 'destinations'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
   };
 
   const saveEntity = async (table: string, item: any, isNew: boolean) => {
