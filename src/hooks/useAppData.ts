@@ -1,17 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface DbCity {
+export interface DbCountry {
   id: string;
   name: string;
-  country: string;
-  cover_image: string;
-  airport_code: string;
-  flag_emoji: string;
-  flag_svg_url?: string | null;
-  launch_date?: string | null;
-  latitude: number;
-  longitude: number;
+  slug: string;
+  iso_code: string;
+  iso_alpha2: string | null;
+  flag_svg_url: string | null;
+  is_active: boolean;
+}
+
+export interface DbDestination {
+  id: string;
+  name: string;
+  slug: string;
+  country_id: string | null;
+  destination_type: string;
+  cover_image: string | null;
+  flag_svg_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  is_active: boolean;
 }
 
 export interface DbCategory {
@@ -33,21 +43,24 @@ export interface DbCreator {
   is_verified: boolean;
 }
 
-export const useCities = () => {
+export const useDestinations = () => {
   return useQuery({
-    queryKey: ["cities"],
-    queryFn: async (): Promise<DbCity[]> => {
+    queryKey: ["destinations"],
+    queryFn: async (): Promise<DbDestination[]> => {
       const { data, error } = await supabase
-        .from("cities")
+        .from("destinations")
         .select("*")
         .eq("is_active", true)
         .order("name");
-      if (error) { console.error("Failed to fetch cities:", error); return []; }
-      return (data || []) as DbCity[];
+      if (error) { console.error("Failed to fetch destinations:", error); return []; }
+      return (data || []) as DbDestination[];
     },
     staleTime: 10 * 60 * 1000,
   });
 };
+
+/** @deprecated Use useDestinations() instead */
+export const useCities = useDestinations;
 
 export const useCategories = () => {
   return useQuery({

@@ -7,7 +7,7 @@ import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
-import { useCities, type DbCity } from "@/hooks/useAppData";
+import { useDestinations, type DbDestination } from "@/hooks/useAppData";
 
 // Persist city globally via localStorage
 const getPersistedCity = (): string => {
@@ -18,9 +18,9 @@ const persistCity = (city: string) => {
 };
 
 const normalize = (value: string) => value.trim().toLowerCase();
-const isLaunched = (city: DbCity) => {
-  if (!city.launch_date) return true;
-  return new Date(`${city.launch_date}T00:00:00`).getTime() <= Date.now();
+const isLaunched = (_dest: DbDestination) => {
+  // All destinations are considered launched now
+  return true;
 };
 const formatLaunchMonth = (launchDate?: string | null) => {
   if (!launchDate) return "Coming soon";
@@ -111,8 +111,8 @@ const CitySelectorSheet = ({
   onOpenChange: (v: boolean) => void;
   selectedCity: string;
   onCityChange: (city: string) => void;
-  selectableCities: DbCity[];
-  comingSoonCities: DbCity[];
+  selectableCities: DbDestination[];
+  comingSoonCities: DbDestination[];
   countryFlags: Record<string, string>;
   loading: boolean;
 }) => (
@@ -129,7 +129,7 @@ const CitySelectorSheet = ({
             <div className="space-y-2 mb-6">
               {selectableCities.map((city) => {
                 const isSelected = normalize(selectedCity) === normalize(city.name);
-                const flag = city.flag_svg_url || countryFlags[city.country] || city.flag_emoji;
+                const flag = city.flag_svg_url || '';
                 return (
                   <button
                     key={city.id}
@@ -140,11 +140,11 @@ const CitySelectorSheet = ({
                     )}
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-sm bg-muted flex items-center justify-center">
-                      {flag ? isSvg(flag) ? <img src={flag} alt={`${city.country} flag`} className="w-full h-full object-cover" /> : <span className="text-lg">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
+                      {flag ? isSvg(flag) ? <img src={flag} alt="flag" className="w-full h-full object-cover" /> : <span className="text-lg">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn("font-semibold text-sm", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
-                      <p className="text-xs text-muted-foreground">{city.airport_code || city.country}</p>
+                      <p className="text-xs text-muted-foreground">{city.destination_type}</p>
                     </div>
                   </button>
                 );
@@ -158,14 +158,14 @@ const CitySelectorSheet = ({
                 </div>
                 <div className="space-y-1.5">
                   {comingSoonCities.map((city) => {
-                    const csFlag = city.flag_svg_url || countryFlags[city.country] || city.flag_emoji;
+                    const csFlag = city.flag_svg_url || '';
                     return (
                     <div key={city.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50">
                       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {csFlag && isSvg(csFlag) ? <img src={csFlag} alt="" className="w-full h-full object-cover" /> : csFlag ? <span className="text-sm">{csFlag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
                       </div>
                       <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{city.name}</p></div>
-                      <span className="text-[10px] text-muted-foreground">{formatLaunchMonth(city.launch_date)}</span>
+                      <span className="text-[10px] text-muted-foreground">Coming soon</span>
                     </div>
                     );
                   })}
@@ -180,17 +180,17 @@ const CitySelectorSheet = ({
 );
 
 // City button - map icon default, selected city flag/code when active
-const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbCity | null; countryFlags: Record<string, string>; onTap: () => void }) => {
+const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbDestination | null; countryFlags: Record<string, string>; onTap: () => void }) => {
   const isActive = !!selectedCityData;
-  const code = selectedCityData?.airport_code || "";
-  const flag = selectedCityData ? (selectedCityData.flag_svg_url || countryFlags[selectedCityData.country] || selectedCityData.flag_emoji) : "";
+  const code = selectedCityData?.slug?.toUpperCase().slice(0, 3) || "";
+  const flag = selectedCityData ? (selectedCityData.flag_svg_url || '') : "";
 
   return (
     <button onClick={onTap} className="flex flex-col items-center justify-center gap-0.5 transition-all">
       {isActive ? (
         <>
           <div className="w-7 h-7 rounded-full relative overflow-hidden shadow-sm bg-muted flex items-center justify-center">
-            {flag ? isSvg(flag) ? <img src={flag} alt={`${selectedCityData?.country || 'country'} flag`} className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
+            {flag ? isSvg(flag) ? <img src={flag} alt="flag" className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
           </div>
           <span className="text-[8px] font-bold text-foreground tracking-wide leading-none">{code}</span>
         </>
@@ -211,7 +211,7 @@ const MobileTopBar = ({
   onCityTap,
 }: {
   selectedCity: string;
-  selectedCityData: DbCity | null;
+  selectedCityData: DbDestination | null;
   countryFlags: Record<string, string>;
   hideAvatar?: boolean;
   notFixed?: boolean;
@@ -251,7 +251,7 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const [searchParams] = useSearchParams();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: cities = [], isLoading: citiesLoading } = useCities();
+  const { data: cities = [], isLoading: citiesLoading } = useDestinations();
 
   // Global city state: URL param takes priority, fallback to localStorage
   const urlCity = searchParams.get("city") || "";
@@ -260,16 +260,16 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
   const countryFlags = useMemo(() => {
     const map: Record<string, string> = {};
     cities.forEach((city) => {
-      const key = city.country || "";
+      const key = city.name || "";
       if (!key || map[key]) return;
-      const flag = city.flag_svg_url || city.flag_emoji || "";
+      const flag = city.flag_svg_url || "";
       if (flag) map[key] = flag;
     });
     return map;
   }, [cities]);
 
   const selectableCities = useMemo(() => cities.filter(isLaunched).sort((a, b) => a.name.localeCompare(b.name)), [cities]);
-  const comingSoonCities = useMemo(() => cities.filter((c) => !isLaunched(c)).sort((a, b) => (a.launch_date || "").localeCompare(b.launch_date || "")), [cities]);
+  const comingSoonCities = useMemo(() => cities.filter((c) => !isLaunched(c)), [cities]);
 
   const selectedCityData = useMemo(() => {
     if (!selectedCity) return null;

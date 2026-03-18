@@ -115,11 +115,11 @@ const CollectionPage = () => {
   const { data: publicItinerariesList = [], isLoading: itinerariesLoading } = usePublicItineraries();
   const productListings = useProductListings();
 
-  // Fetch destinations for city filtering
+  // Fetch destinations for filtering
   const { data: destinations = [] } = useQuery({
     queryKey: ["destinations-for-collections"],
     queryFn: async () => {
-      const { data } = await supabase.from("destinations").select("id, name, slug, flag_emoji, legacy_city_id").eq("is_active", true).order("name");
+      const { data } = await supabase.from("destinations").select("id, name, slug, flag_svg_url").eq("is_active", true).order("name");
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -131,7 +131,7 @@ const CollectionPage = () => {
     queryFn: async () => {
       const { data: collectionRow } = await supabase
         .from("collections")
-        .select("id, name, slug, description, collection_type, content_type, city_id, is_active")
+        .select("id, name, slug, description, collection_type, content_type, destination_id, is_active")
         .eq("slug", slug!)
         .eq("is_active", true)
         .maybeSingle();
@@ -140,14 +140,12 @@ const CollectionPage = () => {
 
       const contentType = collectionRow.collection_type || 'experiences';
 
-      // Try collection_items for itineraries
       const { data: linkRows } = await (supabase as any)
         .from("collection_items")
         .select("item_id, item_type, position")
         .eq("collection_id", collectionRow.id)
         .order("position", { ascending: true });
 
-      // Try collection_experiences for experiences
       const { data: expLinks } = await (supabase as any)
         .from("collection_experiences")
         .select("experience_id, display_order")
@@ -160,12 +158,10 @@ const CollectionPage = () => {
           .map((row: any) => publicItinerariesList.find((it: any) => it.dbId === row.item_id || it.id === row.item_id))
           .filter(Boolean);
 
-        // If no linked items, show all itineraries (optionally filtered by city)
         if (linkedItems.length === 0) {
           linkedItems = publicItinerariesList;
-          // If collection has a city_id, filter by it
-          if (collectionRow.city_id) {
-            linkedItems = linkedItems.filter((it: any) => it.cityId === collectionRow.city_id);
+          if (collectionRow.destination_id) {
+            linkedItems = linkedItems.filter((it: any) => it.destinationId === collectionRow.destination_id);
           }
         }
 
@@ -174,10 +170,9 @@ const CollectionPage = () => {
           description: collectionRow.description || "", 
           contentType, 
           items: linkedItems,
-          cityId: collectionRow.city_id,
+          destinationId: collectionRow.destination_id,
         };
       } else {
-        // Experience collection: check both collection_items and collection_experiences
         const itemExpIds = (linkRows || [])
           .filter((r: any) => r.item_type === 'experience' || r.item_type === 'product')
           .map((row: any) => row.item_id);
@@ -190,8 +185,8 @@ const CollectionPage = () => {
 
         if (linkedItems.length === 0) {
           linkedItems = productListings;
-          if (collectionRow.city_id) {
-            linkedItems = linkedItems.filter((product) => product.cityId === collectionRow.city_id);
+          if (collectionRow.destination_id) {
+            linkedItems = linkedItems.filter((product) => product.destinationId === collectionRow.destination_id);
           }
           linkedItems = linkedItems.slice(0, 30);
         }
@@ -201,7 +196,7 @@ const CollectionPage = () => {
           description: collectionRow.description || "", 
           contentType, 
           items: linkedItems,
-          cityId: collectionRow.city_id,
+          destinationId: collectionRow.destination_id,
         };
       }
     },
@@ -227,12 +222,8 @@ const CollectionPage = () => {
     
     if (contentType === 'itineraries') {
       return items.filter((it: any) => {
-        // Match by cityId (legacy city_id on public_itineraries)
-        if (it.cityId === selectedCityId) return true;
-        // Also check legacy_city_id match via destinations
+        if (it.destinationId === selectedCityId) return true;
         const dest = destinations.find(d => d.id === selectedCityId);
-        if (dest?.legacy_city_id && it.cityId === dest.legacy_city_id) return true;
-        // Name match
         if (dest && it.name?.toLowerCase().includes(dest.name.toLowerCase())) return true;
         return false;
       });
@@ -240,12 +231,8 @@ const CollectionPage = () => {
     return items.filter((e: any) => {
       const dest = destinations.find(d => d.id === selectedCityId);
       if (!dest) return true;
-      // Match by location name
       if ((e.location || '').toLowerCase().includes(dest.name.toLowerCase())) return true;
-      // Match by cityId === destination id
-      if (e.cityId === selectedCityId) return true;
-      // Match by cityId === legacy_city_id on destination
-      if (dest.legacy_city_id && e.cityId === dest.legacy_city_id) return true;
+      if (e.destinationId === selectedCityId) return true;
       return false;
     });
   }, [dbCollection?.items, selectedCityId, contentType, destinations]);
@@ -255,7 +242,7 @@ const CollectionPage = () => {
     : featuredItems;
 
   // Show city filter chips if this is a dynamic collection (name contains {city} or no city_id)
-  const isDynamic = rawTitle.includes('{city}') || !dbCollection?.cityId;
+  const isDynamic = rawTitle.includes('{city}') || !dbCollection?.destinationId;
 
   if (isInitialLoading) {
     const Wrapper = isMobile ? MobileShell : MainLayout;

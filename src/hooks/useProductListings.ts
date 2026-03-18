@@ -12,7 +12,7 @@ export interface ProductListing {
   location: string;
   price: string;
   slug?: string;
-  cityId?: string | null;
+  destinationId?: string | null;
 }
 
 /** @deprecated Use useDbExperiences() directly for new code */
@@ -36,7 +36,7 @@ export const useProductListings = () => {
       location: exp.location || "",
       price: exp.price || "",
       slug: exp.slug || undefined,
-      cityId: exp.city_id || null,
+      destinationId: exp.destination_id || null,
     }));
   }, [experiences]);
 };

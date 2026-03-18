@@ -17,14 +17,14 @@ export interface PublicItinerary {
   tag?: 'popular' | 'fave';
   likeCount?: number;
   viewCount?: number;
-  cityId?: string;
+  destinationId?: string;
   creatorId?: string;
 }
 
 const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
   const { data, error } = await supabase
     .from("public_itineraries")
-    .select("*, creators(username, display_name), cities(name)")
+    .select("*, creators(username, display_name)")
     .eq("is_active", true)
     .order("like_count", { ascending: false });
 
@@ -96,7 +96,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       tag: row.tag as 'popular' | 'fave',
       likeCount: row.like_count || 0,
       viewCount: row.view_count || 0,
-      cityId: row.city_id,
+      destinationId: row.destination_id,
       creatorId: row.creator_id,
     };
   });

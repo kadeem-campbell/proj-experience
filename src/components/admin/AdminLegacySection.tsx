@@ -26,10 +26,7 @@ export const AdminLegacySection = () => {
     queryFn: async () => { const { data } = await supabase.from('categories').select('*').order('display_order'); return data || []; },
   });
 
-  const { data: cities = [] } = useQuery({
-    queryKey: ['admin-legacy-cities'],
-    queryFn: async () => { const { data } = await (supabase as any).from('cities').select('*').order('name'); return data || []; },
-  });
+  const cities: any[] = []; // cities table removed — migrated to destinations
 
   return (
     <div>
