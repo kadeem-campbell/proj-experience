@@ -73,6 +73,13 @@ export const AdminLocationsSection = () => {
     toast({ title: `Deleted ${ids.length} item(s)` });
   };
 
+  const bulkUpdateEntity = async (table: string, ids: string[], field: string, value: any) => {
+    const { error } = await (supabase as any).from(table).update({ [field]: value }).in('id', ids);
+    if (error) { toast({ title: 'Bulk update failed', description: error.message, variant: 'destructive' }); return; }
+    invalidate();
+    toast({ title: `Updated ${ids.length} item(s)`, description: `Set ${field} → ${String(value)}` });
+  };
+
   // Helper to find entity name for display
   const entityName = (type: string, id: string) => {
     if (type === 'destination') return destinations.find((d: any) => d.id === id)?.name || id;
@@ -156,6 +163,14 @@ export const AdminLocationsSection = () => {
             )}
             onSave={(item, isNew) => saveEntity('countries', item, isNew)}
             onDelete={(ids) => deleteEntity('countries', ids)}
+            onBulkUpdate={(ids, field, value) => bulkUpdateEntity('countries', ids, field, value)}
+            bulkFields={[
+              { key: 'is_active', label: 'Active', type: 'boolean' },
+              { key: 'continent', label: 'Continent', type: 'text' },
+              { key: 'region', label: 'Region', type: 'text' },
+              { key: 'currency_code', label: 'Currency', type: 'text' },
+              { key: 'default_language', label: 'Language', type: 'text' },
+            ]}
           />
         </TabsContent>
 
@@ -258,6 +273,24 @@ export const AdminLocationsSection = () => {
             )}
             onSave={(item, isNew) => saveEntity('destinations', item, isNew)}
             onDelete={(ids) => deleteEntity('destinations', ids)}
+            onBulkUpdate={(ids, field, value) => bulkUpdateEntity('destinations', ids, field, value)}
+            bulkFields={[
+              { key: 'is_active', label: 'Active', type: 'boolean' },
+              { key: 'launch_status', label: 'Launch Status', type: 'select', options: [
+                { value: 'planned', label: 'Planned' }, { value: 'soft_live', label: 'Soft Live' },
+                { value: 'live', label: 'Live' }, { value: 'paused', label: 'Paused' }, { value: 'retired', label: 'Retired' },
+              ]},
+              { key: 'destination_type', label: 'Type', type: 'select', options: [
+                { value: 'city', label: 'City' }, { value: 'island', label: 'Island' },
+                { value: 'region', label: 'Region' }, { value: 'national_park', label: 'National Park' }, { value: 'coastal_zone', label: 'Coastal Zone' },
+              ]},
+              { key: 'currency_code', label: 'Currency', type: 'text' },
+              { key: 'timezone', label: 'Timezone', type: 'text' },
+              { key: 'is_marketplace_enabled', label: 'Marketplace', type: 'boolean' },
+              { key: 'is_partner_feed_enabled', label: 'Partner Feed', type: 'boolean' },
+              { key: 'readiness_score', label: 'Readiness Score', type: 'number' },
+              { key: 'launch_date', label: 'Launch Date', type: 'text' },
+            ]}
           />
         </TabsContent>
 
@@ -332,6 +365,23 @@ export const AdminLocationsSection = () => {
             )}
             onSave={(item, isNew) => saveEntity('areas', item, isNew)}
             onDelete={(ids) => deleteEntity('areas', ids)}
+            onBulkUpdate={(ids, field, value) => bulkUpdateEntity('areas', ids, field, value)}
+            bulkFields={[
+              { key: 'is_active', label: 'Active', type: 'boolean' },
+              { key: 'area_type', label: 'Type', type: 'select', options: [
+                { value: 'neighbourhood', label: 'Neighbourhood' }, { value: 'town', label: 'Town' },
+                { value: 'village', label: 'Village' }, { value: 'district', label: 'District' },
+                { value: 'beach_zone', label: 'Beach Zone' }, { value: 'coastal_strip', label: 'Coastal Strip' },
+              ]},
+              { key: 'visibility_state', label: 'Visibility', type: 'select', options: [
+                { value: 'draft', label: 'Draft' }, { value: 'soft_live', label: 'Soft Live' },
+                { value: 'live', label: 'Live' }, { value: 'archived', label: 'Archived' },
+              ]},
+              { key: 'is_marketplace_enabled', label: 'Marketplace', type: 'boolean' },
+              { key: 'is_partner_feed_enabled', label: 'Partner Feed', type: 'boolean' },
+              { key: 'readiness_score', label: 'Readiness Score', type: 'number' },
+              { key: 'safety_score', label: 'Safety Score', type: 'number' },
+            ]}
           />
         </TabsContent>
 
@@ -421,6 +471,23 @@ export const AdminLocationsSection = () => {
             )}
             onSave={(item, isNew) => saveEntity('pois', item, isNew)}
             onDelete={(ids) => deleteEntity('pois', ids)}
+            onBulkUpdate={(ids, field, value) => bulkUpdateEntity('pois', ids, field, value)}
+            bulkFields={[
+              { key: 'is_active', label: 'Active', type: 'boolean' },
+              { key: 'poi_type', label: 'Type', type: 'select', options: [
+                { value: 'restaurant', label: 'Restaurant' }, { value: 'bar', label: 'Bar' },
+                { value: 'hotel', label: 'Hotel' }, { value: 'attraction', label: 'Attraction' },
+                { value: 'shop', label: 'Shop' }, { value: 'beach', label: 'Beach' },
+                { value: 'activity', label: 'Activity' }, { value: 'other', label: 'Other' },
+              ]},
+              { key: 'visibility_state', label: 'Visibility', type: 'select', options: [
+                { value: 'draft', label: 'Draft' }, { value: 'soft_live', label: 'Soft Live' },
+                { value: 'live', label: 'Live' }, { value: 'archived', label: 'Archived' },
+              ]},
+              { key: 'is_public_page', label: 'Public Page', type: 'boolean' },
+              { key: 'readiness_score', label: 'Readiness Score', type: 'number' },
+              { key: 'price_level', label: 'Price Level', type: 'number' },
+            ]}
           />
         </TabsContent>
 
