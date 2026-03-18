@@ -1,5 +1,5 @@
 /**
- * Locations section — Destinations, Areas, POIs management.
+ * Locations section — Countries, Destinations, Areas, POIs management.
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +20,10 @@ export const AdminLocationsSection = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
 
+  const { data: countries = [], isLoading: loadingCountries } = useQuery({
+    queryKey: ['admin-countries-full'],
+    queryFn: async () => { const { data } = await supabase.from('countries').select('*').order('name'); return data || []; },
+  });
   const { data: destinations = [], isLoading: loadingDest } = useQuery({
     queryKey: ['admin-dest-full'],
     queryFn: async () => { const { data } = await supabase.from('destinations').select('*').order('display_order'); return data || []; },
@@ -34,7 +38,7 @@ export const AdminLocationsSection = () => {
   });
 
   const invalidate = () => {
-    ['admin-dest-full', 'admin-areas-full', 'admin-pois-full', 'admin-overview-counts', 'destinations'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
+    ['admin-countries-full', 'admin-dest-full', 'admin-areas-full', 'admin-pois-full', 'admin-overview-counts', 'destinations'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
   };
 
   const saveEntity = async (table: string, item: any, isNew: boolean) => {
@@ -59,15 +63,62 @@ export const AdminLocationsSection = () => {
   return (
     <div>
       <h2 className="text-xl font-bold mb-1">Locations</h2>
-      <p className="text-sm text-muted-foreground mb-4">Destinations, Areas, and Points of Interest</p>
+      <p className="text-sm text-muted-foreground mb-4">Countries, Destinations, Areas, and Points of Interest</p>
 
-      <Tabs defaultValue="destinations">
-        <TabsList className="mb-4">
+      <Tabs defaultValue="countries">
+        <TabsList className="mb-4 flex-wrap">
+          <TabsTrigger value="countries">Countries ({countries.length})</TabsTrigger>
           <TabsTrigger value="destinations">Destinations ({destinations.length})</TabsTrigger>
           <TabsTrigger value="areas">Areas ({areas.length})</TabsTrigger>
           <TabsTrigger value="pois">POIs ({pois.length})</TabsTrigger>
         </TabsList>
 
+        {/* ── Countries ── */}
+        <TabsContent value="countries">
+          <AdminEntityTable
+            items={countries}
+            entityName="Country"
+            isLoading={loadingCountries}
+            columns={[
+              { key: 'name', label: 'Name', width: 'flex-[2]', render: (c: any) => (
+                <div className="flex items-center gap-2">
+                  {c.flag_svg_url && <img src={c.flag_svg_url} className="w-5 h-5 rounded-full" alt="" />}
+                  <span className="font-medium">{c.name}</span>
+                  {c.iso_code && <span className="text-xs text-muted-foreground uppercase">({c.iso_code})</span>}
+                </div>
+              )},
+              { key: 'iso_code', label: 'ISO', width: 'w-[60px]', render: (c: any) => <span className="text-xs font-mono text-muted-foreground uppercase">{c.iso_code}</span> },
+              { key: 'is_active', label: 'Status', width: 'w-[80px]', render: (c: any) => <Badge variant={c.is_active ? 'default' : 'secondary'} className="text-[10px]">{c.is_active ? 'Active' : 'Off'}</Badge> },
+            ]}
+            defaultItem={{ name: '', iso_code: '', flag_svg_url: '', flag_emoji: '', is_active: true }}
+            renderForm={(item: any, onChange) => (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => onChange('name', e.target.value)} /></div>
+                  <div><Label className="text-xs text-muted-foreground">ISO Code (2-letter)</Label><Input value={item.iso_code || ''} onChange={e => onChange('iso_code', e.target.value.toUpperCase().slice(0, 2))} maxLength={2} className="font-mono uppercase" /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Country Flag</Label>
+                    <CountryFlagPicker
+                      value={item.flag_svg_url || ''}
+                      onSelect={(url, emoji) => { onChange('flag_svg_url', url); onChange('flag_emoji', emoji); }}
+                    />
+                  </div>
+                  <div><Label className="text-xs text-muted-foreground">Flag Emoji</Label><Input value={item.flag_emoji || ''} readOnly className="bg-muted/50" /></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} />
+                  <span className="text-xs">{item.is_active ? 'Active' : 'Inactive'}</span>
+                </div>
+              </div>
+            )}
+            onSave={(item, isNew) => saveEntity('countries', item, isNew)}
+            onDelete={(ids) => deleteEntity('countries', ids)}
+          />
+        </TabsContent>
+
+        {/* ── Destinations ── */}
         <TabsContent value="destinations">
           <AdminEntityTable
             items={destinations}
@@ -80,15 +131,40 @@ export const AdminLocationsSection = () => {
                   <span className="font-medium">{d.name}</span>
                 </div>
               )},
+              { key: 'country_id', label: 'Country', width: 'flex-1', render: (d: any) => {
+                const c = countries.find((x: any) => x.id === d.country_id);
+                return c ? (
+                  <div className="flex items-center gap-1.5">
+                    {c.flag_svg_url && <img src={c.flag_svg_url} className="w-3.5 h-3.5 rounded-full" alt="" />}
+                    <span className="text-xs">{c.name}</span>
+                  </div>
+                ) : <span className="text-xs text-muted-foreground">—</span>;
+              }},
               { key: 'slug', label: 'Slug', width: 'flex-1', render: (d: any) => <span className="text-xs font-mono text-muted-foreground">{d.slug}</span> },
               { key: 'is_active', label: 'Status', width: 'w-[80px]', render: (d: any) => <Badge variant={d.is_active ? 'default' : 'secondary'} className="text-[10px]">{d.is_active ? 'Active' : 'Off'}</Badge> },
             ]}
-            defaultItem={{ name: '', slug: '', description: '', cover_image: '', is_active: true, display_order: 0 }}
+            defaultItem={{ name: '', slug: '', description: '', cover_image: '', is_active: true, display_order: 0, country_id: '' }}
             renderForm={(item: any, onChange) => (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
                   <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Country</Label>
+                  <Select value={item.country_id || ''} onValueChange={v => onChange('country_id', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                    <SelectContent>
+                      {countries.map((c: any) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          <div className="flex items-center gap-2">
+                            {c.flag_svg_url && <img src={c.flag_svg_url} className="w-4 h-4 rounded-full" alt="" />}
+                            <span>{c.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div><Label className="text-xs text-muted-foreground">Description</Label><Textarea value={item.description || ''} onChange={e => onChange('description', e.target.value)} rows={2} /></div>
                 <div className="grid grid-cols-2 gap-3">
@@ -99,7 +175,7 @@ export const AdminLocationsSection = () => {
                       onSelect={(url, emoji) => { onChange('flag_svg_url', url); onChange('flag_emoji', emoji); }}
                     />
                   </div>
-                  <div><Label className="text-xs text-muted-foreground">Flag Emoji</Label><Input value={item.flag_emoji || ''} onChange={e => onChange('flag_emoji', e.target.value)} readOnly className="bg-muted/50" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Flag Emoji</Label><Input value={item.flag_emoji || ''} readOnly className="bg-muted/50" /></div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Cover Image</Label><Input value={item.cover_image || ''} onChange={e => onChange('cover_image', e.target.value)} /></div>
@@ -117,6 +193,7 @@ export const AdminLocationsSection = () => {
           />
         </TabsContent>
 
+        {/* ── Areas ── */}
         <TabsContent value="areas">
           <AdminEntityTable
             items={areas}
@@ -161,6 +238,7 @@ export const AdminLocationsSection = () => {
           />
         </TabsContent>
 
+        {/* ── POIs ── */}
         <TabsContent value="pois">
           <AdminEntityTable
             items={pois}
