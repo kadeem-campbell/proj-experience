@@ -130,8 +130,9 @@ export const generateHostSchema = (host: Host, products?: Product[]) => ({
   ...(host.bio ? { description: host.bio } : {}),
   ...(products && products.length > 0 ? {
     makesOffer: products.slice(0, 10).map(p => ({
-      "@type": "Offer", itemOffered: { "@type": "TouristAttraction", name: p.title, url: `${BASE}/things-to-do/${p.destination?.slug || 'explore'}/${p.slug}` },
+      "@type": "Offer", itemOffered: { "@type": "TouristAttraction", name: p.title, url: `${BASE}/things-to-do/explore/${p.slug}` },
     })),
+  } : {}),
   } : {}),
 });
 
