@@ -45,7 +45,6 @@ export default function PoiDetail() {
   const { data: destination } = useDestinationBySlug(destParam || "");
   const { data: mediaAssets = [] } = usePoiMedia(poi?.id || "");
   const { data: linkedProducts = [] } = usePoiProducts(poi?.id || "");
-  const { data: linkedExperiences = [] } = usePoiExperiences(poi?.id || "", poi?.destination_id || null);
 
   const typeInfo = typeConfig[poi?.poi_type || ""] || { label: poi?.poi_type || "Place" };
 
