@@ -97,6 +97,158 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_grounding_checks: {
+        Row: {
+          conflicts_json: Json | null
+          created_at: string | null
+          facts_used_json: Json | null
+          grounding_score: number | null
+          id: string
+          message_id: string | null
+          passed: boolean | null
+        }
+        Insert: {
+          conflicts_json?: Json | null
+          created_at?: string | null
+          facts_used_json?: Json | null
+          grounding_score?: number | null
+          id?: string
+          message_id?: string | null
+          passed?: boolean | null
+        }
+        Update: {
+          conflicts_json?: Json | null
+          created_at?: string | null
+          facts_used_json?: Json | null
+          grounding_score?: number | null
+          id?: string
+          message_id?: string | null
+          passed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_grounding_checks_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "agent_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_messages: {
+        Row: {
+          agent_session_id: string
+          content_json: Json | null
+          content_text: string | null
+          created_at: string | null
+          id: string
+          role: string
+        }
+        Insert: {
+          agent_session_id: string
+          content_json?: Json | null
+          content_text?: string | null
+          created_at?: string | null
+          id?: string
+          role?: string
+        }
+        Update: {
+          agent_session_id?: string
+          content_json?: Json | null
+          content_text?: string | null
+          created_at?: string | null
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_messages_agent_session_id_fkey"
+            columns: ["agent_session_id"]
+            isOneToOne: false
+            referencedRelation: "agent_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_sessions: {
+        Row: {
+          context_window_json: Json | null
+          created_at: string | null
+          id: string
+          long_term_memory_refs_json: Json | null
+          planner_session_id: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context_window_json?: Json | null
+          created_at?: string | null
+          id?: string
+          long_term_memory_refs_json?: Json | null
+          planner_session_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context_window_json?: Json | null
+          created_at?: string | null
+          id?: string
+          long_term_memory_refs_json?: Json | null
+          planner_session_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_sessions_planner_session_id_fkey"
+            columns: ["planner_session_id"]
+            isOneToOne: false
+            referencedRelation: "planner_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_tool_calls: {
+        Row: {
+          agent_session_id: string
+          created_at: string | null
+          id: string
+          latency_ms: number | null
+          token_cost_estimate: number | null
+          tool_args_json: Json | null
+          tool_name: string
+          tool_result_json: Json | null
+        }
+        Insert: {
+          agent_session_id: string
+          created_at?: string | null
+          id?: string
+          latency_ms?: number | null
+          token_cost_estimate?: number | null
+          tool_args_json?: Json | null
+          tool_name: string
+          tool_result_json?: Json | null
+        }
+        Update: {
+          agent_session_id?: string
+          created_at?: string | null
+          id?: string
+          latency_ms?: number | null
+          token_cost_estimate?: number | null
+          tool_args_json?: Json | null
+          tool_name?: string
+          tool_result_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tool_calls_agent_session_id_fkey"
+            columns: ["agent_session_id"]
+            isOneToOne: false
+            referencedRelation: "agent_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       answers: {
         Row: {
           body: string
@@ -149,6 +301,8 @@ export type Database = {
           indexability_state: string | null
           is_active: boolean | null
           latitude: number | null
+          launch_profile_id: string | null
+          launch_status: string | null
           longitude: number | null
           name: string
           slug: string
@@ -164,6 +318,8 @@ export type Database = {
           indexability_state?: string | null
           is_active?: boolean | null
           latitude?: number | null
+          launch_profile_id?: string | null
+          launch_status?: string | null
           longitude?: number | null
           name: string
           slug: string
@@ -179,6 +335,8 @@ export type Database = {
           indexability_state?: string | null
           is_active?: boolean | null
           latitude?: number | null
+          launch_profile_id?: string | null
+          launch_status?: string | null
           longitude?: number | null
           name?: string
           slug?: string
@@ -190,6 +348,13 @@ export type Database = {
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "areas_launch_profile_id_fkey"
+            columns: ["launch_profile_id"]
+            isOneToOne: false
+            referencedRelation: "geo_launch_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -244,6 +409,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bulk_action_jobs: {
+        Row: {
+          action_type: string
+          actor_user_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          dry_run_flag: boolean | null
+          filter_json: Json | null
+          id: string
+          proposed_changes_json: Json | null
+          result_json: Json | null
+          status: string | null
+          target_entity_type: string
+        }
+        Insert: {
+          action_type: string
+          actor_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          dry_run_flag?: boolean | null
+          filter_json?: Json | null
+          id?: string
+          proposed_changes_json?: Json | null
+          result_json?: Json | null
+          status?: string | null
+          target_entity_type: string
+        }
+        Update: {
+          action_type?: string
+          actor_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          dry_run_flag?: boolean | null
+          filter_json?: Json | null
+          id?: string
+          proposed_changes_json?: Json | null
+          result_json?: Json | null
+          status?: string | null
+          target_entity_type?: string
+        }
+        Relationships: []
       }
       canonical_decisions: {
         Row: {
@@ -699,6 +906,48 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_itinerary_items: {
+        Row: {
+          created_at: string | null
+          created_by_user_id: string | null
+          day_number: number | null
+          display_order: number | null
+          external_link: string | null
+          id: string
+          itinerary_id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by_user_id?: string | null
+          day_number?: number | null
+          display_order?: number | null
+          external_link?: string | null
+          id?: string
+          itinerary_id: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by_user_id?: string | null
+          day_number?: number | null
+          display_order?: number | null
+          external_link?: string | null
+          id?: string
+          itinerary_id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       defer_register: {
         Row: {
           category: string
@@ -732,6 +981,42 @@ export type Database = {
           reason?: string | null
           resolved_at?: string | null
           severity?: string | null
+        }
+        Relationships: []
+      }
+      demand_keywords: {
+        Row: {
+          activity_type_id: string | null
+          area_id: string | null
+          destination_id: string | null
+          id: string
+          imported_at: string | null
+          keyword: string
+          monthly_volume: number | null
+          seasonality_json: Json | null
+          source_type: string | null
+        }
+        Insert: {
+          activity_type_id?: string | null
+          area_id?: string | null
+          destination_id?: string | null
+          id?: string
+          imported_at?: string | null
+          keyword: string
+          monthly_volume?: number | null
+          seasonality_json?: Json | null
+          source_type?: string | null
+        }
+        Update: {
+          activity_type_id?: string | null
+          area_id?: string | null
+          destination_id?: string | null
+          id?: string
+          imported_at?: string | null
+          keyword?: string
+          monthly_volume?: number | null
+          seasonality_json?: Json | null
+          source_type?: string | null
         }
         Relationships: []
       }
@@ -784,7 +1069,11 @@ export type Database = {
           id: string
           indexability_state: string | null
           is_active: boolean | null
+          is_marketplace_enabled: boolean | null
+          is_partner_feed_enabled: boolean | null
           latitude: number | null
+          launch_profile_id: string | null
+          launch_status: string | null
           legacy_city_id: string | null
           longitude: number | null
           name: string
@@ -803,7 +1092,11 @@ export type Database = {
           id?: string
           indexability_state?: string | null
           is_active?: boolean | null
+          is_marketplace_enabled?: boolean | null
+          is_partner_feed_enabled?: boolean | null
           latitude?: number | null
+          launch_profile_id?: string | null
+          launch_status?: string | null
           legacy_city_id?: string | null
           longitude?: number | null
           name: string
@@ -822,7 +1115,11 @@ export type Database = {
           id?: string
           indexability_state?: string | null
           is_active?: boolean | null
+          is_marketplace_enabled?: boolean | null
+          is_partner_feed_enabled?: boolean | null
           latitude?: number | null
+          launch_profile_id?: string | null
+          launch_status?: string | null
           legacy_city_id?: string | null
           longitude?: number | null
           name?: string
@@ -835,6 +1132,13 @@ export type Database = {
             columns: ["country_id"]
             isOneToOne: false
             referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "destinations_launch_profile_id_fkey"
+            columns: ["launch_profile_id"]
+            isOneToOne: false
+            referencedRelation: "geo_launch_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1014,6 +1318,39 @@ export type Database = {
         }
         Relationships: []
       }
+      entity_scores: {
+        Row: {
+          computed_at: string | null
+          entity_id: string
+          entity_type: string
+          explanation_json: Json | null
+          id: string
+          score_type: string
+          score_value: number
+          scoring_version: number | null
+        }
+        Insert: {
+          computed_at?: string | null
+          entity_id: string
+          entity_type: string
+          explanation_json?: Json | null
+          id?: string
+          score_type: string
+          score_value?: number
+          scoring_version?: number | null
+        }
+        Update: {
+          computed_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          explanation_json?: Json | null
+          id?: string
+          score_type?: string
+          score_value?: number
+          scoring_version?: number | null
+        }
+        Relationships: []
+      }
       entity_slug_history: {
         Row: {
           changed_at: string | null
@@ -1050,6 +1387,54 @@ export type Database = {
           old_slug?: string
           reason?: string | null
           redirect_to_slug?: string | null
+        }
+        Relationships: []
+      }
+      entity_suggestions: {
+        Row: {
+          converted_entity_id: string | null
+          converted_entity_type: string | null
+          created_at: string | null
+          detected_area_id: string | null
+          detected_destination_id: string | null
+          evidence_links: Json | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          review_status: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          converted_entity_id?: string | null
+          converted_entity_type?: string | null
+          created_at?: string | null
+          detected_area_id?: string | null
+          detected_destination_id?: string | null
+          evidence_links?: Json | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          review_status?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          converted_entity_id?: string | null
+          converted_entity_type?: string | null
+          created_at?: string | null
+          detected_area_id?: string | null
+          detected_destination_id?: string | null
+          evidence_links?: Json | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          review_status?: string | null
+          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1555,6 +1940,39 @@ export type Database = {
         }
         Relationships: []
       }
+      geo_launch_profiles: {
+        Row: {
+          created_at: string | null
+          default_output_policy_json: Json | null
+          id: string
+          min_host_readiness_to_publish: number | null
+          min_itinerary_readiness_to_publish: number | null
+          min_product_readiness_to_index: number | null
+          min_product_readiness_to_publish: number | null
+          profile_key: string
+        }
+        Insert: {
+          created_at?: string | null
+          default_output_policy_json?: Json | null
+          id?: string
+          min_host_readiness_to_publish?: number | null
+          min_itinerary_readiness_to_publish?: number | null
+          min_product_readiness_to_index?: number | null
+          min_product_readiness_to_publish?: number | null
+          profile_key: string
+        }
+        Update: {
+          created_at?: string | null
+          default_output_policy_json?: Json | null
+          id?: string
+          min_host_readiness_to_publish?: number | null
+          min_itinerary_readiness_to_publish?: number | null
+          min_product_readiness_to_index?: number | null
+          min_product_readiness_to_publish?: number | null
+          profile_key?: string
+        }
+        Relationships: []
+      }
       host_locations: {
         Row: {
           address: string | null
@@ -1737,6 +2155,95 @@ export type Database = {
           resolution_method?: string | null
         }
         Relationships: []
+      }
+      ingestion_jobs: {
+        Row: {
+          committed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          error_log: Json | null
+          error_rows: number | null
+          id: string
+          job_type: string
+          processed_rows: number | null
+          source_name: string | null
+          status: string | null
+          target_entity_type: string
+          total_rows: number | null
+        }
+        Insert: {
+          committed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_log?: Json | null
+          error_rows?: number | null
+          id?: string
+          job_type?: string
+          processed_rows?: number | null
+          source_name?: string | null
+          status?: string | null
+          target_entity_type: string
+          total_rows?: number | null
+        }
+        Update: {
+          committed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_log?: Json | null
+          error_rows?: number | null
+          id?: string
+          job_type?: string
+          processed_rows?: number | null
+          source_name?: string | null
+          status?: string | null
+          target_entity_type?: string
+          total_rows?: number | null
+        }
+        Relationships: []
+      }
+      ingestion_rows: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_id: string
+          normalised_row_json: Json | null
+          raw_data_json: Json
+          row_number: number
+          status: string | null
+          target_entity_id: string | null
+          validation_errors: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_id: string
+          normalised_row_json?: Json | null
+          raw_data_json: Json
+          row_number: number
+          status?: string | null
+          target_entity_id?: string | null
+          validation_errors?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          normalised_row_json?: Json | null
+          raw_data_json?: Json
+          row_number?: number
+          status?: string | null
+          target_entity_id?: string | null
+          validation_errors?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_rows_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       interaction_events: {
         Row: {
@@ -1969,6 +2476,30 @@ export type Database = {
           },
         ]
       }
+      itinerary_lineage: {
+        Row: {
+          child_itinerary_id: string
+          created_at: string | null
+          id: string
+          parent_itinerary_id: string
+          relationship_type: string
+        }
+        Insert: {
+          child_itinerary_id: string
+          created_at?: string | null
+          id?: string
+          parent_itinerary_id: string
+          relationship_type?: string
+        }
+        Update: {
+          child_itinerary_id?: string
+          created_at?: string | null
+          id?: string
+          parent_itinerary_id?: string
+          relationship_type?: string
+        }
+        Relationships: []
+      }
       media_assets: {
         Row: {
           alt_text: string | null
@@ -2187,6 +2718,149 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_export_rows: {
+        Row: {
+          created_at: string | null
+          export_id: string
+          id: string
+          payload_json: Json
+          product_id: string
+          validation_errors_json: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          export_id: string
+          id?: string
+          payload_json?: Json
+          product_id: string
+          validation_errors_json?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          export_id?: string
+          id?: string
+          payload_json?: Json
+          product_id?: string
+          validation_errors_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_export_rows_export_id_fkey"
+            columns: ["export_id"]
+            isOneToOne: false
+            referencedRelation: "partner_exports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_exports: {
+        Row: {
+          created_at: string | null
+          error_json: Json | null
+          export_type: string
+          finished_at: string | null
+          id: string
+          partner_key: string
+          record_count: number | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_json?: Json | null
+          export_type?: string
+          finished_at?: string | null
+          id?: string
+          partner_key: string
+          record_count?: number | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_json?: Json | null
+          export_type?: string
+          finished_at?: string | null
+          id?: string
+          partner_key?: string
+          record_count?: number | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      place_relationships: {
+        Row: {
+          id: string
+          relationship_type: string
+          source_id: string
+          source_origin: string | null
+          source_type: string
+          strength: number | null
+          target_id: string
+          target_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          relationship_type?: string
+          source_id: string
+          source_origin?: string | null
+          source_type: string
+          strength?: number | null
+          target_id: string
+          target_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          relationship_type?: string
+          source_id?: string
+          source_origin?: string | null
+          source_type?: string
+          strength?: number | null
+          target_id?: string
+          target_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      planner_sessions: {
+        Row: {
+          context_json: Json | null
+          created_at: string | null
+          current_area_id: string | null
+          current_destination_id: string | null
+          id: string
+          session_id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context_json?: Json | null
+          created_at?: string | null
+          current_area_id?: string | null
+          current_destination_id?: string | null
+          id?: string
+          session_id: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context_json?: Json | null
+          created_at?: string | null
+          current_area_id?: string | null
+          current_destination_id?: string | null
+          id?: string
+          session_id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       pois: {
         Row: {
           area_id: string | null
@@ -2262,6 +2936,36 @@ export type Database = {
           },
         ]
       }
+      preference_dimensions: {
+        Row: {
+          allowed_values_json: Json | null
+          created_at: string | null
+          default_weight: number | null
+          description: string | null
+          id: string
+          key: string
+          value_type: string
+        }
+        Insert: {
+          allowed_values_json?: Json | null
+          created_at?: string | null
+          default_weight?: number | null
+          description?: string | null
+          id?: string
+          key: string
+          value_type?: string
+        }
+        Update: {
+          allowed_values_json?: Json | null
+          created_at?: string | null
+          default_weight?: number | null
+          description?: string | null
+          id?: string
+          key?: string
+          value_type?: string
+        }
+        Relationships: []
+      }
       price_options: {
         Row: {
           amount: number
@@ -2309,6 +3013,30 @@ export type Database = {
           },
         ]
       }
+      principles: {
+        Row: {
+          created_at: string | null
+          description: string
+          enforcement_payload_json: Json | null
+          enforcement_type: string
+          principle_key: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          enforcement_payload_json?: Json | null
+          enforcement_type?: string
+          principle_key: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          enforcement_payload_json?: Json | null
+          enforcement_type?: string
+          principle_key?: string
+        }
+        Relationships: []
+      }
       product_destinations: {
         Row: {
           created_at: string | null
@@ -2338,6 +3066,35 @@ export type Database = {
           },
           {
             foreignKeyName: "product_destinations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_formats: {
+        Row: {
+          created_at: string | null
+          format_type: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          format_type: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string | null
+          format_type?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_formats_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -2465,6 +3222,41 @@ export type Database = {
           },
         ]
       }
+      product_vibe_scores: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          id: string
+          product_id: string
+          score: number
+          vibe_dimension: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          product_id: string
+          score?: number
+          vibe_dimension: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          score?: number
+          vibe_dimension?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_vibe_scores_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           activity_type_id: string | null
@@ -2491,6 +3283,7 @@ export type Database = {
           meeting_points: Json | null
           pair_with_ids: string[] | null
           publish_score: number | null
+          publish_state: string | null
           rating: number | null
           slug: string
           tier: string | null
@@ -2498,6 +3291,7 @@ export type Database = {
           updated_at: string | null
           video_url: string | null
           view_count: number | null
+          visibility_output_state: string | null
           weather: string | null
         }
         Insert: {
@@ -2525,6 +3319,7 @@ export type Database = {
           meeting_points?: Json | null
           pair_with_ids?: string[] | null
           publish_score?: number | null
+          publish_state?: string | null
           rating?: number | null
           slug: string
           tier?: string | null
@@ -2532,6 +3327,7 @@ export type Database = {
           updated_at?: string | null
           video_url?: string | null
           view_count?: number | null
+          visibility_output_state?: string | null
           weather?: string | null
         }
         Update: {
@@ -2559,6 +3355,7 @@ export type Database = {
           meeting_points?: Json | null
           pair_with_ids?: string[] | null
           publish_score?: number | null
+          publish_state?: string | null
           rating?: number | null
           slug?: string
           tier?: string | null
@@ -2566,6 +3363,7 @@ export type Database = {
           updated_at?: string | null
           video_url?: string | null
           view_count?: number | null
+          visibility_output_state?: string | null
           weather?: string | null
         }
         Relationships: [
@@ -2710,6 +3508,42 @@ export type Database = {
           },
         ]
       }
+      public_surfaces: {
+        Row: {
+          created_at: string | null
+          entity_type: string
+          is_indexable_candidate: boolean | null
+          min_readiness_score_to_index: number | null
+          min_readiness_score_to_publish: number | null
+          requires_schema_jsonld: boolean | null
+          requires_ssr: boolean | null
+          route_pattern: string
+          surface_key: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_type: string
+          is_indexable_candidate?: boolean | null
+          min_readiness_score_to_index?: number | null
+          min_readiness_score_to_publish?: number | null
+          requires_schema_jsonld?: boolean | null
+          requires_ssr?: boolean | null
+          route_pattern: string
+          surface_key: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_type?: string
+          is_indexable_candidate?: boolean | null
+          min_readiness_score_to_index?: number | null
+          min_readiness_score_to_publish?: number | null
+          requires_schema_jsonld?: boolean | null
+          requires_ssr?: boolean | null
+          route_pattern?: string
+          surface_key?: string
+        }
+        Relationships: []
+      }
       publish_validation_results: {
         Row: {
           checks: Json | null
@@ -2827,6 +3661,134 @@ export type Database = {
         }
         Relationships: []
       }
+      readiness_scores: {
+        Row: {
+          analytics_score: number | null
+          blockers_json: Json | null
+          canonical_score: number | null
+          commerce_score: number | null
+          computed_at: string | null
+          content_score: number | null
+          entity_id: string
+          entity_type: string
+          feed_score: number | null
+          geo_score: number | null
+          graph_score: number | null
+          id: string
+          is_publishable: boolean | null
+          media_score: number | null
+          overall_score: number | null
+          qa_score: number | null
+          recommended_state: string | null
+          route_score: number | null
+          taxonomy_score: number | null
+        }
+        Insert: {
+          analytics_score?: number | null
+          blockers_json?: Json | null
+          canonical_score?: number | null
+          commerce_score?: number | null
+          computed_at?: string | null
+          content_score?: number | null
+          entity_id: string
+          entity_type: string
+          feed_score?: number | null
+          geo_score?: number | null
+          graph_score?: number | null
+          id?: string
+          is_publishable?: boolean | null
+          media_score?: number | null
+          overall_score?: number | null
+          qa_score?: number | null
+          recommended_state?: string | null
+          route_score?: number | null
+          taxonomy_score?: number | null
+        }
+        Update: {
+          analytics_score?: number | null
+          blockers_json?: Json | null
+          canonical_score?: number | null
+          commerce_score?: number | null
+          computed_at?: string | null
+          content_score?: number | null
+          entity_id?: string
+          entity_type?: string
+          feed_score?: number | null
+          geo_score?: number | null
+          graph_score?: number | null
+          id?: string
+          is_publishable?: boolean | null
+          media_score?: number | null
+          overall_score?: number | null
+          qa_score?: number | null
+          recommended_state?: string | null
+          route_score?: number | null
+          taxonomy_score?: number | null
+        }
+        Relationships: []
+      }
+      recommendation_candidate_sets: {
+        Row: {
+          context_json: Json
+          generated_at: string | null
+          id: string
+          set_type: string
+        }
+        Insert: {
+          context_json?: Json
+          generated_at?: string | null
+          id?: string
+          set_type?: string
+        }
+        Update: {
+          context_json?: Json
+          generated_at?: string | null
+          id?: string
+          set_type?: string
+        }
+        Relationships: []
+      }
+      recommendation_candidates: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          rank: number | null
+          reason_json: Json | null
+          score: number | null
+          set_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          rank?: number | null
+          reason_json?: Json | null
+          score?: number | null
+          set_id: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          rank?: number | null
+          reason_json?: Json | null
+          score?: number | null
+          set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_candidates_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "recommendation_candidate_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       redirect_registry: {
         Row: {
           created_at: string | null
@@ -2857,6 +3819,42 @@ export type Database = {
           status_code?: number | null
           target_path?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      restaurants: {
+        Row: {
+          area_id: string | null
+          created_at: string | null
+          cuisine_type: string | null
+          destination_id: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+        }
+        Insert: {
+          area_id?: string | null
+          created_at?: string | null
+          cuisine_type?: string | null
+          destination_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+        }
+        Update: {
+          area_id?: string | null
+          created_at?: string | null
+          cuisine_type?: string | null
+          destination_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
         }
         Relationships: []
       }
@@ -2950,6 +3948,60 @@ export type Database = {
           },
         ]
       }
+      robots_policies: {
+        Row: {
+          created_at: string | null
+          directive: string
+          id: string
+          is_active: boolean | null
+          route_family: string
+          user_agent: string
+        }
+        Insert: {
+          created_at?: string | null
+          directive?: string
+          id?: string
+          is_active?: boolean | null
+          route_family: string
+          user_agent?: string
+        }
+        Update: {
+          created_at?: string | null
+          directive?: string
+          id?: string
+          is_active?: boolean | null
+          route_family?: string
+          user_agent?: string
+        }
+        Relationships: []
+      }
+      route_families: {
+        Row: {
+          created_at: string | null
+          entity_type: string
+          family_key: string
+          is_indexable_candidate: boolean | null
+          is_public: boolean | null
+          pattern_template: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_type: string
+          family_key: string
+          is_indexable_candidate?: boolean | null
+          is_public?: boolean | null
+          pattern_template: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_type?: string
+          family_key?: string
+          is_indexable_candidate?: boolean | null
+          is_public?: boolean | null
+          pattern_template?: string
+        }
+        Relationships: []
+      }
       schema_generation_logs: {
         Row: {
           entity_id: string
@@ -2986,6 +4038,48 @@ export type Database = {
         }
         Relationships: []
       }
+      search_documents: {
+        Row: {
+          aliases_text: string | null
+          area_id: string | null
+          destination_id: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          popularity_score: number | null
+          readiness_score: number | null
+          search_vector: unknown
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          aliases_text?: string | null
+          area_id?: string | null
+          destination_id?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          popularity_score?: number | null
+          readiness_score?: number | null
+          search_vector?: unknown
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          aliases_text?: string | null
+          area_id?: string | null
+          destination_id?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          popularity_score?: number | null
+          readiness_score?: number | null
+          search_vector?: unknown
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       search_performance_snapshots: {
         Row: {
           clicks: number | null
@@ -3019,6 +4113,252 @@ export type Database = {
           position?: number | null
           snapshot_date?: string
           url?: string
+        }
+        Relationships: []
+      }
+      search_queries: {
+        Row: {
+          clicked_entity_id: string | null
+          clicked_entity_type: string | null
+          created_at: string | null
+          detected_dimensions_json: Json | null
+          detected_location_json: Json | null
+          id: string
+          normalised_query: string | null
+          raw_query: string
+          result_count: number | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_entity_id?: string | null
+          clicked_entity_type?: string | null
+          created_at?: string | null
+          detected_dimensions_json?: Json | null
+          detected_location_json?: Json | null
+          id?: string
+          normalised_query?: string | null
+          raw_query: string
+          result_count?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_entity_id?: string | null
+          clicked_entity_type?: string | null
+          created_at?: string | null
+          detected_dimensions_json?: Json | null
+          detected_location_json?: Json | null
+          id?: string
+          normalised_query?: string | null
+          raw_query?: string
+          result_count?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      search_term_metrics: {
+        Row: {
+          day: string
+          id: string
+          itinerary_add_rate: number | null
+          query_count: number | null
+          save_rate: number | null
+          term: string
+          trend_score: number | null
+          zero_result_count: number | null
+        }
+        Insert: {
+          day: string
+          id?: string
+          itinerary_add_rate?: number | null
+          query_count?: number | null
+          save_rate?: number | null
+          term: string
+          trend_score?: number | null
+          zero_result_count?: number | null
+        }
+        Update: {
+          day?: string
+          id?: string
+          itinerary_add_rate?: number | null
+          query_count?: number | null
+          save_rate?: number | null
+          term?: string
+          trend_score?: number | null
+          zero_result_count?: number | null
+        }
+        Relationships: []
+      }
+      seasonality_profiles: {
+        Row: {
+          confidence_score: number | null
+          entity_id: string
+          entity_type: string
+          id: string
+          monthly_scores: Json
+          source_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          monthly_scores?: Json
+          source_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          monthly_scores?: Json
+          source_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      semantic_place_profiles: {
+        Row: {
+          budget_score: number | null
+          chill_score: number | null
+          coastal_score: number | null
+          confidence_score: number | null
+          culture_score: number | null
+          energetic_score: number | null
+          entity_id: string
+          entity_type: string
+          family_score: number | null
+          food_score: number | null
+          id: string
+          localness_score: number | null
+          luxury_score: number | null
+          nature_score: number | null
+          nightlife_score: number | null
+          source_breakdown_json: Json | null
+          touristiness_score: number | null
+          updated_at: string | null
+          urban_score: number | null
+          walkability_score: number | null
+        }
+        Insert: {
+          budget_score?: number | null
+          chill_score?: number | null
+          coastal_score?: number | null
+          confidence_score?: number | null
+          culture_score?: number | null
+          energetic_score?: number | null
+          entity_id: string
+          entity_type: string
+          family_score?: number | null
+          food_score?: number | null
+          id?: string
+          localness_score?: number | null
+          luxury_score?: number | null
+          nature_score?: number | null
+          nightlife_score?: number | null
+          source_breakdown_json?: Json | null
+          touristiness_score?: number | null
+          updated_at?: string | null
+          urban_score?: number | null
+          walkability_score?: number | null
+        }
+        Update: {
+          budget_score?: number | null
+          chill_score?: number | null
+          coastal_score?: number | null
+          confidence_score?: number | null
+          culture_score?: number | null
+          energetic_score?: number | null
+          entity_id?: string
+          entity_type?: string
+          family_score?: number | null
+          food_score?: number | null
+          id?: string
+          localness_score?: number | null
+          luxury_score?: number | null
+          nature_score?: number | null
+          nightlife_score?: number | null
+          source_breakdown_json?: Json | null
+          touristiness_score?: number | null
+          updated_at?: string | null
+          urban_score?: number | null
+          walkability_score?: number | null
+        }
+        Relationships: []
+      }
+      session_profiles: {
+        Row: {
+          created_at: string | null
+          first_seen: string | null
+          id: string
+          inferred_destination_interest: string | null
+          inferred_prefs_snapshot: Json | null
+          last_seen: string | null
+          page_count: number | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          first_seen?: string | null
+          id?: string
+          inferred_destination_interest?: string | null
+          inferred_prefs_snapshot?: Json | null
+          last_seen?: string | null
+          page_count?: number | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          first_seen?: string | null
+          id?: string
+          inferred_destination_interest?: string | null
+          inferred_prefs_snapshot?: Json | null
+          last_seen?: string | null
+          page_count?: number | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      stays: {
+        Row: {
+          area_id: string | null
+          created_at: string | null
+          destination_id: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          stay_type: string | null
+        }
+        Insert: {
+          area_id?: string | null
+          created_at?: string | null
+          destination_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          stay_type?: string | null
+        }
+        Update: {
+          area_id?: string | null
+          created_at?: string | null
+          destination_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          stay_type?: string | null
         }
         Relationships: []
       }
@@ -3064,6 +4404,27 @@ export type Database = {
         }
         Relationships: []
       }
+      system_constants: {
+        Row: {
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value_json: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value_json?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value_json?: Json
+        }
+        Relationships: []
+      }
       themes: {
         Row: {
           created_at: string | null
@@ -3099,6 +4460,81 @@ export type Database = {
           is_public_page?: boolean | null
           name?: string
           slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      transport_legs: {
+        Row: {
+          cost_estimate: number | null
+          created_at: string | null
+          dest_name: string
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          mode: string | null
+          origin_name: string
+        }
+        Insert: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          dest_name: string
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          mode?: string | null
+          origin_name: string
+        }
+        Update: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          dest_name?: string
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          mode?: string | null
+          origin_name?: string
+        }
+        Relationships: []
+      }
+      travel_time_edges: {
+        Row: {
+          dest_id: string
+          dest_type: string
+          duration_minutes_peak: number | null
+          duration_minutes_typical: number | null
+          friction_score: number | null
+          id: string
+          mode: string
+          origin_id: string
+          origin_type: string
+          source_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          dest_id: string
+          dest_type: string
+          duration_minutes_peak?: number | null
+          duration_minutes_typical?: number | null
+          friction_score?: number | null
+          id?: string
+          mode?: string
+          origin_id: string
+          origin_type: string
+          source_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          dest_id?: string
+          dest_type?: string
+          duration_minutes_peak?: number | null
+          duration_minutes_typical?: number | null
+          friction_score?: number | null
+          id?: string
+          mode?: string
+          origin_id?: string
+          origin_type?: string
+          source_type?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -3139,6 +4575,36 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      trip_collaborations: {
+        Row: {
+          created_at: string | null
+          id: string
+          invited_email: string | null
+          invited_user_id: string | null
+          itinerary_id: string
+          role: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invited_email?: string | null
+          invited_user_id?: string | null
+          itinerary_id: string
+          role?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invited_email?: string | null
+          invited_user_id?: string | null
+          itinerary_id?: string
+          role?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -3193,6 +4659,65 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preference_values: {
+        Row: {
+          confidence_score: number | null
+          dimension_id: string
+          evidence_json: Json | null
+          id: string
+          source_type: string | null
+          updated_at: string | null
+          user_id: string
+          valid_from: string | null
+          valid_to: string | null
+          value_bool: boolean | null
+          value_enum: string | null
+          value_json: Json | null
+          value_number: number | null
+          value_text: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          dimension_id: string
+          evidence_json?: Json | null
+          id?: string
+          source_type?: string | null
+          updated_at?: string | null
+          user_id: string
+          valid_from?: string | null
+          valid_to?: string | null
+          value_bool?: boolean | null
+          value_enum?: string | null
+          value_json?: Json | null
+          value_number?: number | null
+          value_text?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          dimension_id?: string
+          evidence_json?: Json | null
+          id?: string
+          source_type?: string | null
+          updated_at?: string | null
+          user_id?: string
+          valid_from?: string | null
+          valid_to?: string | null
+          value_bool?: boolean | null
+          value_enum?: string | null
+          value_json?: Json | null
+          value_number?: number | null
+          value_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preference_values_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "preference_dimensions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -3235,6 +4760,170 @@ export type Database = {
           item_id?: string
           item_type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_states: {
+        Row: {
+          computed_at: string | null
+          id: string
+          state: string
+          state_confidence: number | null
+          user_id: string
+        }
+        Insert: {
+          computed_at?: string | null
+          id?: string
+          state?: string
+          state_confidence?: number | null
+          user_id: string
+        }
+        Update: {
+          computed_at?: string | null
+          id?: string
+          state?: string
+          state_confidence?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_type_definitions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          emoji: string | null
+          id: string
+          is_active: boolean | null
+          label: string
+          type_key: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          label: string
+          type_key: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string
+          type_key?: string
+        }
+        Relationships: []
+      }
+      user_type_tags: {
+        Row: {
+          confidence_score: number | null
+          id: string
+          source_type: string | null
+          type_key: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          id?: string
+          source_type?: string | null
+          type_key: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          id?: string
+          source_type?: string | null
+          type_key?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_type_tags_type_key_fkey"
+            columns: ["type_key"]
+            isOneToOne: false
+            referencedRelation: "user_type_definitions"
+            referencedColumns: ["type_key"]
+          },
+        ]
+      }
+      validation_results: {
+        Row: {
+          blocking_flag: boolean | null
+          created_at: string | null
+          dimension: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          message: string
+          severity: string
+          status: string | null
+          suggested_fix: string | null
+          validator_type: string
+        }
+        Insert: {
+          blocking_flag?: boolean | null
+          created_at?: string | null
+          dimension?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          message: string
+          severity?: string
+          status?: string | null
+          suggested_fix?: string | null
+          validator_type: string
+        }
+        Update: {
+          blocking_flag?: boolean | null
+          created_at?: string | null
+          dimension?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          message?: string
+          severity?: string
+          status?: string | null
+          suggested_fix?: string | null
+          validator_type?: string
+        }
+        Relationships: []
+      }
+      weather_snapshots: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          forecast_time: string | null
+          freshness_expires_at: string | null
+          id: string
+          payload_json: Json
+          provider_key: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          forecast_time?: string | null
+          freshness_expires_at?: string | null
+          id?: string
+          payload_json?: Json
+          provider_key?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          forecast_time?: string | null
+          freshness_expires_at?: string | null
+          id?: string
+          payload_json?: Json
+          provider_key?: string | null
         }
         Relationships: []
       }

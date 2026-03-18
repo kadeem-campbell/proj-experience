@@ -34,6 +34,12 @@ import { AdminNotificationsSection } from '@/components/admin/AdminNotifications
 import { AdminGraphInspector } from '@/components/admin/AdminGraphInspector';
 import { AdminGovernanceGates } from '@/components/admin/AdminGovernanceGates';
 import { AdminFeedContracts } from '@/components/admin/AdminFeedContracts';
+import { AdminSystemSection } from '@/components/admin/AdminSystemSection';
+import { AdminPartnerExports } from '@/components/admin/AdminPartnerExports';
+import { AdminSearchTrends } from '@/components/admin/AdminSearchTrends';
+import { AdminReadinessScores } from '@/components/admin/AdminReadinessScores';
+import { AdminIngestionCenter } from '@/components/admin/AdminIngestionCenter';
+import { AdminWorldGraph } from '@/components/admin/AdminWorldGraph';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard, group: 'Main' },

@@ -1,8 +1,6 @@
 /**
- * Feed Export Service with Contract Registry
- * 
- * Generates partner-specific feeds with versioned contracts,
- * field exposure rules, and deep-link enforcement.
+ * Feed Export Service v2 with Contract Registry,
+ * Partner Abstractions, Deep-Link Enforcement, and Freshness Rules
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +37,8 @@ export interface FeedProduct {
   review_count?: number;
   latitude?: number;
   longitude?: number;
+  visibility_output_state?: string;
+  publish_score?: number;
 }
 
 export interface FeedOption {
@@ -66,7 +66,19 @@ export interface FeedValidationIssue {
   contract_rule?: string;
 }
 
+export interface PartnerExportResult {
+  export_id?: string;
+  partner: string;
+  total_products: number;
+  eligible_products: number;
+  excluded_products: number;
+  validation_issues: FeedValidationIssue[];
+  freshness_ok: boolean;
+  days_since_last_export: number | null;
+}
+
 // ============ FETCH CONTRACTS ============
+
 export const fetchExportContracts = async (): Promise<ExportContract[]> => {
   const { data, error } = await (supabase as any)
     .from("export_contracts")
@@ -76,6 +88,7 @@ export const fetchExportContracts = async (): Promise<ExportContract[]> => {
 };
 
 // ============ FETCH FEED DATA ============
+
 export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
   const { data: products, error } = await supabase
     .from("products")
@@ -85,23 +98,17 @@ export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
       areas!products_area_id_fkey(name, slug),
       activity_types!products_activity_type_id_fkey(name, slug)
     `)
-    .eq("is_active", true)
-    .eq("is_indexable", true);
+    .eq("is_active", true);
 
   if (error || !products) return [];
 
   const productIds = products.map((p: any) => p.id);
+  if (productIds.length === 0) return [];
 
-  const { data: options } = await supabase
-    .from("options")
-    .select("*, price_options(*)")
-    .in("product_id", productIds)
-    .eq("is_active", true);
-
-  const { data: hostLinks } = await supabase
-    .from("product_hosts")
-    .select("product_id, hosts(display_name, slug)")
-    .in("product_id", productIds);
+  const [{ data: options }, { data: hostLinks }] = await Promise.all([
+    supabase.from("options").select("*, price_options(*)").in("product_id", productIds).eq("is_active", true),
+    supabase.from("product_hosts").select("product_id, hosts(display_name, slug)").in("product_id", productIds),
+  ]);
 
   const optsByProduct: Record<string, any[]> = {};
   (options || []).forEach((o: any) => {
@@ -116,7 +123,6 @@ export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
 
   return products.map((p: any) => {
     const dest = p.destinations;
-    const area = p.areas;
     const opts = optsByProduct[p.id] || [];
     const host = hostByProduct[p.id];
 
@@ -128,19 +134,17 @@ export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
       image_url: p.cover_image || "",
       destination: dest?.name || "",
       destination_slug: dest?.slug || "explore",
-      area: area?.name,
+      area: p.areas?.name,
       activity_type: p.activity_types?.name,
+      visibility_output_state: p.visibility_output_state,
+      publish_score: p.publish_score,
       options: opts.map((o: any) => ({
-        name: o.name,
-        description: o.description || "",
-        duration: o.duration,
-        format_type: o.format_type || "shared",
+        name: o.name, description: o.description || "",
+        duration: o.duration, format_type: o.format_type || "shared",
         tier: o.tier || "standard",
         prices: (o.price_options || []).map((po: any) => ({
-          label: po.label,
-          amount: po.amount,
-          currency: po.currency,
-          original_amount: po.original_amount,
+          label: po.label, amount: po.amount,
+          currency: po.currency, original_amount: po.original_amount,
         })),
       })),
       host: host ? { name: host.display_name, url: `https://swam.app/hosts/${host.slug}` } : undefined,
@@ -152,23 +156,34 @@ export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
   });
 };
 
+// ============ FILTER BY VISIBILITY STATE ============
+
+export const filterFeedEligible = (products: FeedProduct[]): { eligible: FeedProduct[]; excluded: FeedProduct[] } => {
+  const eligibleStates = ["public_indexed", "marketplace_active"];
+  const eligible = products.filter(p =>
+    eligibleStates.includes(p.visibility_output_state || "") ||
+    (p.publish_score || 0) >= 40
+  );
+  const excluded = products.filter(p => !eligible.includes(p));
+  return { eligible, excluded };
+};
+
 // ============ VALIDATE AGAINST CONTRACT ============
+
 export const validateFeedAgainstContract = (
-  products: FeedProduct[],
-  contract: ExportContract,
+  products: FeedProduct[], contract: ExportContract,
 ): FeedValidationIssue[] => {
   const issues: FeedValidationIssue[] = [];
 
   products.forEach((p) => {
-    // Core requirements
-    if (!p.title) issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_title", severity: "error", message: "Title is required", contract_rule: "core" });
+    if (!p.title) issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_title", severity: "error", message: "Title required", contract_rule: "core" });
     
     if (contract.requires_image && !p.image_url) {
       issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_image", severity: "error", message: `Image required by ${contract.partner}`, contract_rule: "requires_image" });
     }
 
     if (contract.min_description_length && (!p.description || p.description.length < contract.min_description_length)) {
-      issues.push({ product_id: p.id, product_title: p.title, issue_type: "short_description", severity: "warning", message: `Description < ${contract.min_description_length} chars for ${contract.partner}`, contract_rule: "min_description_length" });
+      issues.push({ product_id: p.id, product_title: p.title, issue_type: "short_description", severity: "warning", message: `Description < ${contract.min_description_length} chars`, contract_rule: "min_description_length" });
     }
 
     if (contract.requires_pricing) {
@@ -181,11 +196,13 @@ export const validateFeedAgainstContract = (
     }
 
     // Deep-link enforcement
-    const expectedUrl = contract.deep_link_template
-      .replace("{destination_slug}", p.destination_slug)
-      .replace("{product_slug}", p.url.split("/").pop() || "");
-    if (p.url !== expectedUrl) {
-      issues.push({ product_id: p.id, product_title: p.title, issue_type: "deep_link_mismatch", severity: "warning", message: `URL doesn't match template: ${expectedUrl}`, contract_rule: "deep_link_template" });
+    if (contract.deep_link_template) {
+      const expectedUrl = contract.deep_link_template
+        .replace("{destination_slug}", p.destination_slug)
+        .replace("{product_slug}", p.url.split("/").pop() || "");
+      if (p.url !== expectedUrl) {
+        issues.push({ product_id: p.id, product_title: p.title, issue_type: "deep_link_mismatch", severity: "warning", message: `URL mismatch: expected ${expectedUrl}`, contract_rule: "deep_link_template" });
+      }
     }
 
     if (!p.destination) issues.push({ product_id: p.id, product_title: p.title, issue_type: "missing_destination", severity: "error", message: "Destination required", contract_rule: "core" });
@@ -195,37 +212,74 @@ export const validateFeedAgainstContract = (
   return issues;
 };
 
-// Legacy compat wrapper
-export const validateFeedReadiness = (products: FeedProduct[]): FeedValidationIssue[] => {
-  const defaultContract: ExportContract = {
-    id: "default",
-    partner: "internal",
-    feed_type: "generic",
-    contract_version: 1,
-    field_exposure: {},
-    deep_link_template: "https://swam.app/things-to-do/{destination_slug}/{product_slug}",
-    is_active: true,
-    requires_pricing: true,
-    requires_geo: false,
-    requires_image: true,
-    min_description_length: 30,
+// ============ CHECK FRESHNESS ============
+
+export const checkExportFreshness = async (partnerKey: string): Promise<{ ok: boolean; daysSince: number | null }> => {
+  const { data } = await (supabase as any)
+    .from("partner_exports")
+    .select("finished_at")
+    .eq("partner_key", partnerKey)
+    .eq("status", "completed")
+    .order("finished_at", { ascending: false })
+    .limit(1);
+
+  if (!data || data.length === 0) return { ok: false, daysSince: null };
+
+  const lastExport = new Date(data[0].finished_at);
+  const daysSince = Math.floor((Date.now() - lastExport.getTime()) / (1000 * 60 * 60 * 24));
+  return { ok: daysSince <= 30, daysSince };
+};
+
+// ============ RUN FULL EXPORT ============
+
+export const runPartnerExport = async (contract: ExportContract): Promise<PartnerExportResult> => {
+  const allProducts = await fetchFeedProducts();
+  const { eligible, excluded } = filterFeedEligible(allProducts);
+  const issues = validateFeedAgainstContract(eligible, contract);
+  const freshness = await checkExportFreshness(contract.partner);
+
+  // Record export job
+  const { data: exportJob } = await (supabase as any).from("partner_exports").insert({
+    partner_key: contract.partner,
+    export_type: contract.feed_type,
+    status: issues.filter(i => i.severity === "error").length > 0 ? "failed" : "completed",
+    record_count: eligible.length,
+    error_json: issues.filter(i => i.severity === "error"),
+    started_at: new Date().toISOString(),
+    finished_at: new Date().toISOString(),
+  }).select("id").single();
+
+  // Record per-product rows
+  if (exportJob?.id) {
+    const rows = eligible.map(p => ({
+      export_id: exportJob.id,
+      product_id: p.id,
+      payload_json: applyFieldExposure([p], contract)[0] || {},
+      validation_errors_json: issues.filter(i => i.product_id === p.id),
+    }));
+    if (rows.length > 0) {
+      await (supabase as any).from("partner_export_rows").insert(rows);
+    }
+  }
+
+  return {
+    export_id: exportJob?.id,
+    partner: contract.partner,
+    total_products: allProducts.length,
+    eligible_products: eligible.length,
+    excluded_products: excluded.length,
+    validation_issues: issues,
+    freshness_ok: freshness.ok,
+    days_since_last_export: freshness.daysSince,
   };
-  return validateFeedAgainstContract(products, defaultContract);
 };
 
 // ============ APPLY FIELD EXPOSURE ============
-export const applyFieldExposure = (
-  products: FeedProduct[],
-  contract: ExportContract,
-): any[] => {
+
+export const applyFieldExposure = (products: FeedProduct[], contract: ExportContract): any[] => {
   const exposure = contract.field_exposure || {};
   return products.map(p => {
-    const item: Record<string, any> = {};
-    // Always include
-    item.id = p.id;
-    item.title = p.title;
-    item.url = p.url;
-    // Conditional fields
+    const item: Record<string, any> = { id: p.id, title: p.title, url: p.url };
     if (exposure.description !== false) item.description = p.description;
     if (exposure.image !== false) item.image_url = p.image_url;
     if (exposure.destination !== false) item.destination = p.destination;
@@ -240,6 +294,7 @@ export const applyFieldExposure = (
 };
 
 // ============ LOG FEED ISSUES ============
+
 export const logFeedIssues = async (issues: FeedValidationIssue[]): Promise<void> => {
   if (issues.length === 0) return;
   const rows = issues.map(i => ({
@@ -258,3 +313,13 @@ export const logFeedIssues = async (issues: FeedValidationIssue[]): Promise<void
     console.error("Failed to log feed issues:", err);
   }
 };
+
+// Legacy compat
+export const validateFeedReadiness = (products: FeedProduct[]) =>
+  validateFeedAgainstContract(products, {
+    id: "default", partner: "internal", feed_type: "generic",
+    contract_version: 1, field_exposure: {},
+    deep_link_template: "https://swam.app/things-to-do/{destination_slug}/{product_slug}",
+    is_active: true, requires_pricing: true, requires_geo: false,
+    requires_image: true, min_description_length: 30,
+  });
