@@ -2,9 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
 import { MobileShell } from "@/components/MobileShell";
-import { useDbExperiences, DbExperience } from "@/hooks/useDbExperiences"; // kept for backward compat during migration
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useCreators } from "@/hooks/useAppData";
 import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug } from "@/hooks/useProducts";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateProductSchema } from "@/services/schemaGenerator";
