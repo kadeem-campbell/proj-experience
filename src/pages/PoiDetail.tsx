@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usePoiBySlug, usePoiMedia, usePoiProducts, usePoiExperiences } from "@/hooks/usePoiBySlug";
+import { usePoiBySlug, usePoiMedia, usePoiProducts } from "@/hooks/usePoiBySlug";
 import { useDestinationBySlug } from "@/hooks/useProducts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileShell } from "@/components/MobileShell";
