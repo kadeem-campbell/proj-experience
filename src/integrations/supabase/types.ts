@@ -1136,6 +1136,7 @@ export type Database = {
           name: string
           readiness_score: number | null
           short_description: string | null
+          short_name: string | null
           slug: string
           timezone: string | null
           updated_at: string | null
@@ -1167,6 +1168,7 @@ export type Database = {
           name: string
           readiness_score?: number | null
           short_description?: string | null
+          short_name?: string | null
           slug: string
           timezone?: string | null
           updated_at?: string | null
@@ -1198,6 +1200,7 @@ export type Database = {
           name?: string
           readiness_score?: number | null
           short_description?: string | null
+          short_name?: string | null
           slug?: string
           timezone?: string | null
           updated_at?: string | null
