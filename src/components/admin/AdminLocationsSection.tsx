@@ -17,6 +17,44 @@ import { Slider } from '@/components/ui/slider';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
+const CONTINENTS = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Antarctica'];
+const REGIONS = [
+  'East Africa', 'West Africa', 'North Africa', 'Southern Africa', 'Central Africa',
+  'Caribbean', 'Central America', 'Northern Europe', 'Western Europe', 'Southern Europe', 'Eastern Europe',
+  'South Asia', 'Southeast Asia', 'East Asia', 'Central Asia', 'Middle East',
+  'Oceania', 'South America',
+];
+const CURRENCIES = [
+  'TZS', 'KES', 'UGX', 'RWF', 'ETB', 'EGP', 'GHS', 'NGN', 'ZAR', 'JMD',
+  'GBP', 'USD', 'EUR', 'CAD', 'AUD', 'INR', 'AED', 'SAR', 'JPY', 'CNY', 'BRL', 'MXN', 'THB',
+];
+const LANGUAGES = [
+  'English', 'Swahili', 'French', 'Arabic', 'Amharic', 'Portuguese', 'Spanish',
+  'Kinyarwanda', 'Yoruba', 'Hausa', 'Zulu', 'Afrikaans', 'Mandarin', 'Hindi',
+];
+const TIMEZONES = [
+  'Africa/Dar_es_Salaam', 'Africa/Nairobi', 'Africa/Kampala', 'Africa/Kigali',
+  'Africa/Addis_Ababa', 'Africa/Cairo', 'Africa/Accra', 'Africa/Lagos',
+  'Africa/Johannesburg', 'Africa/Cape_Town',
+  'America/Kingston', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+  'Europe/London', 'Europe/Paris', 'Europe/Berlin',
+  'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 'Asia/Tokyo',
+  'Australia/Sydney', 'Pacific/Auckland',
+];
+const BEST_TIME_OPTIONS = [
+  { value: 'year_round', label: 'Year Round' },
+  { value: 'jan_mar', label: 'Jan – Mar' },
+  { value: 'apr_jun', label: 'Apr – Jun' },
+  { value: 'jul_sep', label: 'Jul – Sep' },
+  { value: 'oct_dec', label: 'Oct – Dec' },
+  { value: 'jan_feb', label: 'Jan – Feb' },
+  { value: 'mar_may', label: 'Mar – May' },
+  { value: 'jun_aug', label: 'Jun – Aug' },
+  { value: 'sep_nov', label: 'Sep – Nov' },
+  { value: 'dec_feb', label: 'Dec – Feb' },
+  { value: 'jun_oct', label: 'Jun – Oct' },
+];
+
 export const AdminLocationsSection = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -56,6 +94,8 @@ export const AdminLocationsSection = () => {
 
   const saveEntity = async (table: string, item: any, isNew: boolean) => {
     const { id, created_at, updated_at, ...rest } = item;
+    // Clear __inherit sentinel values
+    if (rest.currency_code === '__inherit') rest.currency_code = null;
     if (isNew) {
       const { error } = await (supabase as any).from(table).insert(rest);
       if (error) throw error;
@@ -142,12 +182,36 @@ export const AdminLocationsSection = () => {
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Continent</Label><Input value={item.continent || ''} onChange={e => onChange('continent', e.target.value)} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Region</Label><Input value={item.region || ''} onChange={e => onChange('region', e.target.value)} /></div>
-                  <div><Label className="text-xs text-muted-foreground">Currency</Label><Input value={item.currency_code || ''} onChange={e => onChange('currency_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Continent</Label>
+                    <Select value={item.continent || ''} onValueChange={v => onChange('continent', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{CONTINENTS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Region</Label>
+                    <Select value={item.region || ''} onValueChange={v => onChange('region', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{REGIONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Currency</Label>
+                    <Select value={item.currency_code || ''} onValueChange={v => onChange('currency_code', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Default Language</Label><Input value={item.default_language || ''} onChange={e => onChange('default_language', e.target.value)} /></div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Default Language</Label>
+                    <Select value={item.default_language || ''} onValueChange={v => onChange('default_language', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
                   <div><Label className="text-xs text-muted-foreground">Calling Code</Label><Input value={item.calling_code || ''} onChange={e => onChange('calling_code', e.target.value)} placeholder="+255" /></div>
                   <div><Label className="text-xs text-muted-foreground">TLD</Label><Input value={item.tld || ''} onChange={e => onChange('tld', e.target.value)} placeholder=".tz" /></div>
                 </div>
@@ -166,10 +230,10 @@ export const AdminLocationsSection = () => {
             onBulkUpdate={(ids, field, value) => bulkUpdateEntity('countries', ids, field, value)}
             bulkFields={[
               { key: 'is_active', label: 'Active', type: 'boolean' },
-              { key: 'continent', label: 'Continent', type: 'text' },
-              { key: 'region', label: 'Region', type: 'text' },
-              { key: 'currency_code', label: 'Currency', type: 'text' },
-              { key: 'default_language', label: 'Language', type: 'text' },
+              { key: 'continent', label: 'Continent', type: 'select', options: CONTINENTS.map(c => ({ value: c, label: c })) },
+              { key: 'region', label: 'Region', type: 'select', options: REGIONS.map(r => ({ value: r, label: r })) },
+              { key: 'currency_code', label: 'Currency', type: 'select', options: CURRENCIES.map(c => ({ value: c, label: c })) },
+              { key: 'default_language', label: 'Language', type: 'select', options: LANGUAGES.map(l => ({ value: l, label: l })) },
             ]}
           />
         </TabsContent>
@@ -246,8 +310,23 @@ export const AdminLocationsSection = () => {
                   <div><Label className="text-xs text-muted-foreground">Longitude</Label><Input type="number" step="any" value={item.longitude || ''} onChange={e => onChange('longitude', parseFloat(e.target.value) || null)} /></div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Timezone</Label><Input value={item.timezone || ''} onChange={e => onChange('timezone', e.target.value)} placeholder="Africa/Dar_es_Salaam" /></div>
-                  <div><Label className="text-xs text-muted-foreground">Currency</Label><Input value={item.currency_code || ''} onChange={e => onChange('currency_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Timezone</Label>
+                    <Select value={item.timezone || ''} onValueChange={v => onChange('timezone', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select timezone" /></SelectTrigger>
+                      <SelectContent>{TIMEZONES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Currency (override)</Label>
+                    <Select value={item.currency_code || ''} onValueChange={v => onChange('currency_code', v)}>
+                      <SelectTrigger><SelectValue placeholder={(() => { const c = countries.find((x: any) => x.id === item.country_id); return c?.currency_code ? `Inherit: ${c.currency_code}` : 'Select'; })()} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__inherit">Inherit from country</SelectItem>
+                        {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div><Label className="text-xs text-muted-foreground">IATA Code</Label><Input value={item.iata_code || ''} onChange={e => onChange('iata_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
                 </div>
                 <div><Label className="text-xs text-muted-foreground">Readiness Score</Label><Input type="number" min={0} max={100} value={item.readiness_score || ''} onChange={e => onChange('readiness_score', parseFloat(e.target.value) || null)} /></div>
@@ -263,7 +342,13 @@ export const AdminLocationsSection = () => {
                   </div>
                   <div><Label className="text-xs text-muted-foreground">Launch Date</Label><Input type="date" value={item.launch_date || ''} onChange={e => onChange('launch_date', e.target.value || null)} /></div>
                 </div>
-                <div><Label className="text-xs text-muted-foreground">Best Time to Visit</Label><Input value={item.best_time_to_visit_text || ''} onChange={e => onChange('best_time_to_visit_text', e.target.value)} /></div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Best Time to Visit</Label>
+                  <Select value={item.best_time_to_visit_text || ''} onValueChange={v => onChange('best_time_to_visit_text', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select season" /></SelectTrigger>
+                    <SelectContent>{BEST_TIME_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2"><Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} /><span className="text-xs">{item.is_active ? 'Active' : 'Inactive'}</span></div>
                   <div className="flex items-center gap-2"><Switch checked={item.is_marketplace_enabled ?? false} onCheckedChange={v => onChange('is_marketplace_enabled', v)} /><span className="text-xs">Marketplace</span></div>
@@ -284,8 +369,9 @@ export const AdminLocationsSection = () => {
                 { value: 'city', label: 'City' }, { value: 'island', label: 'Island' },
                 { value: 'region', label: 'Region' }, { value: 'national_park', label: 'National Park' }, { value: 'coastal_zone', label: 'Coastal Zone' },
               ]},
-              { key: 'currency_code', label: 'Currency', type: 'text' },
-              { key: 'timezone', label: 'Timezone', type: 'text' },
+              { key: 'currency_code', label: 'Currency', type: 'select', options: CURRENCIES.map(c => ({ value: c, label: c })) },
+              { key: 'timezone', label: 'Timezone', type: 'select', options: TIMEZONES.map(t => ({ value: t, label: t })) },
+              { key: 'best_time_to_visit_text', label: 'Best Time', type: 'select', options: BEST_TIME_OPTIONS },
               { key: 'is_marketplace_enabled', label: 'Marketplace', type: 'boolean' },
               { key: 'is_partner_feed_enabled', label: 'Partner Feed', type: 'boolean' },
               { key: 'readiness_score', label: 'Readiness Score', type: 'number' },
