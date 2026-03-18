@@ -165,7 +165,7 @@ const CitySelectorSheet = ({
                         {csFlag && isSvg(csFlag) ? <img src={csFlag} alt="" className="w-full h-full object-cover" /> : csFlag ? <span className="text-sm">{csFlag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
                       </div>
                       <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{city.name}</p></div>
-                      <span className="text-[10px] text-muted-foreground">{formatLaunchMonth(city.launch_date)}</span>
+                      <span className="text-[10px] text-muted-foreground">Coming soon</span>
                     </div>
                     );
                   })}
