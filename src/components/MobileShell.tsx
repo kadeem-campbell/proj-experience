@@ -140,7 +140,7 @@ const CitySelectorSheet = ({
                     )}
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-sm bg-muted flex items-center justify-center">
-                      {flag ? isSvg(flag) ? <img src={flag} alt={`${city.country} flag`} className="w-full h-full object-cover" /> : <span className="text-lg">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
+                      {flag ? isSvg(flag) ? <img src={flag} alt="flag" className="w-full h-full object-cover" /> : <span className="text-lg">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn("font-semibold text-sm", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
