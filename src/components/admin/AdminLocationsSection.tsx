@@ -182,7 +182,7 @@ export const AdminLocationsSection = () => {
                   </div>
                 ) : <span className="text-xs text-muted-foreground">—</span>;
               }},
-              { key: 'visibility_state', label: 'State', width: 'w-[80px]', render: (d: any) => <Badge variant={d.visibility_state === 'live' ? 'default' : 'secondary'} className="text-[10px]">{d.visibility_state || 'draft'}</Badge> },
+              { key: 'launch_status', label: 'Launch', width: 'w-[80px]', render: (d: any) => <Badge variant={d.launch_status === 'live' ? 'default' : 'secondary'} className="text-[10px]">{d.launch_status || 'planned'}</Badge> },
             ]}
             defaultItem={{ name: '', slug: '', description: '', short_description: '', cover_image: '', is_active: true, display_order: 0, country_id: '', destination_type: 'city', visibility_state: 'draft' }}
             renderForm={(item: any, onChange) => (
