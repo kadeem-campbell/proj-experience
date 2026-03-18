@@ -94,6 +94,8 @@ export const AdminLocationsSection = () => {
 
   const saveEntity = async (table: string, item: any, isNew: boolean) => {
     const { id, created_at, updated_at, ...rest } = item;
+    // Clear __inherit sentinel values
+    if (rest.currency_code === '__inherit') rest.currency_code = null;
     if (isNew) {
       const { error } = await (supabase as any).from(table).insert(rest);
       if (error) throw error;
