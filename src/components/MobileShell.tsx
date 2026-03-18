@@ -23,7 +23,10 @@ const isLaunched = (dest: DbDestination) => {
 };
 const formatLaunchMonth = (launchDate?: string | null) => {
   if (!launchDate) return "Coming soon";
-  return new Date(`${launchDate}T00:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const d = new Date(`${launchDate}T00:00:00`);
+  const mon = d.toLocaleDateString("en-US", { month: "short" });
+  const yr = String(d.getFullYear()).slice(-2);
+  return `Coming ${mon} '${yr}`;
 };
 const isSvg = (value?: string | null) => !!value && (value.includes(".svg") || value.startsWith("data:image/svg"));
 
@@ -184,13 +187,13 @@ const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { s
   const flag = selectedCityData ? (selectedCityData.flag_svg_url || '') : "";
 
   return (
-    <button onClick={onTap} className="flex items-center gap-1.5 transition-all">
+    <button onClick={onTap} className="flex flex-col items-center justify-center gap-0.5 transition-all">
       {isActive ? (
         <>
           <div className="w-7 h-7 rounded-full relative overflow-hidden shadow-sm bg-muted flex items-center justify-center">
             {flag ? isSvg(flag) ? <img src={flag} alt="flag" className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
           </div>
-          <span className="text-[10px] font-bold text-foreground tracking-wide leading-none max-w-[60px] truncate">{displayName}</span>
+          <span className="text-[8px] font-bold text-foreground tracking-wide leading-none max-w-[60px] truncate">{displayName}</span>
         </>
       ) : (
         <Map className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
