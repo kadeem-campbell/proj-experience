@@ -131,7 +131,7 @@ const CollectionPage = () => {
     queryFn: async () => {
       const { data: collectionRow } = await supabase
         .from("collections")
-        .select("id, name, slug, description, collection_type, content_type, city_id, is_active")
+        .select("id, name, slug, description, collection_type, content_type, destination_id, is_active")
         .eq("slug", slug!)
         .eq("is_active", true)
         .maybeSingle();
@@ -140,14 +140,12 @@ const CollectionPage = () => {
 
       const contentType = collectionRow.collection_type || 'experiences';
 
-      // Try collection_items for itineraries
       const { data: linkRows } = await (supabase as any)
         .from("collection_items")
         .select("item_id, item_type, position")
         .eq("collection_id", collectionRow.id)
         .order("position", { ascending: true });
 
-      // Try collection_experiences for experiences
       const { data: expLinks } = await (supabase as any)
         .from("collection_experiences")
         .select("experience_id, display_order")
@@ -160,12 +158,10 @@ const CollectionPage = () => {
           .map((row: any) => publicItinerariesList.find((it: any) => it.dbId === row.item_id || it.id === row.item_id))
           .filter(Boolean);
 
-        // If no linked items, show all itineraries (optionally filtered by city)
         if (linkedItems.length === 0) {
           linkedItems = publicItinerariesList;
-          // If collection has a city_id, filter by it
-          if (collectionRow.city_id) {
-            linkedItems = linkedItems.filter((it: any) => it.cityId === collectionRow.city_id);
+          if (collectionRow.destination_id) {
+            linkedItems = linkedItems.filter((it: any) => it.destinationId === collectionRow.destination_id);
           }
         }
 
@@ -174,10 +170,9 @@ const CollectionPage = () => {
           description: collectionRow.description || "", 
           contentType, 
           items: linkedItems,
-          cityId: collectionRow.city_id,
+          destinationId: collectionRow.destination_id,
         };
       } else {
-        // Experience collection: check both collection_items and collection_experiences
         const itemExpIds = (linkRows || [])
           .filter((r: any) => r.item_type === 'experience' || r.item_type === 'product')
           .map((row: any) => row.item_id);
@@ -190,8 +185,8 @@ const CollectionPage = () => {
 
         if (linkedItems.length === 0) {
           linkedItems = productListings;
-          if (collectionRow.city_id) {
-            linkedItems = linkedItems.filter((product) => product.cityId === collectionRow.city_id);
+          if (collectionRow.destination_id) {
+            linkedItems = linkedItems.filter((product) => product.destinationId === collectionRow.destination_id);
           }
           linkedItems = linkedItems.slice(0, 30);
         }
@@ -201,7 +196,7 @@ const CollectionPage = () => {
           description: collectionRow.description || "", 
           contentType, 
           items: linkedItems,
-          cityId: collectionRow.city_id,
+          destinationId: collectionRow.destination_id,
         };
       }
     },
