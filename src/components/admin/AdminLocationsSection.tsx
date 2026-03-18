@@ -237,18 +237,7 @@ export const AdminLocationsSection = () => {
                   <div><Label className="text-xs text-muted-foreground">Currency</Label><Input value={item.currency_code || ''} onChange={e => onChange('currency_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
                   <div><Label className="text-xs text-muted-foreground">IATA Code</Label><Input value={item.iata_code || ''} onChange={e => onChange('iata_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Visibility State</Label>
-                    <Select value={item.visibility_state || 'draft'} onValueChange={v => onChange('visibility_state', v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {['draft', 'soft_live', 'live', 'archived'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label className="text-xs text-muted-foreground">Readiness Score</Label><Input type="number" min={0} max={100} value={item.readiness_score || ''} onChange={e => onChange('readiness_score', parseFloat(e.target.value) || null)} /></div>
-                </div>
+                <div><Label className="text-xs text-muted-foreground">Readiness Score</Label><Input type="number" min={0} max={100} value={item.readiness_score || ''} onChange={e => onChange('readiness_score', parseFloat(e.target.value) || null)} /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-xs text-muted-foreground">Launch Status</Label>
