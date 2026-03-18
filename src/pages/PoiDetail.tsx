@@ -102,15 +102,9 @@ export default function PoiDetail() {
   const hasSocialContent = tiktokVideos.length > 0 || !!instagramEmbed;
 
   // All linked activities
-  const allActivities = useMemo(() => [
-    ...linkedProducts.map((p: any) => ({ ...p, itemType: "product" as const })),
-    ...linkedExperiences.map((e: any) => ({
-      id: e.id, title: e.title, cover_image: e.video_thumbnail,
-      slug: e.slug, location: e.location, price: e.price,
-      duration: e.duration, category: e.category,
-      itemType: "experience" as const,
-    })),
-  ], [linkedProducts, linkedExperiences]);
+  const allActivities = useMemo(() =>
+    linkedProducts.map((p: any) => ({ ...p, itemType: "product" as const })),
+  [linkedProducts]);
 
   if (poiLoading) {
     const Wrapper = isMobile ? MobileShell : MainLayout;
