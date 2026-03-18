@@ -183,7 +183,7 @@ const CitySelectorSheet = ({
 // City button - map icon default, selected city flag/code when active
 const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbDestination | null; countryFlags: Record<string, string>; onTap: () => void }) => {
   const isActive = !!selectedCityData;
-  const displayName = selectedCityData?.name || "";
+  const displayName = selectedCityData?.short_name || selectedCityData?.name || "";
   const flag = selectedCityData ? (selectedCityData.flag_svg_url || '') : "";
 
   return (
