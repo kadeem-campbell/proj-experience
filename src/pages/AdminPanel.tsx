@@ -53,6 +53,7 @@ const SECTIONS = [
   { id: 'questions', label: 'Questions', icon: Send, group: 'Content' },
   { id: 'validation', label: 'Validation', icon: CheckCircle, group: 'Governance' },
   { id: 'quality', label: 'Quality Scores', icon: Brain, group: 'Governance' },
+  { id: 'readiness', label: 'Readiness Dashboard', icon: TrendingUp, group: 'Governance' },
   { id: 'slugs', label: 'Slugs / Routes', icon: Link2, group: 'Governance' },
   { id: 'redirects', label: 'Redirects', icon: Route, group: 'Governance' },
   { id: 'graph', label: 'Graph Inspector', icon: Settings, group: 'Governance' },
@@ -61,7 +62,12 @@ const SECTIONS = [
   { id: 'notifications', label: 'Notifications', icon: Send, group: 'Governance' },
   { id: 'bulk', label: 'Bulk Operations', icon: Upload, group: 'Operations' },
   { id: 'json', label: 'JSON Tools', icon: Code2, group: 'Operations' },
-  { id: 'legacy', label: 'Legacy Data', icon: Database, group: 'Operations' },
+  { id: 'ingestion', label: 'Ingestion Center', icon: FileSpreadsheet, group: 'Operations' },
+  { id: 'partner_exports', label: 'Partner Exports', icon: Rss, group: 'Operations' },
+  { id: 'search_trends', label: 'Search Trends', icon: Search, group: 'Operations' },
+  { id: 'system', label: 'System Config', icon: Settings, group: 'System' },
+  { id: 'world_graph', label: 'World Graph', icon: Globe, group: 'System' },
+  { id: 'legacy', label: 'Legacy Data', icon: Database, group: 'System' },
 ];
 
 const AdminPanel = () => {
