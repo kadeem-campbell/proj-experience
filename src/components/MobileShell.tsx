@@ -180,10 +180,10 @@ const CitySelectorSheet = ({
 );
 
 // City button - map icon default, selected city flag/code when active
-const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbCity | null; countryFlags: Record<string, string>; onTap: () => void }) => {
+const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbDestination | null; countryFlags: Record<string, string>; onTap: () => void }) => {
   const isActive = !!selectedCityData;
-  const code = selectedCityData?.airport_code || "";
-  const flag = selectedCityData ? (selectedCityData.flag_svg_url || countryFlags[selectedCityData.country] || selectedCityData.flag_emoji) : "";
+  const code = selectedCityData?.slug?.toUpperCase().slice(0, 3) || "";
+  const flag = selectedCityData ? (selectedCityData.flag_svg_url || '') : "";
 
   return (
     <button onClick={onTap} className="flex flex-col items-center justify-center gap-0.5 transition-all">
