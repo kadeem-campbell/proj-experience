@@ -129,7 +129,7 @@ const CitySelectorSheet = ({
             <div className="space-y-2 mb-6">
               {selectableCities.map((city) => {
                 const isSelected = normalize(selectedCity) === normalize(city.name);
-                const flag = city.flag_svg_url || countryFlags[city.country] || city.flag_emoji;
+                const flag = city.flag_svg_url || '';
                 return (
                   <button
                     key={city.id}
