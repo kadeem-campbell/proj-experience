@@ -190,7 +190,7 @@ const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { s
       {isActive ? (
         <>
           <div className="w-7 h-7 rounded-full relative overflow-hidden shadow-sm bg-muted flex items-center justify-center">
-            {flag ? isSvg(flag) ? <img src={flag} alt={`${selectedCityData?.country || 'country'} flag`} className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
+            {flag ? isSvg(flag) ? <img src={flag} alt="flag" className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
           </div>
           <span className="text-[8px] font-bold text-foreground tracking-wide leading-none">{code}</span>
         </>
