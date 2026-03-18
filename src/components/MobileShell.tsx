@@ -18,9 +18,9 @@ const persistCity = (city: string) => {
 };
 
 const normalize = (value: string) => value.trim().toLowerCase();
-const isLaunched = (city: DbCity) => {
-  if (!city.launch_date) return true;
-  return new Date(`${city.launch_date}T00:00:00`).getTime() <= Date.now();
+const isLaunched = (_dest: DbDestination) => {
+  // All destinations are considered launched now
+  return true;
 };
 const formatLaunchMonth = (launchDate?: string | null) => {
   if (!launchDate) return "Coming soon";
