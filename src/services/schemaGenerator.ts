@@ -133,7 +133,6 @@ export const generateHostSchema = (host: Host, products?: Product[]) => ({
       "@type": "Offer", itemOffered: { "@type": "TouristAttraction", name: p.title, url: `${BASE}/things-to-do/explore/${p.slug}` },
     })),
   } : {}),
-  } : {}),
 });
 
 // ============ ITINERARY PAGE SCHEMA (TouristTrip) ============
