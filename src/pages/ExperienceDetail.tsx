@@ -308,7 +308,7 @@ export default function ExperienceDetail() {
 
   // Check for POI match when no experience/product found
   const { data: poiMatch, isLoading: poiLoading } = usePoiBySlug(
-    (!experience && !dbExperiencesLoading && !productLoading) ? resolvedSlug : ""
+    (!experience && !productLoading) ? resolvedSlug : ""
   );
 
   if (!experience && (dbExperiencesLoading || productLoading)) {
