@@ -13,7 +13,7 @@ import {
   Tag, Image, CheckCircle, Send, Link2, Upload, Code2,
   FileSpreadsheet, History, Settings, Route, Rss, Brain,
   Search, Plus, AlertTriangle, Database, ChevronLeft, ChevronRight,
-  Menu, X,
+  Menu, X, TrendingUp,
 } from 'lucide-react';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { AdminProductsSection } from '@/components/admin/AdminProductsSection';
@@ -53,6 +53,7 @@ const SECTIONS = [
   { id: 'questions', label: 'Questions', icon: Send, group: 'Content' },
   { id: 'validation', label: 'Validation', icon: CheckCircle, group: 'Governance' },
   { id: 'quality', label: 'Quality Scores', icon: Brain, group: 'Governance' },
+  { id: 'readiness', label: 'Readiness Dashboard', icon: TrendingUp, group: 'Governance' },
   { id: 'slugs', label: 'Slugs / Routes', icon: Link2, group: 'Governance' },
   { id: 'redirects', label: 'Redirects', icon: Route, group: 'Governance' },
   { id: 'graph', label: 'Graph Inspector', icon: Settings, group: 'Governance' },
@@ -61,7 +62,12 @@ const SECTIONS = [
   { id: 'notifications', label: 'Notifications', icon: Send, group: 'Governance' },
   { id: 'bulk', label: 'Bulk Operations', icon: Upload, group: 'Operations' },
   { id: 'json', label: 'JSON Tools', icon: Code2, group: 'Operations' },
-  { id: 'legacy', label: 'Legacy Data', icon: Database, group: 'Operations' },
+  { id: 'ingestion', label: 'Ingestion Center', icon: FileSpreadsheet, group: 'Operations' },
+  { id: 'partner_exports', label: 'Partner Exports', icon: Rss, group: 'Operations' },
+  { id: 'search_trends', label: 'Search Trends', icon: Search, group: 'Operations' },
+  { id: 'system', label: 'System Config', icon: Settings, group: 'System' },
+  { id: 'world_graph', label: 'World Graph', icon: Globe, group: 'System' },
+  { id: 'legacy', label: 'Legacy Data', icon: Database, group: 'System' },
 ];
 
 const AdminPanel = () => {
@@ -82,6 +88,7 @@ const AdminPanel = () => {
       case 'questions': return <AdminQuestionsSection />;
       case 'validation': return <AdminValidationCenter />;
       case 'quality': return <AdminQualitySection />;
+      case 'readiness': return <AdminReadinessScores />;
       case 'slugs': return <AdminSlugCenter />;
       case 'redirects': return <AdminRedirectsSection />;
       case 'graph': return <AdminGraphInspector />;
@@ -90,6 +97,11 @@ const AdminPanel = () => {
       case 'feed_contracts': return <AdminFeedContracts />;
       case 'bulk': return <AdminBulkOps />;
       case 'json': return <AdminJsonTools />;
+      case 'ingestion': return <AdminIngestionCenter />;
+      case 'partner_exports': return <AdminPartnerExports />;
+      case 'search_trends': return <AdminSearchTrends />;
+      case 'system': return <AdminSystemSection />;
+      case 'world_graph': return <AdminWorldGraph />;
       case 'legacy': return <AdminLegacySection />;
       default: return <AdminOverview onNavigate={setActiveSection} />;
     }
