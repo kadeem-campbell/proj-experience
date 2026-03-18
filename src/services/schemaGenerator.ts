@@ -157,7 +157,7 @@ export const generateItinerarySchema = (
         "@type": "ListItem",
         position: idx + 1,
         name: exp.title || exp.name || `Stop ${idx + 1}`,
-        ...(exp.slug ? { url: `${BASE}/things-to-do/${exp.destination_slug || 'explore'}/${exp.slug}` } : {}),
+        ...(exp.slug ? { url: `${BASE}/things-to-do/${exp.destination_slug || exp.destination_id || 'explore'}/${exp.slug}` } : {}),
       })),
     },
   };
