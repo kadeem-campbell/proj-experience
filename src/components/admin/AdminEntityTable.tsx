@@ -1,6 +1,6 @@
 /**
  * Generic reusable entity table with search, bulk select, inline expand, CRUD.
- * Used across all admin entity sections.
+ * Now includes built-in bulk field update for selected items.
  */
 import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Search, Plus, Trash2, ChevronDown, ChevronUp, CheckSquare,
-  Archive, Eye, EyeOff, Download, RotateCcw, Filter,
+  Archive, Eye, EyeOff, Download, RotateCcw, Filter, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,15 +29,25 @@ export interface BulkAction {
   action: (ids: string[]) => Promise<void>;
 }
 
+/** Define which fields can be bulk-updated and their type */
+export interface BulkFieldDef {
+  key: string;
+  label: string;
+  type: 'text' | 'select' | 'boolean' | 'number';
+  options?: { value: string; label: string }[];
+}
+
 interface AdminEntityTableProps<T extends { id: string }> {
   items: T[];
   columns: ColumnDef<T>[];
   renderForm?: (item: Partial<T>, onChange: (field: string, value: any) => void) => React.ReactNode;
   onSave?: (item: Partial<T>, isNew: boolean) => Promise<void>;
   onDelete?: (ids: string[]) => Promise<void>;
+  onBulkUpdate?: (ids: string[], field: string, value: any) => Promise<void>;
   entityName: string;
   defaultItem?: Partial<T>;
   bulkActions?: BulkAction[];
+  bulkFields?: BulkFieldDef[];
   searchFields?: string[];
   statusField?: string;
   filterOptions?: { key: string; label: string; options: { value: string; label: string }[] }[];
@@ -51,9 +61,11 @@ export function AdminEntityTable<T extends { id: string }>({
   renderForm,
   onSave,
   onDelete,
+  onBulkUpdate,
   entityName,
   defaultItem = {} as Partial<T>,
   bulkActions = [],
+  bulkFields = [],
   searchFields = ['name', 'title', 'display_name', 'username', 'slug'],
   filterOptions = [],
   isLoading,
@@ -70,6 +82,11 @@ export function AdminEntityTable<T extends { id: string }>({
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
+
+  // Bulk update state
+  const [bulkField, setBulkField] = useState('');
+  const [bulkValue, setBulkValue] = useState('');
+  const [bulkUpdating, setBulkUpdating] = useState(false);
 
   const filtered = useMemo(() => {
     let result = items.filter((item: any) => {
@@ -133,6 +150,22 @@ export function AdminEntityTable<T extends { id: string }>({
     setSelectedIds(new Set());
   };
 
+  const handleBulkFieldUpdate = async () => {
+    if (!onBulkUpdate || !bulkField || selectedIds.size === 0) return;
+    const fieldDef = bulkFields.find(f => f.key === bulkField);
+    let parsedValue: any = bulkValue;
+    if (fieldDef?.type === 'boolean') parsedValue = bulkValue === 'true';
+    else if (fieldDef?.type === 'number') parsedValue = parseFloat(bulkValue) || null;
+
+    setBulkUpdating(true);
+    try {
+      await onBulkUpdate(Array.from(selectedIds), bulkField, parsedValue);
+      setBulkValue('');
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
+
   const exportCSV = () => {
     const headers = columns.map(c => c.key);
     const rows = filtered.map((item: any) => headers.map(h => JSON.stringify(item[h] ?? '')).join(','));
@@ -143,6 +176,8 @@ export function AdminEntityTable<T extends { id: string }>({
     a.href = url; a.download = `${entityName.toLowerCase().replace(/\s/g, '_')}_export.csv`; a.click();
     URL.revokeObjectURL(url);
   };
+
+  const selectedFieldDef = bulkFields.find(f => f.key === bulkField);
 
   return (
     <div>
@@ -176,20 +211,65 @@ export function AdminEntityTable<T extends { id: string }>({
 
       {/* Bulk bar */}
       {bulkMode && selectedIds.size > 0 && (
-        <div className="flex items-center gap-2 mb-3 p-2.5 bg-primary/5 rounded-lg border border-primary/20">
-          <span className="text-xs font-medium">{selectedIds.size} selected</span>
-          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={selectAll}>
-            {selectedIds.size === paged.length ? 'Deselect All' : 'Select All'}
-          </Button>
-          {bulkActions.map((ba, i) => (
-            <Button key={i} size="sm" variant={(ba.variant as any) || 'outline'} className="h-7 text-xs gap-1" onClick={() => ba.action(Array.from(selectedIds))}>
-              {ba.icon} {ba.label}
+        <div className="mb-3 p-3 bg-primary/5 rounded-lg border border-primary/20 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-medium">{selectedIds.size} selected</span>
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={selectAll}>
+              {selectedIds.size === paged.length ? 'Deselect All' : 'Select All'}
             </Button>
-          ))}
-          {onDelete && (
-            <Button size="sm" variant="destructive" className="h-7 text-xs gap-1 ml-auto" onClick={handleBulkDelete}>
-              <Trash2 className="w-3 h-3" /> Delete
-            </Button>
+            {bulkActions.map((ba, i) => (
+              <Button key={i} size="sm" variant={(ba.variant as any) || 'outline'} className="h-7 text-xs gap-1" onClick={() => ba.action(Array.from(selectedIds))}>
+                {ba.icon} {ba.label}
+              </Button>
+            ))}
+            {onDelete && (
+              <Button size="sm" variant="destructive" className="h-7 text-xs gap-1 ml-auto" onClick={handleBulkDelete}>
+                <Trash2 className="w-3 h-3" /> Delete
+              </Button>
+            )}
+          </div>
+
+          {/* Bulk field update row */}
+          {onBulkUpdate && bulkFields.length > 0 && (
+            <div className="flex items-end gap-2 pt-1 border-t border-primary/10 flex-wrap">
+              <div className="min-w-[140px]">
+                <span className="text-[10px] text-muted-foreground block mb-0.5">Field</span>
+                <Select value={bulkField} onValueChange={v => { setBulkField(v); setBulkValue(''); }}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Pick field..." /></SelectTrigger>
+                  <SelectContent>
+                    {bulkFields.map(f => <SelectItem key={f.key} value={f.key}>{f.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              {bulkField && (
+                <div className="min-w-[160px] flex-1">
+                  <span className="text-[10px] text-muted-foreground block mb-0.5">Value</span>
+                  {selectedFieldDef?.type === 'select' && selectedFieldDef.options ? (
+                    <Select value={bulkValue} onValueChange={setBulkValue}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select..." /></SelectTrigger>
+                      <SelectContent>
+                        {selectedFieldDef.options.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : selectedFieldDef?.type === 'boolean' ? (
+                    <Select value={bulkValue} onValueChange={setBulkValue}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select..." /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">true</SelectItem>
+                        <SelectItem value="false">false</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={bulkValue} onChange={e => setBulkValue(e.target.value)} className="h-8 text-xs" type={selectedFieldDef?.type === 'number' ? 'number' : 'text'} placeholder="Enter value..." />
+                  )}
+                </div>
+              )}
+              {bulkField && bulkValue !== '' && (
+                <Button size="sm" className="h-8 gap-1 text-xs" disabled={bulkUpdating} onClick={handleBulkFieldUpdate}>
+                  <Zap className="w-3 h-3" /> {bulkUpdating ? 'Updating...' : `Apply to ${selectedIds.size}`}
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}
