@@ -194,83 +194,39 @@ export default function ExperienceDetail() {
   };
 
   const experience = useMemo(() => {
-    // First priority: legacy experiences table (has full data with location, price, category)
-    const fromDb = (db: DbExperience) => ({
-      id: db.id,
-      title: db.title,
-      creator: db.creator,
-      videoThumbnail: db.video_thumbnail,
-      videoUrl: db.video_url,
-      category: db.category,
-      location: db.location,
-      description: db.description,
-      duration: db.duration,
-      groupSize: db.group_size,
-      rating: db.rating,
-      price: db.price,
-      highlights: db.highlights,
-      gallery: db.gallery.length > 0 ? db.gallery : [db.video_thumbnail],
-      bestTime: db.best_time,
-      weather: db.weather,
-      meetingPoints: db.meeting_points,
-      faqs: db.faqs,
-      tiktokVideos: db.tiktok_videos,
-      instagramEmbed: db.instagram_embed,
-      socialLinks: db.social_links,
-      likeCount: db.like_count,
-      slug: db.slug,
-      isProduct: false,
-    });
+    if (!product) return null;
 
-    if (dbExperiences && dbExperiences.length > 0) {
-      if (resolvedSlug) {
-        const dbMatch = dbExperiences.find(e => e.slug === resolvedSlug || slugify(e.title) === resolvedSlug);
-        if (dbMatch) return fromDb(dbMatch);
-      }
-      if (locationParam && legacySlug) {
-        const dbMatch = dbExperiences.find(e => e.slug === legacySlug || slugify(e.title) === legacySlug);
-        if (dbMatch) return fromDb(dbMatch);
-      }
-      if (id) {
-        const dbMatch = dbExperiences.find(e => e.id === id);
-        if (dbMatch) return fromDb(dbMatch);
-      }
-    }
+    const hostNames = productHosts.map(h => h.display_name || h.username).join(', ');
 
-    // Second: try product table (new entity system)
-    if (product) {
-      return {
-        id: product.id,
-        title: product.title,
-        creator: '',
-        videoThumbnail: product.cover_image,
-        videoUrl: product.video_url,
-        category: '',
-        location: productDestination?.name || '',
-        description: product.description,
-        duration: product.duration,
-        groupSize: '',
-        rating: product.rating,
-        price: productOptions.length > 0
-          ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
-          : '',
-        highlights: product.highlights || [],
-        gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
-        bestTime: product.best_time,
-        weather: product.weather,
-        meetingPoints: product.meeting_points || [],
-        faqs: [],
-        tiktokVideos: [],
-        instagramEmbed: '',
-        socialLinks: {},
-        likeCount: product.like_count,
-        slug: product.slug,
-        isProduct: true,
-      };
-    }
-
-    return null;
-  }, [id, locationParam, legacySlug, resolvedSlug, product, productOptions, productDestination, dbExperiences]);
+    return {
+      id: product.id,
+      title: product.title,
+      creator: hostNames,
+      videoThumbnail: product.cover_image,
+      videoUrl: product.video_url,
+      category: '',
+      location: productDestination?.name || '',
+      description: product.description,
+      duration: product.duration,
+      groupSize: '',
+      rating: product.rating,
+      price: productOptions.length > 0
+        ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
+        : '',
+      highlights: product.highlights || [],
+      gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
+      bestTime: product.best_time,
+      weather: product.weather,
+      meetingPoints: product.meeting_points || [],
+      faqs: [] as any[],
+      tiktokVideos: [] as any[],
+      instagramEmbed: '',
+      socialLinks: {} as Record<string, string>,
+      likeCount: product.like_count,
+      slug: product.slug,
+      isProduct: true,
+    };
+  }, [product, productOptions, productDestination, productHosts]);
 
   // Analytics: track page view
   useEffect(() => {
