@@ -182,9 +182,9 @@ export const AdminLocationsSection = () => {
                   </div>
                 ) : <span className="text-xs text-muted-foreground">—</span>;
               }},
-              { key: 'visibility_state', label: 'State', width: 'w-[80px]', render: (d: any) => <Badge variant={d.visibility_state === 'live' ? 'default' : 'secondary'} className="text-[10px]">{d.visibility_state || 'draft'}</Badge> },
+              { key: 'launch_status', label: 'Launch', width: 'w-[80px]', render: (d: any) => <Badge variant={d.launch_status === 'live' ? 'default' : 'secondary'} className="text-[10px]">{d.launch_status || 'planned'}</Badge> },
             ]}
-            defaultItem={{ name: '', slug: '', description: '', short_description: '', cover_image: '', is_active: true, display_order: 0, country_id: '', destination_type: 'city', visibility_state: 'draft' }}
+            defaultItem={{ name: '', slug: '', description: '', short_description: '', cover_image: '', is_active: true, display_order: 0, country_id: '', destination_type: 'city', launch_status: 'planned' }}
             renderForm={(item: any, onChange) => (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -237,18 +237,7 @@ export const AdminLocationsSection = () => {
                   <div><Label className="text-xs text-muted-foreground">Currency</Label><Input value={item.currency_code || ''} onChange={e => onChange('currency_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
                   <div><Label className="text-xs text-muted-foreground">IATA Code</Label><Input value={item.iata_code || ''} onChange={e => onChange('iata_code', e.target.value.toUpperCase())} maxLength={3} className="font-mono uppercase" /></div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Visibility State</Label>
-                    <Select value={item.visibility_state || 'draft'} onValueChange={v => onChange('visibility_state', v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {['draft', 'soft_live', 'live', 'archived'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label className="text-xs text-muted-foreground">Readiness Score</Label><Input type="number" min={0} max={100} value={item.readiness_score || ''} onChange={e => onChange('readiness_score', parseFloat(e.target.value) || null)} /></div>
-                </div>
+                <div><Label className="text-xs text-muted-foreground">Readiness Score</Label><Input type="number" min={0} max={100} value={item.readiness_score || ''} onChange={e => onChange('readiness_score', parseFloat(e.target.value) || null)} /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-xs text-muted-foreground">Launch Status</Label>
