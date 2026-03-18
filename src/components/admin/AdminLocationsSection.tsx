@@ -222,13 +222,7 @@ export const AdminLocationsSection = () => {
                     </Select>
                   </div>
                 </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Country Flag</Label>
-                  <CountryFlagPicker
-                    value={item.flag_svg_url || ''}
-                    onSelect={(url) => { onChange('flag_svg_url', url); }}
-                  />
-                </div>
+                <div><Label className="text-xs text-muted-foreground">Short Name (for picker)</Label><Input value={item.short_name || ''} onChange={e => onChange('short_name', e.target.value)} placeholder="e.g. Dar" /></div>
                 <div><Label className="text-xs text-muted-foreground">Short Description</Label><Textarea value={item.short_description || item.description || ''} onChange={e => { onChange('short_description', e.target.value); onChange('description', e.target.value); }} rows={2} /></div>
                 <div><Label className="text-xs text-muted-foreground">Long Description</Label><Textarea value={item.long_description || ''} onChange={e => onChange('long_description', e.target.value)} rows={3} /></div>
                 <div className="grid grid-cols-3 gap-3">
