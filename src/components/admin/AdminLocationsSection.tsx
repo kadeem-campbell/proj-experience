@@ -152,6 +152,9 @@ export const AdminLocationsSection = () => {
           <TabsTrigger value="destinations">Destinations ({destinations.length})</TabsTrigger>
           <TabsTrigger value="areas">Areas ({areas.length})</TabsTrigger>
           <TabsTrigger value="pois">POIs ({pois.length})</TabsTrigger>
+          <TabsTrigger value="relationships">Relationships ({placeRels.length})</TabsTrigger>
+          <TabsTrigger value="travel">Travel ({travelEdges.length})</TabsTrigger>
+          <TabsTrigger value="geo">Geo Shapes ({geoShapes.length})</TabsTrigger>
           <TabsTrigger value="semantic">Semantic ({semanticProfiles.length})</TabsTrigger>
           <TabsTrigger value="seasonality">Seasonality ({seasonalityProfiles.length})</TabsTrigger>
           <TabsTrigger value="weather">Weather ({weatherSnapshots.length})</TabsTrigger>
