@@ -88,6 +88,7 @@ const AdminPanel = () => {
       case 'questions': return <AdminQuestionsSection />;
       case 'validation': return <AdminValidationCenter />;
       case 'quality': return <AdminQualitySection />;
+      case 'readiness': return <AdminReadinessScores />;
       case 'slugs': return <AdminSlugCenter />;
       case 'redirects': return <AdminRedirectsSection />;
       case 'graph': return <AdminGraphInspector />;
@@ -96,6 +97,11 @@ const AdminPanel = () => {
       case 'feed_contracts': return <AdminFeedContracts />;
       case 'bulk': return <AdminBulkOps />;
       case 'json': return <AdminJsonTools />;
+      case 'ingestion': return <AdminIngestionCenter />;
+      case 'partner_exports': return <AdminPartnerExports />;
+      case 'search_trends': return <AdminSearchTrends />;
+      case 'system': return <AdminSystemSection />;
+      case 'world_graph': return <AdminWorldGraph />;
       case 'legacy': return <AdminLegacySection />;
       default: return <AdminOverview onNavigate={setActiveSection} />;
     }
