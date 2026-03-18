@@ -388,16 +388,14 @@ export default function ExperienceDetail() {
     return Array.from(new Set(splitNames));
   })();
 
-  // Resolve creator name to DB username for host profile link
+  // Resolve creator name to host profile link via productHosts
   const getHostUrl = (creatorName: string) => {
-    const slug = creatorName.toLowerCase().replace(/\s+/g, '-');
-    const match = allCreators.find(c =>
-      c.username === creatorName ||
-      c.username === slug ||
-      (c.display_name || '').toLowerCase() === creatorName.toLowerCase() ||
-      (c.display_name || '').toLowerCase().replace(/\s+/g, '-') === slug
+    const match = productHosts.find(h =>
+      h.display_name === creatorName ||
+      h.username === creatorName ||
+      h.display_name?.toLowerCase() === creatorName.toLowerCase()
     );
-    return `/hosts/${match ? match.username : slug}`;
+    return `/hosts/${match ? match.slug || match.username : creatorName.toLowerCase().replace(/\s+/g, '-')}`;
   };
 
 
