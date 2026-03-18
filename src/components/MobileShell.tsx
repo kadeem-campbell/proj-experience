@@ -18,9 +18,8 @@ const persistCity = (city: string) => {
 };
 
 const normalize = (value: string) => value.trim().toLowerCase();
-const isLaunched = (_dest: DbDestination) => {
-  // All destinations are considered launched now
-  return true;
+const isLaunched = (dest: DbDestination) => {
+  return dest.launch_status === 'live';
 };
 const formatLaunchMonth = (launchDate?: string | null) => {
   if (!launchDate) return "Coming soon";
@@ -164,7 +163,7 @@ const CitySelectorSheet = ({
                         {csFlag && isSvg(csFlag) ? <img src={csFlag} alt="" className="w-full h-full object-cover" /> : csFlag ? <span className="text-sm">{csFlag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
                       </div>
                       <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{city.name}</p></div>
-                      <span className="text-[10px] text-muted-foreground">Coming soon</span>
+                      <span className="text-[10px] text-muted-foreground">{formatLaunchMonth((city as any).launch_date)}</span>
                     </div>
                     );
                   })}
@@ -181,17 +180,17 @@ const CitySelectorSheet = ({
 // City button - map icon default, selected city flag/code when active
 const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbDestination | null; countryFlags: Record<string, string>; onTap: () => void }) => {
   const isActive = !!selectedCityData;
-  const code = selectedCityData?.slug?.toUpperCase().slice(0, 3) || "";
+  const displayName = selectedCityData?.name || "";
   const flag = selectedCityData ? (selectedCityData.flag_svg_url || '') : "";
 
   return (
-    <button onClick={onTap} className="flex flex-col items-center justify-center gap-0.5 transition-all">
+    <button onClick={onTap} className="flex items-center gap-1.5 transition-all">
       {isActive ? (
         <>
           <div className="w-7 h-7 rounded-full relative overflow-hidden shadow-sm bg-muted flex items-center justify-center">
             {flag ? isSvg(flag) ? <img src={flag} alt="flag" className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
           </div>
-          <span className="text-[8px] font-bold text-foreground tracking-wide leading-none">{code}</span>
+          <span className="text-[10px] font-bold text-foreground tracking-wide leading-none max-w-[60px] truncate">{displayName}</span>
         </>
       ) : (
         <Map className="w-5 h-5 text-muted-foreground" strokeWidth={2} />

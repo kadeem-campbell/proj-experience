@@ -22,6 +22,8 @@ export interface DbDestination {
   latitude: number | null;
   longitude: number | null;
   is_active: boolean;
+  launch_status: string | null;
+  launch_date: string | null;
 }
 
 export interface DbCategory {

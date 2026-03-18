@@ -249,6 +249,18 @@ export const AdminLocationsSection = () => {
                   </div>
                   <div><Label className="text-xs text-muted-foreground">Readiness Score</Label><Input type="number" min={0} max={100} value={item.readiness_score || ''} onChange={e => onChange('readiness_score', parseFloat(e.target.value) || null)} /></div>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Launch Status</Label>
+                    <Select value={item.launch_status || 'planned'} onValueChange={v => onChange('launch_status', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {['planned', 'soft_live', 'live', 'paused', 'retired'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label className="text-xs text-muted-foreground">Launch Date</Label><Input type="date" value={item.launch_date || ''} onChange={e => onChange('launch_date', e.target.value || null)} /></div>
+                </div>
                 <div><Label className="text-xs text-muted-foreground">Best Time to Visit</Label><Input value={item.best_time_to_visit_text || ''} onChange={e => onChange('best_time_to_visit_text', e.target.value)} /></div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2"><Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} /><span className="text-xs">{item.is_active ? 'Active' : 'Inactive'}</span></div>
