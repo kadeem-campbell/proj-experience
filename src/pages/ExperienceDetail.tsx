@@ -166,7 +166,6 @@ export default function ExperienceDetail() {
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
   const { trackPageView, trackClick } = useInteractions();
-  const { trackPageView, trackClick } = useInteractions();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [justAdded, setJustAdded] = useState(false);
