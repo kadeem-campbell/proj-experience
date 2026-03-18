@@ -105,7 +105,7 @@ export const BulkUpdatePanel = () => {
       'group_size', 'rating', 'weather', 'best_time', 'video_thumbnail',
       'video_url', 'gallery', 'highlights', 'meeting_points', 'faqs',
       'tiktok_videos', 'instagram_embed', 'social_links', 'views',
-      'is_active', 'city_id', 'creator_id', 'creator', 'slug',
+      'is_active', 'destination_id', 'creator_id', 'creator', 'slug',
       'like_count', 'view_count',
     ]);
 
