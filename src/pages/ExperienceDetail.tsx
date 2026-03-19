@@ -228,7 +228,7 @@ export default function ExperienceDetail() {
         videoThumbnail: product.cover_image_url,
         videoUrl: product.video_url,
         category: productActivityType?.name || '',
-        location: productDestination?.name || '',
+        location: productDestination?.name || productDestinationById?.name || '',
         description: product.description,
         duration: product.duration_minutes ? `${product.duration_minutes} min` : '',
         groupSize: '',
