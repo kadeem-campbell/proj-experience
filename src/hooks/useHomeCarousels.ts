@@ -58,8 +58,8 @@ export const useHomeCarousels = () => {
         const contentType = c.content_type || "itinerary";
         let itemIds: string[] = [];
 
-        if (contentType === "experience" || contentType === "product") {
-          itemIds = expByCollection[c.id] || itemsByCollection[c.id]?.['product'] || itemsByCollection[c.id]?.['experience'] || [];
+        if (contentType === "product") {
+          itemIds = itemsByCollection[c.id]?.['product'] || [];
         } else if (contentType === "poi") {
           itemIds = itemsByCollection[c.id]?.['poi'] || [];
         } else {
