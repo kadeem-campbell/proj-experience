@@ -25,8 +25,8 @@ export const AdminMediaSection = () => {
   const { data: productsMissingMedia = [] } = useQuery({
     queryKey: ['admin-products-missing-media'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('id, title, cover_image').eq('is_active', true);
-      return (data || []).filter(p => !p.cover_image);
+      const { data } = await supabase.from('products').select('id, title, cover_image_url') as any;
+      return (data || []).filter((p: any) => !p.cover_image_url);
     },
   });
 

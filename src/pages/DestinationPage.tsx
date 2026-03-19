@@ -166,7 +166,7 @@ export default function DestinationPage() {
                 className="cursor-pointer active:scale-[0.97] transition-transform"
               >
                 <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
-                  <img src={item.cover_image || ""} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                  <img src={item.cover_image_url || ""} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                 </div>
                 <div className="mt-2">
                   <h3 className="font-semibold text-sm line-clamp-1">{item.title}</h3>

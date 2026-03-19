@@ -51,7 +51,7 @@ export default function ThingsToDo() {
       products.map((product) => ({
         id: product.id,
         title: product.title,
-        videoThumbnail: product.cover_image,
+        videoThumbnail: product.cover_image_url,
         location: [currentArea?.name, currentDestination?.name].filter(Boolean).join(", ") || currentDestination?.name || "",
         slug: product.slug,
       })),

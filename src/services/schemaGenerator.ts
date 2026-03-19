@@ -25,11 +25,10 @@ export const generateProductSchema = (
   const offers = options.flatMap(opt =>
     opt.price_options.map(price => ({
       "@type": "Offer",
-      name: `${opt.name} - ${price.label}`,
+      name: `${opt.name} - ${price.pricing_category}`,
       price: price.amount.toString(),
-      priceCurrency: price.currency,
+      priceCurrency: price.currency_code,
       availability: "https://schema.org/InStock",
-      ...(price.original_amount ? { priceValidUntil: new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0] } : {}),
     }))
   );
 
@@ -39,15 +38,12 @@ export const generateProductSchema = (
     name: product.title,
     description: product.description,
     url: product.canonical_url || `${BASE}/things-to-do/${destination?.slug || 'explore'}/${product.slug}`,
-    image: product.cover_image || product.gallery?.[0],
-    ...(product.latitude && product.longitude ? {
-      geo: { "@type": "GeoCoordinates", latitude: product.latitude, longitude: product.longitude },
+    image: product.cover_image_url || product.gallery_json?.[0],
+    ...(destination?.latitude && destination?.longitude ? {
+      geo: { "@type": "GeoCoordinates", latitude: destination.latitude, longitude: destination.longitude },
     } : {}),
     ...(location ? {
       address: { "@type": "PostalAddress", addressLocality: area?.name || destination?.name || "", addressRegion: destination?.name || "" },
-    } : {}),
-    ...(product.rating ? {
-      aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating.toString(), bestRating: "5", ratingCount: (product.view_count || 10).toString() },
     } : {}),
     ...(offers.length > 0 ? { offers } : {}),
     ...(hosts.length > 0 ? {
@@ -58,7 +54,7 @@ export const generateProductSchema = (
         ...(h.slug ? { url: `${BASE}/hosts/${h.slug}` } : {}),
       })),
     } : {}),
-    ...(product.duration ? { duration: `PT${product.duration.replace(/[^0-9]/g, "")}H` } : {}),
+    ...(product.duration_minutes ? { duration: `PT${product.duration_minutes}M` } : {}),
     touristType: "Adventure",
     isAccessibleForFree: false,
   };

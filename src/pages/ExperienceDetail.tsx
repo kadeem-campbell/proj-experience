@@ -862,7 +862,7 @@ export default function ExperienceDetail() {
               />
 
               {/* Best for */}
-              {product?.best_for && <BestForBlock bestFor={product.best_for as string[]} />}
+              {/* Best for personas - now driven by intent affinities */}
 
               {/* Pairing block */}
               <PairingBlock experienceId={experience.id} />
