@@ -41,19 +41,20 @@ export const useHomeCarousels = () => {
         .order("position");
 
       const destByCollection: Record<string, string[]> = {};
+      const hasExplicitMarketLinks: Record<string, boolean> = {};
+
       (cdLinks || []).forEach((l: any) => {
+        if (!l.destination_id) return;
+        hasExplicitMarketLinks[l.collection_id] = true;
         if (!destByCollection[l.collection_id]) destByCollection[l.collection_id] = [];
-        if (l.destination_id && !destByCollection[l.collection_id].includes(l.destination_id)) {
+        if (!destByCollection[l.collection_id].includes(l.destination_id)) {
           destByCollection[l.collection_id].push(l.destination_id);
         }
       });
 
       collections.forEach((c: any) => {
-        if (!c.destination_id) return;
-        if (!destByCollection[c.id]) destByCollection[c.id] = [];
-        if (!destByCollection[c.id].includes(c.destination_id)) {
-          destByCollection[c.id].push(c.destination_id);
-        }
+        if (!c.destination_id || hasExplicitMarketLinks[c.id]) return;
+        destByCollection[c.id] = [c.destination_id];
       });
 
       const itemsByCollection: Record<string, string[]> = {};
