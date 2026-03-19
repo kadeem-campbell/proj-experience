@@ -14,7 +14,7 @@ import {
   Tag, Image, CheckCircle, Send, Link2, Upload, Code2,
   FileSpreadsheet, History, Settings, Route, Rss, Brain,
   Search, Plus, AlertTriangle, Database, ChevronLeft, ChevronRight,
-  Menu, X, TrendingUp,
+  Menu, X, TrendingUp, SlidersHorizontal,
 } from 'lucide-react';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { AdminProductsSection } from '@/components/admin/AdminProductsSection';
