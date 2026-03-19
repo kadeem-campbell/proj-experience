@@ -454,30 +454,7 @@ const SearchPage = () => {
                 if (carouselRows.length < 3 && poiRow) elements.push(poiRow);
                 return <>{elements}</>;
               })()
-            ) : (
-              /* Fallback when no carousels configured */
-              <>
-                {cityFilteredItineraries.length > 0 && (
-                  <DesktopScrollRow title={selectedCityName ? `Top in ${selectedCityName}` : "Attractions you can't miss"} onViewAll={() => navigate("/itineraries")}>
-                    {cityFilteredItineraries.slice(0, 8).map((it) => (
-                      <div key={it.id} className="flex-shrink-0 w-[260px] lg:w-[280px]">
-                        <PublicItineraryCard itinerary={it} />
-                      </div>
-                    ))}
-                  </DesktopScrollRow>
-                )}
-
-                {cityFilteredExperiences.length > 0 && (
-                  <DesktopScrollRow title="Available next weekend" onViewAll={() => navigate("/things-to-do")}>
-                    {cityFilteredExperiences.slice(0, 10).map((exp) => (
-                      <div key={exp.id} className="flex-shrink-0 w-[220px] lg:w-[240px]">
-                        <ProductCard {...exp} compact />
-                      </div>
-                    ))}
-                  </DesktopScrollRow>
-                )}
-              </>
-            )}
+            ) : null}
           </>
         )}
       </div>
