@@ -403,6 +403,19 @@ export default function CreateExperience() {
                 ))}
               </div>
             </div>
+
+            <Separator />
+            <h3 className="font-semibold text-sm">SEO</h3>
+            <div>
+              <Label>SEO Title <span className="text-xs text-muted-foreground">(max 60 chars)</span></Label>
+              <Input placeholder={form.title || "Auto-generated from title"} value={form.seoTitle} onChange={e => set('seoTitle', e.target.value)} className="mt-1" maxLength={60} />
+              <p className="text-xs text-muted-foreground mt-1">{form.seoTitle.length}/60</p>
+            </div>
+            <div>
+              <Label>SEO Description <span className="text-xs text-muted-foreground">(max 160 chars)</span></Label>
+              <Textarea placeholder="Auto-generated from description" value={form.seoDescription} onChange={e => set('seoDescription', e.target.value)} className="mt-1" rows={2} />
+              <p className="text-xs text-muted-foreground mt-1">{form.seoDescription.length}/160</p>
+            </div>
           </Card>
         );
 
