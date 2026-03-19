@@ -245,7 +245,7 @@ export default function HostProfile() {
                   </div>
                   <div className="flex items-center gap-1 text-sm shrink-0">
                     <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                    <span className="font-medium text-xs">{prod.rating || 4.7}</span>
+                    <span className="font-medium text-xs">4.7</span>
                   </div>
                 </div>
               );
