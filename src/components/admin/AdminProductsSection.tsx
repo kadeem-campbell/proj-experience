@@ -964,3 +964,60 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
     </div>
   );
 };
+
+// ============ PRODUCT LINKS VIEWER ============
+
+const ProductLinksViewer = ({ productId, productTitle }: { productId: string; productTitle: string }) => {
+  const { data: collectionLinks = [] } = useQuery({
+    queryKey: ['admin-product-collection-links', productId],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('collection_items').select('id, collection_id, position').eq('item_id', productId).eq('item_type', 'product');
+      if (!data?.length) return [];
+      const collIds = data.map((ci: any) => ci.collection_id);
+      const { data: colls } = await (supabase as any).from('collections').select('id, name, slug').in('id', collIds);
+      return data.map((ci: any) => {
+        const c = colls?.find((x: any) => x.id === ci.collection_id);
+        return { ...ci, collection_name: c?.name || ci.collection_id.slice(0, 8), collection_slug: c?.slug };
+      });
+    },
+  });
+
+  const { data: itineraryLinks = [] } = useQuery({
+    queryKey: ['admin-product-itinerary-links', productId],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('public_itineraries').select('id, name, slug, experiences');
+      if (!data) return [];
+      return data.filter((it: any) => {
+        const exps = Array.isArray(it.experiences) ? it.experiences : [];
+        return exps.some((e: any) => e.id === productId);
+      }).map((it: any) => ({ id: it.id, name: it.name, slug: it.slug }));
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-sm font-semibold mb-2">In Collections ({collectionLinks.length})</h4>
+        {collectionLinks.length === 0 && <p className="text-xs text-muted-foreground">Not in any collections yet.</p>}
+        {collectionLinks.map((cl: any) => (
+          <div key={cl.id} className="flex items-center gap-2 text-sm border border-border rounded px-3 py-2 mb-1">
+            <Badge variant="outline" className="text-[10px]">Collection</Badge>
+            <span className="flex-1 truncate">{cl.collection_name}</span>
+            <span className="text-[10px] text-muted-foreground font-mono">/collections/{cl.collection_slug}</span>
+          </div>
+        ))}
+      </div>
+      <div>
+        <h4 className="text-sm font-semibold mb-2">In Itineraries ({itineraryLinks.length})</h4>
+        {itineraryLinks.length === 0 && <p className="text-xs text-muted-foreground">Not in any itineraries yet.</p>}
+        {itineraryLinks.map((it: any) => (
+          <div key={it.id} className="flex items-center gap-2 text-sm border border-border rounded px-3 py-2 mb-1">
+            <Badge variant="outline" className="text-[10px]">Itinerary</Badge>
+            <span className="flex-1 truncate">{it.name}</span>
+            <span className="text-[10px] text-muted-foreground font-mono">/itineraries/{it.slug}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
