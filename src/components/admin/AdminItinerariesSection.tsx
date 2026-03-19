@@ -164,6 +164,14 @@ export const AdminItinerariesSection = () => {
                 <p className="text-xs text-muted-foreground">Save the itinerary first to manage items.</p>
               )}
             </TabsContent>
+
+            <TabsContent value="links" className="mt-3">
+              {item.id ? (
+                <ItineraryLinksViewer itineraryId={item.id} />
+              ) : (
+                <p className="text-xs text-muted-foreground">Save first to see links.</p>
+              )}
+            </TabsContent>
           </Tabs>
         )}
         onSave={saveItinerary}
