@@ -161,7 +161,9 @@ export const AdminProductsSection = () => {
         <TabsTrigger value="intent" className="text-xs">Intent</TabsTrigger>
         <TabsTrigger value="positioning" className="text-xs">Positioning</TabsTrigger>
         <TabsTrigger value="outputs" className="text-xs">Outputs</TabsTrigger>
+        <TabsTrigger value="relationships" className="text-xs">Relations</TabsTrigger>
         <TabsTrigger value="governance" className="text-xs">Governance</TabsTrigger>
+        <TabsTrigger value="validation" className="text-xs">Validation</TabsTrigger>
       </TabsList>
 
       {/* ======= BASICS ======= */}
