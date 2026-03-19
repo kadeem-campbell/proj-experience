@@ -1319,6 +1319,42 @@ export type Database = {
         }
         Relationships: []
       }
+      entity_documents: {
+        Row: {
+          document_json: Json | null
+          document_type: string
+          entity_id: string
+          entity_type: string
+          generated_at: string | null
+          generation_status: string | null
+          id: string
+          source_hash: string | null
+          version: number | null
+        }
+        Insert: {
+          document_json?: Json | null
+          document_type: string
+          entity_id: string
+          entity_type: string
+          generated_at?: string | null
+          generation_status?: string | null
+          id?: string
+          source_hash?: string | null
+          version?: number | null
+        }
+        Update: {
+          document_json?: Json | null
+          document_type?: string
+          entity_id?: string
+          entity_type?: string
+          generated_at?: string | null
+          generation_status?: string | null
+          id?: string
+          source_hash?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       entity_funnel_metrics: {
         Row: {
           booking_intents: number | null
@@ -3301,6 +3337,48 @@ export type Database = {
           },
         ]
       }
+      product_intent_affinities: {
+        Row: {
+          affinity_score: number | null
+          created_at: string | null
+          product_id: string
+          reason_text: string | null
+          traveller_intent_profile_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          affinity_score?: number | null
+          created_at?: string | null
+          product_id: string
+          reason_text?: string | null
+          traveller_intent_profile_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          affinity_score?: number | null
+          created_at?: string | null
+          product_id?: string
+          reason_text?: string | null
+          traveller_intent_profile_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_intent_affinities_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_intent_affinities_traveller_intent_profile_id_fkey"
+            columns: ["traveller_intent_profile_id"]
+            isOneToOne: false
+            referencedRelation: "traveller_intent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_pois: {
         Row: {
           created_at: string | null
@@ -3338,6 +3416,50 @@ export type Database = {
             foreignKeyName: "product_pois_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_positioning_profiles: {
+        Row: {
+          budget_score: number | null
+          comfort_score: number | null
+          exclusivity_score: number | null
+          luxury_score: number | null
+          premium_score: number | null
+          product_id: string
+          social_score: number | null
+          updated_at: string | null
+          value_score: number | null
+        }
+        Insert: {
+          budget_score?: number | null
+          comfort_score?: number | null
+          exclusivity_score?: number | null
+          luxury_score?: number | null
+          premium_score?: number | null
+          product_id: string
+          social_score?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Update: {
+          budget_score?: number | null
+          comfort_score?: number | null
+          exclusivity_score?: number | null
+          luxury_score?: number | null
+          premium_score?: number | null
+          product_id?: string
+          social_score?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_positioning_profiles_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -4395,6 +4517,68 @@ export type Database = {
         }
         Relationships: []
       }
+      semantic_product_profiles: {
+        Row: {
+          adventure_score: number | null
+          beginner_friendliness_score: number | null
+          comfort_score: number | null
+          confidence_score: number | null
+          effort_score: number | null
+          family_score: number | null
+          food_score: number | null
+          localness_score: number | null
+          luxury_score: number | null
+          product_id: string
+          romance_score: number | null
+          solo_score: number | null
+          updated_at: string | null
+          value_score: number | null
+          wellness_score: number | null
+        }
+        Insert: {
+          adventure_score?: number | null
+          beginner_friendliness_score?: number | null
+          comfort_score?: number | null
+          confidence_score?: number | null
+          effort_score?: number | null
+          family_score?: number | null
+          food_score?: number | null
+          localness_score?: number | null
+          luxury_score?: number | null
+          product_id: string
+          romance_score?: number | null
+          solo_score?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+          wellness_score?: number | null
+        }
+        Update: {
+          adventure_score?: number | null
+          beginner_friendliness_score?: number | null
+          comfort_score?: number | null
+          confidence_score?: number | null
+          effort_score?: number | null
+          family_score?: number | null
+          food_score?: number | null
+          localness_score?: number | null
+          luxury_score?: number | null
+          product_id?: string
+          romance_score?: number | null
+          solo_score?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+          wellness_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "semantic_product_profiles_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_profiles: {
         Row: {
           created_at: string | null
@@ -4640,6 +4824,33 @@ export type Database = {
           origin_id?: string
           origin_type?: string
           source_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      traveller_intent_profiles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
           updated_at?: string | null
         }
         Relationships: []

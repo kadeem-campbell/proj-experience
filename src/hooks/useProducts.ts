@@ -6,31 +6,24 @@ export interface Product {
   title: string;
   slug: string;
   description: string;
-  cover_image: string;
+  product_family: string;
+  cover_image_url: string;
   video_url: string;
-  gallery: any[];
-  highlights: any[];
-  meeting_points: any[];
-  duration: string;
-  best_time: string;
-  weather: string;
-  tier: string;
-  format_type: string;
-  rating: number;
-  like_count: number;
-  view_count: number;
-  latitude: number | null;
-  longitude: number | null;
-  is_active: boolean;
-  is_indexable: boolean;
+  gallery_json: any[];
+  highlights_json: any[];
+  meeting_points_json: any[];
+  duration_minutes: number | null;
+  seo_title: string;
+  seo_description: string;
   canonical_url: string | null;
   publish_score: number;
-  destination_id: string | null;
-  area_id: string | null;
+  destination_id: string;
+  primary_area_id: string | null;
+  primary_poi_id: string | null;
   activity_type_id: string | null;
-  legacy_experience_id: string | null;
-  best_for: string[] | null;
-  pair_with_ids: string[] | null;
+  visibility_output_state: string;
+  publish_state: string;
+  indexability_state: string;
   created_at: string;
   updated_at: string;
 }
@@ -41,24 +34,27 @@ export interface ProductOption {
   name: string;
   slug: string;
   description: string;
-  tier: string;
-  format_type: string;
-  duration: string;
-  group_size: string;
+  option_type: string;
+  is_default_option: boolean;
+  capacity_min: number | null;
+  capacity_max: number | null;
+  duration_minutes: number | null;
+  availability_mode: string;
+  start_time_rule: string | null;
   is_active: boolean;
-  display_order: number;
   price_options: PriceOption[];
 }
 
 export interface PriceOption {
   id: string;
   option_id: string;
-  label: string;
-  currency: string;
+  pricing_category: string;
+  pricing_unit: string;
+  currency_code: string;
   amount: number;
-  original_amount: number | null;
+  valid_from: string | null;
+  valid_to: string | null;
   is_active: boolean;
-  display_order: number;
 }
 
 export interface Destination {
@@ -69,11 +65,8 @@ export interface Destination {
   cover_image: string;
   latitude: number | null;
   longitude: number | null;
-  airport_code: string;
   is_active: boolean;
-  legacy_city_id: string | null;
   country_id: string | null;
-  flag_emoji: string;
   flag_svg_url: string;
 }
 
@@ -128,7 +121,7 @@ export interface Theme {
 
 // ============ HOOKS ============
 
-export const useDestinations = () => {
+export const useDestinationsAdmin = () => {
   return useQuery({
     queryKey: ["destinations"],
     queryFn: async (): Promise<Destination[]> => {
@@ -211,9 +204,9 @@ export const useProducts = (filters?: { destinationId?: string; areaId?: string;
   return useQuery({
     queryKey: ["products", filters],
     queryFn: async (): Promise<Product[]> => {
-      let query = supabase.from("products").select("*").eq("is_active", true);
+      let query = supabase.from("products").select("*");
       if (filters?.destinationId) query = query.eq("destination_id", filters.destinationId);
-      if (filters?.areaId) query = query.eq("area_id", filters.areaId);
+      if (filters?.areaId) query = query.eq("primary_area_id", filters.areaId);
       if (filters?.activityTypeId) query = query.eq("activity_type_id", filters.activityTypeId);
       const { data, error } = await query;
       if (error) return [];
@@ -231,7 +224,6 @@ export const useProductBySlug = (slug: string) => {
         .from("products")
         .select("*")
         .eq("slug", slug)
-        .eq("is_active", true)
         .maybeSingle();
       if (error) return null;
       return data as unknown as Product | null;
@@ -248,8 +240,7 @@ export const useProductOptions = (productId: string) => {
         .from("options")
         .select("*")
         .eq("product_id", productId)
-        .eq("is_active", true)
-        .order("display_order");
+        .eq("is_active", true);
       if (error || !opts) return [];
 
       const optionIds = opts.map(o => o.id);
@@ -257,8 +248,7 @@ export const useProductOptions = (productId: string) => {
         .from("price_options")
         .select("*")
         .in("option_id", optionIds)
-        .eq("is_active", true)
-        .order("display_order");
+        .eq("is_active", true);
 
       return (opts as unknown as ProductOption[]).map(opt => ({
         ...opt,
@@ -275,9 +265,8 @@ export const useProductHosts = (productId: string) => {
     queryFn: async (): Promise<Host[]> => {
       const { data, error } = await supabase
         .from("product_hosts")
-        .select("host_id, display_order, hosts(*)")
-        .eq("product_id", productId)
-        .order("display_order");
+        .select("host_id, is_primary, role_type, hosts(*)")
+        .eq("product_id", productId);
       if (error || !data) return [];
       return data.map((r: any) => r.hosts).filter(Boolean) as unknown as Host[];
     },
