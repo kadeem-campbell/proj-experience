@@ -899,8 +899,8 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
             {result.checks.filter((c: any) => !c.passed).map((c: any, i: number) => (
               <div key={i} className="flex items-center gap-2 text-xs">
                 {c.severity === 'blocker' ? <XCircle className="w-3 h-3 text-destructive" /> :
-                  c.severity === 'error' ? <AlertTriangle className="w-3 h-3 text-orange-500" /> :
-                  <AlertTriangle className="w-3 h-3 text-yellow-500" />}
+                  c.severity === 'error' ? <AlertTriangle className="w-3 h-3 text-destructive/70" /> :
+                  <AlertTriangle className="w-3 h-3 text-muted-foreground" />}
                 <span>{c.message}</span>
                 {c.suggested_fix && <span className="text-muted-foreground">→ {c.suggested_fix}</span>}
               </div>
