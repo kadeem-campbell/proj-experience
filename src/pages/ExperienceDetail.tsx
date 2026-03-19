@@ -336,7 +336,7 @@ export default function ExperienceDetail() {
   // Generate JSON-LD: prefer product schema if available
   const experienceJsonLd = useMemo(() => {
     if (product && productOptions) {
-      return generateProductSchema(product, productOptions, productHosts, productDestination);
+      return generateProductSchema(product, productOptions, productHosts, resolvedDestination);
     }
     if (!experience) return null;
     return createExperienceJsonLd({
