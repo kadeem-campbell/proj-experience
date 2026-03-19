@@ -479,7 +479,7 @@ export const MobileHomeView = () => {
         (() => {
           const filteredCarousels = homeCarousels.filter((carousel) => {
             if (carousel.destinationIds.length === 0) return true;
-            if (!selectedDestId) return true;
+            if (!selectedDestId) return false;
             return carousel.destinationIds.includes(selectedDestId);
           });
 
