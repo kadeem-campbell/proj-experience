@@ -169,11 +169,9 @@ const CollectionPage = () => {
           destinationId: collectionRow.destination_id,
         };
       } else {
-        const itemExpIds = (linkRows || [])
-          .filter((r: any) => r.item_type === 'experience' || r.item_type === 'product')
+        const allProductIds = (linkRows || [])
+          .filter((r: any) => r.item_type === 'product')
           .map((row: any) => row.item_id);
-        const ceExpIds = (expLinks || []).map((r: any) => r.experience_id);
-        const allExpIds = [...new Set([...itemExpIds, ...ceExpIds])];
 
         let linkedItems = allExpIds
           .map((id: string) => productListings.find((product) => product.id === id))
