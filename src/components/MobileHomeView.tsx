@@ -222,52 +222,6 @@ const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: s
   );
 };
 
-// Ranked card with Netflix-style ribbon badge
-const RankedCard = ({ 
-  rank, 
-  image, 
-  name, 
-  subtitle,
-  onClick 
-}: { 
-  rank: number; 
-  image?: string; 
-  name: string; 
-  subtitle?: string;
-  onClick: () => void;
-}) => {
-  return (
-    <div 
-      className="flex-shrink-0 w-[38vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
-      onClick={onClick}
-    >
-      <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
-        {image ? (
-          <img src={image} alt={name} loading="lazy" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <MapPin className="w-8 h-8 text-muted-foreground/30" />
-          </div>
-        )}
-        {/* Rank ribbon badge */}
-        <div className="absolute top-2.5 left-2.5 z-10">
-          <div className="relative bg-destructive text-destructive-foreground px-2.5 pt-1 pb-2.5 rounded-t-md text-center min-w-[32px] shadow-lg">
-            <span className="text-[13px] font-extrabold leading-none">#{rank}</span>
-            {/* Ribbon tail */}
-            <div className="absolute bottom-0 left-0 right-0 overflow-hidden h-[6px]">
-              <div className="absolute bottom-0 left-0 w-1/2 h-full bg-destructive" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />
-              <div className="absolute bottom-0 right-0 w-1/2 h-full bg-destructive" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="mt-2 space-y-0.5">
-        <h3 className="font-semibold text-sm text-foreground truncate">{name}</h3>
-        {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
-      </div>
-    </div>
-  );
-};
 
 // Static alias map
 const cityAliases: Record<string, string[]> = {
@@ -516,7 +470,7 @@ export const MobileHomeView = () => {
         </div>
       ) : (
       <>
-      {/* Dynamic collection-driven carousels — with ranked row injected at position 3 */}
+      {/* Dynamic collection-driven carousels */}
       {homeCarousels.length > 0 ? (
         (() => {
           const filteredCarousels = homeCarousels.filter((carousel) => {
@@ -525,61 +479,28 @@ export const MobileHomeView = () => {
             return carousel.destinationIds.includes(selectedDestId);
           });
 
-          // Build ranked row element
+          // Build POI row for selected city (no rank numbers)
           const destSlug = selectedCity ? slugify(selectedCity) : '';
-          const rankedRow = selectedDestId ? (() => {
+          const poiRow = selectedDestId ? (() => {
             const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
             if (cityPois.length === 0) return null;
             return (
               <HorizontalScrollRow 
-                key="ranked-pois"
-                title={`Top spots in ${selectedCity}`}
+                key="city-pois"
+                title={`Places to explore in ${selectedCity}`}
                 onTitleClick={() => navigate(`/${destSlug}`)}
               >
-                {cityPois.slice(0, 10).map((poi: any, index: number) => (
-                  <RankedCard
-                    key={poi.id}
-                    rank={index + 1}
-                    image={poi.cover_image}
-                    name={poi.name}
-                    subtitle={poi.poi_type}
-                    onClick={() => navigate(`/things-to-do/${destSlug}/${poi.slug}`)}
-                  />
+                {cityPois.slice(0, 10).map((poi: any) => (
+                  <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
                 ))}
               </HorizontalScrollRow>
             );
-          })() : (() => {
-            const topDestinations = allDestinations.slice(0, 10);
-            if (topDestinations.length === 0) return null;
-            return (
-              <HorizontalScrollRow 
-                key="ranked-destinations"
-                title="Trending destinations"
-                onTitleClick={() => navigate('/search')}
-              >
-                {topDestinations.map((dest: any, index: number) => (
-                  <RankedCard
-                    key={dest.id}
-                    rank={index + 1}
-                    image={dest.cover_image}
-                    name={dest.name}
-                    subtitle={dest.country_name}
-                    onClick={() => {
-                      setSelectedCity(dest.name);
-                      try { localStorage.setItem("swam_selected_city", dest.name); } catch {}
-                      navigate(`/?city=${encodeURIComponent(dest.name)}`);
-                    }}
-                  />
-                ))}
-              </HorizontalScrollRow>
-            );
-          })();
+          })() : null;
 
-          // Render carousels with ranked row spliced in at index 2 (3rd position)
           const elements: React.ReactNode[] = [];
           filteredCarousels.forEach((carousel, idx) => {
-            // Insert ranked row before the 3rd carousel
-            if (idx === 2 && rankedRow) elements.push(rankedRow);
+            // Insert POI row at position 2 if available
+            if (idx === 2 && poiRow) elements.push(poiRow);
 
             const title = carousel.name.replace('{city}', selectedCity || 'your city');
             const resolvedSlug = carousel.slug.replace('city', selectedCity ? slugify(selectedCity) : 'city');
@@ -618,8 +539,8 @@ export const MobileHomeView = () => {
               );
             }
           });
-          // If fewer than 3 carousels, append ranked row at the end
-          if (filteredCarousels.length < 3 && rankedRow) elements.push(rankedRow);
+          // Append POI row at end if fewer than 3 carousels
+          if (filteredCarousels.length < 3 && poiRow) elements.push(poiRow);
           return <>{elements}</>;
         })()
       ) : (

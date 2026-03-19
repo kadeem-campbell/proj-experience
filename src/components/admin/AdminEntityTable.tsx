@@ -125,6 +125,9 @@ export function AdminEntityTable<T extends { id: string }>({
       await onSave(formData, isNew);
       setExpandedId(null);
       setFormData(defaultItem);
+    } catch (err: any) {
+      // Surface DB errors visually instead of swallowing them
+      alert(`Save failed: ${err?.message || err}`);
     } finally {
       setSaving(false);
     }
