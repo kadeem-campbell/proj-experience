@@ -201,7 +201,7 @@ export default function CreateExperience() {
     try {
       const slug = toSlug(form.title);
 
-      // 1. Create Product (only columns that exist)
+      // 1. Create Product
       const { data: product, error: pErr } = await (supabase as any)
         .from("products")
         .insert({
@@ -209,11 +209,14 @@ export default function CreateExperience() {
           slug,
           description: form.description,
           destination_id: form.destinationId || null,
-          area_id: form.areaId || null,
+          primary_area_id: form.areaId || null,
           activity_type_id: form.activityTypeId || null,
           cover_image: form.coverImage || '',
           video_url: form.videoUrl || '',
           highlights: form.highlights ? form.highlights.split('\n').filter(Boolean) : [],
+          seo_title: form.seoTitle || form.title,
+          seo_description: form.seoDescription || form.description?.slice(0, 160) || '',
+          average_price_per_person: form.averagePricePerPerson ? parseFloat(form.averagePricePerPerson) : null,
           publish_score: 0,
           publish_state: 'published',
           visibility_output_state: 'public',
