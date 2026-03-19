@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, X, Search, Link2, BookOpen, FolderOpen, MapPin, ExternalLink, Home, Save, Loader2 } from 'lucide-react';
+import { Plus, X, Search, Link2, BookOpen, FolderOpen, MapPin, ExternalLink, Home, Save, Loader2, Package } from 'lucide-react';
 import { getShareBaseUrl } from '@/utils/shareUrl';
 import { useDestinations } from '@/hooks/useProducts';
 
@@ -19,7 +19,7 @@ interface LinkedItem {
   linkId: string;
   title: string;
   slug: string;
-  type: 'experience' | 'itinerary';
+  type: 'experience' | 'itinerary' | 'product';
   order: number;
 }
 
@@ -37,6 +37,15 @@ const useExperiences = () => useQuery({
   queryFn: async () => {
     const { data } = await supabase.from('experiences').select('id, title, slug, category').eq('is_active', true).order('title');
     return data || [];
+  },
+  staleTime: 60000,
+});
+
+const useProducts = () => useQuery({
+  queryKey: ['link-manager-products'],
+  queryFn: async () => {
+    const { data } = await supabase.from('products').select('id, title, slug, cover_image, destination_id').order('title');
+    return (data || []) as { id: string; title: string; slug: string; cover_image: string | null; destination_id: string | null }[];
   },
   staleTime: 60000,
 });
@@ -69,6 +78,36 @@ const useItineraryLinks = (itineraryId: string | null) => useQuery({
     }));
   },
   enabled: !!itineraryId,
+});
+
+// Fetch linked products for a collection (via collection_items)
+const useCollectionProductLinks = (collectionId: string | null) => useQuery({
+  queryKey: ['collection-product-links', collectionId],
+  queryFn: async () => {
+    if (!collectionId) return [];
+    const { data } = await (supabase as any).from('collection_items')
+      .select('id, item_id, position')
+      .eq('collection_id', collectionId)
+      .eq('item_type', 'product')
+      .order('position');
+    if (!data || data.length === 0) return [];
+    const ids = data.map((d: any) => d.item_id);
+    const { data: products } = await supabase.from('products').select('id, title, slug').in('id', ids);
+    const productMap: Record<string, { id: string; title: string; slug: string }> = {};
+    (products || []).forEach(p => { productMap[p.id] = p; });
+    return data.map((d: any) => {
+      const prod = productMap[d.item_id];
+      return {
+        id: d.item_id,
+        linkId: d.id,
+        title: prod?.title || 'Unknown',
+        slug: prod?.slug || '',
+        type: 'product' as const,
+        order: d.position || 0,
+      };
+    });
+  },
+  enabled: !!collectionId,
 });
 
 const useCollectionExpLinks = (collectionId: string | null) => useQuery({
@@ -128,6 +167,7 @@ export const LinkManager = () => {
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [expSearch, setExpSearch] = useState('');
   const [itinSearch, setItinSearch] = useState('');
+  const [prodSearch, setProdSearch] = useState('');
 
   // Collection edit state
   const [editingCollName, setEditingCollName] = useState('');
@@ -140,6 +180,7 @@ export const LinkManager = () => {
 
   const { data: itineraries = [] } = usePublicItineraries();
   const { data: experiences = [] } = useExperiences();
+  const { data: allProducts = [] } = useProducts();
   const { data: collections = [] } = useCollections();
   const { data: destinations = [] } = useDestinations();
 
@@ -150,10 +191,14 @@ export const LinkManager = () => {
   const { data: collItinLinks = [] } = useCollectionItinLinks(
     (activeTab === 'collection-itin' || activeTab === 'home-carousels') ? selectedCollection : null
   );
+  const { data: collProductLinks = [] } = useCollectionProductLinks(
+    (activeTab === 'collection-product' || activeTab === 'home-carousels') ? selectedCollection : null
+  );
 
   const linkedExpIds = new Set<string>(itinLinks.map(l => l.id));
   const linkedCollExpIds = new Set<string>(collExpLinks.map(l => l.id));
   const linkedCollItinIds = new Set<string>(collItinLinks.map(l => l.id));
+  const linkedCollProductIds = new Set<string>(collProductLinks.map(l => l.id));
 
   const filteredExperiences = experiences.filter(e =>
     e.title.toLowerCase().includes(expSearch.toLowerCase()) ||
@@ -162,6 +207,11 @@ export const LinkManager = () => {
 
   const filteredItineraries = itineraries.filter(i =>
     i.name.toLowerCase().includes(itinSearch.toLowerCase())
+  );
+
+  const filteredProducts = allProducts.filter(p =>
+    p.title.toLowerCase().includes(prodSearch.toLowerCase()) ||
+    p.slug.toLowerCase().includes(prodSearch.toLowerCase())
   );
 
   const homeCollections = collections.filter(c => c.show_on_home);
@@ -246,6 +296,21 @@ export const LinkManager = () => {
     toast({ title: 'Removed' });
   };
 
+  const addProductToCollection = async (productId: string) => {
+    if (!selectedCollection) return;
+    const { error } = await (supabase as any).from('collection_items').insert({
+      collection_id: selectedCollection, item_id: productId, item_type: 'product', position: collProductLinks.length,
+    });
+    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    else { toast({ title: 'Product linked ✓' }); queryClient.invalidateQueries({ queryKey: ['collection-product-links', selectedCollection] }); }
+  };
+
+  const removeProductFromCollection = async (linkId: string) => {
+    await (supabase as any).from('collection_items').delete().eq('id', linkId);
+    queryClient.invalidateQueries({ queryKey: ['collection-product-links', selectedCollection] });
+    toast({ title: 'Removed' });
+  };
+
   const moveItem = async (
     table: string, linkId: string, links: LinkedItem[], currentIndex: number, direction: 'up' | 'down', queryKey: any[]
   ) => {
@@ -271,10 +336,15 @@ export const LinkManager = () => {
             <button onClick={() => moveItem(table, item.linkId, links, idx, 'down', queryKey)} disabled={idx === links.length - 1} className="text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity">▼</button>
           </div>
           <span className="text-xs text-muted-foreground w-6 text-center">{idx + 1}</span>
-          <Badge variant={item.type === 'experience' ? 'default' : 'secondary'} className="text-[10px] shrink-0">
-            {item.type === 'experience' ? '📍' : '🗺️'}
+          <Badge variant={item.type === 'product' ? 'default' : item.type === 'experience' ? 'default' : 'secondary'} className="text-[10px] shrink-0">
+            {item.type === 'product' ? '📦' : item.type === 'experience' ? '📍' : '🗺️'}
           </Badge>
           <span className="text-sm font-medium flex-1 truncate">{item.title}</span>
+          {item.slug && (
+            <a href={`https://swam.app/things-to-do/${item.slug}`} target="_blank" rel="noopener noreferrer" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
+            </a>
+          )}
           <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive" onClick={() => onRemove(item.linkId)}>
             <X className="w-3.5 h-3.5" />
           </Button>
@@ -298,6 +368,29 @@ export const LinkManager = () => {
               <Badge variant="outline" className="text-[10px] shrink-0">{exp.category}</Badge>
               {isLinked ? <Badge variant="secondary" className="text-[10px] shrink-0">Added</Badge> : (
                 <Button variant="outline" size="icon" className="h-7 w-7 shrink-0" onClick={() => onAdd(exp.id)}><Plus className="w-3.5 h-3.5" /></Button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const renderAvailableProducts = (linkedIds: Set<string>, onAdd: (id: string) => void) => (
+    <div className="space-y-2">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <Input placeholder="Search products..." value={prodSearch} onChange={(e) => setProdSearch(e.target.value)} className="pl-8 h-9 text-sm" />
+      </div>
+      <div className="space-y-1 max-h-[500px] overflow-y-auto">
+        {filteredProducts.map(prod => {
+          const isLinked = linkedIds.has(prod.id);
+          return (
+            <div key={prod.id} className={`flex items-center gap-2 p-2 rounded-lg border text-sm transition-colors ${isLinked ? 'bg-primary/5 border-primary/20' : 'hover:bg-muted/30'}`}>
+              <span className="flex-1 truncate font-medium">{prod.title}</span>
+              <span className="text-[10px] text-muted-foreground font-mono shrink-0">{prod.slug}</span>
+              {isLinked ? <Badge variant="secondary" className="text-[10px] shrink-0">Added</Badge> : (
+                <Button variant="outline" size="icon" className="h-7 w-7 shrink-0" onClick={() => onAdd(prod.id)}><Plus className="w-3.5 h-3.5" /></Button>
               )}
             </div>
           );
@@ -331,9 +424,17 @@ export const LinkManager = () => {
   // Collection metadata editor
   const renderCollectionEditor = () => {
     if (!selectedCollection) return null;
+    const coll = collections.find(c => c.id === selectedCollection);
     return (
       <Card className="p-4 mb-4 border-primary/20 bg-primary/5">
-        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2"><Home className="w-4 h-4" /> Collection Settings</h4>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold flex items-center gap-2"><Home className="w-4 h-4" /> Collection Settings</h4>
+          {coll?.slug && (
+            <a href={`https://swam.app/collections/${coll.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+              View on swam.app <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground">Display Name</Label>
@@ -351,6 +452,7 @@ export const LinkManager = () => {
               <SelectContent>
                 <SelectItem value="itinerary">Itinerary cards</SelectItem>
                 <SelectItem value="experience">Experience cards</SelectItem>
+                <SelectItem value="product">Product cards</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -385,26 +487,29 @@ export const LinkManager = () => {
 
   return (
     <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setExpSearch(''); setItinSearch(''); setSelectedCollection(null); }}>
-        <TabsList className="grid grid-cols-4 mb-4">
+      <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setExpSearch(''); setItinSearch(''); setProdSearch(''); setSelectedCollection(null); }}>
+        <TabsList className="grid grid-cols-5 mb-4">
           <TabsTrigger value="home-carousels" className="gap-1.5 text-xs">
-            <Home className="w-3.5 h-3.5" /> Home Carousels
+            <Home className="w-3.5 h-3.5" /> Carousels
           </TabsTrigger>
           <TabsTrigger value="itinerary" className="gap-1.5 text-xs">
-            <MapPin className="w-3.5 h-3.5" /> Exp → Itinerary
+            <MapPin className="w-3.5 h-3.5" /> Exp → Itin
           </TabsTrigger>
           <TabsTrigger value="collection-exp" className="gap-1.5 text-xs">
-            <FolderOpen className="w-3.5 h-3.5" /> Exp → Collection
+            <FolderOpen className="w-3.5 h-3.5" /> Exp → Coll
+          </TabsTrigger>
+          <TabsTrigger value="collection-product" className="gap-1.5 text-xs">
+            <Package className="w-3.5 h-3.5" /> Prod → Coll
           </TabsTrigger>
           <TabsTrigger value="collection-itin" className="gap-1.5 text-xs">
-            <BookOpen className="w-3.5 h-3.5" /> Itin → Collection
+            <BookOpen className="w-3.5 h-3.5" /> Itin → Coll
           </TabsTrigger>
         </TabsList>
 
         {/* Home Carousels */}
         <TabsContent value="home-carousels">
           <p className="text-sm text-muted-foreground mb-4">
-            Manage which collections appear as carousel rows on the home screen. Edit names, link experiences or itineraries.
+            Manage which collections appear as carousel rows on the home screen. Edit names, link experiences, products, or itineraries.
           </p>
           <div className="mb-4">
             <Label className="text-xs text-muted-foreground mb-1.5 block">Select Home Carousel Collection</Label>
@@ -431,20 +536,26 @@ export const LinkManager = () => {
                   <Link2 className="w-4 h-4" />
                   {editingCollContent === 'experience'
                     ? `Linked Experiences (${collExpLinks.length})`
+                    : editingCollContent === 'product'
+                    ? `Linked Products (${collProductLinks.length})`
                     : `Linked Itineraries (${collItinLinks.length})`
                   }
                 </h4>
                 {editingCollContent === 'experience'
                   ? renderLinkedItems(collExpLinks, removeExpFromCollection, 'collection_experiences', ['collection-exp-links', selectedCollection])
+                  : editingCollContent === 'product'
+                  ? renderLinkedItems(collProductLinks, removeProductFromCollection, 'collection_items', ['collection-product-links', selectedCollection])
                   : renderLinkedItems(collItinLinks, removeItinFromCollection, 'collection_items', ['collection-itin-links', selectedCollection])
                 }
               </Card>
               <Card className="p-4">
                 <h4 className="text-sm font-semibold mb-3">
-                  {editingCollContent === 'experience' ? 'Available Experiences' : 'Available Itineraries'}
+                  {editingCollContent === 'experience' ? 'Available Experiences' : editingCollContent === 'product' ? 'Available Products' : 'Available Itineraries'}
                 </h4>
                 {editingCollContent === 'experience'
                   ? renderAvailableExperiences(linkedCollExpIds, addExpToCollection)
+                  : editingCollContent === 'product'
+                  ? renderAvailableProducts(linkedCollProductIds, addProductToCollection)
                   : renderAvailableItineraries(linkedCollItinIds, addItinToCollection)
                 }
               </Card>
@@ -466,7 +577,7 @@ export const LinkManager = () => {
               {selectedItinerary && (() => {
                 const itin = itineraries.find(i => i.id === selectedItinerary);
                 return itin?.slug ? (
-                  <a href={`${getShareBaseUrl()}/itineraries/${itin.slug}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`https://swam.app/itineraries/${itin.slug}`} target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" title="View on site"><ExternalLink className="w-4 h-4" /></Button>
                   </a>
                 ) : null;
@@ -492,12 +603,22 @@ export const LinkManager = () => {
         <TabsContent value="collection-exp">
           <div className="mb-4">
             <Label className="text-xs text-muted-foreground mb-1.5 block">Select Collection</Label>
-            <Select value={selectedCollection || ''} onValueChange={selectCollection}>
-              <SelectTrigger className="flex-1"><SelectValue placeholder="Choose a collection..." /></SelectTrigger>
-              <SelectContent>
-                {collections.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.collection_type})</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2 items-center">
+              <Select value={selectedCollection || ''} onValueChange={selectCollection}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder="Choose a collection..." /></SelectTrigger>
+                <SelectContent>
+                  {collections.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.collection_type})</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {selectedCollection && (() => {
+                const coll = collections.find(c => c.id === selectedCollection);
+                return coll?.slug ? (
+                  <a href={`https://swam.app/collections/${coll.slug}`} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" title="View on site"><ExternalLink className="w-4 h-4" /></Button>
+                  </a>
+                ) : null;
+              })()}
+            </div>
           </div>
           {renderCollectionEditor()}
           {selectedCollection && (
@@ -515,16 +636,63 @@ export const LinkManager = () => {
           {!selectedCollection && <p className="text-center text-muted-foreground py-12">Select a collection above to manage its experiences</p>}
         </TabsContent>
 
+        {/* Products → Collection */}
+        <TabsContent value="collection-product">
+          <div className="mb-4">
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Select Collection</Label>
+            <div className="flex gap-2 items-center">
+              <Select value={selectedCollection || ''} onValueChange={selectCollection}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder="Choose a collection..." /></SelectTrigger>
+                <SelectContent>
+                  {collections.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.collection_type})</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {selectedCollection && (() => {
+                const coll = collections.find(c => c.id === selectedCollection);
+                return coll?.slug ? (
+                  <a href={`https://swam.app/collections/${coll.slug}`} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" title="View on site"><ExternalLink className="w-4 h-4" /></Button>
+                  </a>
+                ) : null;
+              })()}
+            </div>
+          </div>
+          {renderCollectionEditor()}
+          {selectedCollection && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card className="p-4">
+                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2"><Link2 className="w-4 h-4" /> Linked Products ({collProductLinks.length})</h4>
+                {renderLinkedItems(collProductLinks, removeProductFromCollection, 'collection_items', ['collection-product-links', selectedCollection])}
+              </Card>
+              <Card className="p-4">
+                <h4 className="text-sm font-semibold mb-3">Available Products</h4>
+                {renderAvailableProducts(linkedCollProductIds, addProductToCollection)}
+              </Card>
+            </div>
+          )}
+          {!selectedCollection && <p className="text-center text-muted-foreground py-12">Select a collection above to manage its products</p>}
+        </TabsContent>
+
         {/* Itineraries → Collection */}
         <TabsContent value="collection-itin">
           <div className="mb-4">
             <Label className="text-xs text-muted-foreground mb-1.5 block">Select Collection</Label>
-            <Select value={selectedCollection || ''} onValueChange={selectCollection}>
-              <SelectTrigger className="flex-1"><SelectValue placeholder="Choose a collection..." /></SelectTrigger>
-              <SelectContent>
-                {collections.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.collection_type})</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2 items-center">
+              <Select value={selectedCollection || ''} onValueChange={selectCollection}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder="Choose a collection..." /></SelectTrigger>
+                <SelectContent>
+                  {collections.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.collection_type})</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {selectedCollection && (() => {
+                const coll = collections.find(c => c.id === selectedCollection);
+                return coll?.slug ? (
+                  <a href={`https://swam.app/collections/${coll.slug}`} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" title="View on site"><ExternalLink className="w-4 h-4" /></Button>
+                  </a>
+                ) : null;
+              })()}
+            </div>
           </div>
           {renderCollectionEditor()}
           {selectedCollection && (
