@@ -44,8 +44,8 @@ const useExperiences = () => useQuery({
 const useCollections = () => useQuery({
   queryKey: ['link-manager-collections'],
   queryFn: async () => {
-    const { data } = await (supabase as any).from('collections').select('id, name, slug, collection_type, content_type, show_on_home, home_display_order, city_id').eq('is_active', true).order('home_display_order');
-    return (data || []) as { id: string; name: string; slug: string; collection_type: string; content_type: string; show_on_home: boolean; home_display_order: number; city_id: string | null }[];
+    const { data } = await (supabase as any).from('collections').select('id, name, slug, collection_type, content_type, show_on_home, home_display_order, destination_id').eq('is_active', true).order('home_display_order');
+    return (data || []) as { id: string; name: string; slug: string; collection_type: string; content_type: string; show_on_home: boolean; home_display_order: number; destination_id: string | null }[];
   },
   staleTime: 60000,
 });
