@@ -375,7 +375,7 @@ export const AdminManualEntities = () => {
             <div><Label className="text-xs mb-1 block">Description</Label><Input value={itineraryForm.description} onChange={e => setItineraryForm(p => ({ ...p, description: e.target.value }))} /></div>
           </div>
           <Button size="sm" disabled={!itineraryForm.name.trim() || !itineraryForm.slug.trim() || createMutation.isPending} onClick={() => {
-            createMutation.mutate({ table: 'public_itineraries', payload: { name: itineraryForm.name.trim(), slug: itineraryForm.slug.trim(), description: itineraryForm.description.trim(), tag: itineraryForm.tag, is_active: true }, successTitle: 'Itinerary created', invalidateKeys: ['public-itineraries', 'admin-manual-itineraries'] });
+            createMutation.mutate({ table: 'public_itineraries', payload: { name: itineraryForm.name.trim(), slug: itineraryForm.slug.trim(), description: itineraryForm.description.trim(), tag: itineraryForm.tag, is_active: true, source_type: 'editorial' }, successTitle: 'Itinerary created', invalidateKeys: ['public-itineraries', 'admin-manual-itineraries'] });
             setItineraryForm({ name: '', slug: '', description: '', tag: 'popular' });
           }}>Add Itinerary</Button>
           <p className="text-xs text-muted-foreground font-medium">{publicItineraries.length} existing itineraries</p>

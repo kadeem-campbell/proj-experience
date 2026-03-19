@@ -50,14 +50,14 @@ export const AdminItinerariesSection = () => {
   });
 
   const filtered = itineraries.filter((i: any) => {
-    if (sourceFilter === 'internal') return !!i.creator_id;
-    if (sourceFilter === 'ugc') return !i.creator_id;
+    if (sourceFilter === 'internal') return i.source_type === 'editorial' || !!i.creator_id;
+    if (sourceFilter === 'ugc') return i.source_type === 'ugc' || (i.source_type !== 'editorial' && !i.creator_id);
     return true;
   });
 
-  const getCreatorName = (creatorId: string | null) => {
-    if (!creatorId) return 'UGC';
-    return 'Editorial';
+  const getCreatorName = (item: any) => {
+    if (item.source_type === 'editorial' || item.creator_id) return 'Editorial';
+    return 'UGC';
   };
 
   const invalidate = () => {
