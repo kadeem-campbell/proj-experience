@@ -188,6 +188,11 @@ interface ProductValidationContext {
   reviewCount?: number;
   saveCount?: number;
   copyCount?: number;
+  themeCount?: number;
+  semanticProfile?: any;
+  positioningProfile?: any;
+  intentAffinityCount?: number;
+  entityDocCount?: number;
 }
 
 export const validateProduct = (ctx: ProductValidationContext): PublishValidationResult => {
