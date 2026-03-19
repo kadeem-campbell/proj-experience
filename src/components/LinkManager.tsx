@@ -174,7 +174,7 @@ export const LinkManager = () => {
       setEditingCollSlug(coll.slug);
       setEditingCollHome(coll.show_on_home);
       setEditingCollOrder(coll.home_display_order);
-      setEditingCollCity(coll.city_id || '');
+      setEditingCollCity(coll.destination_id || '');
       setEditingCollContent(coll.content_type || 'itinerary');
     }
   };
