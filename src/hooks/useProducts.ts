@@ -121,7 +121,7 @@ export interface Theme {
 
 // ============ HOOKS ============
 
-export const useDestinationsAdmin = () => {
+export const useDestinations = () => {
   return useQuery({
     queryKey: ["destinations"],
     queryFn: async (): Promise<Destination[]> => {
