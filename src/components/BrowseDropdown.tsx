@@ -5,19 +5,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cities, City } from "@/data/browseData";
+import { useDestinations, BrowseDestination } from "@/hooks/useDestinations";
 import { useState } from "react";
 
 interface BrowseDropdownProps {
-  onSelectCity?: (city: City) => void;
+  onSelectCity?: (dest: BrowseDestination) => void;
   onClearFilters?: () => void;
 }
 
 export const BrowseDropdown = ({ onSelectCity, onClearFilters }: BrowseDropdownProps) => {
   const [open, setOpen] = useState(false);
+  const { data: destinations = [] } = useDestinations();
 
-  const handleCityClick = (city: City) => {
-    onSelectCity?.(city);
+  const handleClick = (dest: BrowseDestination) => {
+    onSelectCity?.(dest);
     setOpen(false);
   };
 
@@ -34,7 +35,7 @@ export const BrowseDropdown = ({ onSelectCity, onClearFilters }: BrowseDropdownP
           className="h-10 px-4 rounded-full border-border/60 hover:border-primary/50 hover:bg-accent gap-2"
         >
           <MapPin className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">Cities</span>
+          <span className="text-sm font-medium">Destinations</span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
@@ -45,7 +46,7 @@ export const BrowseDropdown = ({ onSelectCity, onClearFilters }: BrowseDropdownP
       >
         <div className="p-3">
           <div className="flex items-center justify-between mb-3 px-1">
-            <h3 className="text-sm font-semibold text-foreground">Select a city</h3>
+            <h3 className="text-sm font-semibold text-foreground">Select destination</h3>
             {onClearFilters && (
               <button 
                 onClick={handleShowAll}
@@ -56,20 +57,23 @@ export const BrowseDropdown = ({ onSelectCity, onClearFilters }: BrowseDropdownP
             )}
           </div>
           <div className="space-y-1">
-            {cities.map((city) => (
+            {destinations.map((dest) => (
               <button
-                key={city.id}
-                onClick={() => handleCityClick(city)}
+                key={dest.id}
+                onClick={() => handleClick(dest)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent transition-colors text-left group"
               >
-                <div 
-                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: city.color }}
-                >
-                  <MapPin className="w-4 h-4 text-white" />
-                </div>
+                {dest.flag_svg_url ? (
+                  <img src={dest.flag_svg_url} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                ) : dest.cover_image ? (
+                  <img src={dest.cover_image} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
+                    <MapPin className="w-4 h-4 text-primary" />
+                  </div>
+                )}
                 <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                  {city.name}
+                  {dest.name}
                 </span>
               </button>
             ))}
