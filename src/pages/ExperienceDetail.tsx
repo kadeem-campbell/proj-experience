@@ -350,7 +350,7 @@ export default function ExperienceDetail() {
       duration: experience.duration,
       category: experience.category,
     });
-  }, [experience, product, productOptions, productHosts, productDestination, shareUrl]);
+  }, [experience, product, productOptions, productHosts, resolvedDestination, shareUrl]);
 
 
   // Check if sections have content
