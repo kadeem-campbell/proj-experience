@@ -309,18 +309,18 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
   const { data: linkedItems = [], refetch } = useQuery({
     queryKey: ['collection-items-admin', collectionId, contentType],
     queryFn: async () => {
-      const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
+      // Fetch ALL items for this collection (don't filter by item_type — content_type on the collection determines rendering)
       const { data } = await (supabase as any)
         .from('collection_items')
         .select('id, item_id, item_type, position')
         .eq('collection_id', collectionId)
-        .eq('item_type', itemType)
         .order('position');
       
       const ids = (data || []).map((r: any) => r.item_id);
       let nameMap: Record<string, { label: string; sub?: string }> = {};
       
       if (ids.length > 0) {
+        // Resolve names from the table matching the collection's content_type
         if (contentType === 'poi') {
           const { data: pois } = await supabase.from('pois').select('id, name, poi_type').in('id', ids);
           (pois || []).forEach((p: any) => { nameMap[p.id] = { label: p.name, sub: p.poi_type }; });

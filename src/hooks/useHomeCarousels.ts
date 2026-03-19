@@ -46,25 +46,17 @@ export const useHomeCarousels = () => {
         destByCollection[l.collection_id].push(l.destination_id);
       });
 
-      const itemsByCollection: Record<string, Record<string, string[]>> = {};
+      const itemsByCollection: Record<string, string[]> = {};
       (itemLinks || []).forEach((l: any) => {
-        if (!itemsByCollection[l.collection_id]) itemsByCollection[l.collection_id] = {};
-        const type = l.item_type || 'itinerary';
-        if (!itemsByCollection[l.collection_id][type]) itemsByCollection[l.collection_id][type] = [];
-        itemsByCollection[l.collection_id][type].push(l.item_id);
+        if (!itemsByCollection[l.collection_id]) itemsByCollection[l.collection_id] = [];
+        if (!itemsByCollection[l.collection_id].includes(l.item_id)) {
+          itemsByCollection[l.collection_id].push(l.item_id);
+        }
       });
 
       return collections.map((c: any) => {
         const contentType = c.content_type || "itinerary";
-        let itemIds: string[] = [];
-
-        if (contentType === "product") {
-          itemIds = itemsByCollection[c.id]?.['product'] || [];
-        } else if (contentType === "poi") {
-          itemIds = itemsByCollection[c.id]?.['poi'] || [];
-        } else {
-          itemIds = itemsByCollection[c.id]?.['itinerary'] || [];
-        }
+        const itemIds = itemsByCollection[c.id] || [];
 
         return {
           id: c.id,
