@@ -434,7 +434,7 @@ const SearchPage = () => {
                         ))}
                       </DesktopScrollRow>
                     );
-                  } else {
+                  } else if (carousel.contentType === 'product') {
                     const items = carousel.itemIds.length > 0
                       ? cityFilteredExperiences.filter(exp => carousel.itemIds.includes(exp.id))
                       : cityFilteredExperiences.slice(0, 10);

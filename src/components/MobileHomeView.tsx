@@ -521,8 +521,8 @@ export const MobileHomeView = () => {
                   ))}
                 </HorizontalScrollRow>
               );
-            } else {
-              // experience or product
+            } else if (carousel.contentType === 'product') {
+              // product carousel
               const items = carousel.itemIds.length > 0
                 ? categoryExperiences.filter(exp => carousel.itemIds.includes(exp.id))
                 : categoryExperiences.slice(0, 8);

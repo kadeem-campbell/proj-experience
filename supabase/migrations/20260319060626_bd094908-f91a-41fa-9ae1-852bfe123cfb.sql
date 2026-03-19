@@ -1,0 +1,1 @@
+UPDATE public.collections SET content_type = 'product' WHERE content_type = 'experience';

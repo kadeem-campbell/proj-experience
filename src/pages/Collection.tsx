@@ -146,11 +146,7 @@ const CollectionPage = () => {
         .eq("collection_id", collectionRow.id)
         .order("position", { ascending: true });
 
-      const { data: expLinks } = await (supabase as any)
-        .from("collection_experiences")
-        .select("experience_id, display_order")
-        .eq("collection_id", collectionRow.id)
-        .order("display_order", { ascending: true });
+      // No longer using collection_experiences
 
       if (contentType === 'itineraries') {
         let linkedItems = (linkRows || [])
@@ -173,13 +169,11 @@ const CollectionPage = () => {
           destinationId: collectionRow.destination_id,
         };
       } else {
-        const itemExpIds = (linkRows || [])
-          .filter((r: any) => r.item_type === 'experience' || r.item_type === 'product')
+        const allProductIds = (linkRows || [])
+          .filter((r: any) => r.item_type === 'product')
           .map((row: any) => row.item_id);
-        const ceExpIds = (expLinks || []).map((r: any) => r.experience_id);
-        const allExpIds = [...new Set([...itemExpIds, ...ceExpIds])];
 
-        let linkedItems = allExpIds
+        let linkedItems = allProductIds
           .map((id: string) => productListings.find((product) => product.id === id))
           .filter(Boolean);
 

@@ -15,12 +15,11 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Layers, Search, X, MapPin, Compass, Package, ListMusic } from 'lucide-react';
+import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp, Layers, Search, X, MapPin, Package, ListMusic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const CONTENT_TYPES = [
   { value: 'itinerary', label: 'Itineraries', icon: ListMusic },
-  { value: 'experience', label: 'Experiences', icon: Compass },
   { value: 'product', label: 'Products', icon: Package },
   { value: 'poi', label: 'Places (POIs)', icon: MapPin },
 ] as const;
@@ -77,7 +76,7 @@ export const AdminCarouselManager = () => {
     if (!newName.trim() || !newSlug.trim()) return;
     const { error } = await (supabase as any).from('collections').insert({
       name: newName, slug: newSlug,
-      collection_type: newType === 'itinerary' ? 'itineraries' : newType === 'experience' ? 'experiences' : newType === 'product' ? 'products' : 'pois',
+      collection_type: newType === 'itinerary' ? 'itineraries' : newType === 'product' ? 'products' : 'pois',
       content_type: newType,
       show_on_home: false, home_display_order: collections.length,
     });
@@ -250,7 +249,7 @@ const CarouselRow = ({ col, destinations, destIds, expandedId, setExpandedId, ha
             </div>
             <div>
               <Label className="text-xs">Content Type</Label>
-              <Select defaultValue={col.content_type || 'itinerary'} onValueChange={v => handleUpdate(col.id, { content_type: v, collection_type: v === 'itinerary' ? 'itineraries' : v === 'experience' ? 'experiences' : v === 'product' ? 'products' : 'pois' })}>
+              <Select defaultValue={col.content_type || 'itinerary'} onValueChange={v => handleUpdate(col.id, { content_type: v, collection_type: v === 'itinerary' ? 'itineraries' : v === 'product' ? 'products' : 'pois' })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {CONTENT_TYPES.map(ct => (
@@ -310,57 +309,44 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
   const { data: linkedItems = [], refetch } = useQuery({
     queryKey: ['collection-items-admin', collectionId, contentType],
     queryFn: async () => {
-      if (contentType === 'experience') {
-        const { data } = await (supabase as any)
-          .from('collection_experiences')
-          .select('id, experience_id, display_order, experiences(id, title, location)')
-          .eq('collection_id', collectionId)
-          .order('display_order');
-        return (data || []).map((r: any) => ({ linkId: r.id, itemId: r.experience_id, label: r.experiences?.title || r.experience_id, sub: r.experiences?.location, table: 'collection_experiences' }));
-      } else {
-        // itinerary, poi, product — all use collection_items
-        const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
-        const { data } = await (supabase as any)
-          .from('collection_items')
-          .select('id, item_id, item_type, position')
-          .eq('collection_id', collectionId)
-          .eq('item_type', itemType)
-          .order('position');
-        
-        const ids = (data || []).map((r: any) => r.item_id);
-        let nameMap: Record<string, { label: string; sub?: string }> = {};
-        
-        if (ids.length > 0) {
-          if (contentType === 'poi') {
-            const { data: pois } = await supabase.from('pois').select('id, name, poi_type').in('id', ids);
-            (pois || []).forEach((p: any) => { nameMap[p.id] = { label: p.name, sub: p.poi_type }; });
-          } else if (contentType === 'product') {
-            const { data: products } = await supabase.from('products').select('id, title, slug').in('id', ids);
-            (products || []).forEach((p: any) => { nameMap[p.id] = { label: p.title, sub: p.slug }; });
-          } else {
-            const { data: itins } = await (supabase as any).from('public_itineraries').select('id, name').in('id', ids);
-            (itins || []).forEach((i: any) => { nameMap[i.id] = { label: i.name }; });
-          }
+      const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
+      const { data } = await (supabase as any)
+        .from('collection_items')
+        .select('id, item_id, item_type, position')
+        .eq('collection_id', collectionId)
+        .eq('item_type', itemType)
+        .order('position');
+      
+      const ids = (data || []).map((r: any) => r.item_id);
+      let nameMap: Record<string, { label: string; sub?: string }> = {};
+      
+      if (ids.length > 0) {
+        if (contentType === 'poi') {
+          const { data: pois } = await supabase.from('pois').select('id, name, poi_type').in('id', ids);
+          (pois || []).forEach((p: any) => { nameMap[p.id] = { label: p.name, sub: p.poi_type }; });
+        } else if (contentType === 'product') {
+          const { data: products } = await supabase.from('products').select('id, title, slug').in('id', ids);
+          (products || []).forEach((p: any) => { nameMap[p.id] = { label: p.title, sub: p.slug }; });
+        } else {
+          const { data: itins } = await (supabase as any).from('public_itineraries').select('id, name').in('id', ids);
+          (itins || []).forEach((i: any) => { nameMap[i.id] = { label: i.name }; });
         }
-        
-        return (data || []).map((r: any) => ({
-          linkId: r.id,
-          itemId: r.item_id,
-          label: nameMap[r.item_id]?.label || r.item_id,
-          sub: nameMap[r.item_id]?.sub || r.item_type,
-          table: 'collection_items',
-        }));
       }
+      
+      return (data || []).map((r: any) => ({
+        linkId: r.id,
+        itemId: r.item_id,
+        label: nameMap[r.item_id]?.label || r.item_id,
+        sub: nameMap[r.item_id]?.sub || r.item_type,
+        table: 'collection_items',
+      }));
     },
   });
 
   const { data: searchPool = [] } = useQuery({
     queryKey: ['collection-search-pool', contentType],
     queryFn: async () => {
-      if (contentType === 'experience') {
-        const { data } = await supabase.from('experiences').select('id, title, location, category').eq('is_active', true).order('title');
-        return (data || []).map(e => ({ id: e.id, label: e.title, sub: e.location }));
-      } else if (contentType === 'poi') {
+      if (contentType === 'poi') {
         const { data } = await supabase.from('pois').select('id, name, poi_type, destination_id').eq('is_active', true).order('name');
         return (data || []).map((p: any) => ({ id: p.id, label: p.name, sub: p.poi_type }));
       } else if (contentType === 'product') {
@@ -383,12 +369,8 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
   }, [searchTerm, searchPool, linkedIds]);
 
   const handleAdd = async (itemId: string) => {
-    if (contentType === 'experience') {
-      await (supabase as any).from('collection_experiences').insert({ collection_id: collectionId, experience_id: itemId, display_order: linkedItems.length });
-    } else {
-      const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
-      await (supabase as any).from('collection_items').insert({ collection_id: collectionId, item_id: itemId, item_type: itemType, position: linkedItems.length });
-    }
+    const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
+    await (supabase as any).from('collection_items').insert({ collection_id: collectionId, item_id: itemId, item_type: itemType, position: linkedItems.length });
     refetch();
     queryClient.invalidateQueries({ queryKey: ['home-carousels'] });
     toast({ title: 'Added' });

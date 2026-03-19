@@ -5,7 +5,7 @@ export interface HomeCarousel {
   id: string;
   name: string;
   slug: string;
-  contentType: "itinerary" | "experience" | "product" | "poi";
+  contentType: "itinerary" | "product" | "poi";
   displayOrder: number;
   destinationIds: string[]; // multi-city
   itemIds: string[];
@@ -33,13 +33,7 @@ export const useHomeCarousels = () => {
         .select("collection_id, destination_id")
         .in("collection_id", collectionIds);
 
-      // Get experience links
-      const { data: expLinks } = await (supabase as any)
-        .from("collection_experiences")
-        .select("collection_id, experience_id")
-        .in("collection_id", collectionIds);
-
-      // Get generic collection_items (itineraries, pois, products)
+      // Get collection_items (itineraries, pois, products)
       const { data: itemLinks } = await (supabase as any)
         .from("collection_items")
         .select("collection_id, item_id, item_type, position")
@@ -50,12 +44,6 @@ export const useHomeCarousels = () => {
       (cdLinks || []).forEach((l: any) => {
         if (!destByCollection[l.collection_id]) destByCollection[l.collection_id] = [];
         destByCollection[l.collection_id].push(l.destination_id);
-      });
-
-      const expByCollection: Record<string, string[]> = {};
-      (expLinks || []).forEach((l: any) => {
-        if (!expByCollection[l.collection_id]) expByCollection[l.collection_id] = [];
-        expByCollection[l.collection_id].push(l.experience_id);
       });
 
       const itemsByCollection: Record<string, Record<string, string[]>> = {};
@@ -70,8 +58,8 @@ export const useHomeCarousels = () => {
         const contentType = c.content_type || "itinerary";
         let itemIds: string[] = [];
 
-        if (contentType === "experience" || contentType === "product") {
-          itemIds = expByCollection[c.id] || itemsByCollection[c.id]?.['product'] || itemsByCollection[c.id]?.['experience'] || [];
+        if (contentType === "product") {
+          itemIds = itemsByCollection[c.id]?.['product'] || [];
         } else if (contentType === "poi") {
           itemIds = itemsByCollection[c.id]?.['poi'] || [];
         } else {
