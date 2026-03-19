@@ -285,7 +285,7 @@ const SearchPage = () => {
     </>
   );
 
-  const handleCitySelect = (city: City | null) => { setSelectedCity(city); setSelectedCategory(null); };
+  const handleCitySelect = (city: BrowseDestination | null) => { setSelectedCity(city); setSelectedCategory(null); };
   const handleCategorySelect = (categoryName: string | null) => { setSelectedCategory(categoryName); };
   const clearFilters = () => { setSelectedCity(null); setSelectedCategory(null); setSearchQuery(""); };
 
