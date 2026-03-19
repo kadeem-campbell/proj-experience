@@ -309,47 +309,37 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
   const { data: linkedItems = [], refetch } = useQuery({
     queryKey: ['collection-items-admin', collectionId, contentType],
     queryFn: async () => {
-      if (contentType === 'experience') {
-        const { data } = await (supabase as any)
-          .from('collection_experiences')
-          .select('id, experience_id, display_order, experiences(id, title, location)')
-          .eq('collection_id', collectionId)
-          .order('display_order');
-        return (data || []).map((r: any) => ({ linkId: r.id, itemId: r.experience_id, label: r.experiences?.title || r.experience_id, sub: r.experiences?.location, table: 'collection_experiences' }));
-      } else {
-        // itinerary, poi, product — all use collection_items
-        const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
-        const { data } = await (supabase as any)
-          .from('collection_items')
-          .select('id, item_id, item_type, position')
-          .eq('collection_id', collectionId)
-          .eq('item_type', itemType)
-          .order('position');
-        
-        const ids = (data || []).map((r: any) => r.item_id);
-        let nameMap: Record<string, { label: string; sub?: string }> = {};
-        
-        if (ids.length > 0) {
-          if (contentType === 'poi') {
-            const { data: pois } = await supabase.from('pois').select('id, name, poi_type').in('id', ids);
-            (pois || []).forEach((p: any) => { nameMap[p.id] = { label: p.name, sub: p.poi_type }; });
-          } else if (contentType === 'product') {
-            const { data: products } = await supabase.from('products').select('id, title, slug').in('id', ids);
-            (products || []).forEach((p: any) => { nameMap[p.id] = { label: p.title, sub: p.slug }; });
-          } else {
-            const { data: itins } = await (supabase as any).from('public_itineraries').select('id, name').in('id', ids);
-            (itins || []).forEach((i: any) => { nameMap[i.id] = { label: i.name }; });
-          }
+      const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
+      const { data } = await (supabase as any)
+        .from('collection_items')
+        .select('id, item_id, item_type, position')
+        .eq('collection_id', collectionId)
+        .eq('item_type', itemType)
+        .order('position');
+      
+      const ids = (data || []).map((r: any) => r.item_id);
+      let nameMap: Record<string, { label: string; sub?: string }> = {};
+      
+      if (ids.length > 0) {
+        if (contentType === 'poi') {
+          const { data: pois } = await supabase.from('pois').select('id, name, poi_type').in('id', ids);
+          (pois || []).forEach((p: any) => { nameMap[p.id] = { label: p.name, sub: p.poi_type }; });
+        } else if (contentType === 'product') {
+          const { data: products } = await supabase.from('products').select('id, title, slug').in('id', ids);
+          (products || []).forEach((p: any) => { nameMap[p.id] = { label: p.title, sub: p.slug }; });
+        } else {
+          const { data: itins } = await (supabase as any).from('public_itineraries').select('id, name').in('id', ids);
+          (itins || []).forEach((i: any) => { nameMap[i.id] = { label: i.name }; });
         }
-        
-        return (data || []).map((r: any) => ({
-          linkId: r.id,
-          itemId: r.item_id,
-          label: nameMap[r.item_id]?.label || r.item_id,
-          sub: nameMap[r.item_id]?.sub || r.item_type,
-          table: 'collection_items',
-        }));
       }
+      
+      return (data || []).map((r: any) => ({
+        linkId: r.id,
+        itemId: r.item_id,
+        label: nameMap[r.item_id]?.label || r.item_id,
+        sub: nameMap[r.item_id]?.sub || r.item_type,
+        table: 'collection_items',
+      }));
     },
   });
 
