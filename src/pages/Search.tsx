@@ -451,6 +451,20 @@ const SearchPage = () => {
                         ))}
                       </DesktopScrollRow>
                     );
+                  } else if (carousel.contentType === 'poi') {
+                    const allPoisForCarousel = carousel.itemIds.length > 0
+                      ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
+                      : selectedDestId
+                        ? pois.filter((p: any) => p.destination_id === selectedDestId)
+                        : pois;
+                    if (allPoisForCarousel.length === 0) return;
+                    elements.push(
+                      <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
+                        {allPoisForCarousel.slice(0, 12).map((poi: any) => (
+                          <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
+                        ))}
+                      </DesktopScrollRow>
+                    );
                   }
                 });
 
