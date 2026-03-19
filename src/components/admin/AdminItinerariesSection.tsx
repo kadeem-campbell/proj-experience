@@ -97,7 +97,11 @@ export const AdminItinerariesSection = () => {
         isLoading={isLoading}
         columns={[
           { key: 'name', label: 'Name', width: 'flex-[2]', render: (i: any) => <span className="font-medium">{i.name}</span> },
-          { key: 'slug', label: 'Slug', width: 'flex-1', render: (i: any) => <span className="text-xs font-mono text-muted-foreground">/itineraries/{i.slug}</span> },
+          { key: 'slug', label: 'Slug', width: 'flex-1', render: (i: any) => (
+            <a href={`/itineraries/${i.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-mono text-primary hover:underline">
+              /itineraries/{i.slug} <ExternalLink className="w-3 h-3" />
+            </a>
+          ) },
           {
             key: 'creator_id', label: 'Source', width: 'w-[120px]',
             render: (i: any) => (
