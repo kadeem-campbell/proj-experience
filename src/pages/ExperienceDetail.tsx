@@ -186,6 +186,11 @@ export default function ExperienceDetail() {
   const { data: productHosts = [] } = useProductHosts(product?.id || '');
   const { data: productDestination } = useDestinationBySlug(destParam || '');
 
+  // Fallback: try legacy experiences table when product not found
+  const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug(
+    (!product && !productLoading) ? resolvedSlug : ''
+  );
+
   const handleGoBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
@@ -195,39 +200,69 @@ export default function ExperienceDetail() {
   };
 
   const experience = useMemo(() => {
-    if (!product) return null;
+    if (product) {
+      const hostNames = productHosts.map(h => h.display_name || h.username).join(', ');
+      return {
+        id: product.id,
+        title: product.title,
+        creator: hostNames,
+        videoThumbnail: product.cover_image_url,
+        videoUrl: product.video_url,
+        category: '',
+        location: productDestination?.name || '',
+        description: product.description,
+        duration: product.duration_minutes ? `${product.duration_minutes} min` : '',
+        groupSize: '',
+        rating: 0,
+        price: productOptions.length > 0
+          ? productOptions[0].price_options.map(p => `${p.currency_code} ${p.amount}`).join(' / ')
+          : '',
+        highlights: product.highlights_json || [],
+        gallery: (product.gallery_json && product.gallery_json.length > 0) ? product.gallery_json : (product.cover_image_url ? [product.cover_image_url] : []),
+        bestTime: '',
+        weather: '',
+        meetingPoints: product.meeting_points_json || [],
+        faqs: [] as any[],
+        tiktokVideos: [] as any[],
+        instagramEmbed: '',
+        socialLinks: {} as Record<string, string>,
+        likeCount: 0,
+        slug: product.slug,
+        isProduct: true,
+      };
+    }
 
-    const hostNames = productHosts.map(h => h.display_name || h.username).join(', ');
+    if (legacyExperience) {
+      return {
+        id: legacyExperience.id,
+        title: legacyExperience.title,
+        creator: legacyExperience.creator || '',
+        videoThumbnail: legacyExperience.video_thumbnail || '',
+        videoUrl: legacyExperience.video_url || '',
+        category: legacyExperience.category || '',
+        location: legacyExperience.location || '',
+        description: legacyExperience.description || '',
+        duration: legacyExperience.duration || '',
+        groupSize: legacyExperience.group_size || '',
+        rating: legacyExperience.rating || 0,
+        price: legacyExperience.price || '',
+        highlights: (legacyExperience.highlights as any[]) || [],
+        gallery: (legacyExperience.gallery as any[]) || (legacyExperience.video_thumbnail ? [legacyExperience.video_thumbnail] : []),
+        bestTime: legacyExperience.best_time || '',
+        weather: legacyExperience.weather || '',
+        meetingPoints: (legacyExperience.meeting_points as any[]) || [],
+        faqs: (legacyExperience.faqs as any[]) || [],
+        tiktokVideos: (legacyExperience.tiktok_videos as any[]) || [],
+        instagramEmbed: legacyExperience.instagram_embed || '',
+        socialLinks: (legacyExperience.social_links as Record<string, string>) || {},
+        likeCount: legacyExperience.like_count || 0,
+        slug: legacyExperience.slug || '',
+        isProduct: false,
+      };
+    }
 
-    return {
-      id: product.id,
-      title: product.title,
-      creator: hostNames,
-      videoThumbnail: product.cover_image_url,
-      videoUrl: product.video_url,
-      category: '',
-      location: productDestination?.name || '',
-      description: product.description,
-      duration: product.duration_minutes ? `${product.duration_minutes} min` : '',
-      groupSize: '',
-      rating: 0,
-      price: productOptions.length > 0
-        ? productOptions[0].price_options.map(p => `${p.currency_code} ${p.amount}`).join(' / ')
-        : '',
-      highlights: product.highlights_json || [],
-      gallery: (product.gallery_json && product.gallery_json.length > 0) ? product.gallery_json : (product.cover_image_url ? [product.cover_image_url] : []),
-      bestTime: '',
-      weather: '',
-      meetingPoints: product.meeting_points_json || [],
-      faqs: [] as any[],
-      tiktokVideos: [] as any[],
-      instagramEmbed: '',
-      socialLinks: {} as Record<string, string>,
-      likeCount: 0,
-      slug: product.slug,
-      isProduct: true,
-    };
-  }, [product, productOptions, productDestination, productHosts]);
+    return null;
+  }, [product, productOptions, productDestination, productHosts, legacyExperience]);
 
   // Analytics: track page view
   useEffect(() => {
