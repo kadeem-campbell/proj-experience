@@ -187,6 +187,7 @@ export default function ExperienceDetail() {
   const { data: productOptions = [] } = useProductOptions(product?.id || '');
   const { data: productHosts = [] } = useProductHosts(product?.id || '');
   const { data: productDestination } = useDestinationBySlug(destParam || '');
+  const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
 
   // Fallback: try legacy experiences table when product not found
   const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug(
