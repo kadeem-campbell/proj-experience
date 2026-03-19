@@ -317,14 +317,16 @@ export default function ExperienceDetail() {
 
   const likedByCount = (experience?.likeCount || 0) + likeCountDelta;
 
+  const resolvedDestination = productDestination || productDestinationById;
+
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    if ((experience as any).isProduct && (productDestination || productDestinationById)) {
-      const dest = productDestination || productDestinationById;
+    if ((experience as any).isProduct && resolvedDestination) {
+      return `${baseUrl}/things-to-do/${resolvedDestination.slug}/${experience.slug || ''}`;
     }
     return `${baseUrl}${generateProductPageUrl(experience.location, experience.title, (experience as any).slug)}`;
-  }, [experience, productDestination]);
+  }, [experience, resolvedDestination]);
 
   useEffect(() => {
     if (experience) {
