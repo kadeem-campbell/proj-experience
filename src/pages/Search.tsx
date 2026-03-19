@@ -4,13 +4,11 @@ import { SEOHead, createWebsiteJsonLd } from "@/components/SEOHead";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { ProductCard } from "@/components/ProductCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
-import { FixedSearchHeader } from "@/components/FixedSearchHeader";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { MobileHomeView } from "@/components/MobileHomeView";
 import { useItineraries } from "@/hooks/useItineraries";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BrowseDestination } from "@/hooks/useDestinations";
 import { useDestinations } from "@/hooks/useDestinations";
