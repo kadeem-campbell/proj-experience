@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Archive, Eye, RefreshCw, Plus, Trash2, CheckCircle, AlertTriangle, XCircle, ExternalLink } from 'lucide-react';
 import { generateEntityDocuments } from '@/services/entityDocGenerator';
 import { validateProduct, persistReadinessScore, persistValidationResults } from '@/services/publishValidator';
@@ -215,6 +216,13 @@ export const AdminProductsSection = () => {
           <div><Label className="text-xs text-muted-foreground">SEO Title</Label><Input value={item.seo_title || ''} onChange={e => onChange('seo_title', e.target.value)} maxLength={60} /></div>
         </div>
         <div><Label className="text-xs text-muted-foreground">SEO Description</Label><Textarea value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} rows={2} /></div>
+
+        <Separator />
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Social Media</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label className="text-xs text-muted-foreground">TikTok URL</Label><Input placeholder="https://tiktok.com/@..." value={item.tiktok_url || ''} onChange={e => onChange('tiktok_url', e.target.value)} /></div>
+          <div><Label className="text-xs text-muted-foreground">Instagram URL</Label><Input placeholder="https://instagram.com/..." value={item.instagram_url || ''} onChange={e => onChange('instagram_url', e.target.value)} /></div>
+        </div>
       </TabsContent>
 
       {/* ======= GEOGRAPHY ======= */}
@@ -265,6 +273,17 @@ export const AdminProductsSection = () => {
 
       {/* ======= OPTIONS & PRICING (inline sub-editor) ======= */}
       <TabsContent value="options" className="space-y-3 mt-3">
+        <div className="space-y-3">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Average Price Per Person</h4>
+          <p className="text-xs text-muted-foreground">Indicative price for display on cards and search results.</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Amount (USD)</Label>
+              <Input type="number" placeholder="e.g. 45" value={item.average_price_per_person || ''} onChange={e => onChange('average_price_per_person', parseFloat(e.target.value) || null)} />
+            </div>
+          </div>
+          <Separator />
+        </div>
         {item.id ? <OptionsEditor productId={item.id} /> : <p className="text-xs text-muted-foreground">Save the product first to manage options.</p>}
       </TabsContent>
 
