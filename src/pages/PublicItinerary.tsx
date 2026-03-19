@@ -245,15 +245,13 @@ const PublicItinerary = () => {
     return { savedBy };
   }, [itinerary, likeCountDelta]);
 
-  // Filter and order experiences for list/icons - only show DB-verified experiences
+  // Filter and order experiences for list/icons - show all valid UUID experiences
   const filteredExperiences = useMemo(() => {
     if (!itinerary) return [];
-    const dbIds = new Set(allDbExperiences.map(e => e.id));
-    // Filter: only keep experiences that exist in DB (have valid UUIDs matching DB records)
+    // Filter: only keep experiences that have valid UUIDs (already enriched by usePublicItineraries)
     let exps = itinerary.experiences.filter(e => {
-      // Valid UUID format check + must exist in DB
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(e.id);
-      return isUUID && dbIds.has(e.id);
+      return isUUID;
     });
     // Apply sort
     if (sortMode === 'name') {
