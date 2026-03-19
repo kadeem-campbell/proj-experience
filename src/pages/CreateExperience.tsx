@@ -419,11 +419,22 @@ export default function CreateExperience() {
           </Card>
         );
 
-      case 'location':
+      case 'location': {
+        const destName = destinations.find(d => d.id === form.destinationId)?.name;
+        const areaName = areas.find((a: any) => a.id === form.areaId)?.name;
         return (
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-bold">Location</h2>
             <IssuesBanner step="location" />
+
+            {/* Location summary badge */}
+            {(destName || areaName) && (
+              <div className="flex items-center gap-2 text-sm bg-muted rounded-md px-3 py-2">
+                <MapPin className="w-4 h-4 text-primary shrink-0" />
+                <span className="font-medium">{[destName, areaName].filter(Boolean).join(' → ')}</span>
+              </div>
+            )}
+
             <div>
               <Label>Destination *</Label>
               <Select value={form.destinationId} onValueChange={v => { set('destinationId', v); set('areaId', ''); }}>
@@ -441,7 +452,7 @@ export default function CreateExperience() {
                 <Select value={form.areaId} onValueChange={v => set('areaId', v)}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Select area (optional)" /></SelectTrigger>
                   <SelectContent>
-                    {areas.map(a => (
+                    {areas.map((a: any) => (
                       <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -450,6 +461,7 @@ export default function CreateExperience() {
             )}
           </Card>
         );
+      }
 
       case 'options':
         return (
