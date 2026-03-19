@@ -3465,6 +3465,54 @@ export type Database = {
           },
         ]
       }
+      product_relationships: {
+        Row: {
+          created_at: string | null
+          id: string
+          reason_text: string | null
+          relationship_type: string
+          score: number | null
+          source_product_id: string
+          target_product_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reason_text?: string | null
+          relationship_type?: string
+          score?: number | null
+          source_product_id: string
+          target_product_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reason_text?: string | null
+          relationship_type?: string
+          score?: number | null
+          source_product_id?: string
+          target_product_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_relationships_source_product_id_fkey"
+            columns: ["source_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_relationships_target_product_id_fkey"
+            columns: ["target_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_themes: {
         Row: {
           created_at: string | null
