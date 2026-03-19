@@ -189,13 +189,8 @@ const synonyms: Record<string, string[]> = {
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState<City | null>(() => {
-    const cityParam = searchParams.get("city");
-    if (cityParam) {
-      return browseDataCities.find(c => c.name.toLowerCase() === cityParam.toLowerCase()) || null;
-    }
-    return null;
-  });
+  const [selectedCity, setSelectedCity] = useState<BrowseDestination | null>(null);
+  const { data: allDestinations = [] } = useDestinations();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const experiences = useProductListings();
   const { data: popularItinerariesForSearch = [] } = usePopularItineraries();
