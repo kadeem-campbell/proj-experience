@@ -687,12 +687,7 @@ export default function ExperienceDetail() {
               </div>
             )}
 
-            {/* Save + Follow bar */}
-            <SaveFollowBar
-              experienceId={experience.id}
-              hostId={productHosts.length > 0 ? productHosts[0]?.id : undefined}
-              hostName={creatorNames[0]}
-            />
+            {/* Save + Follow removed — follow is host-side only */}
 
             {/* Best for personas */}
             {/* Best for personas - now driven by intent affinities */}
