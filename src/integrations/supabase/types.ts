@@ -3590,6 +3590,7 @@ export type Database = {
           area_id: string | null
           canonical_url: string | null
           cover_image: string | null
+          cover_image_url: string | null
           created_at: string | null
           description: string | null
           destination_id: string | null
@@ -3598,6 +3599,7 @@ export type Database = {
           id: string
           indexability_state: string | null
           meeting_points: Json | null
+          product_family: string
           publish_score: number | null
           publish_state: string | null
           slug: string
@@ -3611,6 +3613,7 @@ export type Database = {
           area_id?: string | null
           canonical_url?: string | null
           cover_image?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
           description?: string | null
           destination_id?: string | null
@@ -3619,6 +3622,7 @@ export type Database = {
           id?: string
           indexability_state?: string | null
           meeting_points?: Json | null
+          product_family?: string
           publish_score?: number | null
           publish_state?: string | null
           slug: string
@@ -3632,6 +3636,7 @@ export type Database = {
           area_id?: string | null
           canonical_url?: string | null
           cover_image?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
           description?: string | null
           destination_id?: string | null
@@ -3640,6 +3645,7 @@ export type Database = {
           id?: string
           indexability_state?: string | null
           meeting_points?: Json | null
+          product_family?: string
           publish_score?: number | null
           publish_state?: string | null
           slug?: string
