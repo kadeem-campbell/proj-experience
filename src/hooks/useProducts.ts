@@ -206,7 +206,7 @@ export const useProducts = (filters?: { destinationId?: string; areaId?: string;
   return useQuery({
     queryKey: ["products", filters],
     queryFn: async (): Promise<Product[]> => {
-      let query = supabase.from("products").select("*");
+      let query = supabase.from("products").select("*") as any;
       if (filters?.destinationId) query = query.eq("destination_id", filters.destinationId);
       if (filters?.areaId) query = query.eq("primary_area_id", filters.areaId);
       if (filters?.activityTypeId) query = query.eq("activity_type_id", filters.activityTypeId);
