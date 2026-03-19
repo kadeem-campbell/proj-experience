@@ -224,20 +224,20 @@ export const AdminProductsSection = () => {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Area</Label>
-            <Select value={item.primary_area_id || ''} onValueChange={v => onChange('primary_area_id', v || null)}>
+            <Select value={item.primary_area_id || '__none__'} onValueChange={v => onChange('primary_area_id', v === '__none__' ? null : v)}>
               <SelectTrigger><SelectValue placeholder="Select area" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="__none__">None</SelectItem>
                 {areas.filter((a: any) => !item.destination_id || a.destination_id === item.destination_id).map((a: any) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">POI</Label>
-            <Select value={item.primary_poi_id || ''} onValueChange={v => onChange('primary_poi_id', v || null)}>
+            <Select value={item.primary_poi_id || '__none__'} onValueChange={v => onChange('primary_poi_id', v === '__none__' ? null : v)}>
               <SelectTrigger><SelectValue placeholder="Select POI" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="__none__">None</SelectItem>
                 {pois.filter((p: any) => !item.primary_area_id || p.area_id === item.primary_area_id).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -611,18 +611,27 @@ const OutputsViewer = ({ productId }: { productId: string }) => {
 
   const docTypes = ['json_ld', 'llm_grounding', 'search_document', 'feed_document', 'public_page_payload'];
 
-  const regenerate = async (docType: string) => {
-    // Upsert a pending doc to trigger generation (actual generation is a separate pipeline)
-    await supabase.from('entity_documents').upsert({
-      entity_type: 'product', entity_id: productId, document_type: docType,
-      generation_status: 'pending', generated_at: new Date().toISOString(), document_json: {},
-    } as any, { onConflict: 'entity_type,entity_id,document_type' });
-    qc.invalidateQueries({ queryKey: ['admin-entity-docs', productId] });
-    toast({ title: `Queued ${docType} for regeneration` });
+  const [generating, setGenerating] = useState<string | null>(null);
+
+  const regenerate = async (docType?: string) => {
+    setGenerating(docType || 'all');
+    try {
+      await generateEntityDocuments(productId);
+      qc.invalidateQueries({ queryKey: ['admin-entity-docs', productId] });
+      toast({ title: docType ? `Regenerated ${docType}` : 'All documents regenerated' });
+    } catch (e) {
+      toast({ title: 'Generation failed', description: String(e), variant: 'destructive' });
+    } finally {
+      setGenerating(null);
+    }
   };
 
   return (
     <div className="space-y-3">
+      <Button size="sm" onClick={() => regenerate()} disabled={!!generating}>
+        <RefreshCw className={`w-3 h-3 mr-1 ${generating === 'all' ? 'animate-spin' : ''}`} />
+        {generating === 'all' ? 'Generating…' : 'Regenerate All Documents'}
+      </Button>
       {docTypes.map(dt => {
         const doc = docs.find((d: any) => d.document_type === dt);
         return (
@@ -637,7 +646,9 @@ const OutputsViewer = ({ productId }: { productId: string }) => {
                   </div>
                 ) : <p className="text-xs text-muted-foreground">Not generated</p>}
               </div>
-              <Button size="sm" variant="outline" onClick={() => regenerate(dt)}><RefreshCw className="w-3 h-3 mr-1" />Regenerate</Button>
+              <Button size="sm" variant="outline" disabled={!!generating} onClick={() => regenerate(dt)}>
+                <RefreshCw className={`w-3 h-3 mr-1 ${generating === dt ? 'animate-spin' : ''}`} />Regenerate
+              </Button>
             </div>
             {doc?.document_json && Object.keys(doc.document_json).length > 0 && (
               <pre className="mt-2 text-[10px] bg-muted p-2 rounded max-h-32 overflow-auto font-mono">{JSON.stringify(doc.document_json, null, 2)}</pre>
