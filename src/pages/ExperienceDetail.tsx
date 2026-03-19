@@ -199,24 +199,40 @@ export default function ExperienceDetail() {
     }
   };
 
+  // Fetch activity type name for product
+  const { data: productActivityType } = useQuery({
+    queryKey: ["activity-type-single", product?.activity_type_id],
+    queryFn: async () => {
+      if (!product?.activity_type_id) return null;
+      const { data } = await supabase
+        .from("activity_types")
+        .select("name, emoji")
+        .eq("id", product.activity_type_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!product?.activity_type_id,
+  });
+
   const experience = useMemo(() => {
     if (product) {
       const hostNames = productHosts.map(h => h.display_name || h.username).join(', ');
+      const avgPrice = (product as any).average_price_per_person;
       return {
         id: product.id,
         title: product.title,
         creator: hostNames,
         videoThumbnail: product.cover_image_url,
         videoUrl: product.video_url,
-        category: '',
+        category: productActivityType?.name || '',
         location: productDestination?.name || '',
         description: product.description,
         duration: product.duration_minutes ? `${product.duration_minutes} min` : '',
         groupSize: '',
         rating: 0,
-        price: productOptions.length > 0
+        price: avgPrice ? `$${avgPrice} avg` : (productOptions.length > 0
           ? productOptions[0].price_options.map(p => `${p.currency_code} ${p.amount}`).join(' / ')
-          : '',
+          : ''),
         highlights: product.highlights_json || [],
         gallery: (product.gallery_json && product.gallery_json.length > 0) ? product.gallery_json : (product.cover_image_url ? [product.cover_image_url] : []),
         bestTime: '',
@@ -224,8 +240,11 @@ export default function ExperienceDetail() {
         meetingPoints: product.meeting_points_json || [],
         faqs: [] as any[],
         tiktokVideos: [] as any[],
-        instagramEmbed: '',
-        socialLinks: {} as Record<string, string>,
+        instagramEmbed: (product as any).instagram_url || '',
+        socialLinks: {
+          ...(product as any).tiktok_url ? { tiktok: (product as any).tiktok_url } : {},
+          ...(product as any).instagram_url ? { instagram: (product as any).instagram_url } : {},
+        } as Record<string, string>,
         likeCount: 0,
         slug: product.slug,
         isProduct: true,
