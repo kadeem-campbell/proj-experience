@@ -320,8 +320,8 @@ export default function ExperienceDetail() {
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    if ((experience as any).isProduct && productDestination) {
-      return `${baseUrl}/things-to-do/${productDestination.slug}/${experience.slug || ''}`;
+    if ((experience as any).isProduct && (productDestination || productDestinationById)) {
+      const dest = productDestination || productDestinationById;
     }
     return `${baseUrl}${generateProductPageUrl(experience.location, experience.title, (experience as any).slug)}`;
   }, [experience, productDestination]);
