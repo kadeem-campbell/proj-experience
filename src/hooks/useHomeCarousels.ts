@@ -43,7 +43,17 @@ export const useHomeCarousels = () => {
       const destByCollection: Record<string, string[]> = {};
       (cdLinks || []).forEach((l: any) => {
         if (!destByCollection[l.collection_id]) destByCollection[l.collection_id] = [];
-        destByCollection[l.collection_id].push(l.destination_id);
+        if (l.destination_id && !destByCollection[l.collection_id].includes(l.destination_id)) {
+          destByCollection[l.collection_id].push(l.destination_id);
+        }
+      });
+
+      collections.forEach((c: any) => {
+        if (!c.destination_id) return;
+        if (!destByCollection[c.id]) destByCollection[c.id] = [];
+        if (!destByCollection[c.id].includes(c.destination_id)) {
+          destByCollection[c.id].push(c.destination_id);
+        }
       });
 
       const itemsByCollection: Record<string, string[]> = {};
