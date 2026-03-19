@@ -33,6 +33,35 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
     return [];
   }
 
+  // Collect all product IDs from JSONB experiences to enrich in one query
+  const allProductIds = new Set<string>();
+  data.forEach((row: any) => {
+    const exps = Array.isArray(row.experiences) ? row.experiences : [];
+    exps.forEach((e: any) => {
+      if (e.id && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(e.id)) {
+        allProductIds.add(e.id);
+      }
+    });
+  });
+
+  // Fetch product details for enrichment
+  let productMap: Record<string, any> = {};
+  if (allProductIds.size > 0) {
+    const ids = Array.from(allProductIds);
+    // Batch in chunks of 100
+    for (let i = 0; i < ids.length; i += 100) {
+      const chunk = ids.slice(i, i + 100);
+      const { data: products } = await supabase
+        .from("products")
+        .select("id, title, slug, cover_image_url, video_url, destination_id")
+        .in("id", chunk);
+      if (products) {
+        products.forEach((p: any) => { productMap[p.id] = p; });
+      }
+    }
+  }
+
+  // Also try the join table
   const itineraryIds = data.map((row: any) => row.id);
   let linkedByItinerary: Record<string, LikedExperience[]> = {};
 
@@ -47,7 +76,6 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       linkedByItinerary = linkedRows.reduce((acc: Record<string, LikedExperience[]>, row: any) => {
         const exp = row.experiences;
         if (!exp) return acc;
-
         if (!acc[row.itinerary_id]) acc[row.itinerary_id] = [];
         acc[row.itinerary_id].push({
           id: exp.id,
@@ -66,27 +94,37 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
   }
 
   return data.map((row: any) => {
-    let jsonFallback: LikedExperience[] = [];
+    // Build experiences from JSONB, enriched with product data
+    let jsonExperiences: LikedExperience[] = [];
+    const rawExps = Array.isArray(row.experiences) ? row.experiences : [];
+    
+    jsonExperiences = rawExps
+      .filter((e: any) => e.id)
+      .map((e: any) => {
+        const product = productMap[e.id];
+        return {
+          id: e.id,
+          title: product?.title || e.title || "",
+          creator: e.creator || "",
+          videoThumbnail: product?.cover_image_url || e.videoThumbnail || "",
+          category: e.category || "",
+          location: e.location || "",
+          price: e.price || "",
+          likedAt: e.likedAt || new Date().toISOString(),
+          slug: product?.slug || e.slug || "",
+        } as LikedExperience;
+      });
 
-    if (Array.isArray(row.experiences)) {
-      jsonFallback = row.experiences;
-    } else if (typeof row.experiences === 'string') {
-      try {
-        const parsed = JSON.parse(row.experiences);
-        jsonFallback = Array.isArray(parsed) ? parsed : [];
-      } catch {
-        jsonFallback = [];
-      }
-    }
-
+    // Prefer join table if it has data, otherwise use enriched JSONB
     const linkedExperiences = linkedByItinerary[row.id] || [];
+    const experiences = linkedExperiences.length > 0 ? linkedExperiences : jsonExperiences;
 
     return {
       id: row.slug || row.id,
       dbId: row.id,
       name: row.name,
       slug: row.slug,
-      experiences: linkedExperiences,
+      experiences,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       isPublic: true,
