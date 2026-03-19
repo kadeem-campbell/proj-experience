@@ -30,7 +30,7 @@ const SidebarToggleButton = () => {
       variant="ghost"
       size="icon"
       onClick={toggleSidebar}
-      className="fixed top-3 left-3 z-50 h-8 w-8 shrink-0"
+      className="fixed top-3 left-3 z-50 h-8 w-8 shrink-0 hover:bg-muted"
     >
       {collapsed ? (
         <PanelLeft className="w-4 h-4" />
