@@ -94,8 +94,21 @@ export const AdminProductsSection = () => {
       const { error } = await supabase.from('products').update(rest as any).eq('id', id);
       if (error) throw error;
     }
+    // Auto-validate and generate docs after save
+    if (id || !isNew) {
+      const productId = id || rest.id;
+      if (productId) {
+        try {
+          const result = validateProduct({ product: { ...rest, id: productId } });
+          await persistReadinessScore(result);
+          await persistValidationResults(result);
+          await supabase.from('products').update({ publish_score: result.publish_score } as any).eq('id', productId);
+          await generateEntityDocuments(productId);
+        } catch (e) { console.warn('Post-save validation/generation:', e); }
+      }
+    }
     invalidate();
-    toast({ title: isNew ? 'Product created' : 'Product saved' });
+    toast({ title: isNew ? 'Product created' : 'Product saved & validated' });
   };
 
   const deleteFn = async (ids: string[]) => {
