@@ -224,10 +224,10 @@ export const AdminProductsSection = () => {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Area</Label>
-            <Select value={item.primary_area_id || ''} onValueChange={v => onChange('primary_area_id', v || null)}>
+            <Select value={item.primary_area_id || '__none__'} onValueChange={v => onChange('primary_area_id', v === '__none__' ? null : v)}>
               <SelectTrigger><SelectValue placeholder="Select area" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="__none__">None</SelectItem>
                 {areas.filter((a: any) => !item.destination_id || a.destination_id === item.destination_id).map((a: any) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
               </SelectContent>
             </Select>
