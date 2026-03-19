@@ -75,6 +75,91 @@ export const AdminBulkOps = () => {
   );
 };
 
+// ============ PRODUCT BULK OPS ============
+const BULK_ACTIONS = [
+  { id: 'dest_remap', label: 'Bulk Destination Remap', field: 'destination_id' },
+  { id: 'area_remap', label: 'Bulk Area Remap', field: 'primary_area_id' },
+  { id: 'poi_remap', label: 'Bulk POI Remap', field: 'primary_poi_id' },
+  { id: 'publish_state', label: 'Bulk Publish State', field: 'publish_state' },
+  { id: 'visibility', label: 'Bulk Visibility', field: 'visibility_output_state' },
+  { id: 'indexability', label: 'Bulk Indexability', field: 'indexability_state' },
+];
+
+const ProductBulkPanel = () => {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [action, setAction] = useState(BULK_ACTIONS[0].id);
+  const [newValue, setNewValue] = useState('');
+  const [productIds, setProductIds] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const selectedAction = BULK_ACTIONS.find(a => a.id === action)!;
+
+  const run = async () => {
+    const ids = productIds.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    if (!ids.length || !newValue) { toast({ title: 'Provide IDs and value', variant: 'destructive' }); return; }
+    setLoading(true);
+    let ok = 0, fail = 0;
+    for (const id of ids) {
+      const { error } = await (supabase as any).from('products').update({ [selectedAction.field]: newValue }).eq('id', id);
+      if (error) fail++; else ok++;
+    }
+    setLoading(false);
+    qc.invalidateQueries();
+    toast({ title: `${ok} updated, ${fail} failed` });
+  };
+
+  const regenerateDocs = async () => {
+    const ids = productIds.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    if (!ids.length) { toast({ title: 'Provide product IDs', variant: 'destructive' }); return; }
+    setLoading(true);
+    const docTypes = ['json_ld', 'llm_grounding', 'search_document', 'feed_document', 'public_page_payload'];
+    for (const pid of ids) {
+      for (const dt of docTypes) {
+        await (supabase as any).from('entity_documents').upsert({
+          entity_type: 'product', entity_id: pid, document_type: dt,
+          generation_status: 'pending', generated_at: new Date().toISOString(), document_json: {},
+        }, { onConflict: 'entity_type,entity_id,document_type' });
+      }
+    }
+    setLoading(false);
+    qc.invalidateQueries();
+    toast({ title: `Queued ${ids.length * docTypes.length} documents for regeneration` });
+  };
+
+  return (
+    <Card className="p-6 space-y-4">
+      <p className="text-sm font-medium">Product-specific bulk operations</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-xs text-muted-foreground mb-1">Action</p>
+          <Select value={action} onValueChange={setAction}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{BULK_ACTIONS.map(a => <SelectItem key={a.id} value={a.id}>{a.label}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1">New value (UUID or state string)</p>
+          <Input value={newValue} onChange={e => setNewValue(e.target.value)} placeholder={`New ${selectedAction.field}`} />
+        </div>
+      </div>
+      <div>
+        <p className="text-xs text-muted-foreground mb-1">Product IDs (one per line or comma-separated)</p>
+        <Textarea value={productIds} onChange={e => setProductIds(e.target.value)} rows={5} className="font-mono text-xs" />
+        <p className="text-xs text-muted-foreground mt-1">{productIds.split(/[\n,]+/).filter(Boolean).length} products</p>
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={run} disabled={loading}>
+          {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Apply Update
+        </Button>
+        <Button variant="outline" onClick={regenerateDocs} disabled={loading}>
+          Regenerate All Docs
+        </Button>
+      </div>
+    </Card>
+  );
+};
+
 // ============ CSV IMPORT ============
 const CSVImportPanel = () => {
   const { toast } = useToast();
