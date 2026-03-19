@@ -971,7 +971,7 @@ const ProductLinksViewer = ({ productId, productTitle }: { productId: string; pr
   const { data: collectionLinks = [] } = useQuery({
     queryKey: ['admin-product-collection-links', productId],
     queryFn: async () => {
-      const { data } = await (supabase as any).from('collection_items').select('id, collection_id, position').eq('item_id', productId).eq('item_type', 'product');
+      const { data } = await (supabase as any).from('collection_items').select('id, collection_id, position').eq('item_id', productId).in('item_type', ['product', 'experience']);
       if (!data?.length) return [];
       const collIds = data.map((ci: any) => ci.collection_id);
       const { data: colls } = await (supabase as any).from('collections').select('id, name, slug').in('id', collIds);
