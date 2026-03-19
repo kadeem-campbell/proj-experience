@@ -249,7 +249,7 @@ const CarouselRow = ({ col, destinations, destIds, expandedId, setExpandedId, ha
             </div>
             <div>
               <Label className="text-xs">Content Type</Label>
-              <Select defaultValue={col.content_type || 'itinerary'} onValueChange={v => handleUpdate(col.id, { content_type: v, collection_type: v === 'itinerary' ? 'itineraries' : v === 'experience' ? 'experiences' : v === 'product' ? 'products' : 'pois' })}>
+              <Select defaultValue={col.content_type || 'itinerary'} onValueChange={v => handleUpdate(col.id, { content_type: v, collection_type: v === 'itinerary' ? 'itineraries' : v === 'product' ? 'products' : 'pois' })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {CONTENT_TYPES.map(ct => (
