@@ -68,6 +68,8 @@ export interface Destination {
   is_active: boolean;
   country_id: string | null;
   flag_svg_url: string;
+  flag_emoji?: string;
+  iata_code: string | null;
 }
 
 export interface Area {
