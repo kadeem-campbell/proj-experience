@@ -668,7 +668,7 @@ export default function CreateExperience() {
             <div className="flex gap-3 justify-center">
               <Button onClick={() => navigate('/admin')}>Go to Admin</Button>
               <Button variant="outline" onClick={() => {
-                setForm({ title: '', description: '', destinationId: '', areaId: '', activityTypeId: '', themeIds: [], coverImage: '', videoUrl: '', highlights: '' });
+                setForm({ title: '', description: '', destinationId: '', areaId: '', activityTypeId: '', themeIds: [], coverImage: '', videoUrl: '', highlights: '', seoTitle: '', seoDescription: '', averagePricePerPerson: '' });
                 setOptions([defaultOption()]);
                 setHostId('');
                 setSelectedItineraryIds([]);
