@@ -3588,6 +3588,7 @@ export type Database = {
         Row: {
           activity_type_id: string | null
           area_id: string | null
+          average_price_per_person: number | null
           canonical_url: string | null
           cover_image: string | null
           cover_image_url: string | null
@@ -3599,9 +3600,13 @@ export type Database = {
           id: string
           indexability_state: string | null
           meeting_points: Json | null
+          primary_area_id: string | null
+          primary_poi_id: string | null
           product_family: string
           publish_score: number | null
           publish_state: string | null
+          seo_description: string | null
+          seo_title: string | null
           slug: string
           title: string
           updated_at: string | null
@@ -3611,6 +3616,7 @@ export type Database = {
         Insert: {
           activity_type_id?: string | null
           area_id?: string | null
+          average_price_per_person?: number | null
           canonical_url?: string | null
           cover_image?: string | null
           cover_image_url?: string | null
@@ -3622,9 +3628,13 @@ export type Database = {
           id?: string
           indexability_state?: string | null
           meeting_points?: Json | null
+          primary_area_id?: string | null
+          primary_poi_id?: string | null
           product_family?: string
           publish_score?: number | null
           publish_state?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
           title: string
           updated_at?: string | null
@@ -3634,6 +3644,7 @@ export type Database = {
         Update: {
           activity_type_id?: string | null
           area_id?: string | null
+          average_price_per_person?: number | null
           canonical_url?: string | null
           cover_image?: string | null
           cover_image_url?: string | null
@@ -3645,9 +3656,13 @@ export type Database = {
           id?: string
           indexability_state?: string | null
           meeting_points?: Json | null
+          primary_area_id?: string | null
+          primary_poi_id?: string | null
           product_family?: string
           publish_score?: number | null
           publish_state?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
           title?: string
           updated_at?: string | null
@@ -3674,6 +3689,13 @@ export type Database = {
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_primary_area_id_fkey"
+            columns: ["primary_area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
             referencedColumns: ["id"]
           },
         ]

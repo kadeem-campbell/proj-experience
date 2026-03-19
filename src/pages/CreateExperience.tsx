@@ -90,7 +90,14 @@ export default function CreateExperience() {
     coverImage: '',
     videoUrl: '',
     highlights: '',
+    seoTitle: '',
+    seoDescription: '',
+    averagePricePerPerson: '',
   });
+
+  // Related products state
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [selectedRelatedProductIds, setSelectedRelatedProductIds] = useState<string[]>([]);
 
   const [options, setOptions] = useState<OptionRow[]>([defaultOption()]);
 
@@ -111,15 +118,17 @@ export default function CreateExperience() {
     }
   }, [form.destinationId]);
 
-  // Fetch itineraries & collections for linking
+  // Fetch itineraries, collections & existing products for linking
   useEffect(() => {
     (async () => {
-      const [{ data: itin }, { data: coll }] = await Promise.all([
+      const [{ data: itin }, { data: coll }, { data: prods }] = await Promise.all([
         supabase.from("public_itineraries").select("id, name, slug").eq("is_active", true).order("name"),
         supabase.from("collections").select("id, name, slug").eq("is_active", true).order("name"),
+        (supabase as any).from("products").select("id, title, slug").order("title").limit(500),
       ]);
       setItineraries(itin || []);
       setCollections(coll || []);
+      setAllProducts(prods || []);
     })();
   }, []);
 
@@ -192,7 +201,7 @@ export default function CreateExperience() {
     try {
       const slug = toSlug(form.title);
 
-      // 1. Create Product (only columns that exist)
+      // 1. Create Product
       const { data: product, error: pErr } = await (supabase as any)
         .from("products")
         .insert({
@@ -200,11 +209,14 @@ export default function CreateExperience() {
           slug,
           description: form.description,
           destination_id: form.destinationId || null,
-          area_id: form.areaId || null,
+          primary_area_id: form.areaId || null,
           activity_type_id: form.activityTypeId || null,
           cover_image: form.coverImage || '',
           video_url: form.videoUrl || '',
           highlights: form.highlights ? form.highlights.split('\n').filter(Boolean) : [],
+          seo_title: form.seoTitle || form.title,
+          seo_description: form.seoDescription || form.description?.slice(0, 160) || '',
+          average_price_per_person: form.averagePricePerPerson ? parseFloat(form.averagePricePerPerson) : null,
           publish_score: 0,
           publish_state: 'published',
           visibility_output_state: 'public',
@@ -306,6 +318,18 @@ export default function CreateExperience() {
         });
       }
 
+      // 8. Link related products
+      if (selectedRelatedProductIds.length > 0) {
+        await (supabase as any).from("product_relationships").insert(
+          selectedRelatedProductIds.map(relId => ({
+            source_product_id: productId,
+            target_product_id: relId,
+            relationship_type: 'related',
+            score: 1.0,
+          }))
+        );
+      }
+
       toast({ title: "Product Created!", description: `"${form.title}" created with ${options.length} option(s). Run validation in Admin to publish.` });
       setCurrentStep('confirmation');
     } catch (err: any) {
@@ -379,14 +403,38 @@ export default function CreateExperience() {
                 ))}
               </div>
             </div>
+
+            <Separator />
+            <h3 className="font-semibold text-sm">SEO</h3>
+            <div>
+              <Label>SEO Title <span className="text-xs text-muted-foreground">(max 60 chars)</span></Label>
+              <Input placeholder={form.title || "Auto-generated from title"} value={form.seoTitle} onChange={e => set('seoTitle', e.target.value)} className="mt-1" maxLength={60} />
+              <p className="text-xs text-muted-foreground mt-1">{form.seoTitle.length}/60</p>
+            </div>
+            <div>
+              <Label>SEO Description <span className="text-xs text-muted-foreground">(max 160 chars)</span></Label>
+              <Textarea placeholder="Auto-generated from description" value={form.seoDescription} onChange={e => set('seoDescription', e.target.value)} className="mt-1" rows={2} />
+              <p className="text-xs text-muted-foreground mt-1">{form.seoDescription.length}/160</p>
+            </div>
           </Card>
         );
 
-      case 'location':
+      case 'location': {
+        const destName = destinations.find(d => d.id === form.destinationId)?.name;
+        const areaName = areas.find((a: any) => a.id === form.areaId)?.name;
         return (
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-bold">Location</h2>
             <IssuesBanner step="location" />
+
+            {/* Location summary badge */}
+            {(destName || areaName) && (
+              <div className="flex items-center gap-2 text-sm bg-muted rounded-md px-3 py-2">
+                <MapPin className="w-4 h-4 text-primary shrink-0" />
+                <span className="font-medium">{[destName, areaName].filter(Boolean).join(' → ')}</span>
+              </div>
+            )}
+
             <div>
               <Label>Destination *</Label>
               <Select value={form.destinationId} onValueChange={v => { set('destinationId', v); set('areaId', ''); }}>
@@ -404,7 +452,7 @@ export default function CreateExperience() {
                 <Select value={form.areaId} onValueChange={v => set('areaId', v)}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Select area (optional)" /></SelectTrigger>
                   <SelectContent>
-                    {areas.map(a => (
+                    {areas.map((a: any) => (
                       <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -413,6 +461,7 @@ export default function CreateExperience() {
             )}
           </Card>
         );
+      }
 
       case 'options':
         return (
@@ -509,6 +558,29 @@ export default function CreateExperience() {
                 ))}
               </div>
             ))}
+
+            <Separator />
+            <h3 className="font-semibold text-sm">Average Price Per Person</h3>
+            <p className="text-xs text-muted-foreground">Set the indicative price per person for display. This is managed separately from option-level pricing and used for cards/search.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Amount (USD)</Label>
+                <Input type="number" placeholder="e.g. 45" value={form.averagePricePerPerson} onChange={e => set('averagePricePerPerson', e.target.value)} className="mt-1" />
+              </div>
+            </div>
+
+            <Separator />
+            <h3 className="font-semibold text-sm">Related Products</h3>
+            <p className="text-xs text-muted-foreground">Link multiple related products for cross-selling ("often paired with"). Select as many as needed.</p>
+            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+              {allProducts.filter(p => p.id !== createdProductId).map(p => (
+                <Badge key={p.id} variant={selectedRelatedProductIds.includes(p.id) ? "default" : "outline"} className="cursor-pointer text-xs"
+                  onClick={() => setSelectedRelatedProductIds(prev => prev.includes(p.id) ? prev.filter((id: string) => id !== p.id) : [...prev, p.id])}>
+                  {p.title}
+                </Badge>
+              ))}
+              {allProducts.length === 0 && <p className="text-xs text-muted-foreground">No existing products found.</p>}
+            </div>
           </Card>
         );
 
@@ -644,11 +716,12 @@ export default function CreateExperience() {
             <div className="flex gap-3 justify-center">
               <Button onClick={() => navigate('/admin')}>Go to Admin</Button>
               <Button variant="outline" onClick={() => {
-                setForm({ title: '', description: '', destinationId: '', areaId: '', activityTypeId: '', themeIds: [], coverImage: '', videoUrl: '', highlights: '' });
+                setForm({ title: '', description: '', destinationId: '', areaId: '', activityTypeId: '', themeIds: [], coverImage: '', videoUrl: '', highlights: '', seoTitle: '', seoDescription: '', averagePricePerPerson: '' });
                 setOptions([defaultOption()]);
                 setHostId('');
                 setSelectedItineraryIds([]);
                 setSelectedCollectionIds([]);
+                setSelectedRelatedProductIds([]);
                 setCreatedProductId(null);
                 setCurrentStep('basic');
               }}>Create Another</Button>
