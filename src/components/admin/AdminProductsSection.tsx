@@ -272,6 +272,17 @@ export const AdminProductsSection = () => {
 
       {/* ======= OPTIONS & PRICING (inline sub-editor) ======= */}
       <TabsContent value="options" className="space-y-3 mt-3">
+        <div className="space-y-3">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Average Price Per Person</h4>
+          <p className="text-xs text-muted-foreground">Indicative price for display on cards and search results.</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Amount (USD)</Label>
+              <Input type="number" placeholder="e.g. 45" value={item.average_price_per_person || ''} onChange={e => onChange('average_price_per_person', parseFloat(e.target.value) || null)} />
+            </div>
+          </div>
+          <Separator />
+        </div>
         {item.id ? <OptionsEditor productId={item.id} /> : <p className="text-xs text-muted-foreground">Save the product first to manage options.</p>}
       </TabsContent>
 
