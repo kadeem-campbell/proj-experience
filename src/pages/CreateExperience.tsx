@@ -118,15 +118,17 @@ export default function CreateExperience() {
     }
   }, [form.destinationId]);
 
-  // Fetch itineraries & collections for linking
+  // Fetch itineraries, collections & existing products for linking
   useEffect(() => {
     (async () => {
-      const [{ data: itin }, { data: coll }] = await Promise.all([
+      const [{ data: itin }, { data: coll }, { data: prods }] = await Promise.all([
         supabase.from("public_itineraries").select("id, name, slug").eq("is_active", true).order("name"),
         supabase.from("collections").select("id, name, slug").eq("is_active", true).order("name"),
+        (supabase as any).from("products").select("id, title, slug").order("title").limit(500),
       ]);
       setItineraries(itin || []);
       setCollections(coll || []);
+      setAllProducts(prods || []);
     })();
   }, []);
 
