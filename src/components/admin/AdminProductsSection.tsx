@@ -234,10 +234,10 @@ export const AdminProductsSection = () => {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">POI</Label>
-            <Select value={item.primary_poi_id || ''} onValueChange={v => onChange('primary_poi_id', v || null)}>
+            <Select value={item.primary_poi_id || '__none__'} onValueChange={v => onChange('primary_poi_id', v === '__none__' ? null : v)}>
               <SelectTrigger><SelectValue placeholder="Select POI" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="__none__">None</SelectItem>
                 {pois.filter((p: any) => !item.primary_area_id || p.area_id === item.primary_area_id).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
               </SelectContent>
             </Select>
