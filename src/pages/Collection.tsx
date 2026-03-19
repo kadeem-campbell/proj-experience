@@ -173,7 +173,7 @@ const CollectionPage = () => {
           .filter((r: any) => r.item_type === 'product')
           .map((row: any) => row.item_id);
 
-        let linkedItems = allExpIds
+        let linkedItems = allProductIds
           .map((id: string) => productListings.find((product) => product.id === id))
           .filter(Boolean);
 
