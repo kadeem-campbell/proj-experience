@@ -90,15 +90,15 @@ export const fetchExportContracts = async (): Promise<ExportContract[]> => {
 // ============ FETCH FEED DATA ============
 
 export const fetchFeedProducts = async (): Promise<FeedProduct[]> => {
-  const { data: products, error } = await supabase
+  const { data: products, error } = await (supabase
     .from("products")
     .select(`
       *,
       destinations!products_destination_id_fkey(name, slug),
       areas!products_area_id_fkey(name, slug),
       activity_types!products_activity_type_id_fkey(name, slug)
-    `)
-    .eq("is_active", true);
+    `) as any)
+    .eq("publish_state", "published");
 
   if (error || !products) return [];
 
