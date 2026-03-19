@@ -332,11 +332,15 @@ export const MobileHomeView = () => {
 
   const experiences = useMemo(() => {
     let filtered = allExpsData;
-    if (selectedCity) {
+    if (selectedCity && selectedDestId) {
+      filtered = filtered.filter(e => 
+        e.destinationId === selectedDestId || matchesCity(e.location || "", selectedCity)
+      );
+    } else if (selectedCity) {
       filtered = filtered.filter(e => matchesCity(e.location || "", selectedCity));
     }
     return filtered;
-  }, [selectedCity, allExpsData]);
+  }, [selectedCity, selectedDestId, allExpsData]);
 
   const matchesCategory = useCallback((expCategory: string, filterCategory: string) => {
     if (!filterCategory) return true;

@@ -254,10 +254,13 @@ const SearchPage = () => {
   const selectedCityName = selectedCity?.name || '';
   const destSlug = selectedCityName ? slugify(selectedCityName) : '';
 
-  // Filter experiences by city
+  // Filter experiences/products by city (use destinationId for products, location string for legacy)
   const cityFilteredExperiences = useMemo(() => {
     if (!selectedCity) return experiences;
-    return experiences.filter(e => e.location?.toLowerCase().includes(selectedCity.name.toLowerCase()));
+    return experiences.filter(e => 
+      e.destinationId === selectedCity.id || 
+      e.location?.toLowerCase().includes(selectedCity.name.toLowerCase())
+    );
   }, [experiences, selectedCity]);
 
   // Filter itineraries by city
@@ -445,6 +448,20 @@ const SearchPage = () => {
                           <div key={exp.id} className="flex-shrink-0 w-[220px] lg:w-[240px]">
                             <ProductCard {...exp} compact />
                           </div>
+                        ))}
+                      </DesktopScrollRow>
+                    );
+                  } else if (carousel.contentType === 'poi') {
+                    const allPoisForCarousel = carousel.itemIds.length > 0
+                      ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
+                      : selectedDestId
+                        ? pois.filter((p: any) => p.destination_id === selectedDestId)
+                        : pois;
+                    if (allPoisForCarousel.length === 0) return;
+                    elements.push(
+                      <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
+                        {allPoisForCarousel.slice(0, 12).map((poi: any) => (
+                          <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
                         ))}
                       </DesktopScrollRow>
                     );
