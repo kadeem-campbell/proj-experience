@@ -215,6 +215,13 @@ export const AdminProductsSection = () => {
           <div><Label className="text-xs text-muted-foreground">SEO Title</Label><Input value={item.seo_title || ''} onChange={e => onChange('seo_title', e.target.value)} maxLength={60} /></div>
         </div>
         <div><Label className="text-xs text-muted-foreground">SEO Description</Label><Textarea value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} rows={2} /></div>
+
+        <Separator />
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Social Media</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label className="text-xs text-muted-foreground">TikTok URL</Label><Input placeholder="https://tiktok.com/@..." value={item.tiktok_url || ''} onChange={e => onChange('tiktok_url', e.target.value)} /></div>
+          <div><Label className="text-xs text-muted-foreground">Instagram URL</Label><Input placeholder="https://instagram.com/..." value={item.instagram_url || ''} onChange={e => onChange('instagram_url', e.target.value)} /></div>
+        </div>
       </TabsContent>
 
       {/* ======= GEOGRAPHY ======= */}
