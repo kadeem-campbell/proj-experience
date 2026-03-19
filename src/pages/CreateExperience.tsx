@@ -721,6 +721,7 @@ export default function CreateExperience() {
                 setHostId('');
                 setSelectedItineraryIds([]);
                 setSelectedCollectionIds([]);
+                setSelectedRelatedProductIds([]);
                 setCreatedProductId(null);
                 setCurrentStep('basic');
               }}>Create Another</Button>
