@@ -44,8 +44,8 @@ const useExperiences = () => useQuery({
 const useCollections = () => useQuery({
   queryKey: ['link-manager-collections'],
   queryFn: async () => {
-    const { data } = await (supabase as any).from('collections').select('id, name, slug, collection_type, content_type, show_on_home, home_display_order, city_id').eq('is_active', true).order('home_display_order');
-    return (data || []) as { id: string; name: string; slug: string; collection_type: string; content_type: string; show_on_home: boolean; home_display_order: number; city_id: string | null }[];
+    const { data } = await (supabase as any).from('collections').select('id, name, slug, collection_type, content_type, show_on_home, home_display_order, destination_id').eq('is_active', true).order('home_display_order');
+    return (data || []) as { id: string; name: string; slug: string; collection_type: string; content_type: string; show_on_home: boolean; home_display_order: number; destination_id: string | null }[];
   },
   staleTime: 60000,
 });
@@ -174,7 +174,7 @@ export const LinkManager = () => {
       setEditingCollSlug(coll.slug);
       setEditingCollHome(coll.show_on_home);
       setEditingCollOrder(coll.home_display_order);
-      setEditingCollCity(coll.city_id || '');
+      setEditingCollCity(coll.destination_id || '');
       setEditingCollContent(coll.content_type || 'itinerary');
     }
   };
@@ -187,7 +187,7 @@ export const LinkManager = () => {
       slug: editingCollSlug,
       show_on_home: editingCollHome,
       home_display_order: editingCollOrder,
-      city_id: editingCollCity || null,
+      destination_id: editingCollCity || null,
       content_type: editingCollContent,
     }).eq('id', selectedCollection);
     setSavingColl(false);

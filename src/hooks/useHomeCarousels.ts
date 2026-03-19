@@ -17,7 +17,7 @@ export const useHomeCarousels = () => {
     queryFn: async (): Promise<HomeCarousel[]> => {
       const { data: collections, error } = await (supabase as any)
         .from("collections")
-        .select("id, name, slug, content_type, home_display_order, city_id")
+        .select("id, name, slug, content_type, home_display_order, destination_id")
         .eq("show_on_home", true)
         .eq("is_active", true)
         .order("home_display_order");
