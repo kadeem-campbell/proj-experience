@@ -53,7 +53,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       const chunk = ids.slice(i, i + 100);
       const { data: products } = await supabase
         .from("products")
-        .select("id, title, slug, cover_image_url, video_url, destination_id")
+        .select("id, title, slug, cover_image, video_url, destination_id")
         .in("id", chunk);
       if (products) {
         products.forEach((p: any) => { productMap[p.id] = p; });
