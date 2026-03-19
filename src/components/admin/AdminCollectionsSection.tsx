@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, GripVertical, Eye, Archive } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Eye, Archive, ExternalLink } from 'lucide-react';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
@@ -67,7 +67,11 @@ export const AdminCollectionsSection = () => {
               {c.show_on_home && <Badge className="text-[10px] bg-primary/10 text-primary border-0">Home</Badge>}
             </div>
           )},
-          { key: 'slug', label: 'Slug', width: 'flex-1', render: (c: any) => <span className="text-xs font-mono text-muted-foreground">/collections/{c.slug}</span> },
+          { key: 'slug', label: 'Slug', width: 'flex-1', render: (c: any) => (
+            <a href={`https://swam.app/collections/${c.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs font-mono text-muted-foreground hover:text-primary flex items-center gap-1">
+              /collections/{c.slug} <ExternalLink className="w-3 h-3" />
+            </a>
+          ) },
           { key: 'is_active', label: 'Status', width: 'w-[80px]', render: (c: any) => <Badge variant={c.is_active ? 'default' : 'secondary'} className="text-[10px]">{c.is_active ? 'Active' : 'Off'}</Badge> },
         ]}
         defaultItem={{ name: '', slug: '', description: '', collection_type: 'experiences', content_type: 'experience', is_active: true, show_on_home: false, home_display_order: 0 }}
