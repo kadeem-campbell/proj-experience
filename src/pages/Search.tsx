@@ -302,7 +302,7 @@ const SearchPage = () => {
   const carouselRows = useMemo(() => {
     return homeCarousels.filter((carousel) => {
       if (carousel.destinationIds.length === 0) return true;
-      if (!selectedDestId) return true;
+      if (!selectedDestId) return false;
       return carousel.destinationIds.includes(selectedDestId);
     });
   }, [homeCarousels, selectedDestId]);
