@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,18 +8,56 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Upload, CreditCard, Phone, User, ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import { MapPin, CreditCard, ChevronRight, ChevronLeft, CheckCircle2, AlertCircle, AlertTriangle, Info, Plus, Trash2, Link2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useDestinations, useAreas, useActivityTypes, useThemes, useHosts } from "@/hooks/useProducts";
-import { validateProduct, type PublishValidationResult } from "@/services/publishValidator";
 import { cn } from "@/lib/utils";
 
 type FormStep = 'basic' | 'location' | 'options' | 'host' | 'media' | 'review' | 'auth' | 'confirmation';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+
+interface ValidationIssue {
+  field: string;
+  message: string;
+  severity: 'blocker' | 'warning' | 'info';
+  step: FormStep;
+}
+
+interface OptionRow {
+  name: string;
+  optionType: string;
+  durationMinutes: string;
+  capacityMin: string;
+  capacityMax: string;
+  prices: PriceRow[];
+}
+
+interface PriceRow {
+  pricingCategory: string;
+  pricingUnit: string;
+  currencyCode: string;
+  amount: string;
+}
+
+const defaultOption = (): OptionRow => ({
+  name: 'Standard Experience',
+  optionType: 'standard',
+  durationMinutes: '',
+  capacityMin: '',
+  capacityMax: '',
+  prices: [defaultPrice()],
+});
+
+const defaultPrice = (): PriceRow => ({
+  pricingCategory: 'adult',
+  pricingUnit: 'per_person',
+  currencyCode: 'USD',
+  amount: '',
+});
 
 export default function CreateExperience() {
   const { user, isAuthenticated } = useAuth();
@@ -34,7 +72,13 @@ export default function CreateExperience() {
 
   const [currentStep, setCurrentStep] = useState<FormStep>('basic');
   const [saving, setSaving] = useState(false);
-  const [validationResult, setValidationResult] = useState<PublishValidationResult | null>(null);
+  const [createdProductId, setCreatedProductId] = useState<string | null>(null);
+
+  // Linking state
+  const [itineraries, setItineraries] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
+  const [selectedItineraryIds, setSelectedItineraryIds] = useState<string[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
 
   const [form, setForm] = useState({
     title: '',
@@ -43,28 +87,14 @@ export default function CreateExperience() {
     areaId: '',
     activityTypeId: '',
     themeIds: [] as string[],
-    tier: 'standard',
-    formatType: 'shared',
-    duration: '',
-    bestTime: '',
-    weather: '',
     coverImage: '',
     videoUrl: '',
-    // Option
-    optionName: 'Standard Experience',
-    optionTier: 'standard',
-    optionFormat: 'shared',
-    optionDuration: '',
-    optionGroupSize: '',
-    // Price
-    priceAmount: '',
-    priceCurrency: 'USD',
-    priceLabel: 'Adult',
-    // Host
-    hostId: '',
-    // Highlights
     highlights: '',
   });
+
+  const [options, setOptions] = useState<OptionRow[]>([defaultOption()]);
+
+  const [hostId, setHostId] = useState('');
 
   const steps: { id: FormStep; title: string }[] = [
     { id: 'basic', title: 'Basic Info' },
@@ -81,7 +111,48 @@ export default function CreateExperience() {
     }
   }, [form.destinationId]);
 
+  // Fetch itineraries & collections for linking
+  useEffect(() => {
+    (async () => {
+      const [{ data: itin }, { data: coll }] = await Promise.all([
+        supabase.from("public_itineraries").select("id, name, slug").eq("is_active", true).order("name"),
+        supabase.from("collections").select("id, name, slug").eq("is_active", true).order("name"),
+      ]);
+      setItineraries(itin || []);
+      setCollections(coll || []);
+    })();
+  }, []);
+
   const set = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
+
+  // Live validation
+  const issues = useMemo((): ValidationIssue[] => {
+    const r: ValidationIssue[] = [];
+    if (!form.title.trim()) r.push({ field: 'title', message: 'Title is required', severity: 'blocker', step: 'basic' });
+    else if (form.title.trim().length < 5) r.push({ field: 'title', message: 'Title should be at least 5 characters', severity: 'warning', step: 'basic' });
+    if (!form.description.trim()) r.push({ field: 'description', message: 'Description is required for publishing', severity: 'blocker', step: 'basic' });
+    else if (form.description.trim().length < 30) r.push({ field: 'description', message: 'Description should be at least 30 characters for quality', severity: 'warning', step: 'basic' });
+    if (!form.activityTypeId) r.push({ field: 'activityTypeId', message: 'Activity type helps categorisation', severity: 'warning', step: 'basic' });
+    if (!form.destinationId) r.push({ field: 'destinationId', message: 'Destination is required', severity: 'blocker', step: 'location' });
+    if (options.length === 0) r.push({ field: 'options', message: 'At least one option is required', severity: 'blocker', step: 'options' });
+    options.forEach((o, i) => {
+      if (!o.name.trim()) r.push({ field: `option-${i}-name`, message: `Option ${i + 1} needs a name`, severity: 'blocker', step: 'options' });
+      if (o.prices.length === 0) r.push({ field: `option-${i}-prices`, message: `Option ${i + 1} needs at least one price`, severity: 'warning', step: 'options' });
+      o.prices.forEach((p, j) => {
+        if (!p.amount || parseFloat(p.amount) <= 0) r.push({ field: `option-${i}-price-${j}`, message: `Option ${i + 1} price ${j + 1} needs a valid amount`, severity: 'warning', step: 'options' });
+      });
+    });
+    if (!form.coverImage.trim()) r.push({ field: 'coverImage', message: 'Cover image improves discoverability', severity: 'warning', step: 'media' });
+    if (!hostId) r.push({ field: 'hostId', message: 'Assigning a host improves trust', severity: 'info', step: 'host' });
+    return r;
+  }, [form, options, hostId]);
+
+  const blockers = issues.filter(i => i.severity === 'blocker');
+  const warnings = issues.filter(i => i.severity === 'warning');
+  const infos = issues.filter(i => i.severity === 'info');
+  const canCreate = blockers.length === 0;
+
+  const stepIssues = (step: FormStep) => issues.filter(i => i.step === step);
 
   const nextStep = () => {
     const idx = steps.findIndex(s => s.id === currentStep);
@@ -92,14 +163,36 @@ export default function CreateExperience() {
     if (idx > 0) setCurrentStep(steps[idx - 1].id);
   };
 
+  const updateOption = (idx: number, field: keyof OptionRow, value: any) => {
+    setOptions(prev => prev.map((o, i) => i === idx ? { ...o, [field]: value } : o));
+  };
+  const addOption = () => setOptions(prev => [...prev, defaultOption()]);
+  const removeOption = (idx: number) => setOptions(prev => prev.filter((_, i) => i !== idx));
+  const addPrice = (optIdx: number) => {
+    setOptions(prev => prev.map((o, i) => i === optIdx ? { ...o, prices: [...o.prices, defaultPrice()] } : o));
+  };
+  const removePrice = (optIdx: number, priceIdx: number) => {
+    setOptions(prev => prev.map((o, i) => i === optIdx ? { ...o, prices: o.prices.filter((_, j) => j !== priceIdx) } : o));
+  };
+  const updatePrice = (optIdx: number, priceIdx: number, field: keyof PriceRow, value: string) => {
+    setOptions(prev => prev.map((o, i) => i === optIdx ? {
+      ...o,
+      prices: o.prices.map((p, j) => j === priceIdx ? { ...p, [field]: value } : p),
+    } : o));
+  };
+
   const handlePublish = async () => {
     if (!isAuthenticated) { setCurrentStep('auth'); return; }
+    if (!canCreate) {
+      toast({ title: "Cannot create", description: `${blockers.length} blocker(s) must be resolved first.`, variant: "destructive" });
+      return;
+    }
     setSaving(true);
 
     try {
       const slug = toSlug(form.title);
 
-      // 1. Create Product
+      // 1. Create Product (only columns that exist)
       const { data: product, error: pErr } = await (supabase as any)
         .from("products")
         .insert({
@@ -109,16 +202,9 @@ export default function CreateExperience() {
           destination_id: form.destinationId || null,
           area_id: form.areaId || null,
           activity_type_id: form.activityTypeId || null,
-          tier: form.tier,
-          format_type: form.formatType,
-          duration: form.duration,
-          best_time: form.bestTime,
-          weather: form.weather,
-          cover_image: form.coverImage,
-          video_url: form.videoUrl,
+          cover_image: form.coverImage || '',
+          video_url: form.videoUrl || '',
           highlights: form.highlights ? form.highlights.split('\n').filter(Boolean) : [],
-          is_active: true,
-          is_indexable: false, // starts as noindex until validated
           publish_score: 0,
         })
         .select("id")
@@ -126,51 +212,60 @@ export default function CreateExperience() {
 
       if (pErr) throw pErr;
       const productId = product.id;
+      setCreatedProductId(productId);
 
-      // 2. Create Option
-      const { data: option, error: oErr } = await (supabase as any)
-        .from("options")
-        .insert({
-          product_id: productId,
-          name: form.optionName,
-          slug: slug + '-standard',
-          tier: form.optionTier,
-          format_type: form.optionFormat,
-          duration: form.optionDuration || form.duration,
-          group_size: form.optionGroupSize,
-        })
-        .select("id")
-        .single();
+      // 2. Create Options + PriceOptions
+      for (const opt of options) {
+        const optSlug = slug + '-' + toSlug(opt.name);
+        const { data: createdOpt, error: oErr } = await (supabase as any)
+          .from("options")
+          .insert({
+            product_id: productId,
+            name: opt.name,
+            slug: optSlug,
+            option_type: opt.optionType,
+            duration_minutes: opt.durationMinutes ? parseInt(opt.durationMinutes) : null,
+            capacity_min: opt.capacityMin ? parseInt(opt.capacityMin) : null,
+            capacity_max: opt.capacityMax ? parseInt(opt.capacityMax) : null,
+          })
+          .select("id")
+          .single();
 
-      if (oErr) throw oErr;
+        if (oErr) throw oErr;
 
-      // 3. Create PriceOption
-      if (form.priceAmount) {
-        await (supabase as any).from("price_options").insert({
-          option_id: option.id,
-          amount: parseFloat(form.priceAmount) || 0,
-          currency: form.priceCurrency,
-          label: form.priceLabel,
-        });
+        // Insert prices for this option
+        const validPrices = opt.prices.filter(p => p.amount && parseFloat(p.amount) > 0);
+        if (validPrices.length > 0) {
+          const { error: prErr } = await (supabase as any).from("price_options").insert(
+            validPrices.map(p => ({
+              option_id: createdOpt.id,
+              pricing_category: p.pricingCategory,
+              pricing_unit: p.pricingUnit,
+              currency_code: p.currencyCode,
+              amount: parseFloat(p.amount),
+            }))
+          );
+          if (prErr) console.error("Price insert error:", prErr);
+        }
       }
 
-      // 4. Link Host
-      if (form.hostId) {
+      // 3. Link Host
+      if (hostId) {
         await (supabase as any).from("product_hosts").insert({
           product_id: productId,
-          host_id: form.hostId,
+          host_id: hostId,
           is_primary: true,
         });
       }
 
-      // 5. Link Themes
+      // 4. Link Themes
       if (form.themeIds.length > 0) {
         await (supabase as any).from("product_themes").insert(
           form.themeIds.map(tid => ({ product_id: productId, theme_id: tid }))
         );
       }
 
-      // 6. Register route in page_route_registry (no legacy write)
+      // 5. Register route
       const dest = destinations.find(d => d.id === form.destinationId);
       const destSlug = dest?.slug || 'explore';
       const canonicalUrl = `https://swam.app/things-to-do/${destSlug}/${slug}`;
@@ -186,20 +281,58 @@ export default function CreateExperience() {
         generated_from_rule: 'auto_product',
       }, { onConflict: 'entity_type,entity_id' });
 
-      // Update product with canonical_url
       await (supabase as any).from("products").update({
         canonical_url: canonicalUrl,
         indexability_state: 'draft_unpublished',
       }).eq('id', productId);
 
-      toast({ title: "Experience Created", description: `"${form.title}" has been created. Run validation in Admin to publish.` });
+      // 6. Link to itineraries (add product slug to experiences JSONB array)
+      for (const itinId of selectedItineraryIds) {
+        const { data: itin } = await (supabase as any).from("public_itineraries").select("experiences").eq("id", itinId).single();
+        const existing = Array.isArray(itin?.experiences) ? itin.experiences : [];
+        existing.push({ title: form.title, slug, type: 'product', product_id: productId });
+        await (supabase as any).from("public_itineraries").update({ experiences: existing }).eq("id", itinId);
+      }
+
+      // 7. Link to collections
+      for (const collId of selectedCollectionIds) {
+        await (supabase as any).from("collection_items").insert({
+          collection_id: collId,
+          item_id: productId,
+          item_type: 'product',
+          position: 999,
+        });
+      }
+
+      toast({ title: "Product Created!", description: `"${form.title}" created with ${options.length} option(s). Run validation in Admin to publish.` });
       setCurrentStep('confirmation');
     } catch (err: any) {
       console.error("Create failed:", err);
-      toast({ title: "Error", description: err.message || "Failed to create experience.", variant: "destructive" });
+      toast({ title: "Error", description: err.message || "Failed to create product.", variant: "destructive" });
     } finally {
       setSaving(false);
     }
+  };
+
+  const IssuesBanner = ({ step }: { step: FormStep }) => {
+    const si = stepIssues(step);
+    if (si.length === 0) return null;
+    return (
+      <div className="space-y-1.5 mb-4">
+        {si.map((issue, i) => (
+          <div key={i} className={cn("flex items-start gap-2 text-xs rounded-md px-3 py-2",
+            issue.severity === 'blocker' ? "bg-destructive/10 text-destructive" :
+            issue.severity === 'warning' ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400" :
+            "bg-muted text-muted-foreground"
+          )}>
+            {issue.severity === 'blocker' ? <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" /> :
+             issue.severity === 'warning' ? <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" /> :
+             <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />}
+            <span>{issue.message}</span>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const renderStep = () => {
@@ -208,13 +341,15 @@ export default function CreateExperience() {
         return (
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-bold">Basic Information</h2>
+            <IssuesBanner step="basic" />
             <div>
-              <Label>Title</Label>
+              <Label>Title *</Label>
               <Input placeholder="e.g., Sunset Jet Ski Adventure" value={form.title} onChange={e => set('title', e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label>Description</Label>
+              <Label>Description *</Label>
               <Textarea placeholder="Describe this experience..." value={form.description} onChange={e => set('description', e.target.value)} className="mt-1 min-h-[100px]" />
+              <p className="text-xs text-muted-foreground mt-1">{form.description.length}/30 min characters</p>
             </div>
             <div>
               <Label>Activity Type</Label>
@@ -231,22 +366,12 @@ export default function CreateExperience() {
               <Label>Highlights (one per line)</Label>
               <Textarea placeholder="Crystal clear waters&#10;Professional guides&#10;Equipment included" value={form.highlights} onChange={e => set('highlights', e.target.value)} className="mt-1" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Duration</Label>
-                <Input placeholder="2 hours" value={form.duration} onChange={e => set('duration', e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label>Best Time</Label>
-                <Input placeholder="Morning" value={form.bestTime} onChange={e => set('bestTime', e.target.value)} className="mt-1" />
-              </div>
-            </div>
             <div>
               <Label>Themes</Label>
               <div className="flex flex-wrap gap-2 mt-1">
                 {themes.map(t => (
                   <Badge key={t.id} variant={form.themeIds.includes(t.id) ? "default" : "outline"} className="cursor-pointer"
-                    onClick={() => set('themeIds', form.themeIds.includes(t.id) ? form.themeIds.filter(id => id !== t.id) : [...form.themeIds, t.id])}>
+                    onClick={() => set('themeIds', form.themeIds.includes(t.id) ? form.themeIds.filter((id: string) => id !== t.id) : [...form.themeIds, t.id])}>
                     {t.emoji} {t.name}
                   </Badge>
                 ))}
@@ -259,8 +384,9 @@ export default function CreateExperience() {
         return (
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-bold">Location</h2>
+            <IssuesBanner step="location" />
             <div>
-              <Label>Destination</Label>
+              <Label>Destination *</Label>
               <Select value={form.destinationId} onValueChange={v => { set('destinationId', v); set('areaId', ''); }}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select destination" /></SelectTrigger>
                 <SelectContent>
@@ -289,65 +415,98 @@ export default function CreateExperience() {
       case 'options':
         return (
           <Card className="p-6 space-y-4">
-            <h2 className="text-xl font-bold">Options & Pricing</h2>
-            <div>
-              <Label>Option Name</Label>
-              <Input value={form.optionName} onChange={e => set('optionName', e.target.value)} className="mt-1" />
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">Options & Pricing</h2>
+              <Button size="sm" variant="outline" onClick={addOption}><Plus className="w-3.5 h-3.5 mr-1" /> Add Option</Button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Tier</Label>
-                <Select value={form.optionTier} onValueChange={v => set('optionTier', v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {['basic','standard','premium','luxury'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+            <p className="text-xs text-muted-foreground">Each option is a bookable variant (e.g. Private Ride, Group Tour). Pricing uses the world-model pricing_category + pricing_unit system for scalable multi-currency support.</p>
+            <IssuesBanner step="options" />
+
+            {options.map((opt, oi) => (
+              <div key={oi} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-sm">Option {oi + 1}</h3>
+                  {options.length > 1 && (
+                    <Button size="sm" variant="ghost" onClick={() => removeOption(oi)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Name</Label>
+                    <Input value={opt.name} onChange={e => updateOption(oi, 'name', e.target.value)} className="mt-1" placeholder="Standard Experience" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Type</Label>
+                    <Select value={opt.optionType} onValueChange={v => updateOption(oi, 'optionType', v)}>
+                      <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {['standard', 'private', 'group', 'self_guided', 'vip'].map(t => <SelectItem key={t} value={t}>{t.replace('_', ' ')}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-xs">Duration (mins)</Label>
+                    <Input type="number" placeholder="120" value={opt.durationMinutes} onChange={e => updateOption(oi, 'durationMinutes', e.target.value)} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Min capacity</Label>
+                    <Input type="number" placeholder="1" value={opt.capacityMin} onChange={e => updateOption(oi, 'capacityMin', e.target.value)} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Max capacity</Label>
+                    <Input type="number" placeholder="8" value={opt.capacityMax} onChange={e => updateOption(oi, 'capacityMax', e.target.value)} className="mt-1" />
+                  </div>
+                </div>
+
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Pricing</h4>
+                  <Button size="sm" variant="ghost" onClick={() => addPrice(oi)}><Plus className="w-3 h-3 mr-1" /> Add tier</Button>
+                </div>
+                {opt.prices.map((price, pi) => (
+                  <div key={pi} className="grid grid-cols-5 gap-2 items-end">
+                    <div>
+                      <Label className="text-xs">Category</Label>
+                      <Select value={price.pricingCategory} onValueChange={v => updatePrice(oi, pi, 'pricingCategory', v)}>
+                        <SelectTrigger className="mt-1 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {['adult', 'child', 'infant', 'resident', 'student', 'senior', 'group'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Unit</Label>
+                      <Select value={price.pricingUnit} onValueChange={v => updatePrice(oi, pi, 'pricingUnit', v)}>
+                        <SelectTrigger className="mt-1 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {['per_person', 'per_group', 'per_hour', 'flat_rate'].map(u => <SelectItem key={u} value={u}>{u.replace('_', ' ')}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Currency</Label>
+                      <Select value={price.currencyCode} onValueChange={v => updatePrice(oi, pi, 'currencyCode', v)}>
+                        <SelectTrigger className="mt-1 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {['USD', 'EUR', 'GBP', 'TZS', 'KES', 'GHS', 'NGN', 'ZAR', 'RWF', 'UGX', 'EGP', 'SAR', 'AED', 'BZD', 'JMD'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Amount</Label>
+                      <Input type="number" placeholder="50" value={price.amount} onChange={e => updatePrice(oi, pi, 'amount', e.target.value)} className="mt-1 text-xs" />
+                    </div>
+                    <div>
+                      {opt.prices.length > 1 && (
+                        <Button size="sm" variant="ghost" onClick={() => removePrice(oi, pi)}><Trash2 className="w-3 h-3" /></Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <Label>Format</Label>
-                <Select value={form.optionFormat} onValueChange={v => set('optionFormat', v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {['private','shared','group','self-guided','hosted'].map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Group Size</Label>
-                <Input placeholder="Up to 8" value={form.optionGroupSize} onChange={e => set('optionGroupSize', e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label>Option Duration</Label>
-                <Input placeholder="2 hours" value={form.optionDuration} onChange={e => set('optionDuration', e.target.value)} className="mt-1" />
-              </div>
-            </div>
-            <Separator />
-            <h3 className="font-semibold">Pricing</h3>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label>Amount</Label>
-                <Input type="number" placeholder="50" value={form.priceAmount} onChange={e => set('priceAmount', e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label>Currency</Label>
-                <Select value={form.priceCurrency} onValueChange={v => set('priceCurrency', v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="TZS">TZS</SelectItem>
-                    <SelectItem value="KES">KES</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Label</Label>
-                <Input value={form.priceLabel} onChange={e => set('priceLabel', e.target.value)} className="mt-1" />
-              </div>
-            </div>
+            ))}
           </Card>
         );
 
@@ -355,10 +514,11 @@ export default function CreateExperience() {
         return (
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-bold">Host</h2>
+            <IssuesBanner step="host" />
             <div>
               <Label>Select Host</Label>
-              <Select value={form.hostId} onValueChange={v => set('hostId', v)}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Select host" /></SelectTrigger>
+              <Select value={hostId} onValueChange={v => setHostId(v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select host (optional)" /></SelectTrigger>
                 <SelectContent>
                   {allHosts.map(h => (
                     <SelectItem key={h.id} value={h.id}>{h.display_name || h.username}</SelectItem>
@@ -373,6 +533,7 @@ export default function CreateExperience() {
         return (
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-bold">Media</h2>
+            <IssuesBanner step="media" />
             <div>
               <Label>Cover Image URL</Label>
               <Input placeholder="https://..." value={form.coverImage} onChange={e => set('coverImage', e.target.value)} className="mt-1" />
@@ -381,20 +542,85 @@ export default function CreateExperience() {
               <Label>Video URL (optional)</Label>
               <Input placeholder="https://youtube.com/..." value={form.videoUrl} onChange={e => set('videoUrl', e.target.value)} className="mt-1" />
             </div>
+
+            <Separator />
+            <h3 className="font-semibold flex items-center gap-2"><Link2 className="w-4 h-4" /> Link to Itineraries & Collections</h3>
+            <p className="text-xs text-muted-foreground">Add this product to existing itineraries and collections at creation time.</p>
+
+            <div>
+              <Label className="text-xs">Itineraries</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1 max-h-32 overflow-y-auto">
+                {itineraries.map(it => (
+                  <Badge key={it.id} variant={selectedItineraryIds.includes(it.id) ? "default" : "outline"} className="cursor-pointer text-xs"
+                    onClick={() => setSelectedItineraryIds(prev => prev.includes(it.id) ? prev.filter(id => id !== it.id) : [...prev, it.id])}>
+                    {it.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">Collections</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1 max-h-32 overflow-y-auto">
+                {collections.map(c => (
+                  <Badge key={c.id} variant={selectedCollectionIds.includes(c.id) ? "default" : "outline"} className="cursor-pointer text-xs"
+                    onClick={() => setSelectedCollectionIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id])}>
+                    {c.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           </Card>
         );
 
       case 'review':
         return (
           <Card className="p-6 space-y-4">
-            <h2 className="text-xl font-bold">Review & Publish</h2>
+            <h2 className="text-xl font-bold">Review & Create</h2>
+
+            {/* Readiness summary */}
+            <div className={cn("rounded-lg p-4 space-y-2", canCreate ? "bg-primary/5 border border-primary/20" : "bg-destructive/5 border border-destructive/20")}>
+              <div className="flex items-center gap-2">
+                {canCreate ? <CheckCircle2 className="w-5 h-5 text-primary" /> : <AlertCircle className="w-5 h-5 text-destructive" />}
+                <span className="font-semibold">{canCreate ? 'Ready to create' : `${blockers.length} blocker(s) must be fixed`}</span>
+              </div>
+              {blockers.map((b, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-destructive">
+                  <AlertCircle className="w-3 h-3 shrink-0" />
+                  <span>{b.message}</span>
+                  <Button size="sm" variant="ghost" className="text-xs h-5 px-1.5" onClick={() => setCurrentStep(b.step)}>Fix →</Button>
+                </div>
+              ))}
+              {warnings.map((w, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-yellow-600 dark:text-yellow-400">
+                  <AlertTriangle className="w-3 h-3 shrink-0" />
+                  <span>{w.message}</span>
+                </div>
+              ))}
+              {infos.map((inf, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Info className="w-3 h-3 shrink-0" />
+                  <span>{inf.message}</span>
+                </div>
+              ))}
+            </div>
+
+            <Separator />
+
             <div className="space-y-2 text-sm">
-              <p><strong>Title:</strong> {form.title}</p>
-              <p><strong>Destination:</strong> {destinations.find(d => d.id === form.destinationId)?.name || 'None'}</p>
-              <p><strong>Activity:</strong> {activityTypes.find(a => a.id === form.activityTypeId)?.name || 'None'}</p>
-              <p><strong>Option:</strong> {form.optionName} ({form.optionTier} / {form.optionFormat})</p>
-              <p><strong>Price:</strong> {form.priceAmount ? `${form.priceCurrency} ${form.priceAmount}` : 'Not set'}</p>
-              <p><strong>Host:</strong> {allHosts.find(h => h.id === form.hostId)?.display_name || 'None'}</p>
+              <p><strong>Title:</strong> {form.title || <span className="text-destructive">Missing</span>}</p>
+              <p><strong>Slug:</strong> {form.title ? toSlug(form.title) : '—'}</p>
+              <p><strong>Destination:</strong> {destinations.find(d => d.id === form.destinationId)?.name || <span className="text-destructive">Not set</span>}</p>
+              <p><strong>Activity:</strong> {activityTypes.find(a => a.id === form.activityTypeId)?.name || 'Not set'}</p>
+              <p><strong>Options:</strong> {options.length} variant(s)</p>
+              {options.map((o, i) => (
+                <div key={i} className="ml-4 text-xs text-muted-foreground">
+                  • {o.name} ({o.optionType}) — {o.prices.filter(p => p.amount).map(p => `${p.currencyCode} ${p.amount} (${p.pricingCategory})`).join(', ') || 'No price'}
+                </div>
+              ))}
+              <p><strong>Host:</strong> {allHosts.find(h => h.id === hostId)?.display_name || 'None'}</p>
+              {selectedItineraryIds.length > 0 && <p><strong>Itineraries:</strong> {selectedItineraryIds.length} linked</p>}
+              {selectedCollectionIds.length > 0 && <p><strong>Collections:</strong> {selectedCollectionIds.length} linked</p>}
             </div>
           </Card>
         );
@@ -402,7 +628,7 @@ export default function CreateExperience() {
       case 'auth':
         return (
           <Card className="p-6 text-center space-y-4">
-            <h2 className="text-xl font-bold">Sign In to Publish</h2>
+            <h2 className="text-xl font-bold">Sign In to Create</h2>
             <Link to="/auth"><Button size="lg" className="w-full">Sign Up / Log In</Button></Link>
           </Card>
         );
@@ -411,9 +637,20 @@ export default function CreateExperience() {
         return (
           <Card className="p-6 text-center space-y-4">
             <CheckCircle2 className="w-16 h-16 mx-auto text-primary" />
-            <h2 className="text-xl font-bold">Experience Created!</h2>
-            <p className="text-muted-foreground">Your experience has been created with normalized product, option, and pricing data.</p>
-            <Button onClick={() => navigate('/admin')}>Go to Admin</Button>
+            <h2 className="text-xl font-bold">Product Created!</h2>
+            <p className="text-muted-foreground text-sm">Created with {options.length} option(s) and pricing tiers in the world model. Run validation in Admin to publish.</p>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={() => navigate('/admin')}>Go to Admin</Button>
+              <Button variant="outline" onClick={() => {
+                setForm({ title: '', description: '', destinationId: '', areaId: '', activityTypeId: '', themeIds: [], coverImage: '', videoUrl: '', highlights: '' });
+                setOptions([defaultOption()]);
+                setHostId('');
+                setSelectedItineraryIds([]);
+                setSelectedCollectionIds([]);
+                setCreatedProductId(null);
+                setCurrentStep('basic');
+              }}>Create Another</Button>
+            </div>
           </Card>
         );
     }
@@ -425,18 +662,30 @@ export default function CreateExperience() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="container max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Create New Experience</h1>
+        <h1 className="text-2xl font-bold mb-6">Create New Product</h1>
 
         {/* Step indicator */}
         {currentStep !== 'confirmation' && currentStep !== 'auth' && (
-          <div className="flex gap-1 mb-6">
-            {steps.filter(s => s.id !== 'auth').map((s, i) => (
-              <div key={s.id} className={cn("h-1 flex-1 rounded-full", i <= stepIdx ? "bg-primary" : "bg-muted")} />
-            ))}
+          <div className="flex gap-1 mb-2">
+            {steps.map((s, i) => {
+              const si = stepIssues(s.id);
+              const hasBlockers = si.some(x => x.severity === 'blocker');
+              return (
+                <div key={s.id} className="flex-1 space-y-1">
+                  <div className={cn("h-1.5 rounded-full transition-colors",
+                    i <= stepIdx ? (hasBlockers ? "bg-destructive" : "bg-primary") : "bg-muted"
+                  )} />
+                  <button onClick={() => setCurrentStep(s.id)} className="text-[10px] text-muted-foreground hover:text-foreground w-full text-center">
+                    {s.title}
+                    {hasBlockers && <AlertCircle className="w-2.5 h-2.5 text-destructive inline ml-0.5" />}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {renderStep()}
+        <div className="mt-4">{renderStep()}</div>
 
         {/* Navigation */}
         {!['confirmation', 'auth'].includes(currentStep) && (
@@ -445,8 +694,8 @@ export default function CreateExperience() {
               <ChevronLeft className="w-4 h-4 mr-1" /> Back
             </Button>
             {currentStep === 'review' ? (
-              <Button onClick={handlePublish} disabled={saving || !form.title}>
-                {saving ? 'Creating...' : 'Create Experience'}
+              <Button onClick={handlePublish} disabled={saving || !canCreate}>
+                {saving ? 'Creating...' : canCreate ? 'Create Product' : `Fix ${blockers.length} blocker(s)`}
               </Button>
             ) : (
               <Button onClick={nextStep}>
