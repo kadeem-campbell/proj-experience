@@ -879,10 +879,46 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
     try {
       const { data: product } = await supabase.from('products').select('*').eq('id', productId).maybeSingle();
       if (!product) return;
-      const { data: opts } = await supabase.from('options').select('*, price_options(*)').eq('product_id', productId) as any;
-      const { data: hostLinks } = await supabase.from('product_hosts').select('*, hosts(*)').eq('product_id', productId) as any;
+
+      const [
+        { data: opts },
+        { data: hostLinks },
+        { data: dest },
+        { data: areaData },
+        { data: themeLinks },
+        { data: sem },
+        { data: pos },
+        { data: intentLinks },
+        { data: entityDocs },
+      ] = await Promise.all([
+        supabase.from('options').select('*, price_options(*)').eq('product_id', productId) as any,
+        supabase.from('product_hosts').select('*, hosts(*)').eq('product_id', productId) as any,
+        product.destination_id
+          ? supabase.from('destinations').select('*').eq('id', product.destination_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        (product as any).primary_area_id
+          ? supabase.from('areas').select('*').eq('id', (product as any).primary_area_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        supabase.from('product_themes').select('id').eq('product_id', productId) as any,
+        supabase.from('semantic_product_profiles').select('*').eq('product_id', productId).maybeSingle() as any,
+        supabase.from('product_positioning_profiles').select('*').eq('product_id', productId).maybeSingle() as any,
+        supabase.from('product_intent_affinities').select('id').eq('product_id', productId) as any,
+        supabase.from('entity_documents').select('id').eq('entity_id', productId).eq('entity_type', 'product') as any,
+      ]);
+
       const hosts = (hostLinks || []).map((h: any) => h.hosts).filter(Boolean);
-      const res = validateProduct({ product, options: opts || [], hosts });
+      const res = validateProduct({
+        product,
+        options: opts || [],
+        hosts,
+        destination: dest,
+        area: areaData,
+        themeCount: (themeLinks || []).length,
+        semanticProfile: sem,
+        positioningProfile: pos,
+        intentAffinityCount: (intentLinks || []).length,
+        entityDocCount: (entityDocs || []).length,
+      });
       await persistReadinessScore(res);
       await persistValidationResults(res);
       await supabase.from('products').update({ publish_score: res.publish_score } as any).eq('id', productId);

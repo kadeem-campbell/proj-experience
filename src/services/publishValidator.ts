@@ -188,6 +188,11 @@ interface ProductValidationContext {
   reviewCount?: number;
   saveCount?: number;
   copyCount?: number;
+  themeCount?: number;
+  semanticProfile?: any;
+  positioningProfile?: any;
+  intentAffinityCount?: number;
+  entityDocCount?: number;
 }
 
 export const validateProduct = (ctx: ProductValidationContext): PublishValidationResult => {
@@ -201,13 +206,17 @@ export const validateProduct = (ctx: ProductValidationContext): PublishValidatio
   checks.push(chk("title_uniqueness", "no_duplicate", !(ctx.duplicateSlugs?.length), "error", ctx.duplicateSlugs?.length ? `Duplicate: ${ctx.duplicateSlugs[0]}` : "Slug unique", "content"));
   checks.push(chk("description", "min_50", (p.description?.length || 0) >= 50, "error", "Description 50+ chars", "content", 2, "Add a detailed description"));
   checks.push(chk("description_rich", "min_200", (p.description?.length || 0) >= 200, "warning", "Rich description 200+ chars", "content"));
-  checks.push(chk("highlights", "min_3", (p.highlights?.length || 0) >= 3, "warning", "3+ highlights", "content"));
-  checks.push(chk("best_for", "has_personas", (p.best_for?.length || 0) >= 1, "info", "Best-for personas", "content"));
-  checks.push(chk("duration", "non_empty", !!p.duration, "warning", "Duration specified", "content"));
+  const highlights = p.highlights_json || p.highlights || [];
+  checks.push(chk("highlights", "min_3", (Array.isArray(highlights) ? highlights.length : 0) >= 3, "warning", "3+ highlights", "content"));
+  checks.push(chk("duration", "non_empty", !!(p.duration_minutes || p.duration), "warning", "Duration specified", "content"));
+  checks.push(chk("seo_title", "non_empty", !!(p.seo_title), "info", "SEO title set", "content"));
+  checks.push(chk("seo_description", "non_empty", !!(p.seo_description), "info", "SEO description set", "content"));
 
   // === MEDIA ===
-  checks.push(chk("cover_image", "non_empty", !!p.cover_image?.trim(), "blocker", p.cover_image ? "Cover image present" : "Cover image required", "media", 2));
-  const gc = ctx.galleryCount ?? (p.gallery?.length || 0);
+  const coverImage = p.cover_image_url || p.cover_image;
+  checks.push(chk("cover_image", "non_empty", !!coverImage?.trim(), "blocker", coverImage ? "Cover image present" : "Cover image required", "media", 2));
+  const gallery = p.gallery_json || p.gallery || [];
+  const gc = ctx.galleryCount ?? (Array.isArray(gallery) ? gallery.length : 0);
   checks.push(chk("gallery_3", "min_3", gc >= 3, "warning", `${gc} gallery images (3+)`, "media"));
   checks.push(chk("gallery_6", "min_6", gc >= 6, "info", "6+ for premium", "media"));
   checks.push(chk("video", "has_video", !!p.video_url, "info", "Video improves engagement", "media"));
@@ -216,46 +225,48 @@ export const validateProduct = (ctx: ProductValidationContext): PublishValidatio
   checks.push(chk("slug", "non_empty", !!p.slug?.trim(), "blocker", "Slug present", "canonical", 2));
   checks.push(chk("canonical_url", "stored", !!p.canonical_url, "warning", "Canonical URL stored", "canonical"));
   checks.push(chk("indexability_explicit", "has_state", !!p.indexability_state, "warning", "Indexability state explicit", "canonical"));
-  checks.push(chk("canonical_registry", "in_registry", !!ctx.hasCanonicalEntry, "error", "Canonical decision registered", "canonical", 1, "Register in page_route_registry"));
+  checks.push(chk("canonical_registry", "in_registry", !!ctx.hasCanonicalEntry, "info", "Canonical decision registered", "canonical", 1, "Register in page_route_registry"));
 
   // === TAXONOMY ===
   checks.push(chk("destination", "linked", !!p.destination_id, "blocker", "Destination linked", "taxonomy", 2));
   checks.push(chk("activity_type", "linked", !!p.activity_type_id, "error", "Activity type assigned", "taxonomy"));
-  checks.push(chk("area", "linked", !!p.area_id, "info", "Area assignment", "taxonomy"));
-  checks.push(chk("themes", "has_themes", (p.themes?.length || 0) >= 1, "info", "Theme tags assigned", "taxonomy"));
+  const areaId = p.primary_area_id || p.area_id;
+  checks.push(chk("area", "linked", !!areaId, "info", "Area assignment", "taxonomy"));
+  checks.push(chk("themes", "has_themes", (ctx.themeCount || 0) >= 1, "info", "Theme tags assigned", "taxonomy"));
 
   // === COMMERCE ===
   checks.push(chk("options", "min_1", options.length >= 1, "blocker", `${options.length} option(s)`, "commerce", 2));
   const hasPrice = options.some((o: any) => o.price_options?.length > 0);
   checks.push(chk("pricing", "has_price", hasPrice, "error", "Pricing defined", "commerce", 2, "Add at least one price option"));
-  checks.push(chk("tier", "has_tier", !!p.tier, "info", "Tier classification", "commerce"));
-  checks.push(chk("group_size", "defined", options.some((o: any) => !!o.group_size), "info", "Group size specified", "commerce"));
+  checks.push(chk("positioning", "has_positioning", !!ctx.positioningProfile, "info", "Positioning profile set", "commerce"));
 
   // === FEED ===
   checks.push(chk("feed_title", "non_empty", !!p.title, "error", "Title for feed", "feed"));
-  checks.push(chk("feed_image", "non_empty", !!p.cover_image, "error", "Image for feed", "feed"));
+  checks.push(chk("feed_image", "non_empty", !!coverImage, "error", "Image for feed", "feed"));
   checks.push(chk("feed_price", "has_price", hasPrice, "warning", "Pricing for feed", "feed"));
-  checks.push(chk("feed_geo", "has_coords", !!(p.latitude && p.longitude), "warning", "Coordinates for feed", "feed"));
+  const destLat = destination?.latitude;
+  const destLon = destination?.longitude;
+  checks.push(chk("feed_geo", "has_coords", !!(destLat && destLon), "warning", "Coordinates for feed (via destination)", "feed"));
   checks.push(chk("feed_description", "min_30", (p.description?.length || 0) >= 30, "warning", "Description 30+ for feed", "feed"));
 
   // === GRAPH ===
   checks.push(chk("hosts", "min_1", hosts.length >= 1, "error", `${hosts.length} host(s)`, "graph", 2));
   checks.push(chk("host_verified", "verified", hosts.some((h: any) => h.is_verified), "info", "Verified host", "graph"));
-  checks.push(chk("pairings", "has_pairings", (ctx.pairingCount || 0) >= 1, "info", "Pairing recommendations", "graph"));
-  checks.push(chk("itinerary_inclusion", "included", (ctx.itineraryInclusionCount || 0) >= 1, "info", "In itineraries", "graph"));
+  checks.push(chk("semantic_profile", "has_profile", !!ctx.semanticProfile, "warning", "Semantic product profile", "graph", 1, "Set who this product is for"));
+  checks.push(chk("intent_affinities", "has_intents", (ctx.intentAffinityCount || 0) >= 1, "info", "Traveller intent affinities", "graph"));
+  checks.push(chk("entity_docs", "generated", (ctx.entityDocCount || 0) >= 3, "warning", "Entity documents generated", "graph", 1, "Regenerate in Outputs tab"));
 
   // === GEO ===
-  checks.push(chk("coordinates", "has_coords", !!(p.latitude && p.longitude), "warning", "Coordinates set", "geo"));
+  checks.push(chk("dest_coords", "has_coords", !!(destLat && destLon), "warning", "Destination coordinates set", "geo"));
   checks.push(chk("dest_active", "active", destination?.is_active !== false, "error", "Destination active", "geo"));
-  checks.push(chk("area_match", "valid_hierarchy", !p.area_id || (area?.destination_id === p.destination_id), "error", "Area belongs to destination", "geo"));
+  checks.push(chk("area_match", "valid_hierarchy", !areaId || (area?.destination_id === p.destination_id), "error", "Area belongs to destination", "geo"));
 
   // === QA ===
   checks.push(chk("faqs", "min_2", (ctx.faqCount || 0) >= 2, "info", "2+ FAQs", "qa"));
   checks.push(chk("questions", "has_questions", (ctx.questionCount || 0) >= 1, "info", "Community questions", "qa"));
-  checks.push(chk("reviews", "has_reviews", (ctx.reviewCount || 0) >= 1, "info", "Has reviews", "qa"));
 
   // === ROUTE ===
-  checks.push(chk("route_registered", "in_registry", !!ctx.hasRouteEntry, "warning", "Route registered in page_route_registry", "route", 1, "Auto-register on save"));
+  checks.push(chk("route_registered", "in_registry", !!ctx.hasRouteEntry, "info", "Route registered in page_route_registry", "route", 1, "Auto-register on save"));
   checks.push(chk("slug_format", "valid_slug", /^[a-z0-9-]+$/.test(p.slug || ""), "error", "Slug format valid", "route"));
 
   // === ANALYTICS ===
