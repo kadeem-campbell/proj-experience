@@ -99,6 +99,16 @@ export const AdminLocationsSection = () => {
     queryKey: ['admin-travel-edges'],
     queryFn: async () => { const { data } = await supabase.from('travel_time_edges').select('*').order('origin_type'); return data || []; },
   });
+  const { data: productsByDest = {} } = useQuery({
+    queryKey: ['admin-products-by-dest'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('destination_id') as any;
+      if (!data) return {};
+      const counts: Record<string, number> = {};
+      data.forEach((p: any) => { if (p.destination_id) counts[p.destination_id] = (counts[p.destination_id] || 0) + 1; });
+      return counts;
+    },
+  });
 
   const invalidate = () => {
     ['admin-countries-full', 'admin-dest-full', 'admin-areas-full', 'admin-pois-full', 'admin-semantic-profiles', 'admin-seasonality-profiles', 'admin-weather-snapshots', 'admin-geo-shapes', 'admin-place-relationships', 'admin-travel-edges', 'admin-overview-counts', 'destinations'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
