@@ -238,7 +238,7 @@ export const AdminProductsSection = () => {
             <SelectContent>{activityTypes.map((at: any) => <SelectItem key={at.id} value={at.id}>{at.emoji} {at.name}</SelectItem>)}</SelectContent>
           </Select>
         </div>
-        <p className="text-xs text-muted-foreground">Themes and formats are managed via product_themes and product_formats junction tables (bulk ops tab).</p>
+        {item.id ? <ThemeFormatEditor productId={item.id} themes={themes} /> : <p className="text-xs text-muted-foreground">Save product first to manage themes, formats, and POIs.</p>}
       </TabsContent>
 
       {/* ======= OPTIONS & PRICING (inline sub-editor) ======= */}
