@@ -206,6 +206,8 @@ export default function CreateExperience() {
           video_url: form.videoUrl || '',
           highlights: form.highlights ? form.highlights.split('\n').filter(Boolean) : [],
           publish_score: 0,
+          publish_state: 'published',
+          visibility_output_state: 'public',
         })
         .select("id")
         .single();
