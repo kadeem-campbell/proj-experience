@@ -3403,110 +3403,65 @@ export type Database = {
         Row: {
           activity_type_id: string | null
           area_id: string | null
-          best_for: string[] | null
-          best_time: string | null
           canonical_url: string | null
           cover_image: string | null
           created_at: string | null
           description: string | null
           destination_id: string | null
-          duration: string | null
-          format_type: string | null
           gallery: Json | null
           highlights: Json | null
           id: string
           indexability_state: string | null
-          is_active: boolean | null
-          is_indexable: boolean | null
-          latitude: number | null
-          legacy_experience_id: string | null
-          like_count: number | null
-          longitude: number | null
           meeting_points: Json | null
-          pair_with_ids: string[] | null
           publish_score: number | null
           publish_state: string | null
-          rating: number | null
           slug: string
-          tier: string | null
           title: string
           updated_at: string | null
           video_url: string | null
-          view_count: number | null
           visibility_output_state: string | null
-          weather: string | null
         }
         Insert: {
           activity_type_id?: string | null
           area_id?: string | null
-          best_for?: string[] | null
-          best_time?: string | null
           canonical_url?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
           destination_id?: string | null
-          duration?: string | null
-          format_type?: string | null
           gallery?: Json | null
           highlights?: Json | null
           id?: string
           indexability_state?: string | null
-          is_active?: boolean | null
-          is_indexable?: boolean | null
-          latitude?: number | null
-          legacy_experience_id?: string | null
-          like_count?: number | null
-          longitude?: number | null
           meeting_points?: Json | null
-          pair_with_ids?: string[] | null
           publish_score?: number | null
           publish_state?: string | null
-          rating?: number | null
           slug: string
-          tier?: string | null
           title: string
           updated_at?: string | null
           video_url?: string | null
-          view_count?: number | null
           visibility_output_state?: string | null
-          weather?: string | null
         }
         Update: {
           activity_type_id?: string | null
           area_id?: string | null
-          best_for?: string[] | null
-          best_time?: string | null
           canonical_url?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
           destination_id?: string | null
-          duration?: string | null
-          format_type?: string | null
           gallery?: Json | null
           highlights?: Json | null
           id?: string
           indexability_state?: string | null
-          is_active?: boolean | null
-          is_indexable?: boolean | null
-          latitude?: number | null
-          legacy_experience_id?: string | null
-          like_count?: number | null
-          longitude?: number | null
           meeting_points?: Json | null
-          pair_with_ids?: string[] | null
           publish_score?: number | null
           publish_state?: string | null
-          rating?: number | null
           slug?: string
-          tier?: string | null
           title?: string
           updated_at?: string | null
           video_url?: string | null
-          view_count?: number | null
           visibility_output_state?: string | null
-          weather?: string | null
         }
         Relationships: [
           {
@@ -3528,13 +3483,6 @@ export type Database = {
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_legacy_experience_id_fkey"
-            columns: ["legacy_experience_id"]
-            isOneToOne: false
-            referencedRelation: "experiences"
             referencedColumns: ["id"]
           },
         ]
