@@ -50,15 +50,14 @@ export const AdminItinerariesSection = () => {
   });
 
   const filtered = itineraries.filter((i: any) => {
-    if (sourceFilter === 'internal') return !i.creator_id;
-    if (sourceFilter === 'ugc') return !!i.creator_id;
+    if (sourceFilter === 'internal') return !!i.creator_id;
+    if (sourceFilter === 'ugc') return !i.creator_id;
     return true;
   });
 
   const getCreatorName = (creatorId: string | null) => {
-    if (!creatorId) return 'Internal';
-    const p = profiles.find((pr: any) => pr.id === creatorId);
-    return p ? (p.full_name || p.email || 'User') : 'User';
+    if (!creatorId) return 'UGC';
+    return 'Editorial';
   };
 
   const invalidate = () => {
@@ -103,8 +102,8 @@ export const AdminItinerariesSection = () => {
             key: 'creator_id', label: 'Source', width: 'w-[120px]',
             render: (i: any) => (
               <div className="flex items-center gap-1">
-                {i.creator_id ? <User className="w-3 h-3 text-muted-foreground" /> : null}
-                <Badge variant={i.creator_id ? 'secondary' : 'outline'} className="text-[10px]">
+                {!i.creator_id ? <User className="w-3 h-3 text-muted-foreground" /> : null}
+                <Badge variant={i.creator_id ? 'outline' : 'secondary'} className="text-[10px]">
                   {getCreatorName(i.creator_id)}
                 </Badge>
               </div>
