@@ -369,12 +369,8 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
   }, [searchTerm, searchPool, linkedIds]);
 
   const handleAdd = async (itemId: string) => {
-    if (contentType === 'experience') {
-      await (supabase as any).from('collection_experiences').insert({ collection_id: collectionId, experience_id: itemId, display_order: linkedItems.length });
-    } else {
-      const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
-      await (supabase as any).from('collection_items').insert({ collection_id: collectionId, item_id: itemId, item_type: itemType, position: linkedItems.length });
-    }
+    const itemType = contentType === 'poi' ? 'poi' : contentType === 'product' ? 'product' : 'itinerary';
+    await (supabase as any).from('collection_items').insert({ collection_id: collectionId, item_id: itemId, item_type: itemType, position: linkedItems.length });
     refetch();
     queryClient.invalidateQueries({ queryKey: ['home-carousels'] });
     toast({ title: 'Added' });
