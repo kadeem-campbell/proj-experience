@@ -338,6 +338,16 @@ export const AdminProductsSection = () => {
           <Input value={item.canonical_url || ''} onChange={e => onChange('canonical_url', e.target.value)} className="font-mono text-xs" />
         </div>
       </TabsContent>
+
+      {/* ======= RELATIONSHIPS ======= */}
+      <TabsContent value="relationships" className="space-y-3 mt-3">
+        {item.id ? <RelationshipsEditor productId={item.id} /> : <p className="text-xs text-muted-foreground">Save product first.</p>}
+      </TabsContent>
+
+      {/* ======= VALIDATION ======= */}
+      <TabsContent value="validation" className="space-y-3 mt-3">
+        {item.id ? <ValidationViewer productId={item.id} /> : <p className="text-xs text-muted-foreground">Save product first.</p>}
+      </TabsContent>
     </Tabs>
   );
 
