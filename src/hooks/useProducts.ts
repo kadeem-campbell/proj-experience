@@ -202,11 +202,15 @@ export const useThemes = () => {
   });
 };
 
-export const useProducts = (filters?: { destinationId?: string; areaId?: string; activityTypeId?: string }) => {
+export const useProducts = (filters?: { destinationId?: string; areaId?: string; activityTypeId?: string; includeAll?: boolean }) => {
   return useQuery({
     queryKey: ["products", filters],
     queryFn: async (): Promise<Product[]> => {
       let query = supabase.from("products").select("*") as any;
+      if (!filters?.includeAll) {
+        query = query.in("visibility_output_state", ["public", "public_indexed", "marketplace_active"]);
+        query = query.eq("publish_state", "published");
+      }
       if (filters?.destinationId) query = query.eq("destination_id", filters.destinationId);
       if (filters?.areaId) query = query.eq("primary_area_id", filters.areaId);
       if (filters?.activityTypeId) query = query.eq("activity_type_id", filters.activityTypeId);
