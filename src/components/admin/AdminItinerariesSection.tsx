@@ -50,14 +50,14 @@ export const AdminItinerariesSection = () => {
   });
 
   const filtered = itineraries.filter((i: any) => {
-    if (sourceFilter === 'internal') return !!i.creator_id;
-    if (sourceFilter === 'ugc') return !i.creator_id;
+    if (sourceFilter === 'internal') return i.source_type === 'editorial' || !!i.creator_id;
+    if (sourceFilter === 'ugc') return i.source_type === 'ugc' || (i.source_type !== 'editorial' && !i.creator_id);
     return true;
   });
 
-  const getCreatorName = (creatorId: string | null) => {
-    if (!creatorId) return 'UGC';
-    return 'Editorial';
+  const getCreatorName = (item: any) => {
+    if (item.source_type === 'editorial' || item.creator_id) return 'Editorial';
+    return 'UGC';
   };
 
   const invalidate = () => {
@@ -106,9 +106,9 @@ export const AdminItinerariesSection = () => {
             key: 'creator_id', label: 'Source', width: 'w-[120px]',
             render: (i: any) => (
               <div className="flex items-center gap-1">
-                {!i.creator_id ? <User className="w-3 h-3 text-muted-foreground" /> : null}
-                <Badge variant={i.creator_id ? 'outline' : 'secondary'} className="text-[10px]">
-                  {getCreatorName(i.creator_id)}
+                {!i.creator_id && i.source_type !== 'editorial' ? <User className="w-3 h-3 text-muted-foreground" /> : null}
+                <Badge variant={i.source_type === 'editorial' || i.creator_id ? 'outline' : 'secondary'} className="text-[10px]">
+                  {getCreatorName(i)}
                 </Badge>
               </div>
             ),
@@ -151,8 +151,8 @@ export const AdminItinerariesSection = () => {
               {item.creator_id && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded p-2">
                   <User className="w-3 h-3" />
-                  <span>Created by: {getCreatorName(item.creator_id)}</span>
-                  <span className="font-mono text-[10px]">({item.creator_id?.slice(0, 8)}…)</span>
+                  <span>Created by: {getCreatorName(item)}</span>
+                  {item.creator_id && <span className="font-mono text-[10px]">({item.creator_id?.slice(0, 8)}…)</span>}
                 </div>
               )}
               <div className="flex items-center gap-2">

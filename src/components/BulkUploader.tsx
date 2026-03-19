@@ -226,6 +226,7 @@ export const BulkUploader = () => {
                 description: obj.description || '',
                 cover_image: obj.cover_image || '',
                 tag: obj.tag || 'popular',
+                source_type: 'editorial',
               };
             } else if (currentTab === 'collections') {
               itemTitle = obj.name || `Collection ${rowNum}`;
