@@ -146,11 +146,7 @@ const CollectionPage = () => {
         .eq("collection_id", collectionRow.id)
         .order("position", { ascending: true });
 
-      const { data: expLinks } = await (supabase as any)
-        .from("collection_experiences")
-        .select("experience_id, display_order")
-        .eq("collection_id", collectionRow.id)
-        .order("display_order", { ascending: true });
+      // No longer using collection_experiences
 
       if (contentType === 'itineraries') {
         let linkedItems = (linkRows || [])
