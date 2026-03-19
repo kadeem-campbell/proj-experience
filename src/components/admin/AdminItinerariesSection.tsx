@@ -121,6 +121,7 @@ export const AdminItinerariesSection = () => {
             <TabsList className="h-auto flex-wrap gap-1">
               <TabsTrigger value="details" className="text-xs">Details</TabsTrigger>
               <TabsTrigger value="items" className="text-xs">Products / Items</TabsTrigger>
+              <TabsTrigger value="links" className="text-xs">Links</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details" className="space-y-3 mt-3">
