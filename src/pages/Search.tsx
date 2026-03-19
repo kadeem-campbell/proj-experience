@@ -215,13 +215,13 @@ const SearchPage = () => {
   // Sync city from URL params
   useEffect(() => {
     const cityParam = searchParams.get("city");
-    if (cityParam) {
-      const found = browseDataCities.find(c => c.name.toLowerCase() === cityParam.toLowerCase());
+    if (cityParam && allDestinations.length > 0) {
+      const found = allDestinations.find(d => d.name.toLowerCase() === cityParam.toLowerCase() || d.slug === cityParam.toLowerCase());
       if (found) setSelectedCity(found);
-    } else {
+    } else if (!cityParam) {
       setSelectedCity(null);
     }
-  }, [searchParams]);
+  }, [searchParams, allDestinations]);
 
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
