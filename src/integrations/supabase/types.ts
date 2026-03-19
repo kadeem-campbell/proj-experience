@@ -3718,6 +3718,7 @@ export type Database = {
           name: string
           save_count: number | null
           slug: string
+          source_type: string
           tag: string | null
           trips: Json | null
           updated_at: string | null
@@ -3739,6 +3740,7 @@ export type Database = {
           name: string
           save_count?: number | null
           slug: string
+          source_type?: string
           tag?: string | null
           trips?: Json | null
           updated_at?: string | null
@@ -3760,6 +3762,7 @@ export type Database = {
           name?: string
           save_count?: number | null
           slug?: string
+          source_type?: string
           tag?: string | null
           trips?: Json | null
           updated_at?: string | null
