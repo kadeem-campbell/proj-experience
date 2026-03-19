@@ -159,6 +159,22 @@ export const useDestinationBySlug = (slug: string) => {
   });
 };
 
+export const useDestinationById = (id: string) => {
+  return useQuery({
+    queryKey: ["destination-by-id", id],
+    queryFn: async (): Promise<Destination | null> => {
+      const { data, error } = await supabase
+        .from("destinations")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) return null;
+      return data as unknown as Destination | null;
+    },
+    enabled: !!id,
+  });
+};
+
 export const useAreas = (destinationId?: string) => {
   return useQuery({
     queryKey: ["areas", destinationId],

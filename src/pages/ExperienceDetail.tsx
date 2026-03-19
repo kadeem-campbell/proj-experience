@@ -5,7 +5,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug } from "@/hooks/useProducts";
+import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug, useDestinationById } from "@/hooks/useProducts";
 import { useExperienceBySlug } from "@/hooks/useExperienceBySlug";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateProductSchema } from "@/services/schemaGenerator";
@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
-import { IncludedInItineraries, PairingBlock, BestForBlock, SaveFollowBar } from "@/components/ExperienceDecisionBlocks";
+import { IncludedInItineraries, PairingBlock, BestForBlock } from "@/components/ExperienceDecisionBlocks";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
@@ -187,6 +187,7 @@ export default function ExperienceDetail() {
   const { data: productOptions = [] } = useProductOptions(product?.id || '');
   const { data: productHosts = [] } = useProductHosts(product?.id || '');
   const { data: productDestination } = useDestinationBySlug(destParam || '');
+  const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
 
   // Fallback: try legacy experiences table when product not found
   const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug(
@@ -227,7 +228,7 @@ export default function ExperienceDetail() {
         videoThumbnail: product.cover_image_url,
         videoUrl: product.video_url,
         category: productActivityType?.name || '',
-        location: productDestination?.name || '',
+        location: productDestination?.name || productDestinationById?.name || '',
         description: product.description,
         duration: product.duration_minutes ? `${product.duration_minutes} min` : '',
         groupSize: '',
@@ -241,7 +242,7 @@ export default function ExperienceDetail() {
         weather: '',
         meetingPoints: product.meeting_points_json || [],
         faqs: [] as any[],
-        tiktokVideos: [] as any[],
+        tiktokVideos: (product as any).tiktok_url ? [{ url: (product as any).tiktok_url }] : [],
         instagramEmbed: (product as any).instagram_url || '',
         socialLinks: {
           ...(product as any).tiktok_url ? { tiktok: (product as any).tiktok_url } : {},
@@ -283,7 +284,7 @@ export default function ExperienceDetail() {
     }
 
     return null;
-  }, [product, productOptions, productDestination, productHosts, legacyExperience]);
+  }, [product, productOptions, productDestination, productDestinationById, productHosts, legacyExperience]);
 
   // Analytics: track page view
   useEffect(() => {
@@ -316,14 +317,16 @@ export default function ExperienceDetail() {
 
   const likedByCount = (experience?.likeCount || 0) + likeCountDelta;
 
+  const resolvedDestination = productDestination || productDestinationById;
+
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
-    if ((experience as any).isProduct && productDestination) {
-      return `${baseUrl}/things-to-do/${productDestination.slug}/${experience.slug || ''}`;
+    if ((experience as any).isProduct && resolvedDestination) {
+      return `${baseUrl}/things-to-do/${resolvedDestination.slug}/${experience.slug || ''}`;
     }
     return `${baseUrl}${generateProductPageUrl(experience.location, experience.title, (experience as any).slug)}`;
-  }, [experience, productDestination]);
+  }, [experience, resolvedDestination]);
 
   useEffect(() => {
     if (experience) {
@@ -335,7 +338,7 @@ export default function ExperienceDetail() {
   // Generate JSON-LD: prefer product schema if available
   const experienceJsonLd = useMemo(() => {
     if (product && productOptions) {
-      return generateProductSchema(product, productOptions, productHosts, productDestination);
+      return generateProductSchema(product, productOptions, productHosts, resolvedDestination);
     }
     if (!experience) return null;
     return createExperienceJsonLd({
@@ -349,7 +352,7 @@ export default function ExperienceDetail() {
       duration: experience.duration,
       category: experience.category,
     });
-  }, [experience, product, productOptions, productHosts, productDestination, shareUrl]);
+  }, [experience, product, productOptions, productHosts, resolvedDestination, shareUrl]);
 
 
   // Check if sections have content
@@ -686,12 +689,7 @@ export default function ExperienceDetail() {
               </div>
             )}
 
-            {/* Save + Follow bar */}
-            <SaveFollowBar
-              experienceId={experience.id}
-              hostId={productHosts.length > 0 ? productHosts[0]?.id : undefined}
-              hostName={creatorNames[0]}
-            />
+            {/* Save + Follow removed — follow is host-side only */}
 
             {/* Best for personas */}
             {/* Best for personas - now driven by intent affinities */}
@@ -911,12 +909,7 @@ export default function ExperienceDetail() {
                 </div>
               )}
 
-              {/* Save + Follow bar (desktop) */}
-              <SaveFollowBar
-                experienceId={experience.id}
-                hostId={productHosts.length > 0 ? productHosts[0]?.id : undefined}
-                hostName={creatorNames[0]}
-              />
+              {/* Save + Follow removed — follow is host-side only */}
 
               {/* Best for */}
               {/* Best for personas - now driven by intent affinities */}
