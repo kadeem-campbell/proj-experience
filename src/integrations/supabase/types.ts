@@ -3599,6 +3599,7 @@ export type Database = {
           highlights: Json | null
           id: string
           indexability_state: string | null
+          instagram_url: string | null
           meeting_points: Json | null
           primary_area_id: string | null
           primary_poi_id: string | null
@@ -3608,6 +3609,7 @@ export type Database = {
           seo_description: string | null
           seo_title: string | null
           slug: string
+          tiktok_url: string | null
           title: string
           updated_at: string | null
           video_url: string | null
@@ -3627,6 +3629,7 @@ export type Database = {
           highlights?: Json | null
           id?: string
           indexability_state?: string | null
+          instagram_url?: string | null
           meeting_points?: Json | null
           primary_area_id?: string | null
           primary_poi_id?: string | null
@@ -3636,6 +3639,7 @@ export type Database = {
           seo_description?: string | null
           seo_title?: string | null
           slug: string
+          tiktok_url?: string | null
           title: string
           updated_at?: string | null
           video_url?: string | null
@@ -3655,6 +3659,7 @@ export type Database = {
           highlights?: Json | null
           id?: string
           indexability_state?: string | null
+          instagram_url?: string | null
           meeting_points?: Json | null
           primary_area_id?: string | null
           primary_poi_id?: string | null
@@ -3664,6 +3669,7 @@ export type Database = {
           seo_description?: string | null
           seo_title?: string | null
           slug?: string
+          tiktok_url?: string | null
           title?: string
           updated_at?: string | null
           video_url?: string | null

@@ -13,6 +13,7 @@ export interface Product {
   highlights_json: any[];
   meeting_points_json: any[];
   duration_minutes: number | null;
+  average_price_per_person: number | null;
   seo_title: string;
   seo_description: string;
   canonical_url: string | null;
@@ -24,6 +25,8 @@ export interface Product {
   visibility_output_state: string;
   publish_state: string;
   indexability_state: string;
+  tiktok_url: string | null;
+  instagram_url: string | null;
   created_at: string;
   updated_at: string;
 }

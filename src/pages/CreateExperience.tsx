@@ -93,6 +93,8 @@ export default function CreateExperience() {
     seoTitle: '',
     seoDescription: '',
     averagePricePerPerson: '',
+    tiktokUrl: '',
+    instagramUrl: '',
   });
 
   // Related products state
@@ -217,6 +219,8 @@ export default function CreateExperience() {
           seo_title: form.seoTitle || form.title,
           seo_description: form.seoDescription || form.description?.slice(0, 160) || '',
           average_price_per_person: form.averagePricePerPerson ? parseFloat(form.averagePricePerPerson) : null,
+          tiktok_url: form.tiktokUrl || null,
+          instagram_url: form.instagramUrl || null,
           publish_score: 0,
           publish_state: 'published',
           visibility_output_state: 'public',
@@ -618,6 +622,17 @@ export default function CreateExperience() {
             </div>
 
             <Separator />
+            <h3 className="font-semibold text-sm">Social Media</h3>
+            <div>
+              <Label>TikTok URL</Label>
+              <Input placeholder="https://tiktok.com/@..." value={form.tiktokUrl} onChange={e => set('tiktokUrl', e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label>Instagram URL</Label>
+              <Input placeholder="https://instagram.com/..." value={form.instagramUrl} onChange={e => set('instagramUrl', e.target.value)} className="mt-1" />
+            </div>
+
+            <Separator />
             <h3 className="font-semibold flex items-center gap-2"><Link2 className="w-4 h-4" /> Link to Itineraries & Collections</h3>
             <p className="text-xs text-muted-foreground">Add this product to existing itineraries and collections at creation time.</p>
 
@@ -716,7 +731,7 @@ export default function CreateExperience() {
             <div className="flex gap-3 justify-center">
               <Button onClick={() => navigate('/admin')}>Go to Admin</Button>
               <Button variant="outline" onClick={() => {
-                setForm({ title: '', description: '', destinationId: '', areaId: '', activityTypeId: '', themeIds: [], coverImage: '', videoUrl: '', highlights: '', seoTitle: '', seoDescription: '', averagePricePerPerson: '' });
+                setForm({ title: '', description: '', destinationId: '', areaId: '', activityTypeId: '', themeIds: [], coverImage: '', videoUrl: '', highlights: '', seoTitle: '', seoDescription: '', averagePricePerPerson: '', tiktokUrl: '', instagramUrl: '' });
                 setOptions([defaultOption()]);
                 setHostId('');
                 setSelectedItineraryIds([]);
