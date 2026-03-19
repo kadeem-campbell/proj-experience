@@ -4,10 +4,11 @@ import { UserCircle, User, LogOut, Map, MapPin, Check, Search, X } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { City } from "@/data/browseData";
+import { BrowseDestination } from "@/hooks/useDestinations";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
 import { useNavigate } from "react-router-dom";
+import { useDestinations } from "@/hooks/useDestinations";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,20 +23,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const mapCities = [
-  { name: "Zanzibar", available: true },
-  { name: "Dar es Salaam", available: true },
-  { name: "Entebbe", available: false, launchDate: "18 March" },
-  { name: "Kampala", available: false, launchDate: "20 March" },
-  { name: "Nairobi", available: false, launchDate: "21 March" },
-  { name: "Cape Town", available: false, launchDate: "1 April" },
-];
-
 interface FixedSearchHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  selectedCity: City | null;
-  onCitySelect: (city: City | null) => void;
+  selectedCity: BrowseDestination | null;
+  onCitySelect: (city: BrowseDestination | null) => void;
   selectedCategory: string | null;
   onCategorySelect: (category: string | null) => void;
   onMobileSearchClick?: () => void;
@@ -59,6 +51,7 @@ export const FixedSearchHeader = ({
   const headerRef = useRef<HTMLDivElement>(null);
   const { user, userProfile, signOut, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { data: destinations = [] } = useDestinations();
 
   useEffect(() => {
     const scrollContainer = document.querySelector('main.overflow-auto');
@@ -79,52 +72,45 @@ export const FixedSearchHeader = ({
     <>
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       
-      {/* City selector dialog */}
+      {/* Destination selector dialog */}
       <Dialog open={cityDialogOpen} onOpenChange={setCityDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Choose a city</DialogTitle>
-            <p className="text-sm text-muted-foreground">Select a city to explore experiences</p>
+            <DialogTitle>Select destination</DialogTitle>
+            <p className="text-sm text-muted-foreground">Choose a destination to explore</p>
           </DialogHeader>
           <div className="space-y-2 mt-3">
-            {mapCities.map((city) => (
+            {destinations.map((dest) => (
               <button
-                key={city.name}
-                disabled={!city.available}
+                key={dest.id}
                 onClick={() => {
-                  if (city.available) {
-                    if (selectedCity?.name === city.name) onCitySelect(null);
-                    else onCitySelect({ id: city.name.toLowerCase().replace(/\s+/g, '-'), name: city.name, color: '#000' } as City);
-                    setCityDialogOpen(false);
-                  }
+                  if (selectedCity?.id === dest.id) onCitySelect(null);
+                  else onCitySelect(dest);
+                  setCityDialogOpen(false);
                 }}
                 className={cn(
                   "w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 text-left",
-                  city.available
-                    ? selectedCity?.name === city.name
-                      ? "bg-primary/8 border border-primary/20"
-                      : "bg-background border border-border/50 hover:border-border hover:bg-muted/30"
-                    : "bg-muted/30 border border-border/20 opacity-50 cursor-not-allowed"
+                  selectedCity?.id === dest.id
+                    ? "bg-primary/8 border border-primary/20"
+                    : "bg-background border border-border/50 hover:border-border hover:bg-muted/30"
                 )}
               >
                 <div className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                  city.available ? "bg-primary/8" : "bg-muted"
+                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden",
+                  "bg-primary/8"
                 )}>
-                  <MapPin className={cn("w-5 h-5", city.available ? "text-primary" : "text-muted-foreground")} />
+                  {dest.flag_svg_url ? (
+                    <img src={dest.flag_svg_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <MapPin className="w-5 h-5 text-primary" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className={cn("text-[15px] font-semibold", city.available ? "text-foreground" : "text-muted-foreground")}>
-                    {city.name}
+                  <h3 className="text-[15px] font-semibold text-foreground">
+                    {dest.name}
                   </h3>
-                  {!city.available && city.launchDate && (
-                    <p className="text-xs text-muted-foreground mt-0.5">Coming {city.launchDate}</p>
-                  )}
-                  {city.available && (
-                    <p className="text-xs text-primary mt-0.5">Available now</p>
-                  )}
                 </div>
-                {city.available && selectedCity?.name === city.name && (
+                {selectedCity?.id === dest.id && (
                   <Check className="w-5 h-5 text-primary shrink-0" />
                 )}
               </button>
@@ -171,7 +157,7 @@ export const FixedSearchHeader = ({
               </div>
             </div>
 
-            {/* Right: City + Map + Profile */}
+            {/* Right: Destination + Map + Profile */}
             <div className="flex items-center gap-2 ml-auto">
               {selectedCity && (
                 <button

@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { SidebarProvider, SidebarInset, useSidebar } from "@/components/ui/sidebar";
 import { ItinerarySidebar } from "@/components/ItinerarySidebar";
 import { ItineraryPanel } from "@/components/ItineraryPanel";
-import { City } from "@/data/browseData";
+import { BrowseDestination } from "@/hooks/useDestinations";
 import { Button } from "@/components/ui/button";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -13,8 +13,8 @@ interface MainLayoutProps {
   showSidebar?: boolean;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
-  selectedCity?: City | null;
-  onCitySelect?: (city: City | null) => void;
+  selectedCity?: BrowseDestination | null;
+  onCitySelect?: (city: BrowseDestination | null) => void;
   onMobileSearchClick?: () => void;
 }
 

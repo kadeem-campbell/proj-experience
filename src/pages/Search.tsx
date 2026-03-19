@@ -11,7 +11,8 @@ import { useItineraries } from "@/hooks/useItineraries";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 
 import { Button } from "@/components/ui/button";
-import { City, cities as browseDataCities } from "@/data/browseData";
+import { BrowseDestination } from "@/hooks/useDestinations";
+import { useDestinations } from "@/hooks/useDestinations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProductListings } from "@/hooks/useProductListings";
 import { Compass, Map, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
@@ -188,13 +189,8 @@ const synonyms: Record<string, string[]> = {
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState<City | null>(() => {
-    const cityParam = searchParams.get("city");
-    if (cityParam) {
-      return browseDataCities.find(c => c.name.toLowerCase() === cityParam.toLowerCase()) || null;
-    }
-    return null;
-  });
+  const [selectedCity, setSelectedCity] = useState<BrowseDestination | null>(null);
+  const { data: allDestinations = [] } = useDestinations();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const experiences = useProductListings();
   const { data: popularItinerariesForSearch = [] } = usePopularItineraries();
@@ -219,13 +215,13 @@ const SearchPage = () => {
   // Sync city from URL params
   useEffect(() => {
     const cityParam = searchParams.get("city");
-    if (cityParam) {
-      const found = browseDataCities.find(c => c.name.toLowerCase() === cityParam.toLowerCase());
+    if (cityParam && allDestinations.length > 0) {
+      const found = allDestinations.find(d => d.name.toLowerCase() === cityParam.toLowerCase() || d.slug === cityParam.toLowerCase());
       if (found) setSelectedCity(found);
-    } else {
+    } else if (!cityParam) {
       setSelectedCity(null);
     }
-  }, [searchParams]);
+  }, [searchParams, allDestinations]);
 
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);
@@ -289,7 +285,7 @@ const SearchPage = () => {
     </>
   );
 
-  const handleCitySelect = (city: City | null) => { setSelectedCity(city); setSelectedCategory(null); };
+  const handleCitySelect = (city: BrowseDestination | null) => { setSelectedCity(city); setSelectedCategory(null); };
   const handleCategorySelect = (categoryName: string | null) => { setSelectedCategory(categoryName); };
   const clearFilters = () => { setSelectedCity(null); setSelectedCategory(null); setSearchQuery(""); };
 
