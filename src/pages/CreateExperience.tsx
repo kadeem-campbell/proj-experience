@@ -219,6 +219,8 @@ export default function CreateExperience() {
           seo_title: form.seoTitle || form.title,
           seo_description: form.seoDescription || form.description?.slice(0, 160) || '',
           average_price_per_person: form.averagePricePerPerson ? parseFloat(form.averagePricePerPerson) : null,
+          tiktok_url: form.tiktokUrl || null,
+          instagram_url: form.instagramUrl || null,
           publish_score: 0,
           publish_state: 'published',
           visibility_output_state: 'public',
