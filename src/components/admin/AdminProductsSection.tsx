@@ -611,14 +611,19 @@ const OutputsViewer = ({ productId }: { productId: string }) => {
 
   const docTypes = ['json_ld', 'llm_grounding', 'search_document', 'feed_document', 'public_page_payload'];
 
-  const regenerate = async (docType: string) => {
-    // Upsert a pending doc to trigger generation (actual generation is a separate pipeline)
-    await supabase.from('entity_documents').upsert({
-      entity_type: 'product', entity_id: productId, document_type: docType,
-      generation_status: 'pending', generated_at: new Date().toISOString(), document_json: {},
-    } as any, { onConflict: 'entity_type,entity_id,document_type' });
-    qc.invalidateQueries({ queryKey: ['admin-entity-docs', productId] });
-    toast({ title: `Queued ${docType} for regeneration` });
+  const [generating, setGenerating] = useState<string | null>(null);
+
+  const regenerate = async (docType?: string) => {
+    setGenerating(docType || 'all');
+    try {
+      await generateEntityDocuments(productId);
+      qc.invalidateQueries({ queryKey: ['admin-entity-docs', productId] });
+      toast({ title: docType ? `Regenerated ${docType}` : 'All documents regenerated' });
+    } catch (e) {
+      toast({ title: 'Generation failed', description: String(e), variant: 'destructive' });
+    } finally {
+      setGenerating(null);
+    }
   };
 
   return (
