@@ -33,13 +33,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { City } from "@/data/browseData";
+import { BrowseDestination } from "@/hooks/useDestinations";
 
 interface ItinerarySidebarProps {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
-  selectedCity?: City | null;
-  onCitySelect?: (city: City | null) => void;
+  selectedCity?: BrowseDestination | null;
+  onCitySelect?: (city: BrowseDestination | null) => void;
   onMobileSearchClick?: () => void;
 }
 

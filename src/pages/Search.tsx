@@ -11,7 +11,8 @@ import { useItineraries } from "@/hooks/useItineraries";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 
 import { Button } from "@/components/ui/button";
-import { City, cities as browseDataCities } from "@/data/browseData";
+import { BrowseDestination } from "@/hooks/useDestinations";
+import { useDestinations } from "@/hooks/useDestinations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProductListings } from "@/hooks/useProductListings";
 import { Compass, Map, MapPinned, ChevronLeft, ChevronRight } from "lucide-react";
