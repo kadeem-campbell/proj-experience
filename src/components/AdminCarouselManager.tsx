@@ -20,7 +20,6 @@ import { cn } from '@/lib/utils';
 
 const CONTENT_TYPES = [
   { value: 'itinerary', label: 'Itineraries', icon: ListMusic },
-  { value: 'experience', label: 'Experiences', icon: Compass },
   { value: 'product', label: 'Products', icon: Package },
   { value: 'poi', label: 'Places (POIs)', icon: MapPin },
 ] as const;
