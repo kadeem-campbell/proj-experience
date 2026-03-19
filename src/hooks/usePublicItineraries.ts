@@ -106,7 +106,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
           id: e.id,
           title: product?.title || e.title || "",
           creator: e.creator || "",
-          videoThumbnail: product?.cover_image_url || e.videoThumbnail || "",
+          videoThumbnail: product?.cover_image || e.videoThumbnail || "",
           category: e.category || "",
           location: e.location || "",
           price: e.price || "",
