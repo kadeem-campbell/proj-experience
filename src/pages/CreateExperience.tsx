@@ -93,6 +93,8 @@ export default function CreateExperience() {
     seoTitle: '',
     seoDescription: '',
     averagePricePerPerson: '',
+    tiktokUrl: '',
+    instagramUrl: '',
   });
 
   // Related products state
