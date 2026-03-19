@@ -242,7 +242,7 @@ export default function ExperienceDetail() {
         weather: '',
         meetingPoints: product.meeting_points_json || [],
         faqs: [] as any[],
-        tiktokVideos: [] as any[],
+        tiktokVideos: (product as any).tiktok_url ? [{ url: (product as any).tiktok_url }] : [],
         instagramEmbed: (product as any).instagram_url || '',
         socialLinks: {
           ...(product as any).tiktok_url ? { tiktok: (product as any).tiktok_url } : {},
