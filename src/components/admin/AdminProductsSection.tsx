@@ -17,7 +17,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
-import { Archive, Eye, RefreshCw, Plus, Trash2 } from 'lucide-react';
+import { Archive, Eye, RefreshCw, Plus, Trash2, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { generateEntityDocuments } from '@/services/entityDocGenerator';
+import { validateProduct, persistReadinessScore, persistValidationResults } from '@/services/publishValidator';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
