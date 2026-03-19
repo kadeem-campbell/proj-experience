@@ -38,7 +38,7 @@ export const useProductListings = () => {
         title: p.title,
         creator: "",
         views: "0",
-        videoThumbnail: p.cover_image_url || "",
+        videoThumbnail: p.cover_image || "",
         videoUrl: p.video_url || undefined,
         category: "",
         location: "",
