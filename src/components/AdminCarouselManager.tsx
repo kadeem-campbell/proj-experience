@@ -76,7 +76,7 @@ export const AdminCarouselManager = () => {
     if (!newName.trim() || !newSlug.trim()) return;
     const { error } = await (supabase as any).from('collections').insert({
       name: newName, slug: newSlug,
-      collection_type: newType === 'itinerary' ? 'itineraries' : newType === 'experience' ? 'experiences' : newType === 'product' ? 'products' : 'pois',
+      collection_type: newType === 'itinerary' ? 'itineraries' : newType === 'product' ? 'products' : 'pois',
       content_type: newType,
       show_on_home: false, home_display_order: collections.length,
     });
