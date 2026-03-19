@@ -55,11 +55,14 @@ export const useDestinations = () => {
     queryFn: async (): Promise<DbDestination[]> => {
       const { data, error } = await supabase
         .from("destinations")
-        .select("*")
+        .select("*, countries(flag_svg_url)")
         .eq("is_active", true)
         .order("name");
       if (error) { console.error("Failed to fetch destinations:", error); return []; }
-      return (data || []) as DbDestination[];
+      return ((data || []) as any[]).map((destination) => ({
+        ...destination,
+        flag_svg_url: destination.flag_svg_url || destination.countries?.flag_svg_url || null,
+      })) as DbDestination[];
     },
     staleTime: 10 * 60 * 1000,
   });
