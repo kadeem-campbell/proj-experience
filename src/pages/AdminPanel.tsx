@@ -48,6 +48,7 @@ const SECTIONS = [
   { id: 'locations', label: 'Locations', icon: Globe, group: 'Content' },
   { id: 'hosts', label: 'Hosts / Creators', icon: Users, group: 'Content' },
   { id: 'collections', label: 'Collections', icon: Layers, group: 'Content' },
+  { id: 'carousels', label: 'Carousels', icon: SlidersHorizontal, group: 'Content' },
   { id: 'itineraries', label: 'Itineraries', icon: MapPin, group: 'Content' },
   { id: 'taxonomy', label: 'Taxonomy & Pricing', icon: Tag, group: 'Content' },
   { id: 'media', label: 'Media', icon: Image, group: 'Content' },
