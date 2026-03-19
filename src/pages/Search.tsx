@@ -250,37 +250,6 @@ const SearchPage = () => {
     }
   }, [searchParams, allDestinations]);
 
-  // On mobile: "/" shows homepage, "/search" shows search overlay
-  const isSearchRoute = window.location.pathname === '/search' || window.location.pathname === '/discover';
-  
-  useEffect(() => {
-    if (isMobile && isSearchRoute) setSearchQuery("");
-  }, [isSearchRoute, isMobile]);
-  
-  if (isMobile && isSearchRoute) return (
-    <MobileSearchOverlay
-      isOpen={true}
-      onClose={() => navigate(-1)}
-      searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
-      onSearch={(q) => setSearchQuery(q)}
-    />
-  );
-
-  if (isMobile) return (
-    <>
-      <SEOHead
-        title="Discover Experiences & Things to Do in East Africa"
-        description="Explore curated experiences, activities and things to do in Zanzibar, Kilimanjaro, Nairobi and across East Africa."
-        canonicalPath="/"
-        indexability="public_indexed"
-        jsonLd={createWebsiteJsonLd()}
-      />
-      <MobileHomeView />
-    </>
-  );
-
-  // ─── DESKTOP ───────────────────────────────────────────────────
   const handleCitySelect = (city: BrowseDestination | null) => { setSelectedCity(city); setSelectedCategory(null); };
 
   const selectedDestId = selectedCity?.id || null;
@@ -288,18 +257,20 @@ const SearchPage = () => {
   const destSlug = selectedCityName ? slugify(selectedCityName) : '';
 
   // Filter experiences by city
-  const cityFilteredExperiences = selectedCity 
-    ? experiences.filter(e => e.location?.toLowerCase().includes(selectedCity.name.toLowerCase()))
-    : experiences;
+  const cityFilteredExperiences = useMemo(() => {
+    if (!selectedCity) return experiences;
+    return experiences.filter(e => e.location?.toLowerCase().includes(selectedCity.name.toLowerCase()));
+  }, [experiences, selectedCity]);
 
   // Filter itineraries by city
-  const cityFilteredItineraries = selectedCity
-    ? allItinerariesData.filter(it => {
-        const cityName = selectedCity.name.toLowerCase();
-        return it.name.toLowerCase().includes(cityName) || 
-          it.experiences?.some((e: any) => e.location?.toLowerCase().includes(cityName));
-      })
-    : allItinerariesData;
+  const cityFilteredItineraries = useMemo(() => {
+    if (!selectedCity) return allItinerariesData;
+    const cityName = selectedCity.name.toLowerCase();
+    return allItinerariesData.filter(it => {
+      return it.name.toLowerCase().includes(cityName) || 
+        it.experiences?.some((e: any) => e.location?.toLowerCase().includes(cityName));
+    });
+  }, [allItinerariesData, selectedCity]);
 
   // Search filter
   const normalizeText = (text: string) => text.toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ").trim();
@@ -336,6 +307,36 @@ const SearchPage = () => {
   }, [homeCarousels, selectedDestId]);
 
   const hasSearchResults = searchQuery.trim().length > 0;
+
+  // On mobile: "/" shows homepage, "/search" shows search overlay
+  const isSearchRoute = window.location.pathname === '/search' || window.location.pathname === '/discover';
+  
+  useEffect(() => {
+    if (isMobile && isSearchRoute) setSearchQuery("");
+  }, [isSearchRoute, isMobile]);
+  
+  if (isMobile && isSearchRoute) return (
+    <MobileSearchOverlay
+      isOpen={true}
+      onClose={() => navigate(-1)}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      onSearch={(q) => setSearchQuery(q)}
+    />
+  );
+
+  if (isMobile) return (
+    <>
+      <SEOHead
+        title="Discover Experiences & Things to Do in East Africa"
+        description="Explore curated experiences, activities and things to do in Zanzibar, Kilimanjaro, Nairobi and across East Africa."
+        canonicalPath="/"
+        indexability="public_indexed"
+        jsonLd={createWebsiteJsonLd()}
+      />
+      <MobileHomeView />
+    </>
+  );
 
   return (
     <MainLayout searchQuery={searchQuery} onSearchChange={setSearchQuery} selectedCity={selectedCity} onCitySelect={handleCitySelect}>
