@@ -558,6 +558,29 @@ export default function CreateExperience() {
                 ))}
               </div>
             ))}
+
+            <Separator />
+            <h3 className="font-semibold text-sm">Average Price Per Person</h3>
+            <p className="text-xs text-muted-foreground">Set the indicative price per person for display. This is managed separately from option-level pricing and used for cards/search.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Amount (USD)</Label>
+                <Input type="number" placeholder="e.g. 45" value={form.averagePricePerPerson} onChange={e => set('averagePricePerPerson', e.target.value)} className="mt-1" />
+              </div>
+            </div>
+
+            <Separator />
+            <h3 className="font-semibold text-sm">Related Products</h3>
+            <p className="text-xs text-muted-foreground">Link multiple related products for cross-selling ("often paired with"). Select as many as needed.</p>
+            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+              {allProducts.filter(p => p.id !== createdProductId).map(p => (
+                <Badge key={p.id} variant={selectedRelatedProductIds.includes(p.id) ? "default" : "outline"} className="cursor-pointer text-xs"
+                  onClick={() => setSelectedRelatedProductIds(prev => prev.includes(p.id) ? prev.filter((id: string) => id !== p.id) : [...prev, p.id])}>
+                  {p.title}
+                </Badge>
+              ))}
+              {allProducts.length === 0 && <p className="text-xs text-muted-foreground">No existing products found.</p>}
+            </div>
           </Card>
         );
 
