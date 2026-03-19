@@ -50,8 +50,8 @@ const fetchEnrichment = async (productId: string): Promise<EnrichedProduct | nul
     product.destination_id
       ? supabase.from("destinations").select("*").eq("id", product.destination_id).maybeSingle()
       : Promise.resolve({ data: null }),
-    product.primary_area_id
-      ? supabase.from("areas").select("*").eq("id", product.primary_area_id).maybeSingle()
+    (product as any).primary_area_id || (product as any).area_id
+      ? supabase.from("areas").select("*").eq("id", (product as any).primary_area_id || (product as any).area_id).maybeSingle()
       : Promise.resolve({ data: null }),
     supabase.from("options").select("*, price_options(*)").eq("product_id", productId).eq("is_active", true) as any,
     supabase.from("product_hosts").select("*, hosts(*)").eq("product_id", productId) as any,
