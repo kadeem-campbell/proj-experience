@@ -479,33 +479,33 @@ export const MobileHomeView = () => {
             return carousel.destinationIds.includes(selectedDestId);
           });
 
-          // Build POI row for selected city (no rank numbers)
           const destSlug = selectedCity ? slugify(selectedCity) : '';
-          const poiRow = selectedDestId ? (() => {
-            const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
-            if (cityPois.length === 0) return null;
-            return (
-              <HorizontalScrollRow 
-                key="city-pois"
-                title={`Places to explore in ${selectedCity}`}
-                onTitleClick={() => navigate(`/${destSlug}`)}
-              >
-                {cityPois.slice(0, 10).map((poi: any) => (
-                  <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
-                ))}
-              </HorizontalScrollRow>
-            );
-          })() : null;
 
           const elements: React.ReactNode[] = [];
-          filteredCarousels.forEach((carousel, idx) => {
-            // Insert POI row at position 2 if available
-            if (idx === 2 && poiRow) elements.push(poiRow);
-
+          filteredCarousels.forEach((carousel) => {
             const title = carousel.name.replace('{city}', selectedCity || 'your city');
             const resolvedSlug = carousel.slug.replace('city', selectedCity ? slugify(selectedCity) : 'city');
           
-            if (carousel.contentType === 'itinerary') {
+            if (carousel.contentType === 'poi') {
+              // POI carousel
+              const allPoisForCarousel = carousel.itemIds.length > 0
+                ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
+                : selectedDestId
+                  ? pois.filter((p: any) => p.destination_id === selectedDestId)
+                  : pois;
+              if (allPoisForCarousel.length === 0) return;
+              elements.push(
+                <HorizontalScrollRow
+                  key={carousel.id}
+                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  onTitleClick={() => navigate(`/${destSlug || 'explore'}`)}
+                >
+                  {allPoisForCarousel.slice(0, 10).map((poi: any) => (
+                    <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
+                  ))}
+                </HorizontalScrollRow>
+              );
+            } else if (carousel.contentType === 'itinerary') {
               const items = carousel.itemIds.length > 0
                 ? categoryItineraries.filter(it => carousel.itemIds.includes(it.dbId || it.id))
                 : categoryItineraries.slice(0, 6);
@@ -522,6 +522,7 @@ export const MobileHomeView = () => {
                 </HorizontalScrollRow>
               );
             } else {
+              // experience or product
               const items = carousel.itemIds.length > 0
                 ? categoryExperiences.filter(exp => carousel.itemIds.includes(exp.id))
                 : categoryExperiences.slice(0, 8);
@@ -539,8 +540,6 @@ export const MobileHomeView = () => {
               );
             }
           });
-          // Append POI row at end if fewer than 3 carousels
-          if (filteredCarousels.length < 3 && poiRow) elements.push(poiRow);
           return <>{elements}</>;
         })()
       ) : (
