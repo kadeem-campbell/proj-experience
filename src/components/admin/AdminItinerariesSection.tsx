@@ -256,3 +256,35 @@ const ItineraryItemsEditor = ({ itinerary, onChange }: { itinerary: any; onChang
     </div>
   );
 };
+
+// ============ ITINERARY LINKS VIEWER ============
+
+const ItineraryLinksViewer = ({ itineraryId }: { itineraryId: string }) => {
+  const { data: collectionLinks = [] } = useQuery({
+    queryKey: ['admin-itinerary-collection-links', itineraryId],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('collection_items').select('id, collection_id, position').eq('item_id', itineraryId).eq('item_type', 'itinerary');
+      if (!data?.length) return [];
+      const collIds = data.map((ci: any) => ci.collection_id);
+      const { data: colls } = await (supabase as any).from('collections').select('id, name, slug').in('id', collIds);
+      return data.map((ci: any) => {
+        const c = colls?.find((x: any) => x.id === ci.collection_id);
+        return { ...ci, collection_name: c?.name || ci.collection_id.slice(0, 8), collection_slug: c?.slug };
+      });
+    },
+  });
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-semibold">In Collections ({collectionLinks.length})</h4>
+      {collectionLinks.length === 0 && <p className="text-xs text-muted-foreground">Not in any collections yet.</p>}
+      {collectionLinks.map((cl: any) => (
+        <div key={cl.id} className="flex items-center gap-2 text-sm border border-border rounded px-3 py-2">
+          <Badge variant="outline" className="text-[10px]">Collection</Badge>
+          <span className="flex-1 truncate">{cl.collection_name}</span>
+          <span className="text-[10px] text-muted-foreground font-mono">/collections/{cl.collection_slug}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
