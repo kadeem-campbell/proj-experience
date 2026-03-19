@@ -340,6 +340,11 @@ export const AdminProductsSection = () => {
         </div>
       </TabsContent>
 
+      {/* ======= LINKS ======= */}
+      <TabsContent value="links" className="space-y-3 mt-3">
+        {item.id ? <ProductLinksViewer productId={item.id} productTitle={item.title} /> : <p className="text-xs text-muted-foreground">Save product first.</p>}
+      </TabsContent>
+
       {/* ======= RELATIONSHIPS ======= */}
       <TabsContent value="relationships" className="space-y-3 mt-3">
         {item.id ? <RelationshipsEditor productId={item.id} /> : <p className="text-xs text-muted-foreground">Save product first.</p>}
