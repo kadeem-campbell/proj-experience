@@ -308,17 +308,8 @@ export const MobileHomeView = () => {
     const q = searchParams.get("q");
     setSearchQuery(q || "");
     const city = searchParams.get("city");
-    if (city) {
-      setSelectedCity(city);
-    } else {
-      // Fallback to localStorage when no URL param
-      try {
-        const persisted = localStorage.getItem("swam_selected_city") || "";
-        setSelectedCity(persisted);
-      } catch {
-        setSelectedCity("");
-      }
-    }
+    // Always follow URL — MobileShell manages localStorage persistence
+    setSelectedCity(city || "");
   }, [searchParams]);
 
   const handleCityChange = useCallback((city: string) => {

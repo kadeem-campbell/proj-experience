@@ -248,7 +248,16 @@ const SearchPage = () => {
     }
   }, [searchParams, allDestinations]);
 
-  const handleCitySelect = (city: BrowseDestination | null) => { setSelectedCity(city); setSelectedCategory(null); };
+  const handleCitySelect = (city: BrowseDestination | null) => {
+    setSelectedCity(city);
+    setSelectedCategory(null);
+    // Sync to URL so the state is consistent
+    const params = new URLSearchParams(window.location.search);
+    if (city) params.set("city", city.name);
+    else params.delete("city");
+    const newSearch = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${newSearch ? '?' + newSearch : ''}`);
+  };
 
   const selectedDestId = selectedCity?.id || null;
   const selectedCityName = selectedCity?.name || '';
