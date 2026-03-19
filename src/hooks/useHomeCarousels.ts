@@ -20,11 +20,12 @@ export const useHomeCarousels = () => {
         .select("id, name, slug, content_type, home_display_order, destination_id")
         .eq("show_on_home", true)
         .eq("is_active", true)
-        .order("home_display_order");
+        .order("home_display_order", { ascending: true });
 
       if (error || !collections) return [];
 
       const collectionIds = collections.map((c: any) => c.id);
+      if (collectionIds.length === 0) return [];
 
       // Fetch multi-city assignments
       const { data: cdLinks } = await (supabase as any)
@@ -82,12 +83,13 @@ export const useHomeCarousels = () => {
           name: c.name,
           slug: c.slug,
           contentType,
-          displayOrder: c.home_display_order || 0,
+          displayOrder: c.home_display_order ?? 999,
           destinationIds: destByCollection[c.id] || [],
           itemIds,
         };
-      });
+      }).sort((a, b) => a.displayOrder - b.displayOrder);
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000, // 30s — ensures admin changes reflect quickly
+    refetchOnWindowFocus: true,
   });
 };
