@@ -124,7 +124,7 @@ export const AdminCarouselManager = () => {
       <Card className="p-4">
         <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><Plus className="w-4 h-4" /> New Carousel / Collection</h3>
         <p className="text-xs text-muted-foreground mb-3">
-          Use <code className="bg-muted px-1 rounded">{'{city}'}</code> in the name for dynamic city substitution (e.g. "Top in {'{city'}}")
+          Use <code className="bg-muted px-1 rounded">{'{{city}}'}</code> in the name for dynamic city substitution (e.g. &quot;Top in {'{{city}}'}&quot;)
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <Input placeholder="Name (e.g. Top in {city})" value={newName} onChange={e => { setNewName(e.target.value); setNewSlug(e.target.value.toLowerCase().replace(/\{city\}/g, 'city').replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')); }} />
