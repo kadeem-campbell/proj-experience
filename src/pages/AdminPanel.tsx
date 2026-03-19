@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { Navigation } from '@/components/Navigation';
+import { AdminCarouselManager } from '@/components/AdminCarouselManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
