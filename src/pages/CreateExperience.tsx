@@ -318,6 +318,18 @@ export default function CreateExperience() {
         });
       }
 
+      // 8. Link related products
+      if (selectedRelatedProductIds.length > 0) {
+        await (supabase as any).from("product_relationships").insert(
+          selectedRelatedProductIds.map(relId => ({
+            source_product_id: productId,
+            target_product_id: relId,
+            relationship_type: 'related',
+            score: 1.0,
+          }))
+        );
+      }
+
       toast({ title: "Product Created!", description: `"${form.title}" created with ${options.length} option(s). Run validation in Admin to publish.` });
       setCurrentStep('confirmation');
     } catch (err: any) {
