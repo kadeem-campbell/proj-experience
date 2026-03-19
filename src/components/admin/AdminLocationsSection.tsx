@@ -291,6 +291,7 @@ export const AdminLocationsSection = () => {
                 ) : <span className="text-xs text-muted-foreground">—</span>;
               }},
               { key: 'launch_status', label: 'Launch', width: 'w-[80px]', render: (d: any) => <Badge variant={d.launch_status === 'live' ? 'default' : 'secondary'} className="text-[10px]">{d.launch_status || 'planned'}</Badge> },
+              { key: 'products', label: 'Products', width: 'w-[70px]', render: (d: any) => <span className="text-xs">{(productsByDest as any)[d.id] || 0}</span> },
             ]}
             defaultItem={{ name: '', slug: '', description: '', short_description: '', cover_image: '', is_active: true, display_order: 0, country_id: '', destination_type: 'city', launch_status: 'planned' }}
             renderForm={(item: any, onChange) => (
