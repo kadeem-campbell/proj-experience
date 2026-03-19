@@ -5,7 +5,7 @@ export interface HomeCarousel {
   id: string;
   name: string;
   slug: string;
-  contentType: "itinerary" | "experience";
+  contentType: "itinerary" | "experience" | "product" | "poi";
   displayOrder: number;
   destinationIds: string[]; // multi-city
   itemIds: string[];
@@ -38,12 +38,12 @@ export const useHomeCarousels = () => {
         .select("collection_id, experience_id")
         .in("collection_id", collectionIds);
 
-      // Get itinerary links via collection_items
-      const { data: itinLinks } = await (supabase as any)
+      // Get generic collection_items (itineraries, pois, products)
+      const { data: itemLinks } = await (supabase as any)
         .from("collection_items")
-        .select("collection_id, item_id")
-        .eq("item_type", "itinerary")
-        .in("collection_id", collectionIds);
+        .select("collection_id, item_id, item_type, position")
+        .in("collection_id", collectionIds)
+        .order("position");
 
       const destByCollection: Record<string, string[]> = {};
       (cdLinks || []).forEach((l: any) => {
@@ -57,24 +57,36 @@ export const useHomeCarousels = () => {
         expByCollection[l.collection_id].push(l.experience_id);
       });
 
-      const itinByCollection: Record<string, string[]> = {};
-      (itinLinks || []).forEach((l: any) => {
-        if (!itinByCollection[l.collection_id]) itinByCollection[l.collection_id] = [];
-        itinByCollection[l.collection_id].push(l.item_id);
+      const itemsByCollection: Record<string, Record<string, string[]>> = {};
+      (itemLinks || []).forEach((l: any) => {
+        if (!itemsByCollection[l.collection_id]) itemsByCollection[l.collection_id] = {};
+        const type = l.item_type || 'itinerary';
+        if (!itemsByCollection[l.collection_id][type]) itemsByCollection[l.collection_id][type] = [];
+        itemsByCollection[l.collection_id][type].push(l.item_id);
       });
 
-      return collections.map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        slug: c.slug,
-        contentType: c.content_type || "itinerary",
-        displayOrder: c.home_display_order || 0,
-        destinationIds: destByCollection[c.id] || [],
-        itemIds:
-          c.content_type === "experience"
-            ? expByCollection[c.id] || []
-            : itinByCollection[c.id] || [],
-      }));
+      return collections.map((c: any) => {
+        const contentType = c.content_type || "itinerary";
+        let itemIds: string[] = [];
+
+        if (contentType === "experience" || contentType === "product") {
+          itemIds = expByCollection[c.id] || itemsByCollection[c.id]?.['product'] || itemsByCollection[c.id]?.['experience'] || [];
+        } else if (contentType === "poi") {
+          itemIds = itemsByCollection[c.id]?.['poi'] || [];
+        } else {
+          itemIds = itemsByCollection[c.id]?.['itinerary'] || [];
+        }
+
+        return {
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          contentType,
+          displayOrder: c.home_display_order || 0,
+          destinationIds: destByCollection[c.id] || [],
+          itemIds,
+        };
+      });
     },
     staleTime: 5 * 60 * 1000,
   });
