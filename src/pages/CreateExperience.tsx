@@ -265,7 +265,7 @@ export default function CreateExperience() {
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select destination" /></SelectTrigger>
                 <SelectContent>
                   {destinations.map(d => (
-                    <SelectItem key={d.id} value={d.id}>{d.flag_emoji} {d.name}</SelectItem>
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

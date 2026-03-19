@@ -54,9 +54,9 @@ export default function Map() {
     return products
       .map((product) => {
         const destination = destinations.find((item) => item.id === product.destination_id) || routeDestination;
-        const area = allAreas.find((item) => item.id === product.area_id);
-        const lat = Number(product.latitude ?? area?.latitude ?? destination?.latitude ?? 0);
-        const lng = Number(product.longitude ?? area?.longitude ?? destination?.longitude ?? 0);
+        const area = allAreas.find((item) => item.id === product.primary_area_id);
+        const lat = Number(area?.latitude ?? destination?.latitude ?? 0);
+        const lng = Number(area?.longitude ?? destination?.longitude ?? 0);
         if (!lat || !lng || !destination) return null;
         return {
           id: product.id,

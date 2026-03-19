@@ -231,8 +231,8 @@ export default function HostProfile() {
                   className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border cursor-pointer hover:bg-muted/40 active:bg-muted/60 transition-colors"
                 >
                   <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-                    {prod.cover_image ? (
-                      <img src={prod.cover_image} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    {prod.cover_image_url ? (
+                      <img src={prod.cover_image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <MapPin className="w-4 h-4 text-muted-foreground/40" />
@@ -245,7 +245,7 @@ export default function HostProfile() {
                   </div>
                   <div className="flex items-center gap-1 text-sm shrink-0">
                     <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                    <span className="font-medium text-xs">{prod.rating || 4.7}</span>
+                    <span className="font-medium text-xs">4.7</span>
                   </div>
                 </div>
               );

@@ -1319,6 +1319,42 @@ export type Database = {
         }
         Relationships: []
       }
+      entity_documents: {
+        Row: {
+          document_json: Json | null
+          document_type: string
+          entity_id: string
+          entity_type: string
+          generated_at: string | null
+          generation_status: string | null
+          id: string
+          source_hash: string | null
+          version: number | null
+        }
+        Insert: {
+          document_json?: Json | null
+          document_type: string
+          entity_id: string
+          entity_type: string
+          generated_at?: string | null
+          generation_status?: string | null
+          id?: string
+          source_hash?: string | null
+          version?: number | null
+        }
+        Update: {
+          document_json?: Json | null
+          document_type?: string
+          entity_id?: string
+          entity_type?: string
+          generated_at?: string | null
+          generation_status?: string | null
+          id?: string
+          source_hash?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       entity_funnel_metrics: {
         Row: {
           booking_intents: number | null
@@ -2719,48 +2755,57 @@ export type Database = {
       }
       options: {
         Row: {
+          availability_mode: string | null
+          capacity_max: number | null
+          capacity_min: number | null
           created_at: string | null
           description: string | null
-          display_order: number | null
           duration: string | null
-          format_type: string | null
-          group_size: string | null
+          duration_minutes: number | null
           id: string
           is_active: boolean | null
+          is_default_option: boolean | null
           name: string
+          option_type: string | null
           product_id: string
           slug: string
-          tier: string | null
+          start_time_rule: string | null
           updated_at: string | null
         }
         Insert: {
+          availability_mode?: string | null
+          capacity_max?: number | null
+          capacity_min?: number | null
           created_at?: string | null
           description?: string | null
-          display_order?: number | null
           duration?: string | null
-          format_type?: string | null
-          group_size?: string | null
+          duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
+          is_default_option?: boolean | null
           name: string
+          option_type?: string | null
           product_id: string
           slug: string
-          tier?: string | null
+          start_time_rule?: string | null
           updated_at?: string | null
         }
         Update: {
+          availability_mode?: string | null
+          capacity_max?: number | null
+          capacity_min?: number | null
           created_at?: string | null
           description?: string | null
-          display_order?: number | null
           duration?: string | null
-          format_type?: string | null
-          group_size?: string | null
+          duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
+          is_default_option?: boolean | null
           name?: string
+          option_type?: string | null
           product_id?: string
           slug?: string
-          tier?: string | null
+          start_time_rule?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3112,38 +3157,41 @@ export type Database = {
         Row: {
           amount: number
           created_at: string | null
-          currency: string
-          display_order: number | null
+          currency_code: string
           id: string
           is_active: boolean | null
-          label: string
           option_id: string
-          original_amount: number | null
+          pricing_category: string | null
+          pricing_unit: string | null
           updated_at: string | null
+          valid_from: string | null
+          valid_to: string | null
         }
         Insert: {
           amount?: number
           created_at?: string | null
-          currency?: string
-          display_order?: number | null
+          currency_code?: string
           id?: string
           is_active?: boolean | null
-          label?: string
           option_id: string
-          original_amount?: number | null
+          pricing_category?: string | null
+          pricing_unit?: string | null
           updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Update: {
           amount?: number
           created_at?: string | null
-          currency?: string
-          display_order?: number | null
+          currency_code?: string
           id?: string
           is_active?: boolean | null
-          label?: string
           option_id?: string
-          original_amount?: number | null
+          pricing_category?: string | null
+          pricing_unit?: string | null
           updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Relationships: [
           {
@@ -3247,27 +3295,30 @@ export type Database = {
       product_hosts: {
         Row: {
           created_at: string | null
-          display_order: number | null
           host_id: string
           id: string
           is_primary: boolean | null
           product_id: string
+          role_type: string | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          display_order?: number | null
           host_id: string
           id?: string
           is_primary?: boolean | null
           product_id: string
+          role_type?: string | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          display_order?: number | null
           host_id?: string
           id?: string
           is_primary?: boolean | null
           product_id?: string
+          role_type?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -3282,6 +3333,48 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_intent_affinities: {
+        Row: {
+          affinity_score: number | null
+          created_at: string | null
+          product_id: string
+          reason_text: string | null
+          traveller_intent_profile_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          affinity_score?: number | null
+          created_at?: string | null
+          product_id: string
+          reason_text?: string | null
+          traveller_intent_profile_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          affinity_score?: number | null
+          created_at?: string | null
+          product_id?: string
+          reason_text?: string | null
+          traveller_intent_profile_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_intent_affinities_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_intent_affinities_traveller_intent_profile_id_fkey"
+            columns: ["traveller_intent_profile_id"]
+            isOneToOne: false
+            referencedRelation: "traveller_intent_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3323,6 +3416,50 @@ export type Database = {
             foreignKeyName: "product_pois_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_positioning_profiles: {
+        Row: {
+          budget_score: number | null
+          comfort_score: number | null
+          exclusivity_score: number | null
+          luxury_score: number | null
+          premium_score: number | null
+          product_id: string
+          social_score: number | null
+          updated_at: string | null
+          value_score: number | null
+        }
+        Insert: {
+          budget_score?: number | null
+          comfort_score?: number | null
+          exclusivity_score?: number | null
+          luxury_score?: number | null
+          premium_score?: number | null
+          product_id: string
+          social_score?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Update: {
+          budget_score?: number | null
+          comfort_score?: number | null
+          exclusivity_score?: number | null
+          luxury_score?: number | null
+          premium_score?: number | null
+          product_id?: string
+          social_score?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_positioning_profiles_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -3403,110 +3540,65 @@ export type Database = {
         Row: {
           activity_type_id: string | null
           area_id: string | null
-          best_for: string[] | null
-          best_time: string | null
           canonical_url: string | null
           cover_image: string | null
           created_at: string | null
           description: string | null
           destination_id: string | null
-          duration: string | null
-          format_type: string | null
           gallery: Json | null
           highlights: Json | null
           id: string
           indexability_state: string | null
-          is_active: boolean | null
-          is_indexable: boolean | null
-          latitude: number | null
-          legacy_experience_id: string | null
-          like_count: number | null
-          longitude: number | null
           meeting_points: Json | null
-          pair_with_ids: string[] | null
           publish_score: number | null
           publish_state: string | null
-          rating: number | null
           slug: string
-          tier: string | null
           title: string
           updated_at: string | null
           video_url: string | null
-          view_count: number | null
           visibility_output_state: string | null
-          weather: string | null
         }
         Insert: {
           activity_type_id?: string | null
           area_id?: string | null
-          best_for?: string[] | null
-          best_time?: string | null
           canonical_url?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
           destination_id?: string | null
-          duration?: string | null
-          format_type?: string | null
           gallery?: Json | null
           highlights?: Json | null
           id?: string
           indexability_state?: string | null
-          is_active?: boolean | null
-          is_indexable?: boolean | null
-          latitude?: number | null
-          legacy_experience_id?: string | null
-          like_count?: number | null
-          longitude?: number | null
           meeting_points?: Json | null
-          pair_with_ids?: string[] | null
           publish_score?: number | null
           publish_state?: string | null
-          rating?: number | null
           slug: string
-          tier?: string | null
           title: string
           updated_at?: string | null
           video_url?: string | null
-          view_count?: number | null
           visibility_output_state?: string | null
-          weather?: string | null
         }
         Update: {
           activity_type_id?: string | null
           area_id?: string | null
-          best_for?: string[] | null
-          best_time?: string | null
           canonical_url?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
           destination_id?: string | null
-          duration?: string | null
-          format_type?: string | null
           gallery?: Json | null
           highlights?: Json | null
           id?: string
           indexability_state?: string | null
-          is_active?: boolean | null
-          is_indexable?: boolean | null
-          latitude?: number | null
-          legacy_experience_id?: string | null
-          like_count?: number | null
-          longitude?: number | null
           meeting_points?: Json | null
-          pair_with_ids?: string[] | null
           publish_score?: number | null
           publish_state?: string | null
-          rating?: number | null
           slug?: string
-          tier?: string | null
           title?: string
           updated_at?: string | null
           video_url?: string | null
-          view_count?: number | null
           visibility_output_state?: string | null
-          weather?: string | null
         }
         Relationships: [
           {
@@ -3528,13 +3620,6 @@ export type Database = {
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_legacy_experience_id_fkey"
-            columns: ["legacy_experience_id"]
-            isOneToOne: false
-            referencedRelation: "experiences"
             referencedColumns: ["id"]
           },
         ]
@@ -4432,6 +4517,68 @@ export type Database = {
         }
         Relationships: []
       }
+      semantic_product_profiles: {
+        Row: {
+          adventure_score: number | null
+          beginner_friendliness_score: number | null
+          comfort_score: number | null
+          confidence_score: number | null
+          effort_score: number | null
+          family_score: number | null
+          food_score: number | null
+          localness_score: number | null
+          luxury_score: number | null
+          product_id: string
+          romance_score: number | null
+          solo_score: number | null
+          updated_at: string | null
+          value_score: number | null
+          wellness_score: number | null
+        }
+        Insert: {
+          adventure_score?: number | null
+          beginner_friendliness_score?: number | null
+          comfort_score?: number | null
+          confidence_score?: number | null
+          effort_score?: number | null
+          family_score?: number | null
+          food_score?: number | null
+          localness_score?: number | null
+          luxury_score?: number | null
+          product_id: string
+          romance_score?: number | null
+          solo_score?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+          wellness_score?: number | null
+        }
+        Update: {
+          adventure_score?: number | null
+          beginner_friendliness_score?: number | null
+          comfort_score?: number | null
+          confidence_score?: number | null
+          effort_score?: number | null
+          family_score?: number | null
+          food_score?: number | null
+          localness_score?: number | null
+          luxury_score?: number | null
+          product_id?: string
+          romance_score?: number | null
+          solo_score?: number | null
+          updated_at?: string | null
+          value_score?: number | null
+          wellness_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "semantic_product_profiles_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_profiles: {
         Row: {
           created_at: string | null
@@ -4677,6 +4824,33 @@ export type Database = {
           origin_id?: string
           origin_type?: string
           source_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      traveller_intent_profiles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
           updated_at?: string | null
         }
         Relationships: []

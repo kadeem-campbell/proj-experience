@@ -80,8 +80,8 @@ export default function DestinationPage() {
           )}
           <div>
             <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-            {destination?.airport_code && (
-              <span className="text-xs font-semibold text-muted-foreground tracking-wider">{destination.airport_code}</span>
+            {destination?.iata_code && (
+              <span className="text-xs font-semibold text-muted-foreground tracking-wider">{destination.iata_code}</span>
             )}
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function DestinationPage() {
                 className="cursor-pointer active:scale-[0.97] transition-transform"
               >
                 <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
-                  <img src={item.cover_image || ""} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                  <img src={item.cover_image_url || ""} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
                 </div>
                 <div className="mt-2">
                   <h3 className="font-semibold text-sm line-clamp-1">{item.title}</h3>

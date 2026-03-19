@@ -202,27 +202,27 @@ export default function ExperienceDetail() {
       id: product.id,
       title: product.title,
       creator: hostNames,
-      videoThumbnail: product.cover_image,
+      videoThumbnail: product.cover_image_url,
       videoUrl: product.video_url,
       category: '',
       location: productDestination?.name || '',
       description: product.description,
-      duration: product.duration,
+      duration: product.duration_minutes ? `${product.duration_minutes} min` : '',
       groupSize: '',
-      rating: product.rating,
+      rating: 0,
       price: productOptions.length > 0
-        ? productOptions[0].price_options.map(p => `${p.currency} ${p.amount}`).join(' / ')
+        ? productOptions[0].price_options.map(p => `${p.currency_code} ${p.amount}`).join(' / ')
         : '',
-      highlights: product.highlights || [],
-      gallery: (product.gallery && product.gallery.length > 0) ? product.gallery : (product.cover_image ? [product.cover_image] : []),
-      bestTime: product.best_time,
-      weather: product.weather,
-      meetingPoints: product.meeting_points || [],
+      highlights: product.highlights_json || [],
+      gallery: (product.gallery_json && product.gallery_json.length > 0) ? product.gallery_json : (product.cover_image_url ? [product.cover_image_url] : []),
+      bestTime: '',
+      weather: '',
+      meetingPoints: product.meeting_points_json || [],
       faqs: [] as any[],
       tiktokVideos: [] as any[],
       instagramEmbed: '',
       socialLinks: {} as Record<string, string>,
-      likeCount: product.like_count,
+      likeCount: 0,
       slug: product.slug,
       isProduct: true,
     };
@@ -637,7 +637,7 @@ export default function ExperienceDetail() {
             />
 
             {/* Best for personas */}
-            {product?.best_for && <BestForBlock bestFor={product.best_for as string[]} />}
+            {/* Best for personas - now driven by intent affinities */}
 
             {/* Pairing & substitution recommendations */}
             <PairingBlock experienceId={experience.id} />
@@ -862,7 +862,7 @@ export default function ExperienceDetail() {
               />
 
               {/* Best for */}
-              {product?.best_for && <BestForBlock bestFor={product.best_for as string[]} />}
+              {/* Best for personas - now driven by intent affinities */}
 
               {/* Pairing block */}
               <PairingBlock experienceId={experience.id} />

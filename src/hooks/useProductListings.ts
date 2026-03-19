@@ -24,8 +24,7 @@ export const useProductListings = () => {
     queryFn: async (): Promise<ProductListing[]> => {
       const { data: products, error } = await supabase
         .from("products")
-        .select("id, title, slug, cover_image, video_url, duration, destination_id, like_count, view_count, tier")
-        .eq("is_active", true);
+        .select("id, title, slug, cover_image_url, video_url, destination_id");
 
       if (error) {
         console.error("Failed to fetch product listings:", error);
@@ -36,8 +35,8 @@ export const useProductListings = () => {
         id: p.id,
         title: p.title,
         creator: "",
-        views: String(p.view_count || 0),
-        videoThumbnail: p.cover_image || "",
+        views: "0",
+        videoThumbnail: p.cover_image_url || "",
         videoUrl: p.video_url || undefined,
         category: "",
         location: "",

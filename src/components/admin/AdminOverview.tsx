@@ -65,9 +65,9 @@ const useDataQuality = () => {
     queryKey: ['admin-overview-quality'],
     queryFn: async () => {
       // Products missing key fields
-      const { data: products } = await supabase.from('products').select('id, title, cover_image, destination_id, description, activity_type_id').eq('is_active', true);
-      const prods = products || [];
-      const missingImage = prods.filter(p => !p.cover_image);
+      const { data: products } = await supabase.from('products').select('id, title, cover_image_url, destination_id, description, activity_type_id');
+      const prods = (products || []) as any[];
+      const missingImage = prods.filter(p => !p.cover_image_url);
       const missingDest = prods.filter(p => !p.destination_id);
       const missingDesc = prods.filter(p => !p.description || p.description.length < 20);
       const missingActivity = prods.filter(p => !p.activity_type_id);
