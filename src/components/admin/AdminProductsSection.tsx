@@ -17,7 +17,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
-import { Archive, Eye, RefreshCw, Plus, Trash2 } from 'lucide-react';
+import { Archive, Eye, RefreshCw, Plus, Trash2, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { generateEntityDocuments } from '@/services/entityDocGenerator';
+import { validateProduct, persistReadinessScore, persistValidationResults } from '@/services/publishValidator';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
@@ -92,8 +94,21 @@ export const AdminProductsSection = () => {
       const { error } = await supabase.from('products').update(rest as any).eq('id', id);
       if (error) throw error;
     }
+    // Auto-validate and generate docs after save
+    if (id || !isNew) {
+      const productId = id || rest.id;
+      if (productId) {
+        try {
+          const result = validateProduct({ product: { ...rest, id: productId } });
+          await persistReadinessScore(result);
+          await persistValidationResults(result);
+          await supabase.from('products').update({ publish_score: result.publish_score } as any).eq('id', productId);
+          await generateEntityDocuments(productId);
+        } catch (e) { console.warn('Post-save validation/generation:', e); }
+      }
+    }
     invalidate();
-    toast({ title: isNew ? 'Product created' : 'Product saved' });
+    toast({ title: isNew ? 'Product created' : 'Product saved & validated' });
   };
 
   const deleteFn = async (ids: string[]) => {
@@ -146,7 +161,9 @@ export const AdminProductsSection = () => {
         <TabsTrigger value="intent" className="text-xs">Intent</TabsTrigger>
         <TabsTrigger value="positioning" className="text-xs">Positioning</TabsTrigger>
         <TabsTrigger value="outputs" className="text-xs">Outputs</TabsTrigger>
+        <TabsTrigger value="relationships" className="text-xs">Relations</TabsTrigger>
         <TabsTrigger value="governance" className="text-xs">Governance</TabsTrigger>
+        <TabsTrigger value="validation" className="text-xs">Validation</TabsTrigger>
       </TabsList>
 
       {/* ======= BASICS ======= */}
@@ -238,7 +255,7 @@ export const AdminProductsSection = () => {
             <SelectContent>{activityTypes.map((at: any) => <SelectItem key={at.id} value={at.id}>{at.emoji} {at.name}</SelectItem>)}</SelectContent>
           </Select>
         </div>
-        <p className="text-xs text-muted-foreground">Themes and formats are managed via product_themes and product_formats junction tables (bulk ops tab).</p>
+        {item.id ? <ThemeFormatEditor productId={item.id} themes={themes} /> : <p className="text-xs text-muted-foreground">Save product first to manage themes, formats, and POIs.</p>}
       </TabsContent>
 
       {/* ======= OPTIONS & PRICING (inline sub-editor) ======= */}
@@ -320,6 +337,16 @@ export const AdminProductsSection = () => {
           <Label className="text-xs text-muted-foreground">Canonical URL</Label>
           <Input value={item.canonical_url || ''} onChange={e => onChange('canonical_url', e.target.value)} className="font-mono text-xs" />
         </div>
+      </TabsContent>
+
+      {/* ======= RELATIONSHIPS ======= */}
+      <TabsContent value="relationships" className="space-y-3 mt-3">
+        {item.id ? <RelationshipsEditor productId={item.id} /> : <p className="text-xs text-muted-foreground">Save product first.</p>}
+      </TabsContent>
+
+      {/* ======= VALIDATION ======= */}
+      <TabsContent value="validation" className="space-y-3 mt-3">
+        {item.id ? <ValidationViewer productId={item.id} /> : <p className="text-xs text-muted-foreground">Save product first.</p>}
       </TabsContent>
     </Tabs>
   );
@@ -618,6 +645,269 @@ const OutputsViewer = ({ productId }: { productId: string }) => {
           </Card>
         );
       })}
+    </div>
+  );
+};
+
+// ============ THEME / FORMAT / POI EDITOR ============
+
+const ThemeFormatEditor = ({ productId, themes }: { productId: string; themes: any[] }) => {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  const { data: linkedThemes = [] } = useQuery({
+    queryKey: ['admin-pt', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_themes').select('*, themes(id, name, emoji)').eq('product_id', productId) as any;
+      return data || [];
+    },
+  });
+
+  const { data: linkedFormats = [] } = useQuery({
+    queryKey: ['admin-pf', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_formats').select('*').eq('product_id', productId) as any;
+      return data || [];
+    },
+  });
+
+  const { data: linkedPois = [] } = useQuery({
+    queryKey: ['admin-pp', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_pois').select('*, pois(id, name, slug)').eq('product_id', productId) as any;
+      return data || [];
+    },
+  });
+
+  const { data: allPois = [] } = useQuery({
+    queryKey: ['admin-all-pois'],
+    queryFn: async () => {
+      const { data } = await supabase.from('pois').select('id, name, slug') as any;
+      return data || [];
+    },
+  });
+
+  const addTheme = async (themeId: string) => {
+    await supabase.from('product_themes').insert({ product_id: productId, theme_id: themeId } as any);
+    qc.invalidateQueries({ queryKey: ['admin-pt', productId] });
+  };
+
+  const removeTheme = async (id: string) => {
+    await supabase.from('product_themes').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-pt', productId] });
+  };
+
+  const addFormat = async (formatType: string) => {
+    await supabase.from('product_formats').insert({ product_id: productId, format_type: formatType } as any);
+    qc.invalidateQueries({ queryKey: ['admin-pf', productId] });
+  };
+
+  const removeFormat = async (id: string) => {
+    await supabase.from('product_formats').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-pf', productId] });
+  };
+
+  const addPoi = async (poiId: string) => {
+    await supabase.from('product_pois').insert({ product_id: productId, poi_id: poiId, relationship_type: 'located_at', display_order: linkedPois.length } as any);
+    qc.invalidateQueries({ queryKey: ['admin-pp', productId] });
+  };
+
+  const removePoi = async (id: string) => {
+    await supabase.from('product_pois').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-pp', productId] });
+  };
+
+  const FORMAT_TYPES = ['shared', 'private', 'guided', 'self-guided', 'half-day', 'full-day', 'multi-day', 'morning', 'sunset', 'overnight'];
+
+  return (
+    <div className="space-y-4">
+      {/* Themes */}
+      <div>
+        <Label className="text-xs text-muted-foreground font-semibold">Themes</Label>
+        <div className="flex flex-wrap gap-1 mt-1">
+          {linkedThemes.map((lt: any) => (
+            <Badge key={lt.id} variant="secondary" className="text-[10px] cursor-pointer" onClick={() => removeTheme(lt.id)}>
+              {lt.themes?.emoji} {lt.themes?.name} ✕
+            </Badge>
+          ))}
+        </div>
+        <Select onValueChange={addTheme}>
+          <SelectTrigger className="w-48 mt-1"><SelectValue placeholder="Add theme..." /></SelectTrigger>
+          <SelectContent>
+            {themes.filter(t => !linkedThemes.some((lt: any) => lt.theme_id === t.id)).map(t => (
+              <SelectItem key={t.id} value={t.id}>{t.emoji} {t.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Formats */}
+      <div>
+        <Label className="text-xs text-muted-foreground font-semibold">Formats</Label>
+        <div className="flex flex-wrap gap-1 mt-1">
+          {linkedFormats.map((f: any) => (
+            <Badge key={f.id} variant="outline" className="text-[10px] cursor-pointer" onClick={() => removeFormat(f.id)}>
+              {f.format_type} ✕
+            </Badge>
+          ))}
+        </div>
+        <Select onValueChange={addFormat}>
+          <SelectTrigger className="w-48 mt-1"><SelectValue placeholder="Add format..." /></SelectTrigger>
+          <SelectContent>
+            {FORMAT_TYPES.filter(ft => !linkedFormats.some((f: any) => f.format_type === ft)).map(ft => (
+              <SelectItem key={ft} value={ft}>{ft}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* POIs */}
+      <div>
+        <Label className="text-xs text-muted-foreground font-semibold">Linked POIs</Label>
+        <div className="flex flex-wrap gap-1 mt-1">
+          {linkedPois.map((lp: any) => (
+            <Badge key={lp.id} variant="secondary" className="text-[10px] cursor-pointer" onClick={() => removePoi(lp.id)}>
+              📍 {lp.pois?.name} ({lp.relationship_type}) ✕
+            </Badge>
+          ))}
+        </div>
+        <Select onValueChange={addPoi}>
+          <SelectTrigger className="w-48 mt-1"><SelectValue placeholder="Add POI..." /></SelectTrigger>
+          <SelectContent>
+            {allPois.filter((p: any) => !linkedPois.some((lp: any) => lp.poi_id === p.id)).map((p: any) => (
+              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+};
+
+// ============ PRODUCT RELATIONSHIPS EDITOR ============
+
+const RelationshipsEditor = ({ productId }: { productId: string }) => {
+  const qc = useQueryClient();
+  const { data: rels = [] } = useQuery({
+    queryKey: ['admin-prod-rels', productId],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('product_relationships')
+        .select('*, target:products!product_relationships_target_product_id_fkey(id, title, slug)')
+        .eq('source_product_id', productId);
+      return data || [];
+    },
+  });
+
+  const { data: allProducts = [] } = useQuery({
+    queryKey: ['admin-products-mini-rels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, title').order('title');
+      return data || [];
+    },
+  });
+
+  const REL_TYPES = ['related', 'complementary', 'alternative', 'upgrade', 'prerequisite', 'add_on'];
+
+  const [relType, setRelType] = useState('related');
+
+  const add = async (targetId: string) => {
+    await (supabase as any).from('product_relationships').insert({
+      source_product_id: productId,
+      target_product_id: targetId,
+      relationship_type: relType,
+      score: 0.5,
+    });
+    qc.invalidateQueries({ queryKey: ['admin-prod-rels', productId] });
+  };
+
+  const remove = async (id: string) => {
+    await (supabase as any).from('product_relationships').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-prod-rels', productId] });
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-muted-foreground">Link this product to related products.</p>
+      {rels.map((r: any) => (
+        <div key={r.id} className="flex items-center gap-2">
+          <Badge variant="outline" className="text-[10px]">{r.relationship_type}</Badge>
+          <span className="text-sm">{r.target?.title}</span>
+          <Slider min={0} max={1} step={0.05} value={[r.score ?? 0.5]} className="w-24" onValueChange={async ([v]) => {
+            await (supabase as any).from('product_relationships').update({ score: v }).eq('id', r.id);
+            qc.invalidateQueries({ queryKey: ['admin-prod-rels', productId] });
+          }} />
+          <span className="text-[10px]">{(r.score ?? 0.5).toFixed(2)}</span>
+          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => remove(r.id)}><Trash2 className="w-3 h-3" /></Button>
+        </div>
+      ))}
+      <div className="flex gap-2">
+        <Select value={relType} onValueChange={setRelType}>
+          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <SelectContent>{REL_TYPES.map(rt => <SelectItem key={rt} value={rt}>{rt}</SelectItem>)}</SelectContent>
+        </Select>
+        <Select onValueChange={add}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Add product..." /></SelectTrigger>
+          <SelectContent>
+            {allProducts.filter((p: any) => p.id !== productId && !rels.some((r: any) => r.target_product_id === p.id))
+              .map((p: any) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+};
+
+// ============ VALIDATION VIEWER ============
+
+const ValidationViewer = ({ productId }: { productId: string }) => {
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const runValidation = async () => {
+    setLoading(true);
+    try {
+      const { data: product } = await supabase.from('products').select('*').eq('id', productId).maybeSingle();
+      if (!product) return;
+      const { data: opts } = await supabase.from('options').select('*, price_options(*)').eq('product_id', productId) as any;
+      const { data: hostLinks } = await supabase.from('product_hosts').select('*, hosts(*)').eq('product_id', productId) as any;
+      const hosts = (hostLinks || []).map((h: any) => h.hosts).filter(Boolean);
+      const res = validateProduct({ product, options: opts || [], hosts });
+      await persistReadinessScore(res);
+      await persistValidationResults(res);
+      await supabase.from('products').update({ publish_score: res.publish_score } as any).eq('id', productId);
+      setResult(res);
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="space-y-3">
+      <Button size="sm" onClick={runValidation} disabled={loading}>
+        {loading ? <RefreshCw className="w-3 h-3 mr-1 animate-spin" /> : <CheckCircle className="w-3 h-3 mr-1" />}
+        Run Validation
+      </Button>
+      {result && (
+        <Card className="p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold">{result.publish_score}%</span>
+            <Badge variant={result.is_publishable ? 'default' : 'destructive'} className="text-[10px]">
+              {result.is_publishable ? 'Publishable' : 'Not Ready'}
+            </Badge>
+            <Badge variant="outline" className="text-[10px]">{result.recommended_state}</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">{result.summary}</p>
+          <div className="space-y-1">
+            {result.checks.filter((c: any) => !c.passed).map((c: any, i: number) => (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                {c.severity === 'blocker' ? <XCircle className="w-3 h-3 text-destructive" /> :
+                  c.severity === 'error' ? <AlertTriangle className="w-3 h-3 text-destructive/70" /> :
+                  <AlertTriangle className="w-3 h-3 text-muted-foreground" />}
+                <span>{c.message}</span>
+                {c.suggested_fix && <span className="text-muted-foreground">→ {c.suggested_fix}</span>}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
