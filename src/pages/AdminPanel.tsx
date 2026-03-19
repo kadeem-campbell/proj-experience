@@ -84,6 +84,7 @@ const AdminPanel = () => {
       case 'locations': return <AdminLocationsSection />;
       case 'hosts': return <AdminHostsSection />;
       case 'collections': return <AdminCollectionsSection />;
+      case 'carousels': return <AdminCarouselManager />;
       case 'itineraries': return <AdminItinerariesSection />;
       case 'taxonomy': return <AdminTaxonomySection />;
       case 'media': return <AdminMediaSection />;
