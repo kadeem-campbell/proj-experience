@@ -80,8 +80,8 @@ export default function DestinationPage() {
           )}
           <div>
             <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-            {destination?.airport_code && (
-              <span className="text-xs font-semibold text-muted-foreground tracking-wider">{destination.airport_code}</span>
+            {destination?.iata_code && (
+              <span className="text-xs font-semibold text-muted-foreground tracking-wider">{destination.iata_code}</span>
             )}
           </div>
         </div>
