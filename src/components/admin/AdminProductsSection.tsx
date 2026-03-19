@@ -628,6 +628,10 @@ const OutputsViewer = ({ productId }: { productId: string }) => {
 
   return (
     <div className="space-y-3">
+      <Button size="sm" onClick={() => regenerate()} disabled={!!generating}>
+        <RefreshCw className={`w-3 h-3 mr-1 ${generating === 'all' ? 'animate-spin' : ''}`} />
+        {generating === 'all' ? 'Generating…' : 'Regenerate All Documents'}
+      </Button>
       {docTypes.map(dt => {
         const doc = docs.find((d: any) => d.document_type === dt);
         return (
@@ -642,7 +646,9 @@ const OutputsViewer = ({ productId }: { productId: string }) => {
                   </div>
                 ) : <p className="text-xs text-muted-foreground">Not generated</p>}
               </div>
-              <Button size="sm" variant="outline" onClick={() => regenerate(dt)}><RefreshCw className="w-3 h-3 mr-1" />Regenerate</Button>
+              <Button size="sm" variant="outline" disabled={!!generating} onClick={() => regenerate(dt)}>
+                <RefreshCw className={`w-3 h-3 mr-1 ${generating === dt ? 'animate-spin' : ''}`} />Regenerate
+              </Button>
             </div>
             {doc?.document_json && Object.keys(doc.document_json).length > 0 && (
               <pre className="mt-2 text-[10px] bg-muted p-2 rounded max-h-32 overflow-auto font-mono">{JSON.stringify(doc.document_json, null, 2)}</pre>
