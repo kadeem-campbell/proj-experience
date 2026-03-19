@@ -90,7 +90,14 @@ export default function CreateExperience() {
     coverImage: '',
     videoUrl: '',
     highlights: '',
+    seoTitle: '',
+    seoDescription: '',
+    averagePricePerPerson: '',
   });
+
+  // Related products state
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [selectedRelatedProductIds, setSelectedRelatedProductIds] = useState<string[]>([]);
 
   const [options, setOptions] = useState<OptionRow[]>([defaultOption()]);
 
