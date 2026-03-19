@@ -2719,48 +2719,57 @@ export type Database = {
       }
       options: {
         Row: {
+          availability_mode: string | null
+          capacity_max: number | null
+          capacity_min: number | null
           created_at: string | null
           description: string | null
-          display_order: number | null
           duration: string | null
-          format_type: string | null
-          group_size: string | null
+          duration_minutes: number | null
           id: string
           is_active: boolean | null
+          is_default_option: boolean | null
           name: string
+          option_type: string | null
           product_id: string
           slug: string
-          tier: string | null
+          start_time_rule: string | null
           updated_at: string | null
         }
         Insert: {
+          availability_mode?: string | null
+          capacity_max?: number | null
+          capacity_min?: number | null
           created_at?: string | null
           description?: string | null
-          display_order?: number | null
           duration?: string | null
-          format_type?: string | null
-          group_size?: string | null
+          duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
+          is_default_option?: boolean | null
           name: string
+          option_type?: string | null
           product_id: string
           slug: string
-          tier?: string | null
+          start_time_rule?: string | null
           updated_at?: string | null
         }
         Update: {
+          availability_mode?: string | null
+          capacity_max?: number | null
+          capacity_min?: number | null
           created_at?: string | null
           description?: string | null
-          display_order?: number | null
           duration?: string | null
-          format_type?: string | null
-          group_size?: string | null
+          duration_minutes?: number | null
           id?: string
           is_active?: boolean | null
+          is_default_option?: boolean | null
           name?: string
+          option_type?: string | null
           product_id?: string
           slug?: string
-          tier?: string | null
+          start_time_rule?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3112,38 +3121,41 @@ export type Database = {
         Row: {
           amount: number
           created_at: string | null
-          currency: string
-          display_order: number | null
+          currency_code: string
           id: string
           is_active: boolean | null
-          label: string
           option_id: string
-          original_amount: number | null
+          pricing_category: string | null
+          pricing_unit: string | null
           updated_at: string | null
+          valid_from: string | null
+          valid_to: string | null
         }
         Insert: {
           amount?: number
           created_at?: string | null
-          currency?: string
-          display_order?: number | null
+          currency_code?: string
           id?: string
           is_active?: boolean | null
-          label?: string
           option_id: string
-          original_amount?: number | null
+          pricing_category?: string | null
+          pricing_unit?: string | null
           updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Update: {
           amount?: number
           created_at?: string | null
-          currency?: string
-          display_order?: number | null
+          currency_code?: string
           id?: string
           is_active?: boolean | null
-          label?: string
           option_id?: string
-          original_amount?: number | null
+          pricing_category?: string | null
+          pricing_unit?: string | null
           updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Relationships: [
           {
@@ -3247,27 +3259,30 @@ export type Database = {
       product_hosts: {
         Row: {
           created_at: string | null
-          display_order: number | null
           host_id: string
           id: string
           is_primary: boolean | null
           product_id: string
+          role_type: string | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          display_order?: number | null
           host_id: string
           id?: string
           is_primary?: boolean | null
           product_id: string
+          role_type?: string | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          display_order?: number | null
           host_id?: string
           id?: string
           is_primary?: boolean | null
           product_id?: string
+          role_type?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
