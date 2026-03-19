@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
 import { ShareDrawer } from "@/components/ShareDrawer";
-import { IncludedInItineraries, PairingBlock, BestForBlock, SaveFollowBar } from "@/components/ExperienceDecisionBlocks";
+import { IncludedInItineraries, PairingBlock, BestForBlock } from "@/components/ExperienceDecisionBlocks";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
