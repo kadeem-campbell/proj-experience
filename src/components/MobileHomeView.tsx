@@ -470,7 +470,7 @@ export const MobileHomeView = () => {
         </div>
       ) : (
       <>
-      {/* Dynamic collection-driven carousels — with ranked row injected at position 3 */}
+      {/* Dynamic collection-driven carousels */}
       {homeCarousels.length > 0 ? (
         (() => {
           const filteredCarousels = homeCarousels.filter((carousel) => {
@@ -479,61 +479,28 @@ export const MobileHomeView = () => {
             return carousel.destinationIds.includes(selectedDestId);
           });
 
-          // Build ranked row element
+          // Build POI row for selected city (no rank numbers)
           const destSlug = selectedCity ? slugify(selectedCity) : '';
-          const rankedRow = selectedDestId ? (() => {
+          const poiRow = selectedDestId ? (() => {
             const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
             if (cityPois.length === 0) return null;
             return (
               <HorizontalScrollRow 
-                key="ranked-pois"
-                title={`Top spots in ${selectedCity}`}
+                key="city-pois"
+                title={`Places to explore in ${selectedCity}`}
                 onTitleClick={() => navigate(`/${destSlug}`)}
               >
-                {cityPois.slice(0, 10).map((poi: any, index: number) => (
-                  <RankedCard
-                    key={poi.id}
-                    rank={index + 1}
-                    image={poi.cover_image}
-                    name={poi.name}
-                    subtitle={poi.poi_type}
-                    onClick={() => navigate(`/things-to-do/${destSlug}/${poi.slug}`)}
-                  />
+                {cityPois.slice(0, 10).map((poi: any) => (
+                  <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
                 ))}
               </HorizontalScrollRow>
             );
-          })() : (() => {
-            const topDestinations = allDestinations.slice(0, 10);
-            if (topDestinations.length === 0) return null;
-            return (
-              <HorizontalScrollRow 
-                key="ranked-destinations"
-                title="Trending destinations"
-                onTitleClick={() => navigate('/search')}
-              >
-                {topDestinations.map((dest: any, index: number) => (
-                  <RankedCard
-                    key={dest.id}
-                    rank={index + 1}
-                    image={dest.cover_image}
-                    name={dest.name}
-                    subtitle={dest.country_name}
-                    onClick={() => {
-                      setSelectedCity(dest.name);
-                      try { localStorage.setItem("swam_selected_city", dest.name); } catch {}
-                      navigate(`/?city=${encodeURIComponent(dest.name)}`);
-                    }}
-                  />
-                ))}
-              </HorizontalScrollRow>
-            );
-          })();
+          })() : null;
 
-          // Render carousels with ranked row spliced in at index 2 (3rd position)
           const elements: React.ReactNode[] = [];
           filteredCarousels.forEach((carousel, idx) => {
-            // Insert ranked row before the 3rd carousel
-            if (idx === 2 && rankedRow) elements.push(rankedRow);
+            // Insert POI row at position 2 if available
+            if (idx === 2 && poiRow) elements.push(poiRow);
 
             const title = carousel.name.replace('{city}', selectedCity || 'your city');
             const resolvedSlug = carousel.slug.replace('city', selectedCity ? slugify(selectedCity) : 'city');
@@ -572,8 +539,8 @@ export const MobileHomeView = () => {
               );
             }
           });
-          // If fewer than 3 carousels, append ranked row at the end
-          if (filteredCarousels.length < 3 && rankedRow) elements.push(rankedRow);
+          // Append POI row at end if fewer than 3 carousels
+          if (filteredCarousels.length < 3 && poiRow) elements.push(poiRow);
           return <>{elements}</>;
         })()
       ) : (
