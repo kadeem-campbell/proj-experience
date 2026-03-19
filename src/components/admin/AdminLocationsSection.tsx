@@ -59,44 +59,114 @@ export const AdminLocationsSection = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
 
+  const ADMIN_QUERY_KEYS = {
+    countries: ['admin-countries-full'],
+    destinations: ['admin-dest-full'],
+    areas: ['admin-areas-full'],
+    pois: ['admin-pois-full'],
+    semantic_place_profiles: ['admin-semantic-profiles'],
+    seasonality_profiles: ['admin-seasonality-profiles'],
+    weather_snapshots: ['admin-weather-snapshots'],
+    geo_shapes: ['admin-geo-shapes'],
+    place_relationships: ['admin-place-relationships'],
+    travel_time_edges: ['admin-travel-edges'],
+  } as const;
+
+  type AdminManagedTable = keyof typeof ADMIN_QUERY_KEYS;
+
+  const isManagedTable = (table: string): table is AdminManagedTable => table in ADMIN_QUERY_KEYS;
+
+  const sortRecords = (table: AdminManagedTable, records: any[]) => {
+    const rows = [...records];
+
+    switch (table) {
+      case 'destinations':
+        return rows.sort((a, b) => {
+          const orderDiff = (a.display_order ?? Number.MAX_SAFE_INTEGER) - (b.display_order ?? Number.MAX_SAFE_INTEGER);
+          return orderDiff !== 0 ? orderDiff : String(a.name ?? '').localeCompare(String(b.name ?? ''));
+        });
+      case 'weather_snapshots':
+        return rows.sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')));
+      case 'geo_shapes':
+      case 'semantic_place_profiles':
+      case 'seasonality_profiles':
+        return rows.sort((a, b) => String(a.entity_type ?? '').localeCompare(String(b.entity_type ?? '')));
+      case 'place_relationships':
+        return rows.sort((a, b) => String(a.source_type ?? '').localeCompare(String(b.source_type ?? '')));
+      case 'travel_time_edges':
+        return rows.sort((a, b) => String(a.origin_type ?? '').localeCompare(String(b.origin_type ?? '')));
+      case 'countries':
+      case 'areas':
+      case 'pois':
+      default:
+        return rows.sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')));
+    }
+  };
+
+  const setManagedTableData = (table: string, updater: (current: any[]) => any[]) => {
+    if (!isManagedTable(table)) return;
+
+    qc.setQueryData(ADMIN_QUERY_KEYS[table], (current: any[] | undefined) => {
+      const next = updater(Array.isArray(current) ? current : []);
+      return sortRecords(table, next);
+    });
+  };
+
+  const invalidate = async () => {
+    await Promise.all([
+      ['admin-countries-full'],
+      ['admin-dest-full'],
+      ['admin-areas-full'],
+      ['admin-pois-full'],
+      ['admin-semantic-profiles'],
+      ['admin-seasonality-profiles'],
+      ['admin-weather-snapshots'],
+      ['admin-geo-shapes'],
+      ['admin-place-relationships'],
+      ['admin-travel-edges'],
+      ['admin-overview-counts'],
+      ['destinations'],
+    ].map((queryKey) => qc.invalidateQueries({ queryKey })));
+  };
+
   const { data: countries = [], isLoading: loadingCountries } = useQuery({
-    queryKey: ['admin-countries-full'],
+    queryKey: ADMIN_QUERY_KEYS.countries,
     queryFn: async () => { const { data } = await supabase.from('countries').select('*').order('name'); return data || []; },
   });
   const { data: destinations = [], isLoading: loadingDest } = useQuery({
-    queryKey: ['admin-dest-full'],
+    queryKey: ADMIN_QUERY_KEYS.destinations,
     queryFn: async () => { const { data } = await supabase.from('destinations').select('*').order('display_order'); return data || []; },
   });
   const { data: areas = [], isLoading: loadingAreas } = useQuery({
-    queryKey: ['admin-areas-full'],
+    queryKey: ADMIN_QUERY_KEYS.areas,
     queryFn: async () => { const { data } = await supabase.from('areas').select('*').order('name'); return data || []; },
   });
   const { data: pois = [], isLoading: loadingPois } = useQuery({
-    queryKey: ['admin-pois-full'],
+    queryKey: ADMIN_QUERY_KEYS.pois,
     queryFn: async () => { const { data } = await supabase.from('pois').select('*').order('name'); return data || []; },
   });
   const { data: semanticProfiles = [], isLoading: loadingSemantic } = useQuery({
-    queryKey: ['admin-semantic-profiles'],
+    queryKey: ADMIN_QUERY_KEYS.semantic_place_profiles,
     queryFn: async () => { const { data } = await supabase.from('semantic_place_profiles').select('*').order('entity_type'); return data || []; },
   });
   const { data: seasonalityProfiles = [], isLoading: loadingSeasonality } = useQuery({
-    queryKey: ['admin-seasonality-profiles'],
+    queryKey: ADMIN_QUERY_KEYS.seasonality_profiles,
     queryFn: async () => { const { data } = await supabase.from('seasonality_profiles').select('*').order('entity_type'); return data || []; },
   });
   const { data: weatherSnapshots = [], isLoading: loadingWeather } = useQuery({
-    queryKey: ['admin-weather-snapshots'],
+    queryKey: ADMIN_QUERY_KEYS.weather_snapshots,
     queryFn: async () => { const { data } = await supabase.from('weather_snapshots').select('*').order('created_at', { ascending: false }).limit(100); return data || []; },
   });
   const { data: geoShapes = [], isLoading: loadingGeoShapes } = useQuery({
-    queryKey: ['admin-geo-shapes'],
+    queryKey: ADMIN_QUERY_KEYS.geo_shapes,
     queryFn: async () => { const { data } = await supabase.from('geo_shapes').select('*').order('entity_type'); return data || []; },
   });
   const { data: placeRels = [], isLoading: loadingPlaceRels } = useQuery({
-    queryKey: ['admin-place-relationships'],
+    queryKey: ADMIN_QUERY_KEYS.place_relationships,
     queryFn: async () => { const { data } = await supabase.from('place_relationships').select('*').order('source_type'); return data || []; },
   });
   const { data: travelEdges = [], isLoading: loadingTravelEdges } = useQuery({
-    queryKey: ['admin-travel-edges'],
+    queryKey: ADMIN_QUERY_KEYS.travel_time_edges,
     queryFn: async () => { const { data } = await supabase.from('travel_time_edges').select('*').order('origin_type'); return data || []; },
   });
   const { data: productsByDest = {} } = useQuery({
@@ -110,36 +180,98 @@ export const AdminLocationsSection = () => {
     },
   });
 
-  const invalidate = () => {
-    ['admin-countries-full', 'admin-dest-full', 'admin-areas-full', 'admin-pois-full', 'admin-semantic-profiles', 'admin-seasonality-profiles', 'admin-weather-snapshots', 'admin-geo-shapes', 'admin-place-relationships', 'admin-travel-edges', 'admin-overview-counts', 'destinations'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
-  };
-
   const saveEntity = async (table: string, item: any, isNew: boolean) => {
     const { id, created_at, updated_at, ...rest } = item;
-    // Clear __inherit sentinel values
     if (rest.currency_code === '__inherit') rest.currency_code = null;
-    if (isNew) {
-      const { error } = await (supabase as any).from(table).insert(rest);
-      if (error) throw error;
-    } else {
-      const { error } = await (supabase as any).from(table).update(rest).eq('id', id);
-      if (error) throw error;
+
+    const managedQueryKey = isManagedTable(table) ? ADMIN_QUERY_KEYS[table] : null;
+    const previousItems = managedQueryKey ? ((qc.getQueryData(managedQueryKey) as any[]) || []) : null;
+    const tempId = isNew ? `temp-${table}-${Date.now()}` : null;
+
+    if (managedQueryKey) {
+      if (isNew) {
+        setManagedTableData(table, (current) => [...current, { ...rest, id: tempId, created_at: new Date().toISOString() }]);
+      } else {
+        setManagedTableData(table, (current) => current.map((row) => row.id === id ? { ...row, ...rest, id } : row));
+      }
     }
-    invalidate();
-    toast({ title: isNew ? 'Created' : 'Saved' });
+
+    try {
+      const query = isNew
+        ? (supabase as any).from(table).insert(rest).select().single()
+        : (supabase as any).from(table).update(rest).eq('id', id).select().single();
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      if (managedQueryKey && data) {
+        setManagedTableData(table, (current) => {
+          const withoutTemp = tempId ? current.filter((row) => row.id !== tempId) : current;
+          const existingId = isNew ? data.id : id;
+          const exists = withoutTemp.some((row) => row.id === existingId);
+          return exists
+            ? withoutTemp.map((row) => row.id === existingId ? data : row)
+            : [...withoutTemp, data];
+        });
+      }
+
+      await invalidate();
+      toast({ title: isNew ? 'Created' : 'Saved' });
+      return data;
+    } catch (error) {
+      if (managedQueryKey) {
+        qc.setQueryData(managedQueryKey, previousItems || []);
+      }
+      throw error;
+    }
   };
 
   const deleteEntity = async (table: string, ids: string[]) => {
-    for (const id of ids) await (supabase as any).from(table).delete().eq('id', id);
-    invalidate();
-    toast({ title: `Deleted ${ids.length} item(s)` });
+    const managedQueryKey = isManagedTable(table) ? ADMIN_QUERY_KEYS[table] : null;
+    const previousItems = managedQueryKey ? ((qc.getQueryData(managedQueryKey) as any[]) || []) : null;
+
+    if (managedQueryKey) {
+      setManagedTableData(table, (current) => current.filter((row) => !ids.includes(row.id)));
+    }
+
+    try {
+      const { error } = await (supabase as any).from(table).delete().in('id', ids);
+      if (error) throw error;
+      await invalidate();
+      toast({ title: `Deleted ${ids.length} item(s)` });
+    } catch (error) {
+      if (managedQueryKey) {
+        qc.setQueryData(managedQueryKey, previousItems || []);
+      }
+      throw error;
+    }
   };
 
   const bulkUpdateEntity = async (table: string, ids: string[], field: string, value: any) => {
-    const { error } = await (supabase as any).from(table).update({ [field]: value }).in('id', ids);
-    if (error) { toast({ title: 'Bulk update failed', description: error.message, variant: 'destructive' }); return; }
-    invalidate();
-    toast({ title: `Updated ${ids.length} item(s)`, description: `Set ${field} → ${String(value)}` });
+    const managedQueryKey = isManagedTable(table) ? ADMIN_QUERY_KEYS[table] : null;
+    const previousItems = managedQueryKey ? ((qc.getQueryData(managedQueryKey) as any[]) || []) : null;
+
+    if (managedQueryKey) {
+      setManagedTableData(table, (current) => current.map((row) => ids.includes(row.id) ? { ...row, [field]: value } : row));
+    }
+
+    try {
+      const { data, error } = await (supabase as any).from(table).update({ [field]: value }).in('id', ids).select();
+      if (error) throw error;
+
+      if (managedQueryKey && Array.isArray(data)) {
+        const updatedById = new Map(data.map((row: any) => [row.id, row]));
+        setManagedTableData(table, (current) => current.map((row) => updatedById.get(row.id) ?? row));
+      }
+
+      await invalidate();
+      toast({ title: `Updated ${ids.length} item(s)`, description: `Set ${field} → ${String(value)}` });
+    } catch (error: any) {
+      if (managedQueryKey) {
+        qc.setQueryData(managedQueryKey, previousItems || []);
+      }
+      toast({ title: 'Bulk update failed', description: error.message, variant: 'destructive' });
+    }
   };
 
   // Helper to find entity name for display
