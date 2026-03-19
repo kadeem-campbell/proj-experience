@@ -439,7 +439,7 @@ const SearchPage = () => {
                     );
                   } else if (carousel.contentType === 'product') {
                     const items = carousel.itemIds.length > 0
-                      ? cityFilteredExperiences.filter(exp => carousel.itemIds.includes(exp.id))
+                      ? experiences.filter(exp => carousel.itemIds.includes(exp.id))
                       : cityFilteredExperiences.slice(0, 10);
                     if (items.length === 0) return;
                     elements.push(

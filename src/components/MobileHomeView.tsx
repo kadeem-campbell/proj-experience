@@ -528,7 +528,7 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'product') {
               // product carousel
               const items = carousel.itemIds.length > 0
-                ? categoryExperiences.filter(exp => carousel.itemIds.includes(exp.id))
+                ? allExpsData.filter(exp => carousel.itemIds.includes(exp.id))
                 : categoryExperiences.slice(0, 8);
               if (items.length === 0) return;
               elements.push(
