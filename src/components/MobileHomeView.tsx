@@ -542,24 +542,7 @@ export const MobileHomeView = () => {
           });
           return <>{elements}</>;
         })()
-      ) : (
-        <>
-          {categoryItineraries.length > 0 && (
-            <HorizontalScrollRow title={selectedCity ? `Top in ${selectedCity}` : "Attractions you can't miss"}>
-              {categoryItineraries.slice(0, 6).map((itinerary) => (
-                <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
-              ))}
-            </HorizontalScrollRow>
-          )}
-          {categoryExperiences.length > 0 && (
-            <HorizontalScrollRow title={`Available in ${cityLabel} next weekend`}>
-              {categoryExperiences.slice(0, 8).map((experience) => (
-                <MobileExperienceCard key={experience.id} experience={experience} />
-              ))}
-            </HorizontalScrollRow>
-          )}
-        </>
-      )}
+      ) : null}
 
 
 
