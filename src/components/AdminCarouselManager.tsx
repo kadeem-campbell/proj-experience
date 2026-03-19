@@ -346,10 +346,7 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
   const { data: searchPool = [] } = useQuery({
     queryKey: ['collection-search-pool', contentType],
     queryFn: async () => {
-      if (contentType === 'experience') {
-        const { data } = await supabase.from('experiences').select('id, title, location, category').eq('is_active', true).order('title');
-        return (data || []).map(e => ({ id: e.id, label: e.title, sub: e.location }));
-      } else if (contentType === 'poi') {
+      if (contentType === 'poi') {
         const { data } = await supabase.from('pois').select('id, name, poi_type, destination_id').eq('is_active', true).order('name');
         return (data || []).map((p: any) => ({ id: p.id, label: p.name, sub: p.poi_type }));
       } else if (contentType === 'product') {
