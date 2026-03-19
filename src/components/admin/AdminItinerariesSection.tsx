@@ -151,8 +151,8 @@ export const AdminItinerariesSection = () => {
               {item.creator_id && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded p-2">
                   <User className="w-3 h-3" />
-                  <span>Created by: {getCreatorName(item.creator_id)}</span>
-                  <span className="font-mono text-[10px]">({item.creator_id?.slice(0, 8)}…)</span>
+                  <span>Created by: {getCreatorName(item)}</span>
+                  {item.creator_id && <span className="font-mono text-[10px]">({item.creator_id?.slice(0, 8)}…)</span>}
                 </div>
               )}
               <div className="flex items-center gap-2">
