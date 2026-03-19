@@ -55,7 +55,7 @@ export const useDestinations = () => {
     queryFn: async (): Promise<DbDestination[]> => {
       const { data, error } = await supabase
         .from("destinations")
-        .select("*, countries(flag_svg_url)")
+        .select("*, countries!destinations_country_id_fkey(flag_svg_url)")
         .eq("is_active", true)
         .order("name");
       if (error) { console.error("Failed to fetch destinations:", error); return []; }

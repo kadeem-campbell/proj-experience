@@ -15,7 +15,7 @@ export const useDestinations = () => {
     queryFn: async (): Promise<BrowseDestination[]> => {
       const { data, error } = await supabase
         .from("destinations")
-        .select("id, name, slug, cover_image, flag_svg_url, country_id, countries(flag_svg_url)")
+        .select("id, name, slug, cover_image, flag_svg_url, country_id, countries!destinations_country_id_fkey(flag_svg_url)")
         .eq("is_active", true)
         .order("display_order");
 
