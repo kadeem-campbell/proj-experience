@@ -254,10 +254,13 @@ const SearchPage = () => {
   const selectedCityName = selectedCity?.name || '';
   const destSlug = selectedCityName ? slugify(selectedCityName) : '';
 
-  // Filter experiences by city
+  // Filter experiences/products by city (use destinationId for products, location string for legacy)
   const cityFilteredExperiences = useMemo(() => {
     if (!selectedCity) return experiences;
-    return experiences.filter(e => e.location?.toLowerCase().includes(selectedCity.name.toLowerCase()));
+    return experiences.filter(e => 
+      e.destinationId === selectedCity.id || 
+      e.location?.toLowerCase().includes(selectedCity.name.toLowerCase())
+    );
   }, [experiences, selectedCity]);
 
   // Filter itineraries by city
