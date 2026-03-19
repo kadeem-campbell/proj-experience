@@ -5,7 +5,7 @@ export interface HomeCarousel {
   id: string;
   name: string;
   slug: string;
-  contentType: "itinerary" | "experience" | "product" | "poi";
+  contentType: "itinerary" | "product" | "poi";
   displayOrder: number;
   destinationIds: string[]; // multi-city
   itemIds: string[];
