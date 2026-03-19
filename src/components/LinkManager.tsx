@@ -187,7 +187,7 @@ export const LinkManager = () => {
       slug: editingCollSlug,
       show_on_home: editingCollHome,
       home_display_order: editingCollOrder,
-      city_id: editingCollCity || null,
+      destination_id: editingCollCity || null,
       content_type: editingCollContent,
     }).eq('id', selectedCollection);
     setSavingColl(false);

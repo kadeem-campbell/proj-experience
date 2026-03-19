@@ -349,7 +349,7 @@ export const validateItinerary = (
   checks.push(chk("description", "non_empty", !!(itin.description || itin.summary), "warning", "Description", "content"));
   checks.push(chk("creator", "attributed", hasCreator, "warning", "Creator attribution", "graph"));
   checks.push(chk("cover_image", "non_empty", !!itin.cover_image, "info", "Cover image", "media"));
-  checks.push(chk("destination", "linked", !!itin.destination_id || !!itin.city_id, "warning", "Destination context", "taxonomy"));
+  checks.push(chk("destination", "linked", !!itin.destination_id, "warning", "Destination context", "taxonomy"));
 
   const { dimensions, overallScore } = computeDimensionScores(checks, ITINERARY_WEIGHTS);
   const blockers = checks.filter(c => !c.passed && c.severity === "blocker");
