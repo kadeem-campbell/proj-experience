@@ -622,6 +622,17 @@ export default function CreateExperience() {
             </div>
 
             <Separator />
+            <h3 className="font-semibold text-sm">Social Media</h3>
+            <div>
+              <Label>TikTok URL</Label>
+              <Input placeholder="https://tiktok.com/@..." value={form.tiktokUrl} onChange={e => set('tiktokUrl', e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label>Instagram URL</Label>
+              <Input placeholder="https://instagram.com/..." value={form.instagramUrl} onChange={e => set('instagramUrl', e.target.value)} className="mt-1" />
+            </div>
+
+            <Separator />
             <h3 className="font-semibold flex items-center gap-2"><Link2 className="w-4 h-4" /> Link to Itineraries & Collections</h3>
             <p className="text-xs text-muted-foreground">Add this product to existing itineraries and collections at creation time.</p>
 
