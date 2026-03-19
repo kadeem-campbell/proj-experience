@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { Navigation } from '@/components/Navigation';
+import { AdminCarouselManager } from '@/components/AdminCarouselManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +14,7 @@ import {
   Tag, Image, CheckCircle, Send, Link2, Upload, Code2,
   FileSpreadsheet, History, Settings, Route, Rss, Brain,
   Search, Plus, AlertTriangle, Database, ChevronLeft, ChevronRight,
-  Menu, X, TrendingUp,
+  Menu, X, TrendingUp, SlidersHorizontal,
 } from 'lucide-react';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { AdminProductsSection } from '@/components/admin/AdminProductsSection';
@@ -47,6 +48,7 @@ const SECTIONS = [
   { id: 'locations', label: 'Locations', icon: Globe, group: 'Content' },
   { id: 'hosts', label: 'Hosts / Creators', icon: Users, group: 'Content' },
   { id: 'collections', label: 'Collections', icon: Layers, group: 'Content' },
+  { id: 'carousels', label: 'Carousels', icon: SlidersHorizontal, group: 'Content' },
   { id: 'itineraries', label: 'Itineraries', icon: MapPin, group: 'Content' },
   { id: 'taxonomy', label: 'Taxonomy & Pricing', icon: Tag, group: 'Content' },
   { id: 'media', label: 'Media', icon: Image, group: 'Content' },
@@ -82,6 +84,7 @@ const AdminPanel = () => {
       case 'locations': return <AdminLocationsSection />;
       case 'hosts': return <AdminHostsSection />;
       case 'collections': return <AdminCollectionsSection />;
+      case 'carousels': return <AdminCarouselManager />;
       case 'itineraries': return <AdminItinerariesSection />;
       case 'taxonomy': return <AdminTaxonomySection />;
       case 'media': return <AdminMediaSection />;
