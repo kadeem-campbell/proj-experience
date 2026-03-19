@@ -24,7 +24,9 @@ export const useProductListings = () => {
     queryFn: async (): Promise<ProductListing[]> => {
       const { data: products, error } = await supabase
         .from("products")
-        .select("id, title, slug, cover_image_url, video_url, destination_id");
+        .select("id, title, slug, cover_image_url, video_url, destination_id")
+        .in("visibility_output_state", ["public", "public_indexed", "marketplace_active"] as any)
+        .eq("publish_state", "published" as any);
 
       if (error) {
         console.error("Failed to fetch product listings:", error);
