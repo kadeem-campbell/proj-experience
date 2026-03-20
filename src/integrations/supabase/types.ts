@@ -3596,6 +3596,7 @@ export type Database = {
           description: string | null
           destination_id: string | null
           gallery: Json | null
+          gallery_json: Json | null
           highlights: Json | null
           id: string
           indexability_state: string | null
@@ -3626,6 +3627,7 @@ export type Database = {
           description?: string | null
           destination_id?: string | null
           gallery?: Json | null
+          gallery_json?: Json | null
           highlights?: Json | null
           id?: string
           indexability_state?: string | null
@@ -3656,6 +3658,7 @@ export type Database = {
           description?: string | null
           destination_id?: string | null
           gallery?: Json | null
+          gallery_json?: Json | null
           highlights?: Json | null
           id?: string
           indexability_state?: string | null
