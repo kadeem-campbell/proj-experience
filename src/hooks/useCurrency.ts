@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-// Using localStorage + a simple React hook pattern instead
 
 export const CURRENCIES = [
   { code: 'USD', symbol: '$', label: 'USD ($)' },
@@ -11,7 +10,6 @@ export const CURRENCIES = [
 
 /** Auto-detect currency from timezone/locale — runs once */
 export const detectCurrency = (): string => {
-  // Check if user manually set one
   const saved = localStorage.getItem('swam-currency');
   if (saved && CURRENCIES.some(c => c.code === saved)) return saved;
 
@@ -26,23 +24,16 @@ export const detectCurrency = (): string => {
   return 'USD';
 };
 
-/** Set preferred currency globally */
 export const setGlobalCurrency = (code: string) => {
   localStorage.setItem('swam-currency', code);
   window.dispatchEvent(new CustomEvent('swam-currency-change', { detail: code }));
 };
 
-/** React hook that returns the current global currency and listens for changes */
-import { useState, useEffect } from 'react';
-
 export const useCurrency = () => {
   const [currency, setCurrency] = useState(() => detectCurrency());
 
   useEffect(() => {
-    const handler = (e: Event) => {
-      const code = (e as CustomEvent).detail;
-      setCurrency(code);
-    };
+    const handler = (e: Event) => setCurrency((e as CustomEvent).detail);
     window.addEventListener('swam-currency-change', handler);
     return () => window.removeEventListener('swam-currency-change', handler);
   }, []);
