@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
+import { resolveTimingProfile as resolveTimingProfileFn } from "@/lib/timing";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug, useDestinationById, useAreaById } from "@/hooks/useProducts";
@@ -138,7 +139,54 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
   );
 };
 
-// Getting There block
+// Best Time to Go block — driven by timing intelligence
+const BestTimeSection = ({ productId }: { productId: string }) => {
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['product-timing-display', productId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('product_timing_profiles')
+        .select('*')
+        .eq('product_id', productId)
+        .eq('is_active', true)
+        .order('profile_type') as any;
+      return data || [];
+    },
+    enabled: !!productId,
+  });
+
+  if (profiles.length === 0) return null;
+
+  const resolved = resolveTimingProfileFn(profiles);
+  const display = resolved?.derived_display;
+  if (!display) return null;
+
+  const iconMap: Record<string, string> = { sunrise: '🌅', sun: '☀️', sunset: '🌇', moon: '🌙', flexible: '⏰', mixed: '🔄' };
+
+  return (
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold mb-3">Best time to go</h2>
+      <div className="p-4 rounded-2xl bg-card border border-border">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">
+            {iconMap[display.primary_time_icon] || '☀️'}
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-foreground">{display.primary_time_label}</p>
+            <p className="text-sm text-muted-foreground">{display.short_timing_phrase}</p>
+          </div>
+        </div>
+        {resolved.preferred_windows?.secondary && (
+          <p className="text-xs text-muted-foreground mt-2 pl-[60px]">
+            Also good: {resolved.preferred_windows.secondary.label} ({resolved.preferred_windows.secondary.start_hour}:00–{resolved.preferred_windows.secondary.end_hour}:00)
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
 const GettingThereSection = ({ productId, description }: { productId: string; description?: string }) => {
   const { data: transport = [] } = useQuery({
     queryKey: ['product-transport', productId],
@@ -495,6 +543,9 @@ export default function ExperienceDetail() {
       {(experience as any).isProduct && (
         <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />
       )}
+
+      {/* 6.5. Best Time to Go (timing intelligence) */}
+      {(experience as any).isProduct && <BestTimeSection productId={experience.id} />}
 
       {/* 7. Local Tips */}
       {hasLocalTips && <LocalTipsSection tips={(experience as any).localTips} />}

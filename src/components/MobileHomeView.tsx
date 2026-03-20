@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 
 const filterCategories = [
   { label: "Beaches", category: "Beach", icon: catBeaches },
@@ -152,8 +153,8 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Experience card — no heart on homepage, action menu top-right
-const MobileExperienceCard = ({ experience }: { experience: any }) => {
+// Experience card — with timing icon
+const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; timingDisplay?: { primary_time_icon: string; primary_time_label: string } | null }) => {
   const navigate = useNavigate();
   const { convert } = useCurrency();
 
@@ -163,6 +164,10 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
     }
     return experience.price || '';
   }, [experience.averagePrice, experience.price, convert]);
+
+  const timingIcon = timingDisplay ? (
+    { sunrise: '🌅', sun: '☀️', sunset: '🌇', moon: '🌙', flexible: '⏰', mixed: '🔄' }[timingDisplay.primary_time_icon] || null
+  ) : null;
 
   return (
     <div 
@@ -174,6 +179,12 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <img src={experience.videoThumbnail} alt={experience.title} loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+        )}
+        {timingIcon && (
+          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background/80 backdrop-blur-sm">
+            <span className="text-xs">{timingIcon}</span>
+            <span className="text-[9px] font-medium text-foreground">{timingDisplay!.primary_time_label}</span>
+          </div>
         )}
         <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
@@ -274,6 +285,7 @@ export const MobileHomeView = () => {
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useProductListings();
   const { data: homeCarousels = [] } = useHomeCarousels();
+  const timingMap = useTimingDisplayMap();
 
   // Fetch destinations to map selectedCity name → destination ID
   const { data: allDestinations = [] } = useQuery({
@@ -464,7 +476,7 @@ export const MobileHomeView = () => {
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3">Experiences</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {filteredExperiences.slice(0, 12).map(exp => (
-                      <MobileExperienceCard key={exp.id} experience={exp} />
+                      <MobileExperienceCard key={exp.id} experience={exp} timingDisplay={timingMap[exp.id]} />
                     ))}
                   </div>
                 </div>
@@ -538,7 +550,7 @@ export const MobileHomeView = () => {
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 10).map((experience) => (
-                    <MobileExperienceCard key={experience.id} experience={experience} />
+                    <MobileExperienceCard key={experience.id} experience={experience} timingDisplay={timingMap[experience.id]} />
                   ))}
                 </HorizontalScrollRow>
               );

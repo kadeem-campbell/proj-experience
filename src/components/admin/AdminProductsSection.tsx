@@ -578,37 +578,22 @@ export const AdminProductsSection = () => {
 
 // ============ TIMING EDITOR ============
 
-const TIMING_TEMPLATES = [
-  { label: 'Early Morning', peak: [5, 8], secondary: [8, 10] },
-  { label: 'Morning', peak: [7, 11], secondary: [5, 7] },
-  { label: 'Midday', peak: [10, 14], secondary: [8, 10] },
-  { label: 'Afternoon', peak: [13, 17], secondary: [10, 13] },
-  { label: 'Sunset', peak: [16, 19], secondary: [14, 16] },
-  { label: 'Night', peak: [19, 23], secondary: [17, 19] },
-  { label: 'All Day', peak: [8, 17], secondary: null },
+import { buildHourlyCurve, deriveTimingDisplay, validateTimingProfiles, normalizeHourlyScores, normalizeReasonTags } from '@/lib/timing';
+import type { TimingProfileRecord, TimingDisplayOutput } from '@/lib/timing';
+
+const COMMON_TIMEZONES = [
+  'Africa/Dar_es_Salaam', 'Africa/Nairobi', 'Africa/Kampala', 'Africa/Kigali',
+  'Africa/Addis_Ababa', 'Africa/Cairo', 'Africa/Johannesburg', 'Africa/Lagos',
+  'Europe/London', 'Europe/Paris', 'America/New_York', 'Asia/Dubai', 'Asia/Kolkata',
+  'Asia/Bangkok', 'Asia/Singapore', 'Australia/Sydney', 'Pacific/Auckland', 'UTC',
 ];
 
-const generateHourlyCurve = (peakStart: number, peakEnd: number, secStart?: number | null, secEnd?: number | null, lowStart?: number | null, lowEnd?: number | null): number[] => {
-  const scores = new Array(24).fill(0.2);
-  for (let h = peakStart; h < peakEnd; h++) scores[h % 24] = 1.0;
-  if (secStart != null && secEnd != null) {
-    for (let h = secStart; h < secEnd; h++) scores[h % 24] = Math.max(scores[h % 24], 0.6);
-  }
-  if (lowStart != null && lowEnd != null) {
-    for (let h = lowStart; h < lowEnd; h++) scores[h % 24] = Math.min(scores[h % 24], 0.1);
-  }
-  // Smooth transitions
-  for (let i = 0; i < 24; i++) {
-    const prev = scores[(i - 1 + 24) % 24];
-    const next = scores[(i + 1) % 24];
-    if (Math.abs(scores[i] - prev) > 0.5) scores[i] = (scores[i] + prev) / 2;
-  }
-  return scores.map(s => Math.round(s * 100) / 100);
-};
+const FLEXIBILITY_OPTIONS = ['strict', 'moderate', 'high'];
 
 const TimingEditor = ({ productId }: { productId: string }) => {
   const qc = useQueryClient();
   const { toast } = useToast();
+
   const { data: profiles = [] } = useQuery({
     queryKey: ['admin-timing-profiles', productId],
     queryFn: async () => {
@@ -617,14 +602,27 @@ const TimingEditor = ({ productId }: { productId: string }) => {
     },
   });
 
+  const { data: dbTemplates = [] } = useQuery({
+    queryKey: ['admin-timing-templates'],
+    queryFn: async () => {
+      const { data } = await supabase.from('timing_templates').select('*').eq('is_active', true).order('name') as any;
+      return data || [];
+    },
+  });
+
   const addProfile = async (type: string) => {
-    const curve = generateHourlyCurve(8, 11, 6, 8);
+    const curve = buildHourlyCurve(8, 11, 6, 8);
     await supabase.from('product_timing_profiles').insert({
-      product_id: productId, profile_label: type === 'default' ? 'Default' : 'Seasonal',
-      profile_type: type, local_timezone: 'Africa/Dar_es_Salaam',
+      product_id: productId,
+      profile_label: type === 'default' ? 'Default' : type === 'seasonal' ? 'Seasonal' : 'Override',
+      profile_type: type,
+      local_timezone: 'Africa/Dar_es_Salaam',
       peak_start_hour: 8, peak_end_hour: 11,
-      hourly_scores: curve, confidence_score: 0.8, flexibility_level: 'moderate',
-      reason_tags: [], is_active: true,
+      hourly_scores: curve,
+      confidence_score: 0.8,
+      flexibility_level: 'moderate',
+      reason_tags: [],
+      is_active: true,
     } as any);
     qc.invalidateQueries({ queryKey: ['admin-timing-profiles', productId] });
     toast({ title: 'Timing profile added' });
@@ -641,26 +639,75 @@ const TimingEditor = ({ productId }: { productId: string }) => {
     toast({ title: 'Profile deleted' });
   };
 
-  const applyTemplate = async (id: string, tpl: typeof TIMING_TEMPLATES[0]) => {
-    const curve = generateHourlyCurve(tpl.peak[0], tpl.peak[1], tpl.secondary?.[0], tpl.secondary?.[1]);
+  const applyDbTemplate = async (profileId: string, tpl: any) => {
+    const curve = Array.isArray(tpl.hourly_scores) ? tpl.hourly_scores : buildHourlyCurve(tpl.peak_start_hour, tpl.peak_end_hour, tpl.secondary_start_hour, tpl.secondary_end_hour, tpl.low_start_hour, tpl.low_end_hour);
     await supabase.from('product_timing_profiles').update({
-      peak_start_hour: tpl.peak[0], peak_end_hour: tpl.peak[1],
-      secondary_start_hour: tpl.secondary?.[0] ?? null, secondary_end_hour: tpl.secondary?.[1] ?? null,
-      hourly_scores: curve, profile_label: tpl.label,
-    } as any).eq('id', id);
+      peak_start_hour: tpl.peak_start_hour, peak_end_hour: tpl.peak_end_hour,
+      secondary_start_hour: tpl.secondary_start_hour ?? null,
+      secondary_end_hour: tpl.secondary_end_hour ?? null,
+      low_start_hour: tpl.low_start_hour ?? null,
+      low_end_hour: tpl.low_end_hour ?? null,
+      hourly_scores: curve,
+      profile_label: tpl.name,
+      template_id: tpl.id,
+    } as any).eq('id', profileId);
     qc.invalidateQueries({ queryKey: ['admin-timing-profiles', productId] });
-    toast({ title: `Applied "${tpl.label}" template` });
+    toast({ title: `Applied "${tpl.name}" template` });
+  };
+
+  const regenerateCurve = (prof: any) => {
+    const curve = buildHourlyCurve(prof.peak_start_hour, prof.peak_end_hour, prof.secondary_start_hour, prof.secondary_end_hour, prof.low_start_hour, prof.low_end_hour);
+    updateProfile(prof.id, 'hourly_scores', curve);
   };
 
   const hasDefault = profiles.some((p: any) => p.profile_type === 'default');
 
+  // Validation
+  const validationIssues = validateTimingProfiles(
+    profiles as TimingProfileRecord[],
+    dbTemplates.map((t: any) => ({ id: t.id })),
+  );
+
+  // Derive display preview from default
+  const defaultProfile = profiles.find((p: any) => p.profile_type === 'default') || profiles[0];
+  const displayPreview = defaultProfile ? deriveTimingDisplay(defaultProfile as TimingProfileRecord) : null;
+
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">Manage time-of-day intelligence for this experience. Start by adding a default profile, then optionally add seasonal overrides.</p>
+      <p className="text-xs text-muted-foreground">Manage time-of-day intelligence. Start by adding a default profile, then optionally add seasonal overrides.</p>
+
+      {/* Validation issues */}
+      {validationIssues.length > 0 && (
+        <div className="p-2 rounded-lg bg-destructive/10 space-y-1">
+          {validationIssues.map((issue, i) => (
+            <p key={i} className={cn("text-[10px] flex items-center gap-1", issue.severity === 'error' ? 'text-destructive' : 'text-yellow-600')}>
+              {issue.severity === 'error' ? <XCircle className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+              {issue.message}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* Display preview */}
+      {displayPreview && (
+        <Card className="p-3 bg-muted/30">
+          <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Frontend display preview</Label>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-lg">
+              {displayPreview.primary_time_icon === 'sunrise' ? '🌅' : displayPreview.primary_time_icon === 'sun' ? '☀️' : displayPreview.primary_time_icon === 'sunset' ? '🌇' : displayPreview.primary_time_icon === 'moon' ? '🌙' : '⏰'}
+            </span>
+            <div>
+              <p className="text-xs font-medium">{displayPreview.primary_time_label}</p>
+              <p className="text-[10px] text-muted-foreground">{displayPreview.short_timing_phrase}</p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {profiles.map((prof: any) => {
-        const scores: number[] = Array.isArray(prof.hourly_scores) ? prof.hourly_scores : [];
+        const scores: number[] = normalizeHourlyScores(prof.hourly_scores);
         const maxScore = Math.max(...scores, 1);
+        const tags = normalizeReasonTags(prof.reason_tags);
         return (
           <Card key={prof.id} className="p-3 space-y-3">
             <div className="flex items-center justify-between">
@@ -668,51 +715,68 @@ const TimingEditor = ({ productId }: { productId: string }) => {
                 <Badge variant={prof.profile_type === 'default' ? 'default' : 'outline'} className="text-[10px]">{prof.profile_type}</Badge>
                 <Input className="text-xs w-32 h-7" value={prof.profile_label} onChange={e => updateProfile(prof.id, 'profile_label', e.target.value)} />
               </div>
-              <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => deleteProfile(prof.id)}><Trash2 className="w-3 h-3" /></Button>
+              <div className="flex items-center gap-1">
+                <Badge variant="secondary" className="text-[10px]">
+                  {prof.is_active !== false ? 'Active' : 'Inactive'}
+                </Badge>
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => updateProfile(prof.id, 'is_active', !prof.is_active)}>
+                  {prof.is_active !== false ? <Eye className="w-3 h-3" /> : <Archive className="w-3 h-3" />}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-destructive" onClick={() => deleteProfile(prof.id)}><Trash2 className="w-3 h-3" /></Button>
+              </div>
             </div>
 
-            {/* Quick template buttons */}
+            {/* Template picker from DB */}
             <div>
-              <Label className="text-[10px] text-muted-foreground">Quick template</Label>
+              <Label className="text-[10px] text-muted-foreground">Apply template</Label>
               <div className="flex flex-wrap gap-1 mt-1">
-                {TIMING_TEMPLATES.map(tpl => (
-                  <Button key={tpl.label} size="sm" variant="outline" className="text-[10px] h-6 px-2" onClick={() => applyTemplate(prof.id, tpl)}>{tpl.label}</Button>
+                {dbTemplates.map((tpl: any) => (
+                  <Button key={tpl.id} size="sm" variant={prof.template_id === tpl.id ? 'default' : 'outline'} className="text-[10px] h-6 px-2" onClick={() => applyDbTemplate(prof.id, tpl)}>
+                    {tpl.name}
+                  </Button>
                 ))}
               </div>
             </div>
 
+            {/* Timezone */}
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <Label className="text-[10px] text-muted-foreground">Timezone</Label>
-                <Input className="text-xs h-7" value={prof.local_timezone || ''} onChange={e => updateProfile(prof.id, 'local_timezone', e.target.value)} />
+                <Select value={prof.local_timezone || 'Africa/Dar_es_Salaam'} onValueChange={v => updateProfile(prof.id, 'local_timezone', v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {COMMON_TIMEZONES.map(tz => <SelectItem key={tz} value={tz}>{tz.split('/').pop()?.replace(/_/g, ' ')}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-[10px] text-muted-foreground">Peak start (h)</Label>
-                <Input type="number" min={0} max={23} className="text-xs h-7" value={prof.peak_start_hour ?? ''} onChange={e => {
-                  const v = parseInt(e.target.value);
-                  updateProfile(prof.id, 'peak_start_hour', isNaN(v) ? null : v);
-                }} />
+                <Input type="number" min={0} max={23} className="text-xs h-7" value={prof.peak_start_hour ?? ''} onChange={e => updateProfile(prof.id, 'peak_start_hour', parseInt(e.target.value) || 0)} />
               </div>
               <div>
                 <Label className="text-[10px] text-muted-foreground">Peak end (h)</Label>
-                <Input type="number" min={0} max={23} className="text-xs h-7" value={prof.peak_end_hour ?? ''} onChange={e => {
-                  const v = parseInt(e.target.value);
-                  updateProfile(prof.id, 'peak_end_hour', isNaN(v) ? null : v);
-                }} />
+                <Input type="number" min={0} max={23} className="text-xs h-7" value={prof.peak_end_hour ?? ''} onChange={e => updateProfile(prof.id, 'peak_end_hour', parseInt(e.target.value) || 0)} />
               </div>
             </div>
+
             <div className="grid grid-cols-4 gap-2">
               <div><Label className="text-[10px] text-muted-foreground">Sec. start</Label><Input type="number" min={0} max={23} className="text-xs h-7" value={prof.secondary_start_hour ?? ''} onChange={e => updateProfile(prof.id, 'secondary_start_hour', parseInt(e.target.value) || null)} /></div>
               <div><Label className="text-[10px] text-muted-foreground">Sec. end</Label><Input type="number" min={0} max={23} className="text-xs h-7" value={prof.secondary_end_hour ?? ''} onChange={e => updateProfile(prof.id, 'secondary_end_hour', parseInt(e.target.value) || null)} /></div>
-              <div><Label className="text-[10px] text-muted-foreground">Confidence</Label><Input type="number" min={0} max={1} step={0.1} className="text-xs h-7" value={prof.confidence_score ?? 0.8} onChange={e => updateProfile(prof.id, 'confidence_score', parseFloat(e.target.value) || 0.8)} /></div>
+              <div><Label className="text-[10px] text-muted-foreground">Low start</Label><Input type="number" min={0} max={23} className="text-xs h-7" value={prof.low_start_hour ?? ''} onChange={e => updateProfile(prof.id, 'low_start_hour', parseInt(e.target.value) || null)} /></div>
+              <div><Label className="text-[10px] text-muted-foreground">Low end</Label><Input type="number" min={0} max={23} className="text-xs h-7" value={prof.low_end_hour ?? ''} onChange={e => updateProfile(prof.id, 'low_end_hour', parseInt(e.target.value) || null)} /></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-muted-foreground">Confidence</Label>
+                <Input type="number" min={0} max={1} step={0.1} className="text-xs h-7" value={prof.confidence_score ?? 0.8} onChange={e => updateProfile(prof.id, 'confidence_score', parseFloat(e.target.value) || 0.8)} />
+              </div>
               <div>
                 <Label className="text-[10px] text-muted-foreground">Flexibility</Label>
                 <Select value={prof.flexibility_level || 'moderate'} onValueChange={v => updateProfile(prof.id, 'flexibility_level', v)}>
                   <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="strict">Strict</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
+                    {FLEXIBILITY_OPTIONS.map(f => <SelectItem key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -726,38 +790,50 @@ const TimingEditor = ({ productId }: { productId: string }) => {
               </div>
             )}
 
+            {/* Reason tags */}
+            <div>
+              <Label className="text-[10px] text-muted-foreground">Reason tags (comma-separated)</Label>
+              <Input className="text-xs h-7" value={tags.join(', ')} onChange={e => updateProfile(prof.id, 'reason_tags', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} placeholder="e.g. tidal, wind, light, temperature" />
+            </div>
+
             <div><Label className="text-[10px] text-muted-foreground">Timing note</Label><Input className="text-xs h-7" value={prof.timing_note || ''} onChange={e => updateProfile(prof.id, 'timing_note', e.target.value)} placeholder="e.g. Go early before the tide comes in" /></div>
 
-            {/* Curve preview */}
-            {scores.length === 24 && (
-              <div>
-                <Label className="text-[10px] text-muted-foreground">24h suitability curve</Label>
-                <div className="flex items-end gap-[2px] h-16 mt-1 bg-muted/30 rounded p-1">
-                  {scores.map((s, h) => (
-                    <div key={h} className="flex-1 flex flex-col items-center gap-0.5">
-                      <div
-                        className={cn("w-full rounded-t-sm transition-all", s >= 0.8 ? "bg-primary" : s >= 0.5 ? "bg-primary/50" : "bg-muted-foreground/20")}
-                        style={{ height: `${(s / maxScore) * 100}%`, minHeight: '2px' }}
-                      />
-                      {h % 4 === 0 && <span className="text-[7px] text-muted-foreground">{h}</span>}
-                    </div>
-                  ))}
-                </div>
+            {/* 24h Curve preview */}
+            <div>
+              <Label className="text-[10px] text-muted-foreground">24h suitability curve</Label>
+              <div className="flex items-end gap-[2px] h-20 mt-1 bg-muted/30 rounded p-1">
+                {scores.map((s, h) => (
+                  <div key={h} className="flex-1 flex flex-col items-center gap-0.5 group cursor-pointer" onClick={() => {
+                    const newScores = [...scores];
+                    newScores[h] = newScores[h] >= 0.8 ? 0.2 : newScores[h] >= 0.5 ? 0.8 : 0.5;
+                    updateProfile(prof.id, 'hourly_scores', newScores);
+                  }}>
+                    <div
+                      className={cn("w-full rounded-t-sm transition-all group-hover:opacity-80",
+                        s >= 0.8 ? "bg-primary" : s >= 0.5 ? "bg-primary/50" : s >= 0.3 ? "bg-muted-foreground/30" : "bg-muted-foreground/10"
+                      )}
+                      style={{ height: `${(s / maxScore) * 100}%`, minHeight: '2px' }}
+                      title={`${h}:00 — ${s.toFixed(2)}`}
+                    />
+                    {h % 3 === 0 && <span className="text-[7px] text-muted-foreground">{h}</span>}
+                  </div>
+                ))}
               </div>
-            )}
+              <p className="text-[9px] text-muted-foreground mt-0.5">Click bars to toggle suitability. Or regenerate from windows below.</p>
+            </div>
 
-            <Button size="sm" variant="outline" className="text-[10px]" onClick={() => {
-              const curve = generateHourlyCurve(prof.peak_start_hour, prof.peak_end_hour, prof.secondary_start_hour, prof.secondary_end_hour, prof.low_start_hour, prof.low_end_hour);
-              updateProfile(prof.id, 'hourly_scores', curve);
-            }}>Regenerate curve from windows</Button>
+            <Button size="sm" variant="outline" className="text-[10px]" onClick={() => regenerateCurve(prof)}>
+              <RefreshCw className="w-3 h-3 mr-1" /> Regenerate curve from windows
+            </Button>
           </Card>
         );
       })}
 
       <div className="flex gap-2">
         {!hasDefault && <Button size="sm" variant="outline" onClick={() => addProfile('default')}><Plus className="w-3 h-3 mr-1" />Add Default Profile</Button>}
-        <Button size="sm" variant="outline" onClick={() => addProfile('seasonal')}><Plus className="w-3 h-3 mr-1" />Add Seasonal Profile</Button>
-        <Button size="sm" variant="outline" onClick={() => addProfile('override')}><Plus className="w-3 h-3 mr-1" />Add Override</Button>
+        <Button size="sm" variant="outline" onClick={() => addProfile('seasonal')}><Plus className="w-3 h-3 mr-1" />Add Seasonal</Button>
+        <Button size="sm" variant="outline" onClick={() => addProfile('date_override')}><Plus className="w-3 h-3 mr-1" />Add Date Override</Button>
+        <Button size="sm" variant="outline" onClick={() => addProfile('special_period')}><Plus className="w-3 h-3 mr-1" />Add Special Period</Button>
       </div>
     </div>
   );

@@ -77,8 +77,10 @@ const fetchEnrichment = async (productId: string): Promise<EnrichedProduct | nul
     price_options: o.price_options || [],
   }));
 
-  // Resolve active timing profile
-  const defaultTiming = (timingProfiles || []).find((t: any) => t.profile_type === 'default') || (timingProfiles || [])[0] || null;
+  // Resolve active timing profile using canonical engine
+  const allTimingProfiles = timingProfiles || [];
+  const resolved = allTimingProfiles.length > 0 ? resolveTimingProfile(allTimingProfiles as TimingProfileRecord[]) : null;
+  const defaultTiming = resolved?.source_profile || allTimingProfiles[0] || null;
 
   return {
     product: product as unknown as Product,
@@ -111,25 +113,14 @@ const fetchEnrichment = async (productId: string): Promise<EnrichedProduct | nul
 
 // ============ TIMING HELPERS ============
 
+import { resolveTimingProfile, deriveTimingDisplay as deriveTiming } from "@/lib/timing";
+import type { TimingProfileRecord } from "@/lib/timing";
+
 const deriveTimingDisplay = (timing: any) => {
   if (!timing) return null;
-  const peak = timing.peak_start_hour;
-  let icon = 'sun';
-  let label = 'Daytime';
-  if (peak !== null && peak !== undefined) {
-    if (peak <= 6) { icon = 'sunrise'; label = 'Early morning'; }
-    else if (peak <= 10) { icon = 'sunrise'; label = 'Morning'; }
-    else if (peak <= 14) { icon = 'sun'; label = 'Midday'; }
-    else if (peak <= 17) { icon = 'sun'; label = 'Afternoon'; }
-    else if (peak <= 20) { icon = 'sunset'; label = 'Sunset / Evening'; }
-    else { icon = 'moon'; label = 'Night'; }
-  }
-  if (timing.flexibility_level === 'high') { icon = 'flexible'; label = 'Flexible timing'; }
-  return {
-    primary_time_icon: icon,
-    primary_time_label: label,
-    short_timing_phrase: timing.timing_note || `Best at ${label.toLowerCase()}`,
-  };
+  // Use the canonical engine from timing.ts
+  const display = deriveTiming(timing as TimingProfileRecord);
+  return display;
 };
 
 // ============ GENERATE JSON-LD ============
