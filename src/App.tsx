@@ -50,7 +50,7 @@ const App = () => (
 
             {/* Things to do — canonical product/activity routes */}
             <Route path="/things-to-do" element={<ThingsToDo />} />
-            <Route path="/things-to-do/:destination/:area/:activityType" element={<ThingsToDo />} />
+            <Route path="/things-to-do/:destination/:area/:slug" element={<ExperienceDetail />} />
             <Route path="/things-to-do/:destination/:slug" element={<ExperienceDetail />} />
             <Route path="/things-to-do/:destination" element={<ThingsToDo />} />
 
