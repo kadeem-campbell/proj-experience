@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { Play, Video, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
@@ -12,10 +12,8 @@ export interface TikTokVideo {
 
 /** Extract TikTok video ID from a full URL */
 const extractTikTokVideoId = (url: string): string => {
-  // Match /video/DIGITS at end of URL path
   const match = url.match(/\/video\/(\d+)/);
   if (match?.[1]) return match[1];
-  // If it's already just digits, use as-is
   if (/^\d+$/.test(url.trim())) return url.trim();
   return '';
 };
@@ -26,6 +24,20 @@ export interface InstagramVideo {
   thumbnailUrl?: string;
 }
 
+/**
+ * Parse an Instagram URL into a clean permalink suitable for embedding.
+ * Handles /reel/, /reels/, /p/, /tv/ paths.
+ */
+const getInstagramPermalink = (raw: string): string => {
+  const trimmed = raw.trim().replace(/\/+$/, '');
+  // Match /reel/ or /reels/ or /p/ or /tv/ followed by shortcode
+  const match = trimmed.match(/instagram\.com\/(?:reels?|p|tv)\/([^/?#]+)/i);
+  if (match?.[1]) {
+    return `https://www.instagram.com/reel/${match[1]}/`;
+  }
+  return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
+};
+
 interface SocialVideoEmbedProps {
   experienceTitle: string;
   location: string;
@@ -35,6 +47,61 @@ interface SocialVideoEmbedProps {
 }
 
 const CARD_HEIGHT = "h-48";
+
+/**
+ * Instagram embed using the official embed.js script.
+ * Renders a blockquote that Instagram's script processes into a full embed.
+ */
+const InstagramEmbed = ({ permalink }: { permalink: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Load Instagram embed script if not already present
+    const existingScript = document.querySelector('script[src*="instagram.com/embed.js"]');
+    if (existingScript) {
+      // Script already loaded, just reprocess
+      (window as any).instgrm?.Embeds?.process?.();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://www.instagram.com/embed.js';
+    script.async = true;
+    script.onload = () => {
+      (window as any).instgrm?.Embeds?.process?.();
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      // Don't remove the script on cleanup — it can be reused
+    };
+  }, [permalink]);
+
+  return (
+    <div ref={containerRef} className="w-full flex justify-center">
+      <blockquote
+        className="instagram-media"
+        data-instgrm-captioned
+        data-instgrm-permalink={permalink}
+        data-instgrm-version="14"
+        style={{
+          background: '#FFF',
+          border: 0,
+          borderRadius: '12px',
+          margin: '0 auto',
+          maxWidth: '400px',
+          minWidth: '280px',
+          width: '100%',
+          padding: 0,
+        }}
+      >
+        <div style={{ padding: '16px', textAlign: 'center' }}>
+          <p className="text-sm text-muted-foreground">Loading Instagram content...</p>
+        </div>
+      </blockquote>
+    </div>
+  );
+};
 
 export const SocialVideoEmbed = ({ 
   experienceTitle, 
@@ -49,20 +116,9 @@ export const SocialVideoEmbed = ({
   const hasTikTok = tiktokVideos.length > 0;
   const hasInstagram = !!instagramEmbed && instagramEmbed.trim() !== '';
 
-  const instagramEmbedUrl = useMemo(() => {
+  const instagramPermalink = useMemo(() => {
     if (!hasInstagram) return '';
-
-    const raw = instagramEmbed!.trim();
-    const postMatch = raw.match(/instagram\.com\/(reel|p|tv)\/([^/?#]+)/i);
-    if (postMatch?.[1] && postMatch?.[2]) {
-      const postType = postMatch[1].toLowerCase();
-      const postId = postMatch[2];
-      return `https://www.instagram.com/${postType}/${postId}/embed/captioned/`;
-    }
-
-    if (raw.includes('/embed')) return raw;
-    const clean = raw.replace(/\/+$/, '');
-    return `${clean}/embed/captioned/`;
+    return getInstagramPermalink(instagramEmbed!);
   }, [hasInstagram, instagramEmbed]);
 
   // Don't render if no embeds available
@@ -79,7 +135,7 @@ export const SocialVideoEmbed = ({
       </p>
       
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
-        {/* TikTok video cards — tap to open drawer with full embed */}
+        {/* TikTok video cards */}
         {tiktokVideos.map((video, idx) => {
           const resolvedId = video.videoId || extractTikTokVideoId(video.url);
           if (!resolvedId) return null;
@@ -109,7 +165,7 @@ export const SocialVideoEmbed = ({
           );
         })}
 
-        {/* Instagram embed card — only if embed link exists */}
+        {/* Instagram embed card */}
         {hasInstagram && (
           <button
             onClick={() => setShowInstagram(true)}
@@ -168,7 +224,7 @@ export const SocialVideoEmbed = ({
         </DrawerContent>
       </Drawer>
 
-      {/* Instagram embed drawer */}
+      {/* Instagram embed drawer — uses official embed.js */}
       <Drawer open={showInstagram} onOpenChange={setShowInstagram}>
         <DrawerContent className="max-h-[85vh] overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-2 pb-3">
@@ -185,26 +241,12 @@ export const SocialVideoEmbed = ({
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
-          {hasInstagram && (
-            <div className="w-full flex justify-center px-4 pb-6 overflow-hidden" data-vaul-no-drag>
-              <div
-                className="rounded-xl overflow-hidden"
-                style={{ width: '100%', maxWidth: '400px', minHeight: '500px' }}
-                onPointerDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-              >
-                <iframe
-                  src={instagramEmbedUrl}
-                  title="Instagram Reel"
-                  className="border-0"
-                  style={{ width: '100%', height: '600px' }}
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share"
-                  allowFullScreen
-                  loading="eager"
-                  scrolling="no"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                />
-              </div>
+          {showInstagram && hasInstagram && (
+            <div className="w-full px-4 pb-6 overflow-y-auto" data-vaul-no-drag
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              <InstagramEmbed permalink={instagramPermalink} />
             </div>
           )}
         </DrawerContent>
