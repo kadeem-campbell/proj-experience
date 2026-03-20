@@ -476,7 +476,7 @@ export const MobileHomeView = () => {
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3">Experiences</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {filteredExperiences.slice(0, 12).map(exp => (
-                      <MobileExperienceCard key={exp.id} experience={exp} />
+                      <MobileExperienceCard key={exp.id} experience={exp} timingDisplay={timingMap[exp.id]} />
                     ))}
                   </div>
                 </div>
