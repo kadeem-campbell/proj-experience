@@ -39,7 +39,7 @@ export const useProductListings = () => {
         title: p.title,
         creator: "",
         views: "0",
-        videoThumbnail: p.cover_image || "",
+        videoThumbnail: p.cover_image_url || p.cover_image || "",
         videoUrl: p.video_url || undefined,
         category: p.activity_types?.name || "",
         location: p.destinations?.name || "",
