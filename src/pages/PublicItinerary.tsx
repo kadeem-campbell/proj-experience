@@ -588,14 +588,14 @@ const PublicItinerary = () => {
     const price = dbExp?.price || (experience.price ? experience.price : null);
     const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
     const category = dbExp?.category || experience.category;
-    const expSlug = dbExp?.slug || slugify(experience.title);
-    const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = generateProductUrl(destSlug || 'explore', expSlug, dbExp?.areaSlug);
+    const expUrl = dbExp?.slug && dbExp?.destinationSlug
+      ? generateProductUrl(dbExp.destinationSlug, dbExp.slug, dbExp.areaSlug)
+      : null;
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
         <div
-          onClick={() => navigate(expUrl)}
+          onClick={() => expUrl && navigate(expUrl)}
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
@@ -653,14 +653,14 @@ const PublicItinerary = () => {
     const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
     const category = dbExp?.category || experience.category;
     const price = dbExp?.price || (experience.price ? experience.price : null);
-    const expSlug = dbExp?.slug || slugify(experience.title);
-    const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = generateProductUrl(destSlug || 'explore', expSlug, dbExp?.areaSlug);
+    const expUrl = dbExp?.slug && dbExp?.destinationSlug
+      ? generateProductUrl(dbExp.destinationSlug, dbExp.slug, dbExp.areaSlug)
+      : null;
     return (
       <div
         key={experience.id}
-        className="cursor-pointer group"
-        onClick={() => navigate(expUrl)}
+        className={cn("group", expUrl && "cursor-pointer")}
+        onClick={() => expUrl && navigate(expUrl)}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {thumbnail ? (
@@ -1171,9 +1171,9 @@ const PublicItinerary = () => {
                         <div
                           onClick={() => {
                             const dbE = allDbExperiences.find(e => e.id === exp.id);
-                            const s = dbE?.slug || slugify(exp.title);
-                            const d = dbE?.destinationSlug || slugify(exp.location || '');
-                            navigate(generateProductUrl(d || 'explore', s, dbE?.areaSlug));
+                            if (dbE?.slug && dbE?.destinationSlug) {
+                              navigate(generateProductUrl(dbE.destinationSlug, dbE.slug, dbE.areaSlug));
+                            }
                           }}
                           className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-muted/40 rounded-lg transition-colors"
                         >
