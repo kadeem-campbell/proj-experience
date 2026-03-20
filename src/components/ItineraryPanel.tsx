@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { TimingIcon } from "@/components/TimingIcon";
+import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 import { Link } from "react-router-dom";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { 
