@@ -152,8 +152,8 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Experience card — no heart on homepage, action menu top-right
-const MobileExperienceCard = ({ experience }: { experience: any }) => {
+// Experience card — with timing icon
+const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; timingDisplay?: { primary_time_icon: string; primary_time_label: string } | null }) => {
   const navigate = useNavigate();
   const { convert } = useCurrency();
 
@@ -163,6 +163,10 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
     }
     return experience.price || '';
   }, [experience.averagePrice, experience.price, convert]);
+
+  const timingIcon = timingDisplay ? (
+    { sunrise: '🌅', sun: '☀️', sunset: '🌇', moon: '🌙', flexible: '⏰', mixed: '🔄' }[timingDisplay.primary_time_icon] || null
+  ) : null;
 
   return (
     <div 
@@ -174,6 +178,12 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
           <img src={experience.videoThumbnail} alt={experience.title} loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+        )}
+        {timingIcon && (
+          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background/80 backdrop-blur-sm">
+            <span className="text-xs">{timingIcon}</span>
+            <span className="text-[9px] font-medium text-foreground">{timingDisplay!.primary_time_label}</span>
+          </div>
         )}
         <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
