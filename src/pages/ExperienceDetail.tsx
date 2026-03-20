@@ -493,10 +493,10 @@ export default function ExperienceDetail() {
   // Order: About → Highlights → Social/Visual → Hosts → Inclusions → Access/Logistics → Local Tips → Related
   const renderContentSections = (layout: 'mobile' | 'desktop') => (
     <>
-      {/* 1. About — editorial, airy */}
+      {/* 1. About — editorial, refined */}
       {hasDescription && (
-        <div className="mb-8">
-          <p className="text-[15px] text-muted-foreground leading-[1.7] tracking-wide">{experience.description}</p>
+        <div className="mb-7">
+          <p className="text-[13.5px] text-foreground/70 leading-[1.75]">{experience.description}</p>
         </div>
       )}
 
@@ -596,14 +596,7 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 10. Pricing — moved to lower utility zone */}
-      <PriceSection
-        experience={experience}
-        productOptions={productOptions}
-        selectedCurrency={selectedCurrency}
-      />
-
-      {/* 11. Related saves / people also added */}
+      {/* 10. Related saves / people also added */}
       <PairingBlock experienceId={experience.id} />
       <IncludedInItineraries experienceId={experience.id} />
 
@@ -639,35 +632,35 @@ export default function ExperienceDetail() {
               </div>
             </div>
 
-            {/* Bottom gradient overlay with title stack */}
+            {/* Bottom gradient overlay — cinematic, not muddy */}
             <div className="absolute inset-x-0 bottom-0 z-10">
-              <div className="bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-24 pb-5 px-4">
+              <div className="pt-32 pb-5 px-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.12) 70%, transparent 100%)' }}>
                 {/* Location line */}
-                <div className="flex items-center gap-1.5 mb-2">
-                  <MapPin className="w-3.5 h-3.5 text-white/70" />
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-white/60" />
                   {linkedPoi ? (
-                    <span className="text-sm text-white/90 font-medium">{linkedPoi.name}{experience.location ? `, ${experience.location}` : ''}</span>
+                    <span className="text-[13px] text-white/80 font-medium tracking-wide">{linkedPoi.name}{experience.location ? `, ${experience.location}` : ''}</span>
                   ) : (
-                    <span className="text-sm text-white/90 font-medium">{experience.location}</span>
+                    <span className="text-[13px] text-white/80 font-medium tracking-wide">{experience.location}</span>
                   )}
                 </div>
                 {/* Title */}
-                <h1 className="text-[26px] font-extrabold text-white tracking-tight leading-[1.1] mb-3" style={{ fontFamily: '-apple-system, SF Pro Display, system-ui, sans-serif', letterSpacing: '-0.5px' }}>
+                <h1 className="text-[24px] font-extrabold text-white leading-[1.15] mb-2.5" style={{ fontFamily: '-apple-system, SF Pro Display, system-ui, sans-serif', letterSpacing: '-0.3px' }}>
                   {experience.title}
                 </h1>
-                {/* Meta row — social proof · price · timing */}
-                <div className="flex items-center gap-2 flex-wrap text-[13px]">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
-                    <Heart className="w-3 h-3 fill-white/80 text-white/80" />
+                {/* Meta row */}
+                <div className="flex items-center gap-1.5 flex-wrap text-[12px]">
+                  <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
+                    <Heart className="w-3 h-3 fill-white/70 text-white/70" />
                     Saved by {likedByCount} travellers this month
                   </span>
                   {experience.price && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
                       From {experience.price}
                     </span>
                   )}
                   {experience.bestTime && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
                       <Calendar className="w-3 h-3" />
                       {experience.bestTime}
                     </span>
@@ -677,19 +670,19 @@ export default function ExperienceDetail() {
             </div>
           </div>
 
-          <div className="px-4 py-4">
-            {/* Add to Itinerary CTA — immediately after hero */}
-            <div className="mb-5">
+          <div className="px-4 pt-5 pb-4">
+            {/* Add to Itinerary CTA */}
+            <div className="mb-4">
               <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator, videoThumbnail: experience.videoThumbnail, category: experience.category, location: experience.location, price: experience.price || "" }} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-                <Button size="lg" className={cn("w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
+                <Button size="lg" className={cn("w-full h-[52px] rounded-2xl font-semibold text-[15px] bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
               </ItinerarySelector>
             </div>
 
-            {/* Info Pills */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {experience.category && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">{categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}<span className="font-medium">{experience.category}</span></div>}
-              {experience.duration && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Clock className="w-4 h-4 text-primary" /><span className="font-medium">{experience.duration}</span></div>}
-              {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Users className="w-4 h-4 text-primary" /><span className="font-medium">{experience.groupSize}</span></div>}
+            {/* Info Pills — refined, smaller */}
+            <div className="flex flex-wrap gap-1.5 mb-6">
+              {experience.category && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]">{categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}<span className="font-medium text-foreground/80">{experience.category}</span></div>}
+              {experience.duration && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
+              {experience.groupSize && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
             </div>
 
             {renderContentSections('mobile')}
