@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export const CURRENCIES = [
   { code: 'USD', symbol: '$', label: 'USD ($)' },
@@ -7,6 +7,28 @@ export const CURRENCIES = [
   { code: 'TZS', symbol: 'TSh', label: 'TZS (TSh)' },
   { code: 'KES', symbol: 'KSh', label: 'KES (KSh)' },
 ];
+
+// Approximate exchange rates from USD (base)
+const RATES_FROM_USD: Record<string, number> = {
+  USD: 1,
+  GBP: 0.79,
+  EUR: 0.92,
+  TZS: 2500,
+  KES: 153,
+};
+
+/** Convert a USD amount to the target currency */
+export const convertFromUSD = (amountUSD: number, targetCode: string): number => {
+  const rate = RATES_FROM_USD[targetCode] || 1;
+  return Math.round(amountUSD * rate);
+};
+
+/** Format a converted price for display */
+export const formatPrice = (amountUSD: number, targetCode: string): string => {
+  const info = CURRENCIES.find(c => c.code === targetCode) || CURRENCIES[0];
+  const converted = convertFromUSD(amountUSD, targetCode);
+  return `${info.symbol}${converted.toLocaleString()}`;
+};
 
 /** Auto-detect currency from timezone/locale — runs once */
 export const detectCurrency = (): string => {
@@ -45,5 +67,8 @@ export const useCurrency = () => {
 
   const currencyInfo = CURRENCIES.find(c => c.code === currency) || CURRENCIES[0];
 
-  return { currency, currencyInfo, updateCurrency, CURRENCIES };
+  /** Convert USD amount to current currency and format */
+  const convert = useCallback((amountUSD: number) => formatPrice(amountUSD, currency), [currency]);
+
+  return { currency, currencyInfo, updateCurrency, convert, CURRENCIES };
 };
