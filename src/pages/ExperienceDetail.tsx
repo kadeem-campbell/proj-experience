@@ -530,8 +530,6 @@ export default function ExperienceDetail() {
       {/* 5. What's typically included — compact utility */}
       {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
 
-      {/* 6. Best Time to Go */}
-      {(experience as any).isProduct && <BestTimeSection productId={experience.id} />}
 
       {/* 7. Access points — utility, tighter */}
       {hasMeetingPoints && (
