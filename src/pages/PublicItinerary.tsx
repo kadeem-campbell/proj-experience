@@ -610,11 +610,20 @@ const PublicItinerary = () => {
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
             <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
-              <span>{metaParts.join(' · ')}</span>
-              {slotInfo && (
+              {experience.location && <span>{experience.location}</span>}
+              {experience.creator && (
                 <>
                   <span className="opacity-40">·</span>
-                  <span className="inline-flex items-center">{slotInfo.icon}</span>
+                  <span>{experience.creator}</span>
+                </>
+              )}
+              {timingMap[experience.id] && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span className="inline-flex items-center gap-0.5">
+                    <TimingIcon icon={timingMap[experience.id].primary_time_icon} className="w-3 h-3" />
+                    <span>{timingMap[experience.id].primary_time_label}</span>
+                  </span>
                 </>
               )}
               {price && (
