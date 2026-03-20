@@ -195,13 +195,12 @@ const LocalTipsSection = ({ tips }: { tips: string[] }) => {
   );
 };
 
-// Currency-aware price display
-const PriceSection = ({ experience, productOptions, selectedCurrency, onCurrencyChange }: {
-  experience: any; productOptions: any[]; selectedCurrency: string; onCurrencyChange: (c: string) => void;
+// Currency-aware price display — no selector, uses global auto-detected currency
+const PriceSection = ({ experience, productOptions, selectedCurrency }: {
+  experience: any; productOptions: any[]; selectedCurrency: string;
 }) => {
-  const curr = CURRENCIES.find(c => c.code === selectedCurrency) || CURRENCIES[0];
+  const { currencyInfo } = useCurrency();
 
-  // Collect all prices for the selected currency from options
   const allPrices = productOptions.flatMap(opt =>
     (opt.price_options || []).filter((p: any) => p.currency_code === selectedCurrency)
   );
@@ -213,22 +212,14 @@ const PriceSection = ({ experience, productOptions, selectedCurrency, onCurrency
 
   return (
     <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-semibold">Pricing</h3>
-        <Select value={selectedCurrency} onValueChange={onCurrencyChange}>
-          <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {CURRENCIES.map(c => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
+      <h3 className="text-base font-semibold mb-3">Pricing</h3>
       {hasDetailedPricing ? (
         <div className="space-y-2">
           {allPrices.map((p: any, i: number) => (
             <div key={i} className="flex items-center justify-between text-sm">
               <span className="capitalize text-muted-foreground">{(p.pricing_category || 'standard').replace(/_/g, ' ')}</span>
               <span className="font-semibold text-foreground">
-                {curr.symbol}{p.amount}{p.amount_max ? ` – ${curr.symbol}${p.amount_max}` : ''}
+                {currencyInfo.symbol}{p.amount}{p.amount_max ? ` – ${currencyInfo.symbol}${p.amount_max}` : ''}
                 <span className="text-xs text-muted-foreground ml-1">/{(p.pricing_unit || 'per_person').replace(/_/g, ' ')}</span>
               </span>
             </div>
@@ -237,7 +228,7 @@ const PriceSection = ({ experience, productOptions, selectedCurrency, onCurrency
       ) : (
         <span className="text-2xl font-bold text-foreground">{experience.price}</span>
       )}
-      <p className="text-[11px] text-muted-foreground mt-2">Prices are based on local market averages and may vary by operator.</p>
+      <p className="text-[11px] text-muted-foreground mt-2">Prices shown in {currencyInfo.code}. Update currency via Destinations filter.</p>
     </div>
   );
 };
