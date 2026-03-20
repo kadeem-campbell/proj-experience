@@ -269,6 +269,16 @@ export const validateProduct = (ctx: ProductValidationContext): PublishValidatio
   checks.push(chk("route_registered", "in_registry", !!ctx.hasRouteEntry, "info", "Route registered in page_route_registry", "route", 1, "Auto-register on save"));
   checks.push(chk("slug_format", "valid_slug", /^[a-z0-9-]+$/.test(p.slug || ""), "error", "Slug format valid", "route"));
 
+  // === TIMING (part of content dimension) ===
+  const timingProfiles = ctx.timingProfiles || [];
+  const hasDefaultTiming = timingProfiles.some((t: any) => t.profile_type === 'default' && t.is_active !== false);
+  checks.push(chk("timing_default", "has_default", hasDefaultTiming, "warning", "Default timing profile set", "content", 1, "Add a timing profile in the Timing tab"));
+  if (hasDefaultTiming) {
+    const defTiming = timingProfiles.find((t: any) => t.profile_type === 'default');
+    checks.push(chk("timing_timezone", "valid_tz", !!defTiming?.local_timezone, "warning", "Timing timezone set", "content"));
+    checks.push(chk("timing_scores", "has_scores", Array.isArray(defTiming?.hourly_scores) && defTiming.hourly_scores.length === 24, "warning", "24h suitability scores present", "content"));
+  }
+
   // === ANALYTICS ===
   checks.push(chk("save_count", "has_saves", (ctx.saveCount || 0) >= 1, "info", "Has saves", "analytics"));
   checks.push(chk("copy_count", "has_copies", (ctx.copyCount || 0) >= 1, "info", "Has copies", "analytics"));
