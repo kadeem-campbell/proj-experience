@@ -575,6 +575,193 @@ export const AdminProductsSection = () => {
   );
 };
 
+// ============ TIMING EDITOR ============
+
+const TIMING_TEMPLATES = [
+  { label: 'Early Morning', peak: [5, 8], secondary: [8, 10] },
+  { label: 'Morning', peak: [7, 11], secondary: [5, 7] },
+  { label: 'Midday', peak: [10, 14], secondary: [8, 10] },
+  { label: 'Afternoon', peak: [13, 17], secondary: [10, 13] },
+  { label: 'Sunset', peak: [16, 19], secondary: [14, 16] },
+  { label: 'Night', peak: [19, 23], secondary: [17, 19] },
+  { label: 'All Day', peak: [8, 17], secondary: null },
+];
+
+const generateHourlyCurve = (peakStart: number, peakEnd: number, secStart?: number | null, secEnd?: number | null, lowStart?: number | null, lowEnd?: number | null): number[] => {
+  const scores = new Array(24).fill(0.2);
+  for (let h = peakStart; h < peakEnd; h++) scores[h % 24] = 1.0;
+  if (secStart != null && secEnd != null) {
+    for (let h = secStart; h < secEnd; h++) scores[h % 24] = Math.max(scores[h % 24], 0.6);
+  }
+  if (lowStart != null && lowEnd != null) {
+    for (let h = lowStart; h < lowEnd; h++) scores[h % 24] = Math.min(scores[h % 24], 0.1);
+  }
+  // Smooth transitions
+  for (let i = 0; i < 24; i++) {
+    const prev = scores[(i - 1 + 24) % 24];
+    const next = scores[(i + 1) % 24];
+    if (Math.abs(scores[i] - prev) > 0.5) scores[i] = (scores[i] + prev) / 2;
+  }
+  return scores.map(s => Math.round(s * 100) / 100);
+};
+
+const TimingEditor = ({ productId }: { productId: string }) => {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['admin-timing-profiles', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_timing_profiles').select('*').eq('product_id', productId).order('profile_type') as any;
+      return data || [];
+    },
+  });
+
+  const addProfile = async (type: string) => {
+    const curve = generateHourlyCurve(8, 11, 6, 8);
+    await supabase.from('product_timing_profiles').insert({
+      product_id: productId, profile_label: type === 'default' ? 'Default' : 'Seasonal',
+      profile_type: type, local_timezone: 'Africa/Dar_es_Salaam',
+      peak_start_hour: 8, peak_end_hour: 11,
+      hourly_scores: curve, confidence_score: 0.8, flexibility_level: 'moderate',
+      reason_tags: [], is_active: true,
+    } as any);
+    qc.invalidateQueries({ queryKey: ['admin-timing-profiles', productId] });
+    toast({ title: 'Timing profile added' });
+  };
+
+  const updateProfile = async (id: string, field: string, value: any) => {
+    await supabase.from('product_timing_profiles').update({ [field]: value } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-timing-profiles', productId] });
+  };
+
+  const deleteProfile = async (id: string) => {
+    await supabase.from('product_timing_profiles').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-timing-profiles', productId] });
+    toast({ title: 'Profile deleted' });
+  };
+
+  const applyTemplate = async (id: string, tpl: typeof TIMING_TEMPLATES[0]) => {
+    const curve = generateHourlyCurve(tpl.peak[0], tpl.peak[1], tpl.secondary?.[0], tpl.secondary?.[1]);
+    await supabase.from('product_timing_profiles').update({
+      peak_start_hour: tpl.peak[0], peak_end_hour: tpl.peak[1],
+      secondary_start_hour: tpl.secondary?.[0] ?? null, secondary_end_hour: tpl.secondary?.[1] ?? null,
+      hourly_scores: curve, profile_label: tpl.label,
+    } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-timing-profiles', productId] });
+    toast({ title: `Applied "${tpl.label}" template` });
+  };
+
+  const hasDefault = profiles.some((p: any) => p.profile_type === 'default');
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">Manage time-of-day intelligence for this experience. Start by adding a default profile, then optionally add seasonal overrides.</p>
+
+      {profiles.map((prof: any) => {
+        const scores: number[] = Array.isArray(prof.hourly_scores) ? prof.hourly_scores : [];
+        const maxScore = Math.max(...scores, 1);
+        return (
+          <Card key={prof.id} className="p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge variant={prof.profile_type === 'default' ? 'default' : 'outline'} className="text-[10px]">{prof.profile_type}</Badge>
+                <Input className="text-xs w-32 h-7" value={prof.profile_label} onChange={e => updateProfile(prof.id, 'profile_label', e.target.value)} />
+              </div>
+              <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => deleteProfile(prof.id)}><Trash2 className="w-3 h-3" /></Button>
+            </div>
+
+            {/* Quick template buttons */}
+            <div>
+              <Label className="text-[10px] text-muted-foreground">Quick template</Label>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {TIMING_TEMPLATES.map(tpl => (
+                  <Button key={tpl.label} size="sm" variant="outline" className="text-[10px] h-6 px-2" onClick={() => applyTemplate(prof.id, tpl)}>{tpl.label}</Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label className="text-[10px] text-muted-foreground">Timezone</Label>
+                <Input className="text-xs h-7" value={prof.local_timezone || ''} onChange={e => updateProfile(prof.id, 'local_timezone', e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-[10px] text-muted-foreground">Peak start (h)</Label>
+                <Input type="number" min={0} max={23} className="text-xs h-7" value={prof.peak_start_hour ?? ''} onChange={e => {
+                  const v = parseInt(e.target.value);
+                  updateProfile(prof.id, 'peak_start_hour', isNaN(v) ? null : v);
+                }} />
+              </div>
+              <div>
+                <Label className="text-[10px] text-muted-foreground">Peak end (h)</Label>
+                <Input type="number" min={0} max={23} className="text-xs h-7" value={prof.peak_end_hour ?? ''} onChange={e => {
+                  const v = parseInt(e.target.value);
+                  updateProfile(prof.id, 'peak_end_hour', isNaN(v) ? null : v);
+                }} />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              <div><Label className="text-[10px] text-muted-foreground">Sec. start</Label><Input type="number" min={0} max={23} className="text-xs h-7" value={prof.secondary_start_hour ?? ''} onChange={e => updateProfile(prof.id, 'secondary_start_hour', parseInt(e.target.value) || null)} /></div>
+              <div><Label className="text-[10px] text-muted-foreground">Sec. end</Label><Input type="number" min={0} max={23} className="text-xs h-7" value={prof.secondary_end_hour ?? ''} onChange={e => updateProfile(prof.id, 'secondary_end_hour', parseInt(e.target.value) || null)} /></div>
+              <div><Label className="text-[10px] text-muted-foreground">Confidence</Label><Input type="number" min={0} max={1} step={0.1} className="text-xs h-7" value={prof.confidence_score ?? 0.8} onChange={e => updateProfile(prof.id, 'confidence_score', parseFloat(e.target.value) || 0.8)} /></div>
+              <div>
+                <Label className="text-[10px] text-muted-foreground">Flexibility</Label>
+                <Select value={prof.flexibility_level || 'moderate'} onValueChange={v => updateProfile(prof.id, 'flexibility_level', v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="strict">Strict</SelectItem>
+                    <SelectItem value="moderate">Moderate</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Seasonal date range */}
+            {prof.profile_type !== 'default' && (
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label className="text-[10px] text-muted-foreground">Start date</Label><Input type="date" className="text-xs h-7" value={prof.start_date || ''} onChange={e => updateProfile(prof.id, 'start_date', e.target.value || null)} /></div>
+                <div><Label className="text-[10px] text-muted-foreground">End date</Label><Input type="date" className="text-xs h-7" value={prof.end_date || ''} onChange={e => updateProfile(prof.id, 'end_date', e.target.value || null)} /></div>
+              </div>
+            )}
+
+            <div><Label className="text-[10px] text-muted-foreground">Timing note</Label><Input className="text-xs h-7" value={prof.timing_note || ''} onChange={e => updateProfile(prof.id, 'timing_note', e.target.value)} placeholder="e.g. Go early before the tide comes in" /></div>
+
+            {/* Curve preview */}
+            {scores.length === 24 && (
+              <div>
+                <Label className="text-[10px] text-muted-foreground">24h suitability curve</Label>
+                <div className="flex items-end gap-[2px] h-16 mt-1 bg-muted/30 rounded p-1">
+                  {scores.map((s, h) => (
+                    <div key={h} className="flex-1 flex flex-col items-center gap-0.5">
+                      <div
+                        className={cn("w-full rounded-t-sm transition-all", s >= 0.8 ? "bg-primary" : s >= 0.5 ? "bg-primary/50" : "bg-muted-foreground/20")}
+                        style={{ height: `${(s / maxScore) * 100}%`, minHeight: '2px' }}
+                      />
+                      {h % 4 === 0 && <span className="text-[7px] text-muted-foreground">{h}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <Button size="sm" variant="outline" className="text-[10px]" onClick={() => {
+              const curve = generateHourlyCurve(prof.peak_start_hour, prof.peak_end_hour, prof.secondary_start_hour, prof.secondary_end_hour, prof.low_start_hour, prof.low_end_hour);
+              updateProfile(prof.id, 'hourly_scores', curve);
+            }}>Regenerate curve from windows</Button>
+          </Card>
+        );
+      })}
+
+      <div className="flex gap-2">
+        {!hasDefault && <Button size="sm" variant="outline" onClick={() => addProfile('default')}><Plus className="w-3 h-3 mr-1" />Add Default Profile</Button>}
+        <Button size="sm" variant="outline" onClick={() => addProfile('seasonal')}><Plus className="w-3 h-3 mr-1" />Add Seasonal Profile</Button>
+        <Button size="sm" variant="outline" onClick={() => addProfile('override')}><Plus className="w-3 h-3 mr-1" />Add Override</Button>
+      </div>
+    </div>
+  );
+};
+
 // ============ INCLUSIONS EDITOR ============
 
 const InclusionsEditor = ({ productId }: { productId: string }) => {
