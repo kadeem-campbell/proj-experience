@@ -542,6 +542,7 @@ const OptionsEditor = ({ productId }: { productId: string }) => {
 
 const PriceEditor = ({ optionId }: { optionId: string }) => {
   const qc = useQueryClient();
+  const { toast } = useToast();
   const { data: prices = [] } = useQuery({
     queryKey: ['admin-prices', optionId],
     queryFn: async () => {
@@ -551,19 +552,56 @@ const PriceEditor = ({ optionId }: { optionId: string }) => {
   });
 
   const addPrice = async () => {
-    await supabase.from('price_options').insert({ option_id: optionId, pricing_category: 'adult', currency_code: 'USD', amount: 0 } as any);
+    await supabase.from('price_options').insert({ option_id: optionId, pricing_category: 'adult', pricing_unit: 'per_person', currency_code: 'USD', amount: 0 } as any);
+    qc.invalidateQueries({ queryKey: ['admin-prices', optionId] });
+  };
+
+  const updatePrice = async (id: string, field: string, value: any) => {
+    await supabase.from('price_options').update({ [field]: value } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-prices', optionId] });
+  };
+
+  const deletePrice = async (id: string) => {
+    await supabase.from('price_options').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['admin-prices', optionId] });
   };
 
   return (
-    <div className="pl-4 border-l-2 border-border space-y-1">
+    <div className="pl-4 border-l-2 border-border space-y-2">
       {prices.map((p: any) => (
         <div key={p.id} className="flex items-center gap-2 text-xs">
-          <span className="text-muted-foreground w-20">{p.pricing_category}</span>
-          <span>{p.currency_code} {p.amount}</span>
+          <Select value={p.pricing_category} onValueChange={v => updatePrice(p.id, 'pricing_category', v)}>
+            <SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="adult">Adult</SelectItem>
+              <SelectItem value="child">Child</SelectItem>
+              <SelectItem value="resident">Resident</SelectItem>
+              <SelectItem value="non_resident">Non-Resident</SelectItem>
+              <SelectItem value="group">Group</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={p.pricing_unit || 'per_person'} onValueChange={v => updatePrice(p.id, 'pricing_unit', v)}>
+            <SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="per_person">Per Person</SelectItem>
+              <SelectItem value="per_group">Per Group</SelectItem>
+              <SelectItem value="per_hour">Per Hour</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={p.currency_code} onValueChange={v => updatePrice(p.id, 'currency_code', v)}>
+            <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="TZS">TZS</SelectItem>
+              <SelectItem value="KES">KES</SelectItem>
+              <SelectItem value="EUR">EUR</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input type="number" className="w-20 h-7 text-xs" value={p.amount} onChange={e => updatePrice(p.id, 'amount', parseFloat(e.target.value) || 0)} />
+          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={() => deletePrice(p.id)}><Trash2 className="w-3 h-3" /></Button>
         </div>
       ))}
-      <Button size="sm" variant="ghost" className="text-xs h-6" onClick={addPrice}><Plus className="w-3 h-3 mr-1" />Price</Button>
+      <Button size="sm" variant="ghost" className="text-xs h-6" onClick={addPrice}><Plus className="w-3 h-3 mr-1" />Add Price</Button>
     </div>
   );
 };
