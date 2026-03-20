@@ -14,6 +14,7 @@ import { generateProductPageUrl } from "@/utils/slugUtils";
 import { useHomeCarousels } from "@/hooks/useHomeCarousels";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrency } from "@/hooks/useCurrency";
 import { CardActionMenu } from "@/components/CardActionMenu";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
