@@ -138,7 +138,7 @@ export const SocialVideoEmbed = ({
         </DrawerContent>
       </Drawer>
 
-      {/* Instagram drawer — iframe embed, no chrome */}
+      {/* Instagram drawer — uses official embed script */}
       <Drawer open={showInstagram} onOpenChange={setShowInstagram}>
         <DrawerContent className="max-h-[75vh] overflow-hidden border-border bg-background">
           <div className="flex items-center justify-end px-3 pt-2 pb-1">
@@ -151,14 +151,15 @@ export const SocialVideoEmbed = ({
           </div>
           {showInstagram && hasInstagram && (
             <div className="w-full flex justify-center pb-4 overflow-hidden">
-              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '320px', height: '520px' }}>
+              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '340px', height: '540px' }}>
                 <iframe
                   src={instagramEmbedUrl}
                   className="border-0"
                   style={{ width: '100%', height: '100%' }}
-                  allow="autoplay; encrypted-media"
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
                   allowFullScreen
                   scrolling="no"
+                  referrerPolicy="no-referrer"
                 />
               </div>
             </div>
