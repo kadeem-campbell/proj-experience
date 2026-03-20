@@ -49,7 +49,7 @@ export const AdminTaxonomySection = () => {
   });
 
   const invalidate = () => {
-    ['admin-at-full', 'admin-themes-full', 'admin-options-full', 'admin-price-options-full', 'admin-overview-counts'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
+    ['admin-at-full', 'admin-themes-full', 'admin-options-full', 'admin-price-options-full', 'admin-inclusion-items-full', 'admin-transport-modes-full', 'admin-overview-counts'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
   };
 
   const saveEntity = async (table: string, item: any, isNew: boolean) => {
