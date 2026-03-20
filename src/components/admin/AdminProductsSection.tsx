@@ -297,8 +297,8 @@ export const AdminProductsSection = () => {
 
         <Separator />
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Gallery</h4>
-        <p className="text-[10px] text-muted-foreground">Additional photos (URLs). The cover image is included automatically.</p>
-        <GalleryEditor value={item.gallery_json || []} onChange={v => onChange('gallery_json', v)} />
+        <p className="text-[10px] text-muted-foreground">Upload product photos. The cover image is included automatically.</p>
+        <GalleryEditor value={item.gallery_json || []} onChange={v => onChange('gallery_json', v)} productSlug={item.slug} />
 
         <Separator />
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Social Media</h4>
