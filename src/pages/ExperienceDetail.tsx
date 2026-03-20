@@ -126,13 +126,13 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
   });
   if (inclusions.length === 0) return null;
   return (
-    <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-3">What's typically included</h2>
-      <div className="grid grid-cols-2 gap-2">
+    <div className="mb-7">
+      <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>What's included</h2>
+      <div className="space-y-0">
         {inclusions.map((inc: any) => (
-          <div key={inc.id} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card border border-border">
-            <span className="text-base">{inc.inclusion_items?.emoji || '✓'}</span>
-            <span className="text-sm">{inc.inclusion_items?.name}</span>
+          <div key={inc.id} className="flex items-center gap-3 py-2.5 border-b border-border/40 last:border-0">
+            <Check className="w-4 h-4 text-primary flex-shrink-0" />
+            <span className="text-[13.5px] text-foreground">{inc.inclusion_items?.name}</span>
           </div>
         ))}
       </div>
@@ -482,11 +482,11 @@ export default function ExperienceDetail() {
           <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Why this experience</h2>
           <div className={cn("grid gap-2.5", layout === 'desktop' ? "grid-cols-2" : "grid-cols-1")}>
             {experience.highlights?.map((item: string, index: number) => (
-              <div key={index} className="flex items-start gap-3 py-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Sparkles className="w-4 h-4 text-primary" />
+              <div key={index} className="flex items-center gap-3 py-2.5">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <span className="text-[14px] leading-relaxed text-foreground">{item}</span>
+                <span className="text-[13.5px] leading-snug text-foreground">{item}</span>
               </div>
             ))}
           </div>
@@ -655,9 +655,9 @@ export default function ExperienceDetail() {
             {/* Info Pills — refined, smaller */}
             <div className="flex flex-wrap gap-1.5 mb-6">
               {experience.category && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]">{categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}<span className="font-medium text-foreground/80">{experience.category}</span></div>}
-              {experience.duration && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
-              {experience.groupSize && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
-              {bestTimeDisplay && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span></div>}
+              {experience.duration && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
+              {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
+              {bestTimeDisplay && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span></div>}
             </div>
 
             {renderContentSections('mobile')}
