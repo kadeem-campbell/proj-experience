@@ -544,6 +544,9 @@ export default function ExperienceDetail() {
         <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />
       )}
 
+      {/* 6.5. Best Time to Go (timing intelligence) */}
+      {(experience as any).isProduct && <BestTimeSection productId={experience.id} />}
+
       {/* 7. Local Tips */}
       {hasLocalTips && <LocalTipsSection tips={(experience as any).localTips} />}
 
