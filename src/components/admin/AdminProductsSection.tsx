@@ -1030,6 +1030,28 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
     } finally { setLoading(false); }
   };
 
+  // Map dimensions to their admin tab for quick navigation hints
+  const DIMENSION_TAB_MAP: Record<string, { tab: string; label: string }> = {
+    content: { tab: 'Basics', label: 'Content' },
+    media: { tab: 'Basics', label: 'Media' },
+    canonical: { tab: 'Governance', label: 'Canonical/SEO' },
+    taxonomy: { tab: 'Taxonomy', label: 'Taxonomy' },
+    commerce: { tab: 'Options & Pricing', label: 'Commerce' },
+    feed: { tab: 'Basics', label: 'Feed Readiness' },
+    graph: { tab: 'Relations', label: 'Graph' },
+    geo: { tab: 'Geography', label: 'Geography' },
+    qa: { tab: 'Validation', label: 'QA' },
+    route: { tab: 'Governance', label: 'Route' },
+    analytics: { tab: 'Links', label: 'Analytics' },
+  };
+
+  const severityLabel = (s: string) => {
+    if (s === 'blocker') return '🔴 BLOCKER';
+    if (s === 'error') return '🟠 Required';
+    if (s === 'warning') return '🟡 Recommended';
+    return '🔵 Nice to have';
+  };
+
   return (
     <div className="space-y-3">
       <Button size="sm" onClick={runValidation} disabled={loading}>
@@ -1037,7 +1059,7 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         Run Validation
       </Button>
       {result && (
-        <Card className="p-3 space-y-2">
+        <Card className="p-3 space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold">{result.publish_score}%</span>
             <Badge variant={result.is_publishable ? 'default' : 'destructive'} className="text-[10px]">
@@ -1046,17 +1068,55 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
             <Badge variant="outline" className="text-[10px]">{result.recommended_state}</Badge>
           </div>
           <p className="text-xs text-muted-foreground">{result.summary}</p>
-          <div className="space-y-1">
-            {result.checks.filter((c: any) => !c.passed).map((c: any, i: number) => (
-              <div key={i} className="flex items-center gap-2 text-xs">
-                {c.severity === 'blocker' ? <XCircle className="w-3 h-3 text-destructive" /> :
-                  c.severity === 'error' ? <AlertTriangle className="w-3 h-3 text-destructive/70" /> :
-                  <AlertTriangle className="w-3 h-3 text-muted-foreground" />}
-                <span>{c.message}</span>
-                {c.suggested_fix && <span className="text-muted-foreground">→ {c.suggested_fix}</span>}
+
+          {/* Dimension scores overview */}
+          <div className="grid grid-cols-3 gap-1.5">
+            {(result.dimensions || []).map((d: any) => (
+              <div key={d.dimension} className="flex items-center gap-1.5 text-[10px]">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${d.score >= 80 ? 'bg-green-500' : d.score >= 50 ? 'bg-yellow-500' : 'bg-destructive'}`} />
+                <span className="text-muted-foreground">{DIMENSION_TAB_MAP[d.dimension]?.label || d.dimension}</span>
+                <span className="font-semibold ml-auto">{d.score}%</span>
               </div>
             ))}
           </div>
+
+          <Separator />
+
+          {/* Failed checks grouped by dimension */}
+          {Object.entries(
+            result.checks.filter((c: any) => !c.passed).reduce((acc: Record<string, any[]>, c: any) => {
+              const key = c.dimension || 'other';
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(c);
+              return acc;
+            }, {})
+          ).map(([dim, checks]: [string, any[]]) => (
+            <div key={dim} className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <h5 className="text-xs font-semibold">{DIMENSION_TAB_MAP[dim]?.label || dim}</h5>
+                <Badge variant="outline" className="text-[9px] h-4">→ {DIMENSION_TAB_MAP[dim]?.tab || 'Basics'} tab</Badge>
+              </div>
+              {checks.sort((a: any, b: any) => {
+                const order = { blocker: 0, error: 1, warning: 2, info: 3 };
+                return (order[a.severity as keyof typeof order] ?? 4) - (order[b.severity as keyof typeof order] ?? 4);
+              }).map((c: any, i: number) => (
+                <div key={i} className="flex items-start gap-2 text-xs pl-2">
+                  {c.severity === 'blocker' ? <XCircle className="w-3 h-3 text-destructive mt-0.5 shrink-0" /> :
+                    c.severity === 'error' ? <AlertTriangle className="w-3 h-3 text-destructive/70 mt-0.5 shrink-0" /> :
+                    <AlertTriangle className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />}
+                  <div>
+                    <span className="text-[10px] font-medium text-muted-foreground mr-1.5">{severityLabel(c.severity)}</span>
+                    <span>{c.message}</span>
+                    {c.suggested_fix && <span className="text-muted-foreground ml-1">→ {c.suggested_fix}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+
+          {result.checks.filter((c: any) => !c.passed).length === 0 && (
+            <p className="text-xs text-green-600 font-medium">✅ All checks passing!</p>
+          )}
         </Card>
       )}
     </div>
