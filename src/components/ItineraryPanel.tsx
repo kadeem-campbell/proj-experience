@@ -304,10 +304,7 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
                         <span className="truncate">{experience.location}</span>
                         <span className="font-medium text-primary">{experience.price}</span>
                         {timingMap[experience.id] && (
-                          <span className="flex items-center gap-0.5 text-muted-foreground">
-                            <TimingIcon icon={timingMap[experience.id].primary_time_icon} className="w-3 h-3" />
-                            <span className="truncate">{timingMap[experience.id].primary_time_label}</span>
-                          </span>
+                          <TimingIcon icon={timingMap[experience.id].primary_time_icon} className="w-3 h-3" />
                         )}
                       </div>
                     </div>
