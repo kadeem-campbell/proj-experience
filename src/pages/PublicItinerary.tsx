@@ -655,7 +655,7 @@ const PublicItinerary = () => {
     const price = dbExp?.price || (experience.price ? experience.price : null);
     const expSlug = dbExp?.slug || slugify(experience.title);
     const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = destSlug ? generateProductUrl(destSlug, expSlug, dbExp?.areaSlug) : `/things-to-do`;
+    const expUrl = generateProductUrl(destSlug || 'explore', expSlug, dbExp?.areaSlug);
     return (
       <div
         key={experience.id}
