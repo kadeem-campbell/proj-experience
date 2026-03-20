@@ -33,6 +33,67 @@ const ScoreRow = ({ label, value, onChange }: { label: string; value: number; on
   </div>
 );
 
+// ---- Highlights inline editor ----
+const HighlightsEditor = ({ value, onChange }: { value: any[]; onChange: (v: string[]) => void }) => {
+  const items: string[] = Array.isArray(value) ? value.filter(Boolean).map(String) : [];
+  const [draft, setDraft] = useState('');
+
+  const add = () => {
+    const t = draft.trim();
+    if (!t) return;
+    onChange([...items, t]);
+    setDraft('');
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {items.map((h, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <Input value={h} className="text-xs" onChange={e => { const next = [...items]; next[i] = e.target.value; onChange(next); }} />
+          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={() => onChange(items.filter((_, j) => j !== i))}><Trash2 className="w-3 h-3" /></Button>
+        </div>
+      ))}
+      <div className="flex gap-2">
+        <Input value={draft} placeholder="Add highlight..." className="text-xs" onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add())} />
+        <Button size="sm" variant="outline" onClick={add} disabled={!draft.trim()}><Plus className="w-3 h-3" /></Button>
+      </div>
+    </div>
+  );
+};
+
+// ---- Gallery inline editor ----
+const GalleryEditor = ({ value, onChange }: { value: any[]; onChange: (v: string[]) => void }) => {
+  const items: string[] = Array.isArray(value) ? value.filter(Boolean).map(String) : [];
+  const [draft, setDraft] = useState('');
+
+  const add = () => {
+    const t = draft.trim();
+    if (!t) return;
+    onChange([...items, t]);
+    setDraft('');
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-3 gap-2">
+        {items.map((url, i) => (
+          <div key={i} className="relative group">
+            <img src={url} alt="" className="w-full h-20 object-cover rounded-md border border-border" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <div className="mt-1">
+              <Input value={url} className="text-[10px] h-6" onChange={e => { const next = [...items]; next[i] = e.target.value; onChange(next); }} />
+            </div>
+            <Button size="sm" variant="ghost" className="absolute top-0 right-0 h-5 w-5 p-0 bg-background/80 rounded-full opacity-0 group-hover:opacity-100" onClick={() => onChange(items.filter((_, j) => j !== i))}><Trash2 className="w-3 h-3" /></Button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Input value={draft} placeholder="Paste image URL..." className="text-xs" onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add())} />
+        <Button size="sm" variant="outline" onClick={add} disabled={!draft.trim()}><Plus className="w-3 h-3 mr-1" />Add</Button>
+      </div>
+    </div>
+  );
+};
+
 export const AdminProductsSection = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -220,6 +281,16 @@ export const AdminProductsSection = () => {
           <div><Label className="text-xs text-muted-foreground">SEO Title</Label><Input value={item.seo_title || ''} onChange={e => onChange('seo_title', e.target.value)} maxLength={60} /></div>
         </div>
         <div><Label className="text-xs text-muted-foreground">SEO Description</Label><Textarea value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} rows={2} /></div>
+
+        <Separator />
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Highlights</h4>
+        <p className="text-[10px] text-muted-foreground">Key selling points shown on the product page. Aim for 3–6 items.</p>
+        <HighlightsEditor value={item.highlights_json || []} onChange={v => onChange('highlights_json', v)} />
+
+        <Separator />
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Gallery</h4>
+        <p className="text-[10px] text-muted-foreground">Additional photos (URLs). The cover image is included automatically.</p>
+        <GalleryEditor value={item.gallery_json || []} onChange={v => onChange('gallery_json', v)} />
 
         <Separator />
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Social Media</h4>
@@ -959,6 +1030,28 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
     } finally { setLoading(false); }
   };
 
+  // Map dimensions to their admin tab for quick navigation hints
+  const DIMENSION_TAB_MAP: Record<string, { tab: string; label: string }> = {
+    content: { tab: 'Basics', label: 'Content' },
+    media: { tab: 'Basics', label: 'Media' },
+    canonical: { tab: 'Governance', label: 'Canonical/SEO' },
+    taxonomy: { tab: 'Taxonomy', label: 'Taxonomy' },
+    commerce: { tab: 'Options & Pricing', label: 'Commerce' },
+    feed: { tab: 'Basics', label: 'Feed Readiness' },
+    graph: { tab: 'Relations', label: 'Graph' },
+    geo: { tab: 'Geography', label: 'Geography' },
+    qa: { tab: 'Validation', label: 'QA' },
+    route: { tab: 'Governance', label: 'Route' },
+    analytics: { tab: 'Links', label: 'Analytics' },
+  };
+
+  const severityLabel = (s: string) => {
+    if (s === 'blocker') return '🔴 BLOCKER';
+    if (s === 'error') return '🟠 Required';
+    if (s === 'warning') return '🟡 Recommended';
+    return '🔵 Nice to have';
+  };
+
   return (
     <div className="space-y-3">
       <Button size="sm" onClick={runValidation} disabled={loading}>
@@ -966,7 +1059,7 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         Run Validation
       </Button>
       {result && (
-        <Card className="p-3 space-y-2">
+        <Card className="p-3 space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold">{result.publish_score}%</span>
             <Badge variant={result.is_publishable ? 'default' : 'destructive'} className="text-[10px]">
@@ -975,17 +1068,55 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
             <Badge variant="outline" className="text-[10px]">{result.recommended_state}</Badge>
           </div>
           <p className="text-xs text-muted-foreground">{result.summary}</p>
-          <div className="space-y-1">
-            {result.checks.filter((c: any) => !c.passed).map((c: any, i: number) => (
-              <div key={i} className="flex items-center gap-2 text-xs">
-                {c.severity === 'blocker' ? <XCircle className="w-3 h-3 text-destructive" /> :
-                  c.severity === 'error' ? <AlertTriangle className="w-3 h-3 text-destructive/70" /> :
-                  <AlertTriangle className="w-3 h-3 text-muted-foreground" />}
-                <span>{c.message}</span>
-                {c.suggested_fix && <span className="text-muted-foreground">→ {c.suggested_fix}</span>}
+
+          {/* Dimension scores overview */}
+          <div className="grid grid-cols-3 gap-1.5">
+            {(result.dimensions || []).map((d: any) => (
+              <div key={d.dimension} className="flex items-center gap-1.5 text-[10px]">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${d.score >= 80 ? 'bg-green-500' : d.score >= 50 ? 'bg-yellow-500' : 'bg-destructive'}`} />
+                <span className="text-muted-foreground">{DIMENSION_TAB_MAP[d.dimension]?.label || d.dimension}</span>
+                <span className="font-semibold ml-auto">{d.score}%</span>
               </div>
             ))}
           </div>
+
+          <Separator />
+
+          {/* Failed checks grouped by dimension */}
+          {Object.entries(
+            result.checks.filter((c: any) => !c.passed).reduce((acc: Record<string, any[]>, c: any) => {
+              const key = c.dimension || 'other';
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(c);
+              return acc;
+            }, {})
+          ).map(([dim, checks]: [string, any[]]) => (
+            <div key={dim} className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <h5 className="text-xs font-semibold">{DIMENSION_TAB_MAP[dim]?.label || dim}</h5>
+                <Badge variant="outline" className="text-[9px] h-4">→ {DIMENSION_TAB_MAP[dim]?.tab || 'Basics'} tab</Badge>
+              </div>
+              {checks.sort((a: any, b: any) => {
+                const order = { blocker: 0, error: 1, warning: 2, info: 3 };
+                return (order[a.severity as keyof typeof order] ?? 4) - (order[b.severity as keyof typeof order] ?? 4);
+              }).map((c: any, i: number) => (
+                <div key={i} className="flex items-start gap-2 text-xs pl-2">
+                  {c.severity === 'blocker' ? <XCircle className="w-3 h-3 text-destructive mt-0.5 shrink-0" /> :
+                    c.severity === 'error' ? <AlertTriangle className="w-3 h-3 text-destructive/70 mt-0.5 shrink-0" /> :
+                    <AlertTriangle className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />}
+                  <div>
+                    <span className="text-[10px] font-medium text-muted-foreground mr-1.5">{severityLabel(c.severity)}</span>
+                    <span>{c.message}</span>
+                    {c.suggested_fix && <span className="text-muted-foreground ml-1">→ {c.suggested_fix}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+
+          {result.checks.filter((c: any) => !c.passed).length === 0 && (
+            <p className="text-xs text-green-600 font-medium">✅ All checks passing!</p>
+          )}
         </Card>
       )}
     </div>
