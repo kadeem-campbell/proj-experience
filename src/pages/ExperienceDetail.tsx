@@ -141,7 +141,7 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
 };
 
 // Best Time to Go block — driven by timing intelligence
-const BestTimeSection = ({ productId }: { productId: string }) => {
+const useBestTimeDisplay = (productId: string) => {
   const { data: profiles = [] } = useQuery({
     queryKey: ['product-timing-display', productId],
     queryFn: async () => {
@@ -155,34 +155,9 @@ const BestTimeSection = ({ productId }: { productId: string }) => {
     },
     enabled: !!productId,
   });
-
   if (profiles.length === 0) return null;
-
   const resolved = resolveTimingProfileFn(profiles);
-  const display = resolved?.derived_display;
-  if (!display) return null;
-
-  return (
-    <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-3">Best time to go</h2>
-      <div className="p-4 rounded-2xl bg-card border border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-            <TimingIcon icon={display.primary_time_icon} className="w-6 h-6" />
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-foreground">{display.primary_time_label}</p>
-            <p className="text-sm text-muted-foreground">{display.short_timing_phrase}</p>
-          </div>
-        </div>
-        {resolved.preferred_windows?.secondary && (
-          <p className="text-xs text-muted-foreground mt-2 pl-[60px]">
-            Also good: {resolved.preferred_windows.secondary.label} ({resolved.preferred_windows.secondary.start_hour}:00–{resolved.preferred_windows.secondary.end_hour}:00)
-          </p>
-        )}
-      </div>
-    </div>
-  );
+  return resolved?.derived_display || null;
 };
 
 
@@ -301,6 +276,7 @@ export default function ExperienceDetail() {
   const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
   const { data: productArea } = useAreaById(product?.primary_area_id || '');
   const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug((!product && !productLoading) ? resolvedSlug : '');
+  const bestTimeDisplay = useBestTimeDisplay(product?.id || '');
 
   // Fetch linked POI for breadcrumb
   const { data: linkedPoi } = useQuery({
@@ -555,8 +531,6 @@ export default function ExperienceDetail() {
       {/* 5. What's typically included — compact utility */}
       {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
 
-      {/* 6. Best Time to Go */}
-      {(experience as any).isProduct && <BestTimeSection productId={experience.id} />}
 
       {/* 7. Access points — utility, tighter */}
       {hasMeetingPoints && (
@@ -683,6 +657,7 @@ export default function ExperienceDetail() {
               {experience.category && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]">{categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}<span className="font-medium text-foreground/80">{experience.category}</span></div>}
               {experience.duration && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
               {experience.groupSize && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
+              {bestTimeDisplay && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span></div>}
             </div>
 
             {renderContentSections('mobile')}
@@ -741,6 +716,7 @@ export default function ExperienceDetail() {
               {experience.category && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">{categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}<span className="font-medium">{experience.category}</span></div>}
               {experience.duration && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Clock className="w-4 h-4 text-primary" /><span className="font-medium">{experience.duration}</span></div>}
               {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Users className="w-4 h-4 text-primary" /><span className="font-medium">{experience.groupSize}</span></div>}
+              {bestTimeDisplay && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-4 h-4 text-primary" /><span className="font-medium">{bestTimeDisplay.primary_time_label}</span></div>}
             </div>
 
             {renderContentSections('desktop')}
