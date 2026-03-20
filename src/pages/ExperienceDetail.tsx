@@ -606,11 +606,13 @@ export default function ExperienceDetail() {
             </div>
 
             {/* Prices per person */}
-            <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
-              <h3 className="text-base font-semibold mb-2">Average prices per person</h3>
-              <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
-              <p className="text-[11px] text-muted-foreground mt-1.5">Prices are based on local market averages and may vary by operator.</p>
-            </div>
+            {experience.price && (
+              <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
+                <h3 className="text-base font-semibold mb-2">Average prices per person</h3>
+                <span className="text-2xl font-bold text-foreground">{experience.price}</span>
+                <p className="text-[11px] text-muted-foreground mt-1.5">Prices are based on local market averages and may vary by operator.</p>
+              </div>
+            )}
 
             {/* Social Video Embeds - only if content exists */}
             {hasSocialContent && (
@@ -984,11 +986,13 @@ export default function ExperienceDetail() {
                 </div>
 
                 {/* Prices per person */}
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <p className="text-sm font-semibold mb-2">Average prices per person</p>
-                  <span className="text-2xl font-bold text-foreground">{experience.price || "$15 - $75"}</span>
-                  <p className="text-[11px] text-muted-foreground mt-1.5">Based on local market averages. May vary by operator.</p>
-                </div>
+                {experience.price && (
+                  <div className="rounded-2xl border border-border bg-card p-5">
+                    <p className="text-sm font-semibold mb-2">Average prices per person</p>
+                    <span className="text-2xl font-bold text-foreground">{experience.price}</span>
+                    <p className="text-[11px] text-muted-foreground mt-1.5">Based on local market averages. May vary by operator.</p>
+                  </div>
+                )}
 
                 {/* In Your Itineraries */}
                 {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).length > 0 && (

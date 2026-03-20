@@ -102,6 +102,43 @@ const GalleryEditor = ({ value, onChange, productSlug }: { value: any[]; onChang
   );
 };
 
+// ---- Cover Image uploader ----
+const CoverImageUploader = ({ value, onChange, productSlug }: { value: string; onChange: (v: string) => void; productSlug?: string }) => {
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const file = files[0];
+    const folder = productSlug || 'general';
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `${folder}/cover-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: true });
+    if (!error) {
+      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
+      if (urlData?.publicUrl) onChange(urlData.publicUrl);
+    }
+    setUploading(false);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {value && (
+        <div className="relative group w-full h-24 rounded-md overflow-hidden border border-border">
+          <img src={value} alt="Cover" className="w-full h-full object-cover" />
+          <Button size="sm" variant="ghost" className="absolute top-1 right-1 h-5 w-5 p-0 bg-background/80 rounded-full opacity-0 group-hover:opacity-100" onClick={() => onChange('')}><Trash2 className="w-3 h-3" /></Button>
+        </div>
+      )}
+      <label className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-md p-2 cursor-pointer hover:border-primary/50 transition-colors">
+        <input type="file" accept="image/*" className="hidden" onChange={e => handleUpload(e.target.files)} disabled={uploading} />
+        {uploading ? <><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /><span className="text-xs text-muted-foreground">Uploading…</span></> : <><Upload className="w-4 h-4 text-muted-foreground" /><span className="text-xs text-muted-foreground">{value ? 'Replace cover' : 'Upload cover image'}</span></>}
+      </label>
+      <Input value={value} placeholder="Or paste URL..." className="text-xs" onChange={e => onChange(e.target.value)} />
+    </div>
+  );
+};
+
+
 export const AdminProductsSection = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -280,8 +317,8 @@ export const AdminProductsSection = () => {
             <Input type="number" value={item.duration_minutes || ''} onChange={e => onChange('duration_minutes', parseInt(e.target.value) || null)} />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Cover Image URL</Label>
-            <Input value={item.cover_image_url || ''} onChange={e => onChange('cover_image_url', e.target.value)} />
+            <Label className="text-xs text-muted-foreground">Cover Image</Label>
+            <CoverImageUploader value={item.cover_image_url || ''} onChange={v => onChange('cover_image_url', v)} productSlug={item.slug} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -542,6 +579,7 @@ const OptionsEditor = ({ productId }: { productId: string }) => {
 
 const PriceEditor = ({ optionId }: { optionId: string }) => {
   const qc = useQueryClient();
+  const { toast } = useToast();
   const { data: prices = [] } = useQuery({
     queryKey: ['admin-prices', optionId],
     queryFn: async () => {
@@ -551,19 +589,56 @@ const PriceEditor = ({ optionId }: { optionId: string }) => {
   });
 
   const addPrice = async () => {
-    await supabase.from('price_options').insert({ option_id: optionId, pricing_category: 'adult', currency_code: 'USD', amount: 0 } as any);
+    await supabase.from('price_options').insert({ option_id: optionId, pricing_category: 'adult', pricing_unit: 'per_person', currency_code: 'USD', amount: 0 } as any);
+    qc.invalidateQueries({ queryKey: ['admin-prices', optionId] });
+  };
+
+  const updatePrice = async (id: string, field: string, value: any) => {
+    await supabase.from('price_options').update({ [field]: value } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-prices', optionId] });
+  };
+
+  const deletePrice = async (id: string) => {
+    await supabase.from('price_options').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['admin-prices', optionId] });
   };
 
   return (
-    <div className="pl-4 border-l-2 border-border space-y-1">
+    <div className="pl-4 border-l-2 border-border space-y-2">
       {prices.map((p: any) => (
         <div key={p.id} className="flex items-center gap-2 text-xs">
-          <span className="text-muted-foreground w-20">{p.pricing_category}</span>
-          <span>{p.currency_code} {p.amount}</span>
+          <Select value={p.pricing_category} onValueChange={v => updatePrice(p.id, 'pricing_category', v)}>
+            <SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="adult">Adult</SelectItem>
+              <SelectItem value="child">Child</SelectItem>
+              <SelectItem value="resident">Resident</SelectItem>
+              <SelectItem value="non_resident">Non-Resident</SelectItem>
+              <SelectItem value="group">Group</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={p.pricing_unit || 'per_person'} onValueChange={v => updatePrice(p.id, 'pricing_unit', v)}>
+            <SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="per_person">Per Person</SelectItem>
+              <SelectItem value="per_group">Per Group</SelectItem>
+              <SelectItem value="per_hour">Per Hour</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={p.currency_code} onValueChange={v => updatePrice(p.id, 'currency_code', v)}>
+            <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="TZS">TZS</SelectItem>
+              <SelectItem value="KES">KES</SelectItem>
+              <SelectItem value="EUR">EUR</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input type="number" className="w-20 h-7 text-xs" value={p.amount} onChange={e => updatePrice(p.id, 'amount', parseFloat(e.target.value) || 0)} />
+          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={() => deletePrice(p.id)}><Trash2 className="w-3 h-3" /></Button>
         </div>
       ))}
-      <Button size="sm" variant="ghost" className="text-xs h-6" onClick={addPrice}><Plus className="w-3 h-3 mr-1" />Price</Button>
+      <Button size="sm" variant="ghost" className="text-xs h-6" onClick={addPrice}><Plus className="w-3 h-3 mr-1" />Add Price</Button>
     </div>
   );
 };
