@@ -155,14 +155,14 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 // Experience card — no heart on homepage, action menu top-right
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
-  const { currencyInfo } = useCurrency();
+  const { convert } = useCurrency();
 
   const displayPrice = useMemo(() => {
     if (experience.averagePrice) {
-      return `${currencyInfo.symbol}${experience.averagePrice} avg`;
+      return `${convert(experience.averagePrice)} avg`;
     }
     return experience.price || '';
-  }, [experience.averagePrice, experience.price, currencyInfo.symbol]);
+  }, [experience.averagePrice, experience.price, convert]);
 
   return (
     <div 
