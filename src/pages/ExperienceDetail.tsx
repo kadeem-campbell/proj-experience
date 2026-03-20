@@ -171,12 +171,14 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
   if (inclusions.length === 0) return null;
   return (
     <div className="mb-7">
-      <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>What's included</h2>
-      <div className="space-y-0">
-        {inclusions.map((inc: any) => (
-          <div key={inc.id} className="flex items-center gap-3 py-2.5 border-b border-border/40 last:border-0">
-            <Check className="w-4 h-4 text-primary flex-shrink-0" />
-            <span className="text-[13.5px] text-foreground">{inc.inclusion_items?.name}</span>
+      <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Typically included</h2>
+      <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+        {inclusions.map((inc: any, i: number) => (
+          <div key={inc.id} className={cn("flex items-center gap-3 px-4 py-3", i < inclusions.length - 1 && "border-b border-border/30")}>
+            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Check className="w-3 h-3 text-primary" />
+            </div>
+            <span className="text-[13.5px] text-foreground/90">{inc.inclusion_items?.name}</span>
           </div>
         ))}
       </div>
