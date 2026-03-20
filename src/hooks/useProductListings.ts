@@ -25,7 +25,7 @@ export const useProductListings = () => {
     queryFn: async (): Promise<ProductListing[]> => {
       const { data: products, error } = await supabase
         .from("products")
-        .select("id, title, slug, cover_image, video_url, destination_id, average_price_per_person, activity_type_id, destinations(name), activity_types(name)")
+        .select("id, title, slug, cover_image, cover_image_url, video_url, destination_id, average_price_per_person, activity_type_id, destinations(name), activity_types(name)")
         .in("visibility_output_state", ["public", "public_indexed", "marketplace_active"] as any)
         .eq("publish_state", "published" as any);
 
