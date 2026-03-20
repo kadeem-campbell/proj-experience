@@ -61,6 +61,7 @@ interface ItineraryPanelProps {
 export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
   const { toast } = useToast();
   const timingMap = useTimingDisplayMap();
+  const allDbProducts = useProductListings();
   const {
     activeItinerary,
     addExperience,
