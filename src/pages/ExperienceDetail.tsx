@@ -594,7 +594,27 @@ export default function ExperienceDetail() {
       {/* 5. What's typically included — compact utility */}
       {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
 
-
+      {/* 6. Location — Get Directions */}
+      {((experience as any).googleMapsUrl || (experience as any).googlePlaceId) && (
+        <div className="mb-7">
+          <h2 className="text-base font-bold tracking-tight mb-3 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Location</h2>
+          <a
+            href={(experience as any).googleMapsUrl || `https://www.google.com/maps/place/?q=place_id:${(experience as any).googlePlaceId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3.5 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Navigation className="w-4.5 h-4.5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">{(experience as any).placeName || 'View on Map'}</p>
+              <p className="text-xs text-muted-foreground">Get directions on Google Maps</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </a>
+        </div>
+      )}
       {/* 7. Access points — utility, tighter */}
       {hasMeetingPoints && (
         <div className="mb-6">
