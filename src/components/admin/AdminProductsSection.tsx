@@ -20,6 +20,7 @@ import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Archive, Eye, RefreshCw, Plus, Trash2, CheckCircle, AlertTriangle, XCircle, ExternalLink, Upload, Loader2 } from 'lucide-react';
+import { TimingIcon } from '@/components/TimingIcon';
 import { generateEntityDocuments } from '@/services/entityDocGenerator';
 import { validateProduct, persistReadinessScore, persistValidationResults } from '@/services/publishValidator';
 
