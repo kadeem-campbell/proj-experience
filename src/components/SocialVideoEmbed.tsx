@@ -4,11 +4,21 @@ import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 export interface TikTokVideo {
-  videoId: string;
+  videoId?: string;
   url: string;
   author?: string;
   thumbnailUrl?: string;
 }
+
+/** Extract TikTok video ID from a full URL */
+const extractTikTokVideoId = (url: string): string => {
+  // Match /video/DIGITS at end of URL path
+  const match = url.match(/\/video\/(\d+)/);
+  if (match?.[1]) return match[1];
+  // If it's already just digits, use as-is
+  if (/^\d+$/.test(url.trim())) return url.trim();
+  return '';
+};
 
 export interface InstagramVideo {
   url: string;
