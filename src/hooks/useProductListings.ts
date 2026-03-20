@@ -13,6 +13,8 @@ export interface ProductListing {
   price: string;
   slug?: string;
   destinationId?: string | null;
+  destinationSlug?: string;
+  areaSlug?: string | null;
   averagePrice?: number | null;
 }
 
@@ -25,7 +27,7 @@ export const useProductListings = () => {
     queryFn: async (): Promise<ProductListing[]> => {
       const { data: products, error } = await supabase
         .from("products")
-        .select("id, title, slug, cover_image, cover_image_url, video_url, destination_id, average_price_per_person, activity_type_id, destinations(name), activity_types(name)")
+        .select("id, title, slug, cover_image, cover_image_url, video_url, destination_id, primary_area_id, average_price_per_person, activity_type_id, destinations(name, slug), activity_types(name), areas(slug)")
         .in("visibility_output_state", ["public", "public_indexed", "marketplace_active"] as any)
         .eq("publish_state", "published" as any);
 
@@ -46,6 +48,8 @@ export const useProductListings = () => {
         price: p.average_price_per_person ? `$${p.average_price_per_person} avg` : "",
         slug: p.slug || undefined,
         destinationId: p.destination_id || null,
+        destinationSlug: p.destinations?.slug || undefined,
+        areaSlug: p.areas?.slug || null,
         averagePrice: p.average_price_per_person || null,
       }));
     },
