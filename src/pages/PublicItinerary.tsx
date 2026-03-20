@@ -102,6 +102,7 @@ const PublicItinerary = () => {
   const { data: publicItinerariesData = [], isLoading: publicItinerariesLoading } = usePublicItineraries();
   const [searchQuery, setSearchQuery] = useState("");
   const allDbExperiences = useProductListings();
+  const timingMap = useTimingDisplayMap();
   const [localLikes, setLocalLikes] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem('local_likes');
