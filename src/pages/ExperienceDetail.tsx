@@ -618,9 +618,9 @@ export default function ExperienceDetail() {
             {gallery.length > 1 ? (
               <PhotoGallery images={gallery} title={experience.title} />
             ) : experience.videoUrl ? (
-              <div className="aspect-[3/4] overflow-hidden bg-muted"><video ref={videoRef} poster={experience.videoThumbnail} className="w-full h-full object-cover" muted loop playsInline autoPlay><source src={experience.videoUrl} type="video/mp4" /></video></div>
+              <div className="aspect-[4/5] overflow-hidden bg-muted"><video ref={videoRef} poster={experience.videoThumbnail} className="w-full h-full object-cover" muted loop playsInline autoPlay><source src={experience.videoUrl} type="video/mp4" /></video></div>
             ) : (
-              <div className="aspect-[3/4] overflow-hidden bg-muted"><img src={gallery[0]} alt={experience.title} className="w-full h-full object-cover" /></div>
+              <div className="aspect-[4/5] overflow-hidden bg-muted"><img src={gallery[0]} alt={experience.title} className="w-full h-full object-cover" /></div>
             )}
 
             {/* Top floating buttons */}
