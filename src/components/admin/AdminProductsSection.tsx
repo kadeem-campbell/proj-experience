@@ -613,7 +613,7 @@ const TimingEditor = ({ productId }: { productId: string }) => {
 
   const addProfile = async (type: string) => {
     const curve = buildHourlyCurve(8, 11, 6, 8);
-    await supabase.from('product_timing_profiles').insert({
+    const { error } = await supabase.from('product_timing_profiles').insert({
       product_id: productId,
       profile_label: type === 'default' ? 'Default' : type === 'seasonal' ? 'Seasonal' : 'Override',
       profile_type: type,
@@ -625,6 +625,10 @@ const TimingEditor = ({ productId }: { productId: string }) => {
       reason_tags: [],
       is_active: true,
     } as any);
+    if (error) {
+      toast({ title: 'Failed to add profile', description: error.message, variant: 'destructive' });
+      return;
+    }
     qc.invalidateQueries({ queryKey: ['admin-timing-profiles', productId] });
     toast({ title: 'Timing profile added' });
   };
