@@ -582,13 +582,15 @@ const PublicItinerary = () => {
   const renderListRow = (experience: LikedExperience, _idx?: number, _total?: number) => {
     const liked = isItemLiked(experience.id, 'experience');
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
-    const price = experience.price ? `${experience.price} avg` : null;
 
-    // Resolve slug from DB if available
+    // Resolve from DB — use DB data as primary source for category, price, image, slug
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
+    const price = dbExp?.price || (experience.price ? experience.price : null);
+    const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
+    const category = dbExp?.category || experience.category;
     const expSlug = dbExp?.slug || slugify(experience.title);
     const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = generateProductUrl(destSlug, expSlug, dbExp?.areaSlug);
+    const expUrl = destSlug ? generateProductUrl(destSlug, expSlug, dbExp?.areaSlug) : `/things-to-do`;
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
@@ -597,8 +599,8 @@ const PublicItinerary = () => {
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-            {experience.videoThumbnail ? (
-              <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
+            {thumbnail ? (
+              <img src={thumbnail} alt="" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <MapPin className="w-4 h-4 text-muted-foreground/40" />
@@ -608,7 +610,7 @@ const PublicItinerary = () => {
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
             <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
-              {(dbExp?.category || experience.category) && <span>{dbExp?.category || experience.category}</span>}
+              {category && <span>{category}</span>}
               {timingMap[experience.id] && (
                 <>
                   <span className="opacity-40">·</span>
@@ -648,9 +650,12 @@ const PublicItinerary = () => {
   const renderIconCard = (experience: LikedExperience) => {
     const liked = isItemLiked(experience.id, 'experience');
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
+    const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
+    const category = dbExp?.category || experience.category;
+    const price = dbExp?.price || (experience.price ? experience.price : null);
     const expSlug = dbExp?.slug || slugify(experience.title);
     const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = generateProductUrl(destSlug, expSlug, dbExp?.areaSlug);
+    const expUrl = destSlug ? generateProductUrl(destSlug, expSlug, dbExp?.areaSlug) : `/things-to-do`;
     return (
       <div
         key={experience.id}
@@ -658,8 +663,8 @@ const PublicItinerary = () => {
         onClick={() => navigate(expUrl)}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
-          {experience.videoThumbnail ? (
-            <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" />
+          {thumbnail ? (
+            <img src={thumbnail} alt={experience.title} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <MapPin className="w-6 h-6 text-muted-foreground" />
@@ -682,7 +687,21 @@ const PublicItinerary = () => {
         </div>
         <div className="mt-2 space-y-0.5">
           <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
-          <p className="text-xs text-muted-foreground truncate">{experience.location}</p>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+            {category && <span>{category}</span>}
+            {timingMap[experience.id] && (
+              <>
+                <span className="opacity-40">·</span>
+                <TimingIcon icon={timingMap[experience.id].primary_time_icon} className="w-3 h-3" />
+              </>
+            )}
+            {price && (
+              <>
+                <span className="opacity-40">·</span>
+                <span>{price}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -1154,7 +1173,7 @@ const PublicItinerary = () => {
                             const dbE = allDbExperiences.find(e => e.id === exp.id);
                             const s = dbE?.slug || slugify(exp.title);
                             const d = dbE?.destinationSlug || slugify(exp.location || '');
-                            navigate(generateProductUrl(d, s, dbE?.areaSlug));
+                            navigate(d ? generateProductUrl(d, s, dbE?.areaSlug) : `/things-to-do`);
                           }}
                           className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-muted/40 rounded-lg transition-colors"
                         >
