@@ -2301,6 +2301,36 @@ export type Database = {
         }
         Relationships: []
       }
+      inclusion_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          emoji: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       ingestion_jobs: {
         Row: {
           committed_at: string | null
@@ -3156,6 +3186,7 @@ export type Database = {
       price_options: {
         Row: {
           amount: number
+          amount_max: number | null
           created_at: string | null
           currency_code: string
           id: string
@@ -3169,6 +3200,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          amount_max?: number | null
           created_at?: string | null
           currency_code?: string
           id?: string
@@ -3182,6 +3214,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          amount_max?: number | null
           created_at?: string | null
           currency_code?: string
           id?: string
@@ -3330,6 +3363,51 @@ export type Database = {
           },
           {
             foreignKeyName: "product_hosts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_inclusions: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          inclusion_item_id: string
+          is_included: boolean | null
+          notes: string | null
+          product_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          inclusion_item_id: string
+          is_included?: boolean | null
+          notes?: string | null
+          product_id: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          inclusion_item_id?: string
+          is_included?: boolean | null
+          notes?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_inclusions_inclusion_item_id_fkey"
+            columns: ["inclusion_item_id"]
+            isOneToOne: false
+            referencedRelation: "inclusion_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_inclusions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -3549,6 +3627,48 @@ export type Database = {
           },
         ]
       }
+      product_transport: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          product_id: string
+          transport_mode_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          product_id: string
+          transport_mode_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          product_id?: string
+          transport_mode_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_transport_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_transport_transport_mode_id_fkey"
+            columns: ["transport_mode_id"]
+            isOneToOne: false
+            referencedRelation: "transport_modes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_vibe_scores: {
         Row: {
           confidence: number | null
@@ -3598,11 +3718,13 @@ export type Database = {
           duration_minutes: number | null
           gallery: Json | null
           gallery_json: Json | null
+          getting_there_description: string | null
           highlights: Json | null
           highlights_json: Json | null
           id: string
           indexability_state: string | null
           instagram_url: string | null
+          local_tips_json: Json | null
           meeting_points: Json | null
           meeting_points_json: Json | null
           primary_area_id: string | null
@@ -3632,11 +3754,13 @@ export type Database = {
           duration_minutes?: number | null
           gallery?: Json | null
           gallery_json?: Json | null
+          getting_there_description?: string | null
           highlights?: Json | null
           highlights_json?: Json | null
           id?: string
           indexability_state?: string | null
           instagram_url?: string | null
+          local_tips_json?: Json | null
           meeting_points?: Json | null
           meeting_points_json?: Json | null
           primary_area_id?: string | null
@@ -3666,11 +3790,13 @@ export type Database = {
           duration_minutes?: number | null
           gallery?: Json | null
           gallery_json?: Json | null
+          getting_there_description?: string | null
           highlights?: Json | null
           highlights_json?: Json | null
           id?: string
           indexability_state?: string | null
           instagram_url?: string | null
+          local_tips_json?: Json | null
           meeting_points?: Json | null
           meeting_points_json?: Json | null
           primary_area_id?: string | null
@@ -4880,6 +5006,33 @@ export type Database = {
           is_active?: boolean | null
           mode?: string | null
           origin_name?: string
+        }
+        Relationships: []
+      }
+      transport_modes: {
+        Row: {
+          created_at: string | null
+          emoji: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
         }
         Relationships: []
       }
