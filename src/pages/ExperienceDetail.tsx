@@ -669,18 +669,18 @@ export default function ExperienceDetail() {
                   {experience.title}
                 </h1>
                 {/* Meta row */}
-                <div className="flex items-center gap-1.5 flex-wrap text-[12px]">
-                  <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
-                    <Heart className="w-3 h-3 fill-white/70 text-white/70" />
-                    Saved by {likedByCount} travellers this month
+                <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <Heart className="w-3 h-3 fill-white/60 text-white/60" />
+                    Saved by {likedByCount} travellers
                   </span>
                   {experience.price && (
-                    <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
                       From {experience.price}
                     </span>
                   )}
                   {experience.bestTime && (
-                    <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
                       <Calendar className="w-3 h-3" />
                       {experience.bestTime}
                     </span>
