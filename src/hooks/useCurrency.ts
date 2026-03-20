@@ -1,6 +1,4 @@
-import { create } from 'zustand';
-
-// We'll use a simple module-level store since zustand isn't installed
+import { useState, useEffect } from 'react';
 // Using localStorage + a simple React hook pattern instead
 
 export const CURRENCIES = [
