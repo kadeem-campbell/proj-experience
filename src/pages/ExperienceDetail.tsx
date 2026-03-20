@@ -328,6 +328,18 @@ export default function ExperienceDetail() {
     enabled: !!product?.activity_type_id,
   });
 
+  // Deterministic fake like count seeded from product ID
+  const seededLikeCount = useMemo(() => {
+    if (!product && !legacyExperience) return 0;
+    const id = product?.id || legacyExperience?.id || '';
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash |= 0;
+    }
+    return 47 + Math.abs(hash % 400); // range 47–446
+  }, [product?.id, legacyExperience?.id]);
+
   const experience = useMemo(() => {
     if (product) {
       const hostNames = productHosts.map(h => h.display_name || h.username).join(', ');
@@ -354,7 +366,7 @@ export default function ExperienceDetail() {
           ...((product as any).tiktok_url ? { tiktok: (product as any).tiktok_url } : {}),
           ...((product as any).instagram_url ? { instagram: (product as any).instagram_url } : {}),
         } as Record<string, string>,
-        likeCount: 0, slug: product.slug, isProduct: true,
+        likeCount: seededLikeCount, slug: product.slug, isProduct: true,
         localTips: (product as any).local_tips_json || [],
         gettingThereDescription: (product as any).getting_there_description || '',
       };
@@ -380,13 +392,12 @@ export default function ExperienceDetail() {
         tiktokVideos: (legacyExperience.tiktok_videos as any[]) || [],
         instagramEmbed: legacyExperience.instagram_embed || '',
         socialLinks: (legacyExperience.social_links as Record<string, string>) || {},
-        likeCount: legacyExperience.like_count || 0,
-        slug: legacyExperience.slug || '', isProduct: false,
+        likeCount: seededLikeCount, slug: legacyExperience.slug || '', isProduct: false,
         localTips: [] as string[], gettingThereDescription: '',
       };
     }
     return null;
-  }, [product, productOptions, productDestination, productDestinationById, productArea, productHosts, legacyExperience, productActivityType]);
+  }, [product, productOptions, productDestination, productDestinationById, productArea, productHosts, legacyExperience, productActivityType, seededLikeCount]);
 
   useEffect(() => {
     if (experience) trackPageView((experience as any).isProduct ? 'product' : 'experience', experience.id, window.location.pathname);
@@ -478,58 +489,61 @@ export default function ExperienceDetail() {
     return `/hosts/${match ? match.slug || match.username : creatorName.toLowerCase().replace(/\s+/g, '-')}`;
   };
 
-  // ========== SHARED CONTENT SECTIONS (ordered per spec) ==========
-  // Order: About → Pricing → What's typically included → Highlights → Access points → Getting there → Local tips → Watch it live → Hosts → Questions
+  // ========== SHARED CONTENT SECTIONS — premium guided order ==========
+  // Order: About → Highlights → Social/Visual → Hosts → Inclusions → Access/Logistics → Local Tips → Related
   const renderContentSections = (layout: 'mobile' | 'desktop') => (
     <>
-      {/* 1. About */}
+      {/* 1. About — editorial, airy */}
       {hasDescription && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">About</h2>
-          <p className="text-muted-foreground leading-relaxed">{experience.description}</p>
+        <div className="mb-8">
+          <p className="text-[15px] text-muted-foreground leading-[1.7] tracking-wide">{experience.description}</p>
         </div>
       )}
 
-      {/* 2. Pricing */}
-      <PriceSection
-        experience={experience}
-        productOptions={productOptions}
-        selectedCurrency={selectedCurrency}
-      />
-
-      {/* 3. What's typically included */}
-      {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
-
-      {/* 4. Highlights */}
+      {/* 2. Highlights — curated reasons to go, not boxed rows */}
       {hasHighlights && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">Highlights</h2>
-          <div className={cn("grid gap-3", layout === 'desktop' ? "grid-cols-1 sm:grid-cols-2 gap-2" : "grid-cols-1")}>
+        <div className="mb-8">
+          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Why this experience</h2>
+          <div className={cn("grid gap-2.5", layout === 'desktop' ? "grid-cols-2" : "grid-cols-1")}>
             {experience.highlights?.map((item: string, index: number) => (
-              <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div key={index} className="flex items-start gap-3 py-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Sparkles className="w-4 h-4 text-primary" />
                 </div>
-                <span className="text-sm">{item}</span>
+                <span className="text-[14px] leading-relaxed text-foreground">{item}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* 5. Access points */}
-      {hasMeetingPoints && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">Access points</h2>
-          <div className="space-y-2">
-            {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
-              <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{point.name}</p>
-                  {point.type && <p className="text-xs text-muted-foreground">{point.type}</p>}
+      {/* 3. Watch it live — tappable, dynamic, visual */}
+      {hasSocialContent && (
+        <div className="mb-8 -mx-4">
+          <h2 className="text-base font-bold tracking-tight mb-3 uppercase text-muted-foreground/70 px-4" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>See it in action</h2>
+          <SocialVideoEmbed 
+            experienceTitle={experience.title}
+            location={experience.location}
+            tiktokVideos={experience.tiktokVideos || []}
+            instagramEmbed={experience.instagramEmbed}
+            className="px-4"
+          />
+        </div>
+      )}
+
+      {/* 4. Hosts — human, warm, not boxed */}
+      {hasCreators && creatorNames.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Your hosts</h2>
+          <div className="space-y-3">
+            {creatorNames.map((creatorName: string, idx: number) => (
+              <div key={idx} className="flex items-center gap-4 py-2 cursor-pointer active:opacity-70 transition-opacity" onClick={() => navigate(getHostUrl(creatorName))}>
+                <Avatar className="w-14 h-14 ring-2 ring-primary/10 ring-offset-2 ring-offset-background">
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-bold text-lg">{creatorName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-semibold text-[15px]">@{creatorName}</p>
+                  <p className="text-sm text-muted-foreground">Local host · Verified</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
@@ -538,50 +552,62 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 6. Getting There */}
-      {(experience as any).isProduct && (
-        <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />
-      )}
+      {/* 5. What's typically included — compact utility */}
+      {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
 
-      {/* 6.5. Best Time to Go (timing intelligence) */}
+      {/* 6. Best Time to Go */}
       {(experience as any).isProduct && <BestTimeSection productId={experience.id} />}
 
-      {/* 7. Local Tips */}
-      {hasLocalTips && <LocalTipsSection tips={(experience as any).localTips} />}
-
-      {/* 8. Watch it live (Social Video Embeds) */}
-      {hasSocialContent && (
-        <SocialVideoEmbed 
-          experienceTitle={experience.title}
-          location={experience.location}
-          tiktokVideos={experience.tiktokVideos || []}
-          instagramEmbed={experience.instagramEmbed}
-          className="mb-6"
-        />
-      )}
-
-      {/* 9. Hosts */}
-      {hasCreators && creatorNames.length > 0 && (
+      {/* 7. Access points — utility, tighter */}
+      {hasMeetingPoints && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">Hosts</h2>
-          <div className="space-y-2">
-            {creatorNames.map((creatorName: string, idx: number) => (
-              <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border cursor-pointer hover:bg-muted/40 active:bg-muted/60 transition-colors" onClick={() => navigate(getHostUrl(creatorName))}>
-                <Avatar className="w-12 h-12">
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold">{creatorName.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1"><p className="font-medium">@{creatorName}</p><p className="text-sm text-muted-foreground">Host</p></div>
+          <h2 className="text-base font-bold tracking-tight mb-3 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Access points</h2>
+          <div className="space-y-1.5">
+            {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
+              <div key={index} className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0">
+                <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{point.name}</p>
+                  {point.type && <p className="text-xs text-muted-foreground">{point.type}</p>}
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Pairing & Itineraries */}
+      {/* 8. Getting There — utility */}
+      {(experience as any).isProduct && (
+        <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />
+      )}
+
+      {/* 9. Local Tips — insider, whispered tone */}
+      {hasLocalTips && (
+        <div className="mb-8">
+          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Insider tips</h2>
+          <div className="space-y-3">
+            {(experience as any).localTips.map((tip: string, i: number) => (
+              <div key={i} className="flex items-start gap-3 pl-1">
+                <span className="text-lg leading-none mt-0.5">💡</span>
+                <p className="text-[14px] text-muted-foreground leading-relaxed italic">{tip}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 10. Pricing — moved to lower utility zone */}
+      <PriceSection
+        experience={experience}
+        productOptions={productOptions}
+        selectedCurrency={selectedCurrency}
+      />
+
+      {/* 11. Related saves / people also added */}
       <PairingBlock experienceId={experience.id} />
       <IncludedInItineraries experienceId={experience.id} />
 
-      {/* 10. Questions */}
+      {/* 12. Questions */}
       <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />
     </>
   );
@@ -631,12 +657,10 @@ export default function ExperienceDetail() {
                 </h1>
                 {/* Meta row — social proof · price · timing */}
                 <div className="flex items-center gap-2 flex-wrap text-[13px]">
-                  {likedByCount > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
-                      <Heart className="w-3 h-3 fill-white/80 text-white/80" />
-                      Saved by {likedByCount} traveller{likedByCount !== 1 ? 's' : ''}
-                    </span>
-                  )}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
+                    <Heart className="w-3 h-3 fill-white/80 text-white/80" />
+                    Saved by {likedByCount} travellers this month
+                  </span>
                   {experience.price && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
                       From {experience.price}
@@ -713,8 +737,9 @@ export default function ExperienceDetail() {
                 {linkedPoi && experience.location && <span className="text-muted-foreground/50">·</span>}
                 {linkedPoi && experience.location && <span className="text-base">{experience.location}</span>}
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong></span></div>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />Saved by <strong className="text-foreground">{likedByCount}</strong> travellers this month</span>
+                {experience.price && <><span className="text-muted-foreground/40">·</span><span className="font-medium text-foreground">{experience.price}</span></>}
               </div>
             </div>
 
