@@ -271,6 +271,7 @@ export const AdminProductsSection = () => {
         <TabsTrigger value="geography" className="text-xs">Geography</TabsTrigger>
         <TabsTrigger value="taxonomy" className="text-xs">Taxonomy</TabsTrigger>
         <TabsTrigger value="options" className="text-xs">Options & Pricing</TabsTrigger>
+        <TabsTrigger value="experience" className="text-xs">Experience</TabsTrigger>
         <TabsTrigger value="hosts" className="text-xs">Hosts</TabsTrigger>
         <TabsTrigger value="semantics" className="text-xs">Semantics</TabsTrigger>
         <TabsTrigger value="intent" className="text-xs">Intent</TabsTrigger>
@@ -407,6 +408,36 @@ export const AdminProductsSection = () => {
         {item.id ? <OptionsEditor productId={item.id} /> : <p className="text-xs text-muted-foreground">Save the product first to manage options.</p>}
       </TabsContent>
 
+      {/* ======= EXPERIENCE (Inclusions, Transport, Meeting Points, Local Tips, Getting There) ======= */}
+      <TabsContent value="experience" className="space-y-4 mt-3">
+        {item.id ? (
+          <>
+            <InclusionsEditor productId={item.id} />
+            <Separator />
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Meeting Points</h4>
+            <p className="text-[10px] text-muted-foreground">Where customers access this experience (e.g. beach, dock, meeting spot).</p>
+            <HighlightsEditor
+              value={(item.meeting_points_json || []).map((mp: any) => typeof mp === 'string' ? mp : `${mp.name}|${mp.type || ''}`)}
+              onChange={v => onChange('meeting_points_json', v.map(s => {
+                const [name, type] = s.split('|');
+                return { name: name?.trim() || s, type: type?.trim() || '' };
+              }))}
+            />
+            <Separator />
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Getting There</h4>
+            <TransportEditor productId={item.id} />
+            <div>
+              <Label className="text-xs text-muted-foreground">Getting There Description</Label>
+              <Textarea value={item.getting_there_description || ''} onChange={e => onChange('getting_there_description', e.target.value)} rows={3} placeholder="Describe how to reach this experience..." />
+            </div>
+            <Separator />
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Local Tips</h4>
+            <p className="text-[10px] text-muted-foreground">Insider tips for visitors. One tip per line.</p>
+            <HighlightsEditor value={item.local_tips_json || []} onChange={v => onChange('local_tips_json', v)} />
+          </>
+        ) : <p className="text-xs text-muted-foreground">Save product first to manage experience details.</p>}
+      </TabsContent>
+
       {/* ======= HOSTS ======= */}
       <TabsContent value="hosts" className="space-y-3 mt-3">
         {item.id ? <HostsEditor productId={item.id} hosts={hosts} /> : <p className="text-xs text-muted-foreground">Save the product first to manage hosts.</p>}
@@ -538,7 +569,105 @@ export const AdminProductsSection = () => {
   );
 };
 
-// ============ SUB-EDITORS ============
+// ============ INCLUSIONS EDITOR ============
+
+const InclusionsEditor = ({ productId }: { productId: string }) => {
+  const qc = useQueryClient();
+  const { data: linked = [] } = useQuery({
+    queryKey: ['admin-product-inclusions', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_inclusions').select('*, inclusion_items(*)').eq('product_id', productId).order('display_order') as any;
+      return data || [];
+    },
+  });
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['admin-inclusion-items'],
+    queryFn: async () => { const { data } = await supabase.from('inclusion_items').select('*').eq('is_active', true).order('name') as any; return data || []; },
+  });
+
+  const add = async (itemId: string) => {
+    await supabase.from('product_inclusions').insert({ product_id: productId, inclusion_item_id: itemId, display_order: linked.length } as any);
+    qc.invalidateQueries({ queryKey: ['admin-product-inclusions', productId] });
+  };
+  const remove = async (id: string) => {
+    await supabase.from('product_inclusions').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-product-inclusions', productId] });
+  };
+
+  return (
+    <div>
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">What's Included</h4>
+      <p className="text-[10px] text-muted-foreground mb-2">Add-ons and inclusions for this experience.</p>
+      <div className="flex flex-wrap gap-1 mb-2">
+        {linked.map((l: any) => (
+          <Badge key={l.id} variant="secondary" className="text-[10px] cursor-pointer" onClick={() => remove(l.id)}>
+            {l.inclusion_items?.emoji} {l.inclusion_items?.name} ✕
+          </Badge>
+        ))}
+      </div>
+      <Select onValueChange={add}>
+        <SelectTrigger className="w-48"><SelectValue placeholder="Add inclusion..." /></SelectTrigger>
+        <SelectContent>
+          {allItems.filter((item: any) => !linked.some((l: any) => l.inclusion_item_id === item.id)).map((item: any) => (
+            <SelectItem key={item.id} value={item.id}>{item.emoji} {item.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+// ============ TRANSPORT EDITOR ============
+
+const TransportEditor = ({ productId }: { productId: string }) => {
+  const qc = useQueryClient();
+  const { data: linked = [] } = useQuery({
+    queryKey: ['admin-product-transport', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_transport').select('*, transport_modes(*)').eq('product_id', productId).order('display_order') as any;
+      return data || [];
+    },
+  });
+  const { data: allModes = [] } = useQuery({
+    queryKey: ['admin-transport-modes'],
+    queryFn: async () => { const { data } = await supabase.from('transport_modes').select('*').eq('is_active', true).order('name') as any; return data || []; },
+  });
+
+  const add = async (modeId: string) => {
+    await supabase.from('product_transport').insert({ product_id: productId, transport_mode_id: modeId, display_order: linked.length } as any);
+    qc.invalidateQueries({ queryKey: ['admin-product-transport', productId] });
+  };
+  const remove = async (id: string) => {
+    await supabase.from('product_transport').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-product-transport', productId] });
+  };
+  const updateDesc = async (id: string, desc: string) => {
+    await supabase.from('product_transport').update({ description: desc } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-product-transport', productId] });
+  };
+
+  return (
+    <div className="space-y-2">
+      {linked.map((l: any) => (
+        <div key={l.id} className="flex items-start gap-2">
+          <Badge variant="secondary" className="text-[10px] shrink-0 mt-1">{l.transport_modes?.emoji} {l.transport_modes?.name}</Badge>
+          <Input className="text-xs flex-1" placeholder="Description..." defaultValue={l.description || ''} onBlur={e => updateDesc(l.id, e.target.value)} />
+          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={() => remove(l.id)}><Trash2 className="w-3 h-3" /></Button>
+        </div>
+      ))}
+      <Select onValueChange={add}>
+        <SelectTrigger className="w-48"><SelectValue placeholder="Add transport..." /></SelectTrigger>
+        <SelectContent>
+          {allModes.filter((m: any) => !linked.some((l: any) => l.transport_mode_id === m.id)).map((m: any) => (
+            <SelectItem key={m.id} value={m.id}>{m.emoji} {m.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+
 
 const OptionsEditor = ({ productId }: { productId: string }) => {
   const qc = useQueryClient();
@@ -606,7 +735,7 @@ const PriceEditor = ({ optionId }: { optionId: string }) => {
   return (
     <div className="pl-4 border-l-2 border-border space-y-2">
       {prices.map((p: any) => (
-        <div key={p.id} className="flex items-center gap-2 text-xs">
+        <div key={p.id} className="flex flex-wrap items-center gap-2 text-xs">
           <Select value={p.pricing_category} onValueChange={v => updatePrice(p.id, 'pricing_category', v)}>
             <SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -629,12 +758,17 @@ const PriceEditor = ({ optionId }: { optionId: string }) => {
             <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="GBP">GBP</SelectItem>
+              <SelectItem value="EUR">EUR</SelectItem>
               <SelectItem value="TZS">TZS</SelectItem>
               <SelectItem value="KES">KES</SelectItem>
-              <SelectItem value="EUR">EUR</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="number" className="w-20 h-7 text-xs" value={p.amount} onChange={e => updatePrice(p.id, 'amount', parseFloat(e.target.value) || 0)} />
+          <div className="flex items-center gap-1">
+            <Input type="number" className="w-20 h-7 text-xs" placeholder="Min" value={p.amount} onChange={e => updatePrice(p.id, 'amount', parseFloat(e.target.value) || 0)} />
+            <span className="text-muted-foreground">–</span>
+            <Input type="number" className="w-20 h-7 text-xs" placeholder="Max (opt)" value={p.amount_max || ''} onChange={e => updatePrice(p.id, 'amount_max', parseFloat(e.target.value) || null)} />
+          </div>
           <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={() => deletePrice(p.id)}><Trash2 className="w-3 h-3" /></Button>
         </div>
       ))}
