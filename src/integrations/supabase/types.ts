@@ -3809,6 +3809,8 @@ export type Database = {
           gallery: Json | null
           gallery_json: Json | null
           getting_there_description: string | null
+          google_maps_url: string | null
+          google_place_id: string | null
           highlights: Json | null
           highlights_json: Json | null
           id: string
@@ -3817,6 +3819,7 @@ export type Database = {
           local_tips_json: Json | null
           meeting_points: Json | null
           meeting_points_json: Json | null
+          place_name: string | null
           primary_area_id: string | null
           primary_poi_id: string | null
           product_family: string
@@ -3845,6 +3848,8 @@ export type Database = {
           gallery?: Json | null
           gallery_json?: Json | null
           getting_there_description?: string | null
+          google_maps_url?: string | null
+          google_place_id?: string | null
           highlights?: Json | null
           highlights_json?: Json | null
           id?: string
@@ -3853,6 +3858,7 @@ export type Database = {
           local_tips_json?: Json | null
           meeting_points?: Json | null
           meeting_points_json?: Json | null
+          place_name?: string | null
           primary_area_id?: string | null
           primary_poi_id?: string | null
           product_family?: string
@@ -3881,6 +3887,8 @@ export type Database = {
           gallery?: Json | null
           gallery_json?: Json | null
           getting_there_description?: string | null
+          google_maps_url?: string | null
+          google_place_id?: string | null
           highlights?: Json | null
           highlights_json?: Json | null
           id?: string
@@ -3889,6 +3897,7 @@ export type Database = {
           local_tips_json?: Json | null
           meeting_points?: Json | null
           meeting_points_json?: Json | null
+          place_name?: string | null
           primary_area_id?: string | null
           primary_poi_id?: string | null
           product_family?: string

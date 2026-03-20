@@ -50,24 +50,68 @@ const categoryIconMap: Record<string, string> = {
 
 // Questions Section
 const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: string }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAskForm, setShowAskForm] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
-  const [localFaqs, setLocalFaqs] = useState(faqs || []);
+
+  // Fetch persisted questions from DB
+  const { data: dbQuestions = [], refetch: refetchQuestions } = useQuery({
+    queryKey: ['product-questions', experienceId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('entity_id', experienceId)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+    enabled: !!experienceId,
+  });
+
+  // Fetch answers for these questions
+  const questionIds = dbQuestions.map((q: any) => q.id);
+  const { data: dbAnswers = [] } = useQuery({
+    queryKey: ['product-answers', questionIds],
+    queryFn: async () => {
+      if (questionIds.length === 0) return [];
+      const { data } = await supabase
+        .from('answers')
+        .select('*')
+        .in('question_id', questionIds);
+      return data || [];
+    },
+    enabled: questionIds.length > 0,
+  });
 
   const handleAsk = () => {
     if (!isAuthenticated) { setShowAuthModal(true); return; }
     setShowAskForm(true);
   };
 
-  const handleSubmitQuestion = () => {
-    if (!newQuestion.trim()) return;
-    setLocalFaqs(prev => [...prev, { q: newQuestion.trim(), a: "", likes: 0, pending: true }]);
-    setNewQuestion(""); setShowAskForm(false);
+  const handleSubmitQuestion = async () => {
+    if (!newQuestion.trim() || !user) return;
+    const { error } = await supabase.from('questions').insert({
+      entity_id: experienceId,
+      entity_type: 'product',
+      user_id: user.id,
+      body: newQuestion.trim(),
+      status: 'open',
+    });
+    if (!error) {
+      setNewQuestion(""); setShowAskForm(false);
+      refetchQuestions();
+    }
   };
 
-  // Always show — even if empty, user can ask
+  // Merge legacy faqs + db questions
+  const allQuestions = [
+    ...dbQuestions.map((q: any) => {
+      const ans = dbAnswers.find((a: any) => a.question_id === q.id && a.is_best);
+      return { q: q.body, a: ans?.body || '', likes: q.vote_count || 0, pending: q.status === 'open', id: q.id };
+    }),
+    ...(faqs || []).filter((f: any) => f.q),
+  ];
 
   return (
     <div className="mb-6">
@@ -86,10 +130,10 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
           </div>
         </div>
       )}
-      {localFaqs.length > 0 && (
+      {allQuestions.length > 0 && (
         <div className="space-y-3">
-          {localFaqs.map((faq: any, index: number) => (
-            <div key={index} className="p-3.5 rounded-xl bg-card border border-border">
+          {allQuestions.map((faq: any, index: number) => (
+            <div key={faq.id || index} className="p-3.5 rounded-xl bg-card border border-border">
               <div className="flex items-start gap-2">
                 <HelpCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                 <div className="flex-1">
@@ -127,12 +171,14 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
   if (inclusions.length === 0) return null;
   return (
     <div className="mb-7">
-      <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>What's included</h2>
-      <div className="space-y-0">
-        {inclusions.map((inc: any) => (
-          <div key={inc.id} className="flex items-center gap-3 py-2.5 border-b border-border/40 last:border-0">
-            <Check className="w-4 h-4 text-primary flex-shrink-0" />
-            <span className="text-[13.5px] text-foreground">{inc.inclusion_items?.name}</span>
+      <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Typically included</h2>
+      <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+        {inclusions.map((inc: any, i: number) => (
+          <div key={inc.id} className={cn("flex items-center gap-3 px-4 py-3", i < inclusions.length - 1 && "border-b border-border/30")}>
+            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Check className="w-3 h-3 text-primary" />
+            </div>
+            <span className="text-[13.5px] text-foreground/90">{inc.inclusion_items?.name}</span>
           </div>
         ))}
       </div>
@@ -256,7 +302,7 @@ export default function ExperienceDetail() {
   const navigate = useNavigate();
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { trackPageView, trackClick } = useInteractions();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -345,6 +391,9 @@ export default function ExperienceDetail() {
         likeCount: seededLikeCount, slug: product.slug, isProduct: true,
         localTips: (product as any).local_tips_json || [],
         gettingThereDescription: (product as any).getting_there_description || '',
+        googleMapsUrl: (product as any).google_maps_url || '',
+        googlePlaceId: (product as any).google_place_id || '',
+        placeName: (product as any).place_name || '',
       };
     }
     if (legacyExperience) {
@@ -476,7 +525,7 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 2. Highlights — curated reasons to go, not boxed rows */}
+      {/* 2. Highlights — curated reasons to go */}
       {hasHighlights && (
         <div className="mb-8">
           <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Why this experience</h2>
@@ -487,6 +536,20 @@ export default function ExperienceDetail() {
                   <Sparkles className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <span className="text-[13.5px] leading-snug text-foreground">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 2b. Gallery — 2×2 photo grid */}
+      {gallery.length > 1 && (
+        <div className="mb-8">
+          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Gallery</h2>
+          <div className="grid grid-cols-2 gap-1.5 rounded-xl overflow-hidden">
+            {gallery.slice(0, 4).map((img: string, i: number) => (
+              <div key={i} className="aspect-square overflow-hidden bg-muted">
+                <img src={img} alt={`${experience.title} ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
               </div>
             ))}
           </div>
@@ -531,7 +594,27 @@ export default function ExperienceDetail() {
       {/* 5. What's typically included — compact utility */}
       {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
 
-
+      {/* 6. Location — Get Directions */}
+      {((experience as any).googleMapsUrl || (experience as any).googlePlaceId) && (
+        <div className="mb-7">
+          <h2 className="text-base font-bold tracking-tight mb-3 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Location</h2>
+          <a
+            href={(experience as any).googleMapsUrl || `https://www.google.com/maps/place/?q=place_id:${(experience as any).googlePlaceId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3.5 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Navigation className="w-4.5 h-4.5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">{(experience as any).placeName || 'View on Map'}</p>
+              <p className="text-xs text-muted-foreground">Get directions on Google Maps</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </a>
+        </div>
+      )}
       {/* 7. Access points — utility, tighter */}
       {hasMeetingPoints && (
         <div className="mb-6">
@@ -623,18 +706,18 @@ export default function ExperienceDetail() {
                   {experience.title}
                 </h1>
                 {/* Meta row */}
-                <div className="flex items-center gap-1.5 flex-wrap text-[12px]">
-                  <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
-                    <Heart className="w-3 h-3 fill-white/70 text-white/70" />
-                    Saved by {likedByCount} travellers this month
+                <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <Heart className="w-3 h-3 fill-white/60 text-white/60" />
+                    Saved by {likedByCount} travellers
                   </span>
                   {experience.price && (
-                    <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
                       From {experience.price}
                     </span>
                   )}
                   {experience.bestTime && (
-                    <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-white/12 backdrop-blur-sm text-white/85 font-medium">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
                       <Calendar className="w-3 h-3" />
                       {experience.bestTime}
                     </span>

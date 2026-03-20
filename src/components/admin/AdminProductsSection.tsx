@@ -380,7 +380,26 @@ export const AdminProductsSection = () => {
             </Select>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">Products link to locations only through these canonical place references. Use meeting_points_json for operational pickup/check-in info.</p>
+
+        <Separator />
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Exact Location</h4>
+        <p className="text-[10px] text-muted-foreground">Link a Google Maps location for "Get Directions" and map display.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Place Name</Label>
+            <Input value={(item as any).place_name || ''} placeholder="e.g. Mnemba Atoll" onChange={e => onChange('place_name', e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Google Place ID</Label>
+            <Input value={(item as any).google_place_id || ''} placeholder="ChIJ..." className="font-mono text-xs" onChange={e => onChange('google_place_id', e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground">Google Maps URL</Label>
+          <Input value={(item as any).google_maps_url || ''} placeholder="https://maps.google.com/..." onChange={e => onChange('google_maps_url', e.target.value)} />
+          <p className="text-[10px] text-muted-foreground mt-1">Paste a Google Maps share link or search URL for this exact location.</p>
+        </div>
+        <p className="text-xs text-muted-foreground">Products link to locations through canonical place references. Use meeting_points_json for operational pickup/check-in info.</p>
       </TabsContent>
 
       {/* ======= TAXONOMY ======= */}
