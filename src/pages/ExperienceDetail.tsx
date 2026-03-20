@@ -596,14 +596,7 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 10. Pricing — moved to lower utility zone */}
-      <PriceSection
-        experience={experience}
-        productOptions={productOptions}
-        selectedCurrency={selectedCurrency}
-      />
-
-      {/* 11. Related saves / people also added */}
+      {/* 10. Related saves / people also added */}
       <PairingBlock experienceId={experience.id} />
       <IncludedInItineraries experienceId={experience.id} />
 
