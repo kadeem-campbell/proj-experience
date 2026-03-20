@@ -737,8 +737,9 @@ export default function ExperienceDetail() {
                 {linkedPoi && experience.location && <span className="text-muted-foreground/50">·</span>}
                 {linkedPoi && experience.location && <span className="text-base">{experience.location}</span>}
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong></span></div>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />Saved by <strong className="text-foreground">{likedByCount}</strong> travellers this month</span>
+                {experience.price && <><span className="text-muted-foreground/40">·</span><span className="font-medium text-foreground">{experience.price}</span></>}
               </div>
             </div>
 
