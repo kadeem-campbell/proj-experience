@@ -3598,6 +3598,7 @@ export type Database = {
           gallery: Json | null
           gallery_json: Json | null
           highlights: Json | null
+          highlights_json: Json | null
           id: string
           indexability_state: string | null
           instagram_url: string | null
@@ -3629,6 +3630,7 @@ export type Database = {
           gallery?: Json | null
           gallery_json?: Json | null
           highlights?: Json | null
+          highlights_json?: Json | null
           id?: string
           indexability_state?: string | null
           instagram_url?: string | null
@@ -3660,6 +3662,7 @@ export type Database = {
           gallery?: Json | null
           gallery_json?: Json | null
           highlights?: Json | null
+          highlights_json?: Json | null
           id?: string
           indexability_state?: string | null
           instagram_url?: string | null
