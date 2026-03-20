@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createItineraryJsonLd } from "@/components/SEOHead";
-import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
+import { slugify, generateProductUrl } from "@/utils/slugUtils";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useProductListings } from "@/hooks/useProductListings";
 import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
@@ -587,15 +587,13 @@ const PublicItinerary = () => {
     // Resolve slug from DB if available
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
     const expSlug = dbExp?.slug || slugify(experience.title);
-
-    const metaParts: string[] = [];
-    if (experience.location) metaParts.push(experience.location);
-    if (experience.category) metaParts.push(experience.category);
+    const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
+    const expUrl = generateProductUrl(destSlug, expSlug, dbExp?.areaSlug);
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
         <div
-          onClick={() => navigate(generateProductPageUrl(experience.location || '', experience.title, expSlug))}
+          onClick={() => navigate(expUrl)}
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
@@ -610,7 +608,7 @@ const PublicItinerary = () => {
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-foreground truncate">{experience.title}</h3>
             <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground truncate">
-              {experience.location && <span>{experience.location}</span>}
+              {(dbExp?.category || experience.category) && <span>{dbExp?.category || experience.category}</span>}
               {timingMap[experience.id] && (
                 <>
                   <span className="opacity-40">·</span>
@@ -651,11 +649,13 @@ const PublicItinerary = () => {
     const liked = isItemLiked(experience.id, 'experience');
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
     const expSlug = dbExp?.slug || slugify(experience.title);
+    const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
+    const expUrl = generateProductUrl(destSlug, expSlug, dbExp?.areaSlug);
     return (
       <div
         key={experience.id}
         className="cursor-pointer group"
-        onClick={() => navigate(generateProductPageUrl(experience.location || '', experience.title, expSlug))}
+        onClick={() => navigate(expUrl)}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {experience.videoThumbnail ? (
@@ -1150,7 +1150,12 @@ const PublicItinerary = () => {
                         className="flex items-center gap-3 py-2 rounded-lg px-1 transition-colors"
                       >
                         <div
-                          onClick={() => navigate(generateProductPageUrl(exp.location || '', exp.title, slugify(exp.title)))}
+                          onClick={() => {
+                            const dbE = allDbExperiences.find(e => e.id === exp.id);
+                            const s = dbE?.slug || slugify(exp.title);
+                            const d = dbE?.destinationSlug || slugify(exp.location || '');
+                            navigate(generateProductUrl(d, s, dbE?.areaSlug));
+                          }}
                           className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-muted/40 rounded-lg transition-colors"
                         >
                           <div className="w-9 h-9 rounded-md overflow-hidden bg-muted shrink-0">

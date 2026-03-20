@@ -3,7 +3,7 @@ import { TimingIcon } from "@/components/TimingIcon";
 import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 import { useProductListings } from "@/hooks/useProductListings";
 import { Link } from "react-router-dom";
-import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
+import { slugify, generateProductUrl } from "@/utils/slugUtils";
 import { 
   GripVertical, 
   Trash2, 
@@ -580,9 +580,10 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         {(() => {
                           const dbProd = allDbProducts.find(p => p.id === experience.id);
-                          const slug = dbProd?.slug || slugify(experience.title);
+                          const pSlug = dbProd?.slug || slugify(experience.title);
+                          const dSlug = dbProd?.destinationSlug || slugify(experience.location || '');
                           return (
-                            <Link to={generateProductPageUrl(experience.location || '', experience.title, slug)}>
+                            <Link to={generateProductUrl(dSlug, pSlug, dbProd?.areaSlug)}>
                               <Button variant="ghost" size="icon" className="h-7 w-7">
                                 <ChevronRight className="w-4 h-4" />
                               </Button>
