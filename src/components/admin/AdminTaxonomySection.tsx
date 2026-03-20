@@ -140,6 +140,76 @@ export const AdminTaxonomySection = () => {
           />
         </TabsContent>
 
+        <TabsContent value="inclusions">
+          <AdminEntityTable
+            items={inclusionItems}
+            entityName="Inclusion Item"
+            columns={[
+              { key: 'name', label: 'Name', width: 'flex-[2]', render: (i: any) => <span>{i.emoji} <span className="font-medium">{i.name}</span></span> },
+              { key: 'slug', label: 'Slug', width: 'flex-1', render: (i: any) => <span className="text-xs font-mono text-muted-foreground">{i.slug}</span> },
+              { key: 'category', label: 'Category', width: 'w-[100px]', render: (i: any) => <Badge variant="outline" className="text-[10px]">{i.category}</Badge> },
+            ]}
+            defaultItem={{ name: '', slug: '', emoji: '✓', category: 'general', is_active: true }}
+            renderForm={(item: any, onChange) => (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
+                  <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Emoji</Label><Input value={item.emoji || ''} onChange={e => onChange('emoji', e.target.value)} /></div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Category</Label>
+                  <Select value={item.category || 'general'} onValueChange={v => onChange('category', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">General</SelectItem>
+                      <SelectItem value="equipment">Equipment</SelectItem>
+                      <SelectItem value="food_drink">Food & Drink</SelectItem>
+                      <SelectItem value="safety">Safety</SelectItem>
+                      <SelectItem value="guide">Guide</SelectItem>
+                      <SelectItem value="fee">Fee</SelectItem>
+                      <SelectItem value="activity">Activity</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} />
+                  <span className="text-xs">Active</span>
+                </div>
+              </div>
+            )}
+            onSave={(item, isNew) => saveEntity('inclusion_items', item, isNew)}
+            onDelete={(ids) => deleteEntity('inclusion_items', ids)}
+          />
+        </TabsContent>
+
+        <TabsContent value="transport">
+          <AdminEntityTable
+            items={transportModes}
+            entityName="Transport Mode"
+            columns={[
+              { key: 'name', label: 'Name', width: 'flex-[2]', render: (t: any) => <span>{t.emoji} <span className="font-medium">{t.name}</span></span> },
+              { key: 'slug', label: 'Slug', width: 'flex-1', render: (t: any) => <span className="text-xs font-mono text-muted-foreground">{t.slug}</span> },
+            ]}
+            defaultItem={{ name: '', slug: '', emoji: '🚗', is_active: true }}
+            renderForm={(item: any, onChange) => (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
+                  <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Emoji</Label><Input value={item.emoji || ''} onChange={e => onChange('emoji', e.target.value)} /></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} />
+                  <span className="text-xs">Active</span>
+                </div>
+              </div>
+            )}
+            onSave={(item, isNew) => saveEntity('transport_modes', item, isNew)}
+            onDelete={(ids) => deleteEntity('transport_modes', ids)}
+          />
+        </TabsContent>
+
         <TabsContent value="options">
           <AdminEntityTable
             items={options}
