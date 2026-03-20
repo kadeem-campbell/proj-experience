@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 
 const filterCategories = [
   { label: "Beaches", category: "Beach", icon: catBeaches },
