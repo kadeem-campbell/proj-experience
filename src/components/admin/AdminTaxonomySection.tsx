@@ -35,13 +35,21 @@ export const AdminTaxonomySection = () => {
     queryKey: ['admin-price-options-full'],
     queryFn: async () => { const { data } = await supabase.from('price_options').select('*').order('display_order'); return data || []; },
   });
+  const { data: inclusionItems = [] } = useQuery({
+    queryKey: ['admin-inclusion-items-full'],
+    queryFn: async () => { const { data } = await (supabase as any).from('inclusion_items').select('*').order('name'); return data || []; },
+  });
+  const { data: transportModes = [] } = useQuery({
+    queryKey: ['admin-transport-modes-full'],
+    queryFn: async () => { const { data } = await (supabase as any).from('transport_modes').select('*').order('name'); return data || []; },
+  });
   const { data: products = [] } = useQuery({
     queryKey: ['admin-products-mini'],
     queryFn: async () => { const { data } = await supabase.from('products').select('id, title').order('title'); return data || []; },
   });
 
   const invalidate = () => {
-    ['admin-at-full', 'admin-themes-full', 'admin-options-full', 'admin-price-options-full', 'admin-overview-counts'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
+    ['admin-at-full', 'admin-themes-full', 'admin-options-full', 'admin-price-options-full', 'admin-inclusion-items-full', 'admin-transport-modes-full', 'admin-overview-counts'].forEach(k => qc.invalidateQueries({ queryKey: [k] }));
   };
 
   const saveEntity = async (table: string, item: any, isNew: boolean) => {
@@ -66,12 +74,14 @@ export const AdminTaxonomySection = () => {
   return (
     <div>
       <h2 className="text-xl font-bold mb-1">Taxonomy & Pricing</h2>
-      <p className="text-sm text-muted-foreground mb-4">Activity types, themes, product options, price options</p>
+      <p className="text-sm text-muted-foreground mb-4">Activity types, themes, inclusions, transport modes, product options, price options</p>
 
       <Tabs defaultValue="activity-types">
         <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="activity-types">Activity Types ({activityTypes.length})</TabsTrigger>
           <TabsTrigger value="themes">Themes ({themes.length})</TabsTrigger>
+          <TabsTrigger value="inclusions">Inclusions ({inclusionItems.length})</TabsTrigger>
+          <TabsTrigger value="transport">Transport ({transportModes.length})</TabsTrigger>
           <TabsTrigger value="options">Options ({options.length})</TabsTrigger>
           <TabsTrigger value="prices">Price Options ({priceOptions.length})</TabsTrigger>
         </TabsList>
@@ -127,6 +137,76 @@ export const AdminTaxonomySection = () => {
             )}
             onSave={(item, isNew) => saveEntity('themes', item, isNew)}
             onDelete={(ids) => deleteEntity('themes', ids)}
+          />
+        </TabsContent>
+
+        <TabsContent value="inclusions">
+          <AdminEntityTable
+            items={inclusionItems}
+            entityName="Inclusion Item"
+            columns={[
+              { key: 'name', label: 'Name', width: 'flex-[2]', render: (i: any) => <span>{i.emoji} <span className="font-medium">{i.name}</span></span> },
+              { key: 'slug', label: 'Slug', width: 'flex-1', render: (i: any) => <span className="text-xs font-mono text-muted-foreground">{i.slug}</span> },
+              { key: 'category', label: 'Category', width: 'w-[100px]', render: (i: any) => <Badge variant="outline" className="text-[10px]">{i.category}</Badge> },
+            ]}
+            defaultItem={{ name: '', slug: '', emoji: '✓', category: 'general', is_active: true }}
+            renderForm={(item: any, onChange) => (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
+                  <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Emoji</Label><Input value={item.emoji || ''} onChange={e => onChange('emoji', e.target.value)} /></div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Category</Label>
+                  <Select value={item.category || 'general'} onValueChange={v => onChange('category', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">General</SelectItem>
+                      <SelectItem value="equipment">Equipment</SelectItem>
+                      <SelectItem value="food_drink">Food & Drink</SelectItem>
+                      <SelectItem value="safety">Safety</SelectItem>
+                      <SelectItem value="guide">Guide</SelectItem>
+                      <SelectItem value="fee">Fee</SelectItem>
+                      <SelectItem value="activity">Activity</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} />
+                  <span className="text-xs">Active</span>
+                </div>
+              </div>
+            )}
+            onSave={(item, isNew) => saveEntity('inclusion_items', item, isNew)}
+            onDelete={(ids) => deleteEntity('inclusion_items', ids)}
+          />
+        </TabsContent>
+
+        <TabsContent value="transport">
+          <AdminEntityTable
+            items={transportModes}
+            entityName="Transport Mode"
+            columns={[
+              { key: 'name', label: 'Name', width: 'flex-[2]', render: (t: any) => <span>{t.emoji} <span className="font-medium">{t.name}</span></span> },
+              { key: 'slug', label: 'Slug', width: 'flex-1', render: (t: any) => <span className="text-xs font-mono text-muted-foreground">{t.slug}</span> },
+            ]}
+            defaultItem={{ name: '', slug: '', emoji: '🚗', is_active: true }}
+            renderForm={(item: any, onChange) => (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
+                  <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Emoji</Label><Input value={item.emoji || ''} onChange={e => onChange('emoji', e.target.value)} /></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} />
+                  <span className="text-xs">Active</span>
+                </div>
+              </div>
+            )}
+            onSave={(item, isNew) => saveEntity('transport_modes', item, isNew)}
+            onDelete={(ids) => deleteEntity('transport_modes', ids)}
           />
         </TabsContent>
 
