@@ -408,6 +408,36 @@ export const AdminProductsSection = () => {
         {item.id ? <OptionsEditor productId={item.id} /> : <p className="text-xs text-muted-foreground">Save the product first to manage options.</p>}
       </TabsContent>
 
+      {/* ======= EXPERIENCE (Inclusions, Transport, Meeting Points, Local Tips, Getting There) ======= */}
+      <TabsContent value="experience" className="space-y-4 mt-3">
+        {item.id ? (
+          <>
+            <InclusionsEditor productId={item.id} />
+            <Separator />
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Meeting Points</h4>
+            <p className="text-[10px] text-muted-foreground">Where customers access this experience (e.g. beach, dock, meeting spot).</p>
+            <HighlightsEditor
+              value={(item.meeting_points_json || []).map((mp: any) => typeof mp === 'string' ? mp : `${mp.name}|${mp.type || ''}`)}
+              onChange={v => onChange('meeting_points_json', v.map(s => {
+                const [name, type] = s.split('|');
+                return { name: name?.trim() || s, type: type?.trim() || '' };
+              }))}
+            />
+            <Separator />
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Getting There</h4>
+            <TransportEditor productId={item.id} />
+            <div>
+              <Label className="text-xs text-muted-foreground">Getting There Description</Label>
+              <Textarea value={item.getting_there_description || ''} onChange={e => onChange('getting_there_description', e.target.value)} rows={3} placeholder="Describe how to reach this experience..." />
+            </div>
+            <Separator />
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Local Tips</h4>
+            <p className="text-[10px] text-muted-foreground">Insider tips for visitors. One tip per line.</p>
+            <HighlightsEditor value={item.local_tips_json || []} onChange={v => onChange('local_tips_json', v)} />
+          </>
+        ) : <p className="text-xs text-muted-foreground">Save product first to manage experience details.</p>}
+      </TabsContent>
+
       {/* ======= HOSTS ======= */}
       <TabsContent value="hosts" className="space-y-3 mt-3">
         {item.id ? <HostsEditor productId={item.id} hosts={hosts} /> : <p className="text-xs text-muted-foreground">Save the product first to manage hosts.</p>}
