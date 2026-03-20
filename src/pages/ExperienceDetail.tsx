@@ -493,10 +493,10 @@ export default function ExperienceDetail() {
   // Order: About → Highlights → Social/Visual → Hosts → Inclusions → Access/Logistics → Local Tips → Related
   const renderContentSections = (layout: 'mobile' | 'desktop') => (
     <>
-      {/* 1. About — editorial, airy */}
+      {/* 1. About — editorial, refined */}
       {hasDescription && (
-        <div className="mb-8">
-          <p className="text-[15px] text-muted-foreground leading-[1.7] tracking-wide">{experience.description}</p>
+        <div className="mb-7">
+          <p className="text-[13.5px] text-foreground/70 leading-[1.75]">{experience.description}</p>
         </div>
       )}
 
