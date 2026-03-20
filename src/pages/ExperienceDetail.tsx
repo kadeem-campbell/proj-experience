@@ -5,7 +5,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug, useDestinationById } from "@/hooks/useProducts";
+import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug, useDestinationById, useAreaById } from "@/hooks/useProducts";
 import { useExperienceBySlug } from "@/hooks/useExperienceBySlug";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateProductSchema } from "@/services/schemaGenerator";
@@ -163,7 +163,7 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
 };
 
 export default function ExperienceDetail() {
-  const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams<{ id?: string; location?: string; legacySlug?: string; slug?: string; destination?: string; area?: string }>() as any;
+  const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams<{ id?: string; location?: string; legacySlug?: string; slug?: string; destination?: string; area?: string }>();
   const navigate = useNavigate();
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
@@ -179,8 +179,10 @@ export default function ExperienceDetail() {
   const isMobile = useIsMobile();
 
   // Resolve the slug from any route pattern
-  // For /things-to-do/:destination (when ThingsToDo delegates), destParam IS the slug
-  const resolvedSlug = slug || legacySlug || destParam || id || '';
+  // /things-to-do/:dest/:area/:slug → slug is 'slug' param
+  // /things-to-do/:dest/:slug → slug is 'slug' param (area absent)
+  // fallback for old routes
+  const resolvedSlug = slug || legacySlug || id || '';
 
   // Try to find as a product first (new entity system)
   const { data: product, isLoading: productLoading } = useProductBySlug(resolvedSlug);
@@ -188,6 +190,7 @@ export default function ExperienceDetail() {
   const { data: productHosts = [] } = useProductHosts(product?.id || '');
   const { data: productDestination } = useDestinationBySlug(destParam || '');
   const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
+  const { data: productArea } = useAreaById(product?.primary_area_id || '');
 
   // Fallback: try legacy experiences table when product not found
   const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug(
@@ -284,7 +287,7 @@ export default function ExperienceDetail() {
     }
 
     return null;
-  }, [product, productOptions, productDestination, productDestinationById, productHosts, legacyExperience]);
+  }, [product, productOptions, productDestination, productDestinationById, productArea, productHosts, legacyExperience]);
 
   // Analytics: track page view
   useEffect(() => {
@@ -318,15 +321,21 @@ export default function ExperienceDetail() {
   const likedByCount = (experience?.likeCount || 0) + likeCountDelta;
 
   const resolvedDestination = productDestination || productDestinationById;
+  const resolvedArea = productArea;
 
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
     if ((experience as any).isProduct && resolvedDestination) {
-      return `${baseUrl}/things-to-do/${resolvedDestination.slug}/${experience.slug || ''}`;
+      const destSlug = resolvedDestination.slug;
+      const areaSlug = resolvedArea?.slug;
+      if (areaSlug) {
+        return `${baseUrl}/things-to-do/${destSlug}/${areaSlug}/${experience.slug || ''}`;
+      }
+      return `${baseUrl}/things-to-do/${destSlug}/${experience.slug || ''}`;
     }
     return `${baseUrl}${generateProductPageUrl(experience.location, experience.title, (experience as any).slug)}`;
-  }, [experience, resolvedDestination]);
+  }, [experience, resolvedDestination, resolvedArea]);
 
   useEffect(() => {
     if (experience) {

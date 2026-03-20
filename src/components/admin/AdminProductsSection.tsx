@@ -92,21 +92,20 @@ export const AdminProductsSection = () => {
       const { error } = await supabase.from('products').insert(rest as any);
       if (error) throw error;
     } else {
-      const { error } = await supabase.from('products').update(rest as any).eq('id', id);
+      const { data, error } = await supabase.from('products').update(rest as any).eq('id', id).select();
       if (error) throw error;
+      if (!data || data.length === 0) throw new Error('Update returned no rows — you may need to sign in first.');
     }
     // Auto-validate and generate docs after save
-    if (id || !isNew) {
-      const productId = id || rest.id;
-      if (productId) {
-        try {
-          const result = validateProduct({ product: { ...rest, id: productId } });
-          await persistReadinessScore(result);
-          await persistValidationResults(result);
-          await supabase.from('products').update({ publish_score: result.publish_score } as any).eq('id', productId);
-          await generateEntityDocuments(productId);
-        } catch (e) { console.warn('Post-save validation/generation:', e); }
-      }
+    const productId = id || rest.id;
+    if (productId) {
+      try {
+        const result = validateProduct({ product: { ...rest, id: productId } });
+        await persistReadinessScore(result);
+        await persistValidationResults(result);
+        await supabase.from('products').update({ publish_score: result.publish_score } as any).eq('id', productId);
+        await generateEntityDocuments(productId);
+      } catch (e) { console.warn('Post-save validation/generation:', e); }
     }
     invalidate();
     toast({ title: isNew ? 'Product created' : 'Product saved & validated' });
@@ -127,11 +126,16 @@ export const AdminProductsSection = () => {
     },
     {
       key: 'slug', label: 'Slug', width: 'flex-1',
-      render: (p: any) => (
-        <a href={`https://swam.app/things-to-do/${p.slug}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-xs font-mono hover:text-primary flex items-center gap-1">
-          {p.slug} <ExternalLink className="w-3 h-3" />
-        </a>
-      ),
+      render: (p: any) => {
+        const dest = destinations.find((x: any) => x.id === p.destination_id);
+        const area = areas.find((x: any) => x.id === p.primary_area_id);
+        const segments = ['things-to-do', dest?.slug, area?.slug, p.slug].filter(Boolean).join('/');
+        return (
+          <a href={`https://swam.app/${segments}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-xs font-mono hover:text-primary flex items-center gap-1">
+            {p.slug} <ExternalLink className="w-3 h-3" />
+          </a>
+        );
+      },
     },
     {
       key: 'destination_id', label: 'Destination', width: 'w-[120px]',

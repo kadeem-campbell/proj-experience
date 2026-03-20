@@ -4,11 +4,21 @@ import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
 export interface TikTokVideo {
-  videoId: string;
+  videoId?: string;
   url: string;
   author?: string;
   thumbnailUrl?: string;
 }
+
+/** Extract TikTok video ID from a full URL */
+const extractTikTokVideoId = (url: string): string => {
+  // Match /video/DIGITS at end of URL path
+  const match = url.match(/\/video\/(\d+)/);
+  if (match?.[1]) return match[1];
+  // If it's already just digits, use as-is
+  if (/^\d+$/.test(url.trim())) return url.trim();
+  return '';
+};
 
 export interface InstagramVideo {
   url: string;
@@ -70,28 +80,34 @@ export const SocialVideoEmbed = ({
       
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
         {/* TikTok video cards — tap to open drawer with full embed */}
-        {tiktokVideos.map((video) => (
-          <button
-            key={video.videoId}
-            onClick={() => setActiveVideo(video)}
-            className="flex-shrink-0 relative group cursor-pointer snap-start"
-          >
-            <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-foreground/90 to-foreground/70 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative")}>
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#25F4EE] via-[#FE2C55] to-[#25F4EE]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-              
-              <div className="relative z-10 w-12 h-12 rounded-full bg-[#FE2C55] flex items-center justify-center shadow-lg">
-                <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+        {tiktokVideos.map((video, idx) => {
+          const resolvedId = video.videoId || extractTikTokVideoId(video.url);
+          if (!resolvedId) return null;
+          const authorMatch = video.url?.match(/@([^/]+)/);
+          const author = video.author || (authorMatch?.[1]) || 'Watch';
+          return (
+            <button
+              key={resolvedId || idx}
+              onClick={() => setActiveVideo({ ...video, videoId: resolvedId, author })}
+              className="flex-shrink-0 relative group cursor-pointer snap-start"
+            >
+              <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-foreground/90 to-foreground/70 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative")}>
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#25F4EE] via-[#FE2C55] to-[#25F4EE]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                
+                <div className="relative z-10 w-12 h-12 rounded-full bg-[#FE2C55] flex items-center justify-center shadow-lg">
+                  <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                </div>
+                <div className="relative z-10 text-center px-2">
+                  <p className="text-white font-bold text-xs">TikTok</p>
+                  <p className="text-white/70 text-[10px] truncate max-w-[100px]">
+                    @{author}
+                  </p>
+                </div>
               </div>
-              <div className="relative z-10 text-center px-2">
-                <p className="text-white font-bold text-xs">TikTok</p>
-                <p className="text-white/70 text-[10px] truncate max-w-[100px]">
-                  @{video.author || 'Watch'}
-                </p>
-              </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
 
         {/* Instagram embed card — only if embed link exists */}
         {hasInstagram && (
