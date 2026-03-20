@@ -222,6 +222,16 @@ export const AdminProductsSection = () => {
         <div><Label className="text-xs text-muted-foreground">SEO Description</Label><Textarea value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} rows={2} /></div>
 
         <Separator />
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Highlights</h4>
+        <p className="text-[10px] text-muted-foreground">Key selling points shown on the product page. Aim for 3–6 items.</p>
+        <HighlightsEditor value={item.highlights_json || []} onChange={v => onChange('highlights_json', v)} />
+
+        <Separator />
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Gallery</h4>
+        <p className="text-[10px] text-muted-foreground">Additional photos (URLs). The cover image is included automatically.</p>
+        <GalleryEditor value={item.gallery_json || []} onChange={v => onChange('gallery_json', v)} />
+
+        <Separator />
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Social Media</h4>
         <div className="grid grid-cols-2 gap-3">
           <div><Label className="text-xs text-muted-foreground">TikTok URL</Label><Input placeholder="https://tiktok.com/@..." value={item.tiktok_url || ''} onChange={e => onChange('tiktok_url', e.target.value)} /></div>
