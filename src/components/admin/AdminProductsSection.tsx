@@ -126,11 +126,16 @@ export const AdminProductsSection = () => {
     },
     {
       key: 'slug', label: 'Slug', width: 'flex-1',
-      render: (p: any) => (
-        <a href={`https://swam.app/things-to-do/${p.slug}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-xs font-mono hover:text-primary flex items-center gap-1">
-          {p.slug} <ExternalLink className="w-3 h-3" />
-        </a>
-      ),
+      render: (p: any) => {
+        const dest = destinations.find((x: any) => x.id === p.destination_id);
+        const area = areas.find((x: any) => x.id === p.primary_area_id);
+        const segments = ['things-to-do', dest?.slug, area?.slug, p.slug].filter(Boolean).join('/');
+        return (
+          <a href={`https://swam.app/${segments}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-xs font-mono hover:text-primary flex items-center gap-1">
+            {p.slug} <ExternalLink className="w-3 h-3" />
+          </a>
+        );
+      },
     },
     {
       key: 'destination_id', label: 'Destination', width: 'w-[120px]',
