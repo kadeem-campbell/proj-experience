@@ -3627,6 +3627,96 @@ export type Database = {
           },
         ]
       }
+      product_timing_profiles: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          end_date: string | null
+          flexibility_level: string | null
+          hourly_scores: Json
+          id: string
+          is_active: boolean | null
+          local_timezone: string
+          low_end_hour: number | null
+          low_start_hour: number | null
+          peak_end_hour: number
+          peak_start_hour: number
+          product_id: string
+          profile_label: string
+          profile_type: string
+          reason_tags: Json | null
+          secondary_end_hour: number | null
+          secondary_start_hour: number | null
+          start_date: string | null
+          template_id: string | null
+          timing_note: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          end_date?: string | null
+          flexibility_level?: string | null
+          hourly_scores?: Json
+          id?: string
+          is_active?: boolean | null
+          local_timezone?: string
+          low_end_hour?: number | null
+          low_start_hour?: number | null
+          peak_end_hour?: number
+          peak_start_hour?: number
+          product_id: string
+          profile_label?: string
+          profile_type?: string
+          reason_tags?: Json | null
+          secondary_end_hour?: number | null
+          secondary_start_hour?: number | null
+          start_date?: string | null
+          template_id?: string | null
+          timing_note?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          end_date?: string | null
+          flexibility_level?: string | null
+          hourly_scores?: Json
+          id?: string
+          is_active?: boolean | null
+          local_timezone?: string
+          low_end_hour?: number | null
+          low_start_hour?: number | null
+          peak_end_hour?: number
+          peak_start_hour?: number
+          product_id?: string
+          profile_label?: string
+          profile_type?: string
+          reason_tags?: Json | null
+          secondary_end_hour?: number | null
+          secondary_start_hour?: number | null
+          start_date?: string | null
+          template_id?: string | null
+          timing_note?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_timing_profiles_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_timing_profiles_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "timing_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_transport: {
         Row: {
           created_at: string | null
@@ -4972,6 +5062,60 @@ export type Database = {
           is_public_page?: boolean | null
           name?: string
           slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      timing_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          hourly_scores: Json
+          id: string
+          is_active: boolean | null
+          low_end_hour: number | null
+          low_start_hour: number | null
+          name: string
+          peak_end_hour: number
+          peak_start_hour: number
+          secondary_end_hour: number | null
+          secondary_start_hour: number | null
+          slug: string
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          hourly_scores?: Json
+          id?: string
+          is_active?: boolean | null
+          low_end_hour?: number | null
+          low_start_hour?: number | null
+          name: string
+          peak_end_hour?: number
+          peak_start_hour?: number
+          secondary_end_hour?: number | null
+          secondary_start_hour?: number | null
+          slug: string
+          template_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          hourly_scores?: Json
+          id?: string
+          is_active?: boolean | null
+          low_end_hour?: number | null
+          low_start_hour?: number | null
+          name?: string
+          peak_end_hour?: number
+          peak_start_hour?: number
+          secondary_end_hour?: number | null
+          secondary_start_hour?: number | null
+          slug?: string
+          template_type?: string
           updated_at?: string | null
         }
         Relationships: []

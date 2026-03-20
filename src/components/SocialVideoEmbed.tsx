@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect, useRef } from "react";
-import { Play, Video, X, Pause } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Play, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
@@ -39,8 +39,7 @@ interface SocialVideoEmbedProps {
 }
 
 /**
- * Immersive social video embed — plays inline with minimal chrome.
- * No external links, no platform branding overlays, just video.
+ * Immersive social video embed — plays inline, video only, no external links or platform branding.
  */
 export const SocialVideoEmbed = ({ 
   experienceTitle, 
@@ -60,7 +59,6 @@ export const SocialVideoEmbed = ({
     return getInstagramPermalink(instagramEmbed!);
   }, [hasInstagram, instagramEmbed]);
 
-  // Extract Instagram shortcode for embed URL
   const instagramEmbedUrl = useMemo(() => {
     if (!instagramPermalink) return '';
     return `${instagramPermalink}embed/?cr=1&v=14&wp=326&rd=https%3A%2F%2Fswam.app&th=dark#%7B%22ci%22%3A0%2C%22os%22%3A0%7D`;
@@ -71,7 +69,6 @@ export const SocialVideoEmbed = ({
   return (
     <div className={cn("space-y-3", className)}>
       <h3 className="text-lg font-semibold flex items-center gap-2">
-        <Video className="w-5 h-5 text-primary" />
         Watch it live
       </h3>
       
@@ -86,12 +83,11 @@ export const SocialVideoEmbed = ({
               onClick={() => setActiveVideo({ ...video, videoId: resolvedId })}
               className="flex-shrink-0 relative group cursor-pointer snap-start"
             >
-              <div className="w-28 h-44 rounded-2xl bg-foreground/90 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-                <div className="relative z-10 w-11 h-11 rounded-full bg-primary/90 flex items-center justify-center shadow-lg">
+              <div className="w-28 h-44 rounded-2xl bg-muted flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative border border-border">
+                <div className="w-11 h-11 rounded-full bg-primary/90 flex items-center justify-center shadow-lg">
                   <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground ml-0.5" />
                 </div>
-                <span className="relative z-10 text-[10px] text-white/80 font-medium">Play video</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Play video</span>
               </div>
             </button>
           );
@@ -103,25 +99,25 @@ export const SocialVideoEmbed = ({
             onClick={() => setShowInstagram(true)}
             className="flex-shrink-0 relative group cursor-pointer snap-start"
           >
-            <div className="w-28 h-44 rounded-2xl bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98]">
-              <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-                <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+            <div className="w-28 h-44 rounded-2xl bg-muted flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] border border-border">
+              <div className="w-11 h-11 rounded-full bg-primary/90 flex items-center justify-center shadow-lg">
+                <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground ml-0.5" />
               </div>
-              <span className="text-[10px] text-white/80 font-medium">Play video</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Play video</span>
             </div>
           </button>
         )}
       </div>
 
-      {/* TikTok immersive drawer — compact, no links */}
+      {/* TikTok drawer — video only, no chrome */}
       <Drawer open={!!activeVideo} onOpenChange={(open) => !open && setActiveVideo(null)}>
-        <DrawerContent className="max-h-[75vh] overflow-hidden bg-black border-border">
+        <DrawerContent className="max-h-[75vh] overflow-hidden border-border bg-background">
           <div className="flex items-center justify-end px-3 pt-2 pb-1">
             <button 
               onClick={() => setActiveVideo(null)}
-              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20"
+              className="p-1.5 rounded-full bg-muted hover:bg-muted/80"
             >
-              <X className="w-4 h-4 text-white" />
+              <X className="w-4 h-4 text-foreground" />
             </button>
           </div>
           {activeVideo && (
@@ -142,15 +138,15 @@ export const SocialVideoEmbed = ({
         </DrawerContent>
       </Drawer>
 
-      {/* Instagram immersive drawer — iframe embed, no chrome */}
+      {/* Instagram drawer — iframe embed, no chrome */}
       <Drawer open={showInstagram} onOpenChange={setShowInstagram}>
-        <DrawerContent className="max-h-[75vh] overflow-hidden bg-black border-border">
+        <DrawerContent className="max-h-[75vh] overflow-hidden border-border bg-background">
           <div className="flex items-center justify-end px-3 pt-2 pb-1">
             <button 
               onClick={() => setShowInstagram(false)}
-              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20"
+              className="p-1.5 rounded-full bg-muted hover:bg-muted/80"
             >
-              <X className="w-4 h-4 text-white" />
+              <X className="w-4 h-4 text-foreground" />
             </button>
           </div>
           {showInstagram && hasInstagram && (
@@ -159,7 +155,7 @@ export const SocialVideoEmbed = ({
                 <iframe
                   src={instagramEmbedUrl}
                   className="border-0"
-                  style={{ width: '100%', height: '100%', background: '#000' }}
+                  style={{ width: '100%', height: '100%' }}
                   allow="autoplay; encrypted-media"
                   allowFullScreen
                   scrolling="no"
