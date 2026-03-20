@@ -136,6 +136,7 @@ const CoverImageUploader = ({ value, onChange, productSlug }: { value: string; o
       <Input value={value} placeholder="Or paste URL..." className="text-xs" onChange={e => onChange(e.target.value)} />
     </div>
   );
+};
 
 
 export const AdminProductsSection = () => {
