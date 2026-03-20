@@ -433,12 +433,11 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* Price section with currency selector */}
+      {/* Price section — currency auto-detected */}
       <PriceSection
         experience={experience}
         productOptions={productOptions}
         selectedCurrency={selectedCurrency}
-        onCurrencyChange={setSelectedCurrency}
       />
 
       {/* Highlights */}
