@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { AdminEntityTable, ColumnDef } from './AdminEntityTable';
 import { Input } from '@/components/ui/input';
