@@ -166,9 +166,7 @@ const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; 
     return experience.price || '';
   }, [experience.averagePrice, experience.price, convert]);
 
-  const timingIcon = timingDisplay ? (
-    { sunrise: '🌅', sun: '☀️', sunset: '🌇', moon: '🌙', flexible: '⏰', mixed: '🔄' }[timingDisplay.primary_time_icon] || null
-  ) : null;
+  const hasTimingIcon = !!timingDisplay;
 
   return (
     <div 
