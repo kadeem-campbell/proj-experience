@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Plus, ArrowLeft, Share2, MapPin, Users, Clock, Star, Heart,
+  Plus, ArrowLeft, Share2, MapPin, Users, Clock, Heart,
   MessageCircle, Flame, TrendingUp, Sparkles, ChevronRight,
   Calendar, Zap, CloudSun, HelpCircle, Send, ThumbsUp,
   Check, Car, Lightbulb, Navigation, Anchor
@@ -65,6 +65,8 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
     setNewQuestion(""); setShowAskForm(false);
   };
 
+  if (localFaqs.length === 0 && !showAskForm) return null;
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -82,7 +84,7 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
           </div>
         </div>
       )}
-      {localFaqs.length > 0 ? (
+      {localFaqs.length > 0 && (
         <div className="space-y-3">
           {localFaqs.map((faq: any, index: number) => (
             <div key={index} className="p-3.5 rounded-xl bg-card border border-border">
@@ -99,12 +101,6 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
               </div>
             </div>
           ))}
-        </div>
-      ) : (
-        <div className="text-center py-6 px-4 rounded-xl bg-muted/30 border border-border/50">
-          <MessageCircle className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">No questions yet</p>
-          <p className="text-xs text-muted-foreground/60 mt-0.5">Be the first to ask!</p>
         </div>
       )}
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
@@ -129,7 +125,7 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
   if (inclusions.length === 0) return null;
   return (
     <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-3">What's included</h2>
+      <h2 className="text-lg font-semibold mb-3">What's typically included</h2>
       <div className="grid grid-cols-2 gap-2">
         {inclusions.map((inc: any) => (
           <div key={inc.id} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card border border-border">
@@ -160,6 +156,7 @@ const GettingThereSection = ({ productId, description }: { productId: string; de
   return (
     <div className="mb-6">
       <h2 className="text-lg font-semibold mb-3">Getting there</h2>
+      {description && <p className="text-sm text-muted-foreground mb-3">{description}</p>}
       {transport.map((t: any) => (
         <div key={t.id} className="flex items-start gap-3 p-3.5 rounded-xl bg-card border border-border mb-2">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -167,7 +164,7 @@ const GettingThereSection = ({ productId, description }: { productId: string; de
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium">{t.transport_modes?.name}</p>
-            {(t.description || description) && <p className="text-sm text-muted-foreground mt-1">{t.description || description}</p>}
+            {t.description && <p className="text-sm text-muted-foreground mt-1">{t.description}</p>}
           </div>
         </div>
       ))}
@@ -195,7 +192,7 @@ const LocalTipsSection = ({ tips }: { tips: string[] }) => {
   );
 };
 
-// Currency-aware price display — no selector, uses global auto-detected currency
+// Currency-aware price display — auto-detected, no user controls
 const PriceSection = ({ experience, productOptions, selectedCurrency }: {
   experience: any; productOptions: any[]; selectedCurrency: string;
 }) => {
@@ -206,13 +203,13 @@ const PriceSection = ({ experience, productOptions, selectedCurrency }: {
   );
 
   const hasDetailedPricing = allPrices.length > 0;
-  const hasAvgPrice = !!experience.price;
+  const hasAvgPrice = !!experience.averagePrice;
 
   if (!hasDetailedPricing && !hasAvgPrice) return null;
 
   return (
     <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
-      <h3 className="text-base font-semibold mb-3">Pricing</h3>
+      <h3 className="text-base font-semibold mb-3">Average pricing</h3>
       {hasDetailedPricing ? (
         <div className="space-y-2">
           {allPrices.map((p: any, i: number) => (
@@ -225,10 +222,9 @@ const PriceSection = ({ experience, productOptions, selectedCurrency }: {
             </div>
           ))}
         </div>
-      ) : (
-        <span className="text-2xl font-bold text-foreground">{experience.price}</span>
-      )}
-      <p className="text-[11px] text-muted-foreground mt-2">Prices shown in {currencyInfo.code}. Update currency via Destinations filter.</p>
+      ) : hasAvgPrice ? (
+        <span className="text-2xl font-bold text-foreground">{currencyInfo.symbol}{experience.averagePrice}</span>
+      ) : null}
     </div>
   );
 };
@@ -296,9 +292,10 @@ export default function ExperienceDetail() {
         location: productDestination?.name || productDestinationById?.name || '',
         description: product.description,
         duration: product.duration_minutes ? `${product.duration_minutes} min` : '',
-        groupSize: '', rating: 0,
+        groupSize: '',
+        averagePrice: avgPrice || null,
         price: avgPrice ? `$${avgPrice} avg` : (productOptions.length > 0
-          ? productOptions[0].price_options.map(p => `${p.currency_code} ${p.amount}`).join(' / ') : ''),
+          ? productOptions[0].price_options.map((p: any) => `${p.currency_code} ${p.amount}`).join(' / ') : ''),
         highlights: product.highlights_json || [],
         gallery: (product.gallery_json && product.gallery_json.length > 0) ? product.gallery_json : (product.cover_image_url ? [product.cover_image_url] : []),
         bestTime: '', weather: '',
@@ -326,7 +323,7 @@ export default function ExperienceDetail() {
         description: legacyExperience.description || '',
         duration: legacyExperience.duration || '',
         groupSize: legacyExperience.group_size || '',
-        rating: legacyExperience.rating || 0,
+        averagePrice: null,
         price: legacyExperience.price || '',
         highlights: (legacyExperience.highlights as any[]) || [],
         gallery: (legacyExperience.gallery as any[]) || (legacyExperience.video_thumbnail ? [legacyExperience.video_thumbnail] : []),
@@ -384,7 +381,7 @@ export default function ExperienceDetail() {
   const experienceJsonLd = useMemo(() => {
     if (product && productOptions) return generateProductSchema(product, productOptions, productHosts, resolvedDestination);
     if (!experience) return null;
-    return createExperienceJsonLd({ title: experience.title, description: experience.description, location: experience.location, price: experience.price, rating: experience.rating, image: experience.videoThumbnail, url: shareUrl, duration: experience.duration, category: experience.category });
+    return createExperienceJsonLd({ title: experience.title, description: experience.description, location: experience.location, price: experience.price, rating: 0, image: experience.videoThumbnail, url: shareUrl, duration: experience.duration, category: experience.category });
   }, [experience, product, productOptions, productHosts, resolvedDestination, shareUrl]);
 
   const hasHighlights = experience?.highlights && experience.highlights.length > 0;
@@ -392,6 +389,7 @@ export default function ExperienceDetail() {
   const hasSocialContent = (experience?.tiktokVideos && experience.tiktokVideos.length > 0) || !!experience?.instagramEmbed;
   const hasDescription = !!experience?.description?.trim();
   const hasCreators = (() => { if (!experience?.creator) return false; return experience.creator.trim().length > 0; })();
+  const hasLocalTips = (experience as any)?.localTips && (experience as any).localTips.length > 0;
 
   const { data: poiMatch, isLoading: poiLoading } = usePoiBySlug((!experience && !productLoading) ? resolvedSlug : "");
 
@@ -433,10 +431,11 @@ export default function ExperienceDetail() {
     return `/hosts/${match ? match.slug || match.username : creatorName.toLowerCase().replace(/\s+/g, '-')}`;
   };
 
-  // ========== SHARED CONTENT SECTIONS ==========
+  // ========== SHARED CONTENT SECTIONS (ordered per spec) ==========
+  // Order: About → Pricing → What's typically included → Highlights → Access points → Getting there → Local tips → Watch it live → Hosts → Questions
   const renderContentSections = (layout: 'mobile' | 'desktop') => (
     <>
-      {/* About (moved above pricing) */}
+      {/* 1. About */}
       {hasDescription && (
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-3">About</h2>
@@ -444,17 +443,20 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* Price section — currency auto-detected */}
+      {/* 2. Pricing */}
       <PriceSection
         experience={experience}
         productOptions={productOptions}
         selectedCurrency={selectedCurrency}
       />
 
-      {/* Highlights */}
+      {/* 3. What's typically included */}
+      {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
+
+      {/* 4. Highlights */}
       {hasHighlights && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">What makes it special</h2>
+          <h2 className="text-lg font-semibold mb-4">Highlights</h2>
           <div className={cn("grid gap-3", layout === 'desktop' ? "grid-cols-1 sm:grid-cols-2 gap-2" : "grid-cols-1")}>
             {experience.highlights?.map((item: string, index: number) => (
               <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
@@ -468,10 +470,7 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* What's included */}
-      {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
-
-      {/* Meeting Points */}
+      {/* 5. Access points */}
       {hasMeetingPoints && (
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-4">Access points</h2>
@@ -483,7 +482,7 @@ export default function ExperienceDetail() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{point.name}</p>
-                  <p className="text-xs text-muted-foreground">{point.type}</p>
+                  {point.type && <p className="text-xs text-muted-foreground">{point.type}</p>}
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
@@ -492,15 +491,15 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* Getting There */}
+      {/* 6. Getting There */}
       {(experience as any).isProduct && (
         <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />
       )}
 
-      {/* Local Tips */}
-      <LocalTipsSection tips={(experience as any).localTips || []} />
+      {/* 7. Local Tips */}
+      {hasLocalTips && <LocalTipsSection tips={(experience as any).localTips} />}
 
-      {/* Social Video Embeds (moved above Questions) */}
+      {/* 8. Watch it live (Social Video Embeds) */}
       {hasSocialContent && (
         <SocialVideoEmbed 
           experienceTitle={experience.title}
@@ -511,7 +510,7 @@ export default function ExperienceDetail() {
         />
       )}
 
-      {/* Hosts */}
+      {/* 9. Hosts */}
       {hasCreators && creatorNames.length > 0 && (
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-3">Hosts</h2>
@@ -522,7 +521,6 @@ export default function ExperienceDetail() {
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">{creatorName.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1"><p className="font-medium">@{creatorName}</p><p className="text-sm text-muted-foreground">Host</p></div>
-                <div className="flex items-center gap-1 text-sm"><Star className="w-4 h-4 fill-yellow-500 text-yellow-500" /><span className="font-medium">{experience.rating}</span></div>
               </div>
             ))}
           </div>
@@ -533,7 +531,7 @@ export default function ExperienceDetail() {
       <PairingBlock experienceId={experience.id} />
       <IncludedInItineraries experienceId={experience.id} />
 
-      {/* Questions (moved below social) */}
+      {/* 10. Questions */}
       <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />
     </>
   );
@@ -577,8 +575,7 @@ export default function ExperienceDetail() {
               {linkedPoi && experience.location && <span>{experience.location}</span>}
             </div>
             <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-1.5"><Star className="w-4 h-4 fill-yellow-500 text-yellow-500" /><span className="text-sm font-semibold text-foreground">{experience.rating}</span></div>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong> people</span></div>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong></span></div>
             </div>
 
             {/* Add to Itinerary CTA */}
@@ -590,7 +587,7 @@ export default function ExperienceDetail() {
 
             {/* Info Pills */}
             <div className="flex flex-wrap gap-2 mb-6">
-              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">{categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}<span className="font-medium">{experience.category}</span></div>
+              {experience.category && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">{categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}<span className="font-medium">{experience.category}</span></div>}
               {experience.duration && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Clock className="w-4 h-4 text-primary" /><span className="font-medium">{experience.duration}</span></div>}
               {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Users className="w-4 h-4 text-primary" /><span className="font-medium">{experience.groupSize}</span></div>}
             </div>
@@ -630,16 +627,24 @@ export default function ExperienceDetail() {
           <div>
             <div className="mb-5">
               <h1 className="text-3xl font-bold tracking-tight mb-2">{experience.title}</h1>
-              <div className="flex items-center gap-1.5 text-muted-foreground mb-3"><MapPin className="w-4 h-4" /><span className="text-base">{experience.location}</span></div>
+              <div className="flex items-center gap-1.5 text-muted-foreground mb-3">
+                <MapPin className="w-4 h-4" />
+                {linkedPoi ? (
+                  <Link to={`/things-to-do/${resolvedDestination?.slug || destParam}/${resolvedArea?.slug || areaParam}/${linkedPoi.slug}`} className="text-primary hover:underline font-medium">{linkedPoi.name}</Link>
+                ) : (
+                  <span className="text-base">{experience.location}</span>
+                )}
+                {linkedPoi && experience.location && <span className="text-muted-foreground/50">·</span>}
+                {linkedPoi && experience.location && <span className="text-base">{experience.location}</span>}
+              </div>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5"><Star className="w-4 h-4 fill-yellow-500 text-yellow-500" /><span className="text-sm font-semibold">{experience.rating}</span></div>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong> people</span></div>
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong></span></div>
               </div>
             </div>
 
             {/* Info Pills */}
             <div className="flex flex-wrap gap-2 mb-6">
-              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">{categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}<span className="font-medium">{experience.category}</span></div>
+              {experience.category && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">{categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}<span className="font-medium">{experience.category}</span></div>}
               {experience.duration && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Clock className="w-4 h-4 text-primary" /><span className="font-medium">{experience.duration}</span></div>}
               {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Users className="w-4 h-4 text-primary" /><span className="font-medium">{experience.groupSize}</span></div>}
             </div>
@@ -657,7 +662,7 @@ export default function ExperienceDetail() {
                 <button onClick={handleLikeClick} className={cn("w-full mt-3 h-11 rounded-xl font-medium text-sm flex items-center justify-center gap-2 border transition-all", liked ? "bg-primary/5 border-primary/20 text-primary" : "bg-card border-border text-muted-foreground hover:text-foreground")}>
                   <Heart className={cn("w-4 h-4", liked && "fill-primary")} />{liked ? "Liked" : "Like"}
                 </button>
-                <p className="text-center text-xs text-muted-foreground mt-2.5">Liked by <span className="text-primary font-medium">{likedByCount}</span> people</p>
+                <p className="text-center text-xs text-muted-foreground mt-2.5">Liked by <span className="text-primary font-medium">{likedByCount}</span></p>
               </div>
 
               {/* In Your Itineraries */}
