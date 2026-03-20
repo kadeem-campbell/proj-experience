@@ -271,6 +271,7 @@ export const AdminProductsSection = () => {
         <TabsTrigger value="geography" className="text-xs">Geography</TabsTrigger>
         <TabsTrigger value="taxonomy" className="text-xs">Taxonomy</TabsTrigger>
         <TabsTrigger value="options" className="text-xs">Options & Pricing</TabsTrigger>
+        <TabsTrigger value="experience" className="text-xs">Experience</TabsTrigger>
         <TabsTrigger value="hosts" className="text-xs">Hosts</TabsTrigger>
         <TabsTrigger value="semantics" className="text-xs">Semantics</TabsTrigger>
         <TabsTrigger value="intent" className="text-xs">Intent</TabsTrigger>
