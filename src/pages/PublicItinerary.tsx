@@ -653,14 +653,14 @@ const PublicItinerary = () => {
     const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
     const category = dbExp?.category || experience.category;
     const price = dbExp?.price || (experience.price ? experience.price : null);
-    const expSlug = dbExp?.slug || slugify(experience.title);
-    const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = generateProductUrl(destSlug || 'explore', expSlug, dbExp?.areaSlug);
+    const expUrl = dbExp?.slug && dbExp?.destinationSlug
+      ? generateProductUrl(dbExp.destinationSlug, dbExp.slug, dbExp.areaSlug)
+      : null;
     return (
       <div
         key={experience.id}
-        className="cursor-pointer group"
-        onClick={() => navigate(expUrl)}
+        className={cn("group", expUrl && "cursor-pointer")}
+        onClick={() => expUrl && navigate(expUrl)}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {thumbnail ? (
