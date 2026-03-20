@@ -539,9 +539,9 @@ export const MobileHomeView = () => {
                   title={activeCategory ? `${catLabel} — ${title}` : title}
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
-                  {items.slice(0, 10).map((experience) => (
-                    <MobileExperienceCard key={experience.id} experience={experience} timingDisplay={timingMap[experience.id]} />
-                  ))}
+                    {items.slice(0, 10).map((experience) => (
+                     <MobileExperienceCard key={experience.id} experience={experience} />
+                    ))}
                 </HorizontalScrollRow>
               );
             }
