@@ -677,19 +677,19 @@ export default function ExperienceDetail() {
             </div>
           </div>
 
-          <div className="px-4 py-4">
-            {/* Add to Itinerary CTA — immediately after hero */}
-            <div className="mb-5">
+          <div className="px-4 pt-5 pb-4">
+            {/* Add to Itinerary CTA */}
+            <div className="mb-4">
               <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator, videoThumbnail: experience.videoThumbnail, category: experience.category, location: experience.location, price: experience.price || "" }} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-                <Button size="lg" className={cn("w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
+                <Button size="lg" className={cn("w-full h-[52px] rounded-2xl font-semibold text-[15px] bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
               </ItinerarySelector>
             </div>
 
-            {/* Info Pills */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {experience.category && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">{categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}<span className="font-medium">{experience.category}</span></div>}
-              {experience.duration && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Clock className="w-4 h-4 text-primary" /><span className="font-medium">{experience.duration}</span></div>}
-              {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Users className="w-4 h-4 text-primary" /><span className="font-medium">{experience.groupSize}</span></div>}
+            {/* Info Pills — refined, smaller */}
+            <div className="flex flex-wrap gap-1.5 mb-6">
+              {experience.category && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]">{categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}<span className="font-medium text-foreground/80">{experience.category}</span></div>}
+              {experience.duration && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
+              {experience.groupSize && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
             </div>
 
             {renderContentSections('mobile')}
