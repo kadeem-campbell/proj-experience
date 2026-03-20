@@ -328,6 +328,18 @@ export default function ExperienceDetail() {
     enabled: !!product?.activity_type_id,
   });
 
+  // Deterministic fake like count seeded from product ID
+  const seededLikeCount = useMemo(() => {
+    if (!product && !legacyExperience) return 0;
+    const id = product?.id || legacyExperience?.id || '';
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash |= 0;
+    }
+    return 47 + Math.abs(hash % 400); // range 47–446
+  }, [product?.id, legacyExperience?.id]);
+
   const experience = useMemo(() => {
     if (product) {
       const hostNames = productHosts.map(h => h.display_name || h.username).join(', ');
@@ -354,7 +366,7 @@ export default function ExperienceDetail() {
           ...((product as any).tiktok_url ? { tiktok: (product as any).tiktok_url } : {}),
           ...((product as any).instagram_url ? { instagram: (product as any).instagram_url } : {}),
         } as Record<string, string>,
-        likeCount: 0, slug: product.slug, isProduct: true,
+        likeCount: seededLikeCount, slug: product.slug, isProduct: true,
         localTips: (product as any).local_tips_json || [],
         gettingThereDescription: (product as any).getting_there_description || '',
       };
@@ -380,13 +392,12 @@ export default function ExperienceDetail() {
         tiktokVideos: (legacyExperience.tiktok_videos as any[]) || [],
         instagramEmbed: legacyExperience.instagram_embed || '',
         socialLinks: (legacyExperience.social_links as Record<string, string>) || {},
-        likeCount: legacyExperience.like_count || 0,
-        slug: legacyExperience.slug || '', isProduct: false,
+        likeCount: seededLikeCount, slug: legacyExperience.slug || '', isProduct: false,
         localTips: [] as string[], gettingThereDescription: '',
       };
     }
     return null;
-  }, [product, productOptions, productDestination, productDestinationById, productArea, productHosts, legacyExperience, productActivityType]);
+  }, [product, productOptions, productDestination, productDestinationById, productArea, productHosts, legacyExperience, productActivityType, seededLikeCount]);
 
   useEffect(() => {
     if (experience) trackPageView((experience as any).isProduct ? 'product' : 'experience', experience.id, window.location.pathname);
