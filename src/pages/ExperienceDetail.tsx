@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
+import { resolveTimingProfile as resolveTimingProfileFn } from "@/lib/timing";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug, useDestinationById, useAreaById } from "@/hooks/useProducts";
