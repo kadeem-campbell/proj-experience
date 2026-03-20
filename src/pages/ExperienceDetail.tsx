@@ -566,7 +566,16 @@ export default function ExperienceDetail() {
 
           <div className="px-4 py-4">
             <h1 className="text-2xl font-bold tracking-tight mb-1">{experience.title}</h1>
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-3"><MapPin className="w-4 h-4" /><span>{experience.location}</span></div>
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-3 flex-wrap">
+              <MapPin className="w-4 h-4" />
+              {linkedPoi ? (
+                <Link to={`/things-to-do/${resolvedDestination?.slug || destParam}/${resolvedArea?.slug || areaParam}/${linkedPoi.slug}`} className="text-primary hover:underline font-medium">{linkedPoi.name}</Link>
+              ) : (
+                <span>{experience.location}</span>
+              )}
+              {linkedPoi && experience.location && <span className="text-muted-foreground/50">·</span>}
+              {linkedPoi && experience.location && <span>{experience.location}</span>}
+            </div>
             <div className="flex items-center gap-4 mb-4">
               <div className="flex items-center gap-1.5"><Star className="w-4 h-4 fill-yellow-500 text-yellow-500" /><span className="text-sm font-semibold text-foreground">{experience.rating}</span></div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong> people</span></div>
