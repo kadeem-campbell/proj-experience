@@ -39,7 +39,7 @@ export const generateProductPageUrl = (
   return `/things-to-do/${resolvedSlug}`;
 };
 
-export const generateProductUrl = (destinationSlug: string, productSlug: string, areaSlug?: string): string => {
+export const generateProductUrl = (destinationSlug: string, productSlug: string, areaSlug?: string | null): string => {
   if (areaSlug) {
     return `/things-to-do/${destinationSlug}/${areaSlug}/${productSlug}`;
   }
