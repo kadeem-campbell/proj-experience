@@ -287,7 +287,7 @@ export default function ExperienceDetail() {
     }
 
     return null;
-  }, [product, productOptions, productDestination, productDestinationById, productHosts, legacyExperience]);
+  }, [product, productOptions, productDestination, productDestinationById, productArea, productHosts, legacyExperience]);
 
   // Analytics: track page view
   useEffect(() => {
