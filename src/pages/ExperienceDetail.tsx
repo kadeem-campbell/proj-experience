@@ -276,6 +276,7 @@ export default function ExperienceDetail() {
   const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
   const { data: productArea } = useAreaById(product?.primary_area_id || '');
   const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug((!product && !productLoading) ? resolvedSlug : '');
+  const bestTimeDisplay = useBestTimeDisplay(product?.id || '');
 
   // Fetch linked POI for breadcrumb
   const { data: linkedPoi } = useQuery({
