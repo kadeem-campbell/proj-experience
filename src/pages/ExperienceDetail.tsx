@@ -14,7 +14,7 @@ import PoiDetail from "@/pages/PoiDetail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { 
+import {
   Plus, ArrowLeft, Share2, MapPin, Users, Clock, Star, Heart,
   MessageCircle, Flame, TrendingUp, Sparkles, ChevronRight,
   Calendar, Zap, CloudSun, HelpCircle, Send, ThumbsUp,
