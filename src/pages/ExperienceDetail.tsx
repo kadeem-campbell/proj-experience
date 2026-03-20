@@ -247,7 +247,7 @@ export default function ExperienceDetail() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [likeCountDelta, setLikeCountDelta] = useState(0);
-  const [selectedCurrency, setSelectedCurrency] = useState(() => detectCurrency());
+  const { currency: selectedCurrency } = useCurrency();
   const isMobile = useIsMobile();
 
   const resolvedSlug = slug || legacySlug || id || '';
