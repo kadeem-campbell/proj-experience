@@ -1,4 +1,4 @@
-import { MapPin, ChevronDown } from "lucide-react";
+import { MapPin, ChevronDown, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -6,6 +6,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useDestinations, BrowseDestination } from "@/hooks/useDestinations";
+import { useCurrency } from "@/hooks/useCurrency";
 import { useState } from "react";
 
 interface BrowseDropdownProps {
@@ -16,6 +17,7 @@ interface BrowseDropdownProps {
 export const BrowseDropdown = ({ onSelectCity, onClearFilters }: BrowseDropdownProps) => {
   const [open, setOpen] = useState(false);
   const { data: destinations = [] } = useDestinations();
+  const { currency, updateCurrency, CURRENCIES } = useCurrency();
 
   const handleClick = (dest: BrowseDestination) => {
     onSelectCity?.(dest);
@@ -56,7 +58,7 @@ export const BrowseDropdown = ({ onSelectCity, onClearFilters }: BrowseDropdownP
               </button>
             )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 max-h-[220px] overflow-y-auto">
             {destinations.map((dest) => (
               <button
                 key={dest.id}
@@ -77,6 +79,29 @@ export const BrowseDropdown = ({ onSelectCity, onClearFilters }: BrowseDropdownP
                 </span>
               </button>
             ))}
+          </div>
+
+          {/* Currency selector */}
+          <div className="border-t border-border mt-3 pt-3">
+            <div className="flex items-center gap-2 px-1 mb-2">
+              <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Currency</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {CURRENCIES.map(c => (
+                <button
+                  key={c.code}
+                  onClick={() => updateCurrency(c.code)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    currency === c.code
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </PopoverContent>

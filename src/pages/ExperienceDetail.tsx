@@ -14,12 +14,11 @@ import PoiDetail from "@/pages/PoiDetail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
+import {
   Plus, ArrowLeft, Share2, MapPin, Users, Clock, Star, Heart,
   MessageCircle, Flame, TrendingUp, Sparkles, ChevronRight,
   Calendar, Zap, CloudSun, HelpCircle, Send, ThumbsUp,
-  Check, Car, Lightbulb, Navigation
+  Check, Car, Lightbulb, Navigation, Anchor
 } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
@@ -32,6 +31,7 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { AuthModal } from "@/components/AuthModal";
+import { useCurrency } from "@/hooks/useCurrency";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -44,27 +44,6 @@ const categoryIconMap: Record<string, string> = {
   "Beach": catBeaches, "Adventure": catAdventure, "Party": catNightlife,
   "Wildlife": catSafari, "Food": catFood, "Water Sports": catAdventure,
   "Nightlife": catNightlife, "Culture": catNature,
-};
-
-const CURRENCIES = [
-  { code: 'USD', symbol: '$', label: 'USD ($)' },
-  { code: 'GBP', symbol: '£', label: 'GBP (£)' },
-  { code: 'EUR', symbol: '€', label: 'EUR (€)' },
-  { code: 'TZS', symbol: 'TSh', label: 'TZS (TSh)' },
-  { code: 'KES', symbol: 'KSh', label: 'KES (KSh)' },
-];
-
-// Detect default currency from timezone/locale
-const detectCurrency = (): string => {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-    const locale = navigator.language || '';
-    if (tz.includes('London') || tz.includes('Europe/London') || locale.startsWith('en-GB')) return 'GBP';
-    if (tz.includes('Europe/') && !tz.includes('London')) return 'EUR';
-    if (tz.includes('Nairobi') || locale.includes('KE')) return 'KES';
-    if (tz.includes('Dar_es_Salaam') || locale.includes('TZ')) return 'TZS';
-  } catch {}
-  return 'USD';
 };
 
 // Questions Section
@@ -216,13 +195,12 @@ const LocalTipsSection = ({ tips }: { tips: string[] }) => {
   );
 };
 
-// Currency-aware price display
-const PriceSection = ({ experience, productOptions, selectedCurrency, onCurrencyChange }: {
-  experience: any; productOptions: any[]; selectedCurrency: string; onCurrencyChange: (c: string) => void;
+// Currency-aware price display — no selector, uses global auto-detected currency
+const PriceSection = ({ experience, productOptions, selectedCurrency }: {
+  experience: any; productOptions: any[]; selectedCurrency: string;
 }) => {
-  const curr = CURRENCIES.find(c => c.code === selectedCurrency) || CURRENCIES[0];
+  const { currencyInfo } = useCurrency();
 
-  // Collect all prices for the selected currency from options
   const allPrices = productOptions.flatMap(opt =>
     (opt.price_options || []).filter((p: any) => p.currency_code === selectedCurrency)
   );
@@ -234,22 +212,14 @@ const PriceSection = ({ experience, productOptions, selectedCurrency, onCurrency
 
   return (
     <div className="mb-6 p-4 rounded-2xl bg-card border border-border">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-semibold">Pricing</h3>
-        <Select value={selectedCurrency} onValueChange={onCurrencyChange}>
-          <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {CURRENCIES.map(c => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
+      <h3 className="text-base font-semibold mb-3">Pricing</h3>
       {hasDetailedPricing ? (
         <div className="space-y-2">
           {allPrices.map((p: any, i: number) => (
             <div key={i} className="flex items-center justify-between text-sm">
               <span className="capitalize text-muted-foreground">{(p.pricing_category || 'standard').replace(/_/g, ' ')}</span>
               <span className="font-semibold text-foreground">
-                {curr.symbol}{p.amount}{p.amount_max ? ` – ${curr.symbol}${p.amount_max}` : ''}
+                {currencyInfo.symbol}{p.amount}{p.amount_max ? ` – ${currencyInfo.symbol}${p.amount_max}` : ''}
                 <span className="text-xs text-muted-foreground ml-1">/{(p.pricing_unit || 'per_person').replace(/_/g, ' ')}</span>
               </span>
             </div>
@@ -258,7 +228,7 @@ const PriceSection = ({ experience, productOptions, selectedCurrency, onCurrency
       ) : (
         <span className="text-2xl font-bold text-foreground">{experience.price}</span>
       )}
-      <p className="text-[11px] text-muted-foreground mt-2">Prices are based on local market averages and may vary by operator.</p>
+      <p className="text-[11px] text-muted-foreground mt-2">Prices shown in {currencyInfo.code}. Update currency via Destinations filter.</p>
     </div>
   );
 };
@@ -277,7 +247,7 @@ export default function ExperienceDetail() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [likeCountDelta, setLikeCountDelta] = useState(0);
-  const [selectedCurrency, setSelectedCurrency] = useState(() => detectCurrency());
+  const { currency: selectedCurrency } = useCurrency();
   const isMobile = useIsMobile();
 
   const resolvedSlug = slug || legacySlug || id || '';
@@ -288,6 +258,17 @@ export default function ExperienceDetail() {
   const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
   const { data: productArea } = useAreaById(product?.primary_area_id || '');
   const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug((!product && !productLoading) ? resolvedSlug : '');
+
+  // Fetch linked POI for breadcrumb
+  const { data: linkedPoi } = useQuery({
+    queryKey: ['product-linked-poi', product?.primary_poi_id],
+    queryFn: async () => {
+      if (!product?.primary_poi_id) return null;
+      const { data } = await supabase.from('pois').select('id, name, slug, area_id').eq('id', product.primary_poi_id).maybeSingle() as any;
+      return data;
+    },
+    enabled: !!product?.primary_poi_id,
+  });
 
   const handleGoBack = () => {
     if (window.history.state && window.history.state.idx > 0) navigate(-1);
@@ -463,12 +444,11 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* Price section with currency selector */}
+      {/* Price section — currency auto-detected */}
       <PriceSection
         experience={experience}
         productOptions={productOptions}
         selectedCurrency={selectedCurrency}
-        onCurrencyChange={setSelectedCurrency}
       />
 
       {/* Highlights */}
@@ -494,7 +474,7 @@ export default function ExperienceDetail() {
       {/* Meeting Points */}
       {hasMeetingPoints && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">Where to find it</h2>
+          <h2 className="text-lg font-semibold mb-4">Access points</h2>
           <div className="space-y-2">
             {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
               <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
@@ -586,7 +566,16 @@ export default function ExperienceDetail() {
 
           <div className="px-4 py-4">
             <h1 className="text-2xl font-bold tracking-tight mb-1">{experience.title}</h1>
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-3"><MapPin className="w-4 h-4" /><span>{experience.location}</span></div>
+            <div className="flex items-center gap-1.5 text-muted-foreground mb-3 flex-wrap">
+              <MapPin className="w-4 h-4" />
+              {linkedPoi ? (
+                <Link to={`/things-to-do/${resolvedDestination?.slug || destParam}/${resolvedArea?.slug || areaParam}/${linkedPoi.slug}`} className="text-primary hover:underline font-medium">{linkedPoi.name}</Link>
+              ) : (
+                <span>{experience.location}</span>
+              )}
+              {linkedPoi && experience.location && <span className="text-muted-foreground/50">·</span>}
+              {linkedPoi && experience.location && <span>{experience.location}</span>}
+            </div>
             <div className="flex items-center gap-4 mb-4">
               <div className="flex items-center gap-1.5"><Star className="w-4 h-4 fill-yellow-500 text-yellow-500" /><span className="text-sm font-semibold text-foreground">{experience.rating}</span></div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong> people</span></div>

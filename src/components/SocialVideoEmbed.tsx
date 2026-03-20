@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { Play, Video, X } from "lucide-react";
+import { Play, Video, X, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
@@ -10,7 +10,6 @@ export interface TikTokVideo {
   thumbnailUrl?: string;
 }
 
-/** Extract TikTok video ID from a full URL */
 const extractTikTokVideoId = (url: string): string => {
   const match = url.match(/\/video\/(\d+)/);
   if (match?.[1]) return match[1];
@@ -24,17 +23,10 @@ export interface InstagramVideo {
   thumbnailUrl?: string;
 }
 
-/**
- * Parse an Instagram URL into a clean permalink suitable for embedding.
- * Handles /reel/, /reels/, /p/, /tv/ paths.
- */
 const getInstagramPermalink = (raw: string): string => {
   const trimmed = raw.trim().replace(/\/+$/, '');
-  // Match /reel/ or /reels/ or /p/ or /tv/ followed by shortcode
   const match = trimmed.match(/instagram\.com\/(?:reels?|p|tv)\/([^/?#]+)/i);
-  if (match?.[1]) {
-    return `https://www.instagram.com/reel/${match[1]}/`;
-  }
+  if (match?.[1]) return `https://www.instagram.com/reel/${match[1]}/`;
   return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
 };
 
@@ -46,63 +38,10 @@ interface SocialVideoEmbedProps {
   className?: string;
 }
 
-const CARD_HEIGHT = "h-48";
-
 /**
- * Instagram embed using the official embed.js script.
- * Renders a blockquote that Instagram's script processes into a full embed.
+ * Immersive social video embed — plays inline with minimal chrome.
+ * No external links, no platform branding overlays, just video.
  */
-const InstagramEmbed = ({ permalink }: { permalink: string }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Load Instagram embed script if not already present
-    const existingScript = document.querySelector('script[src*="instagram.com/embed.js"]');
-    if (existingScript) {
-      // Script already loaded, just reprocess
-      (window as any).instgrm?.Embeds?.process?.();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://www.instagram.com/embed.js';
-    script.async = true;
-    script.onload = () => {
-      (window as any).instgrm?.Embeds?.process?.();
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      // Don't remove the script on cleanup — it can be reused
-    };
-  }, [permalink]);
-
-  return (
-    <div ref={containerRef} className="w-full flex justify-center">
-      <blockquote
-        className="instagram-media"
-        data-instgrm-captioned
-        data-instgrm-permalink={permalink}
-        data-instgrm-version="14"
-        style={{
-          background: '#FFF',
-          border: 0,
-          borderRadius: '12px',
-          margin: '0 auto',
-          maxWidth: '400px',
-          minWidth: '280px',
-          width: '100%',
-          padding: 0,
-        }}
-      >
-        <div style={{ padding: '16px', textAlign: 'center' }}>
-          <p className="text-sm text-muted-foreground">Loading Instagram content...</p>
-        </div>
-      </blockquote>
-    </div>
-  );
-};
-
 export const SocialVideoEmbed = ({ 
   experienceTitle, 
   location, 
@@ -121,96 +60,75 @@ export const SocialVideoEmbed = ({
     return getInstagramPermalink(instagramEmbed!);
   }, [hasInstagram, instagramEmbed]);
 
-  // Don't render if no embeds available
+  // Extract Instagram shortcode for embed URL
+  const instagramEmbedUrl = useMemo(() => {
+    if (!instagramPermalink) return '';
+    return `${instagramPermalink}embed/?cr=1&v=14&wp=326&rd=https%3A%2F%2Fswam.app&th=dark#%7B%22ci%22%3A0%2C%22os%22%3A0%7D`;
+  }, [instagramPermalink]);
+
   if (!hasTikTok && !hasInstagram) return null;
 
   return (
     <div className={cn("space-y-3", className)}>
       <h3 className="text-lg font-semibold flex items-center gap-2">
         <Video className="w-5 h-5 text-primary" />
-        See it on Social
+        Watch it live
       </h3>
-      <p className="text-sm text-muted-foreground mb-3">
-        Watch videos from travelers who experienced this
-      </p>
       
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
-        {/* TikTok video cards */}
+        {/* TikTok cards */}
         {tiktokVideos.map((video, idx) => {
           const resolvedId = video.videoId || extractTikTokVideoId(video.url);
           if (!resolvedId) return null;
-          const authorMatch = video.url?.match(/@([^/]+)/);
-          const author = video.author || (authorMatch?.[1]) || 'Watch';
           return (
             <button
               key={resolvedId || idx}
-              onClick={() => setActiveVideo({ ...video, videoId: resolvedId, author })}
+              onClick={() => setActiveVideo({ ...video, videoId: resolvedId })}
               className="flex-shrink-0 relative group cursor-pointer snap-start"
             >
-              <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-foreground/90 to-foreground/70 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative")}>
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#25F4EE] via-[#FE2C55] to-[#25F4EE]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-                
-                <div className="relative z-10 w-12 h-12 rounded-full bg-[#FE2C55] flex items-center justify-center shadow-lg">
-                  <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+              <div className="w-28 h-44 rounded-2xl bg-foreground/90 flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98] overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+                <div className="relative z-10 w-11 h-11 rounded-full bg-primary/90 flex items-center justify-center shadow-lg">
+                  <Play className="w-5 h-5 text-primary-foreground fill-primary-foreground ml-0.5" />
                 </div>
-                <div className="relative z-10 text-center px-2">
-                  <p className="text-white font-bold text-xs">TikTok</p>
-                  <p className="text-white/70 text-[10px] truncate max-w-[100px]">
-                    @{author}
-                  </p>
-                </div>
+                <span className="relative z-10 text-[10px] text-white/80 font-medium">Play video</span>
               </div>
             </button>
           );
         })}
 
-        {/* Instagram embed card */}
+        {/* Instagram card */}
         {hasInstagram && (
           <button
             onClick={() => setShowInstagram(true)}
             className="flex-shrink-0 relative group cursor-pointer snap-start"
           >
-            <div className={cn("w-32", CARD_HEIGHT, "rounded-xl bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] flex flex-col items-center justify-center gap-3 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98]")}>
-              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-                <Play className="w-5 h-5 text-white fill-white" />
+            <div className="w-28 h-44 rounded-2xl bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] flex flex-col items-center justify-center gap-2 transition-transform group-hover:scale-[1.02] group-active:scale-[0.98]">
+              <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                <Play className="w-5 h-5 text-white fill-white ml-0.5" />
               </div>
-              <div className="text-center px-2">
-                <p className="text-white font-semibold text-xs">Instagram</p>
-                <p className="text-white/80 text-[10px]">Watch Reel</p>
-              </div>
+              <span className="text-[10px] text-white/80 font-medium">Play video</span>
             </div>
           </button>
         )}
       </div>
 
-      {/* TikTok embed drawer */}
+      {/* TikTok immersive drawer — compact, no links */}
       <Drawer open={!!activeVideo} onOpenChange={(open) => !open && setActiveVideo(null)}>
-        <DrawerContent className="max-h-[85vh] overflow-hidden">
-          <div className="flex items-center justify-between px-4 pt-2 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-foreground flex items-center justify-center">
-                <Play className="w-3 h-3 text-background fill-background ml-0.5" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">TikTok</p>
-                {activeVideo?.author && (
-                  <p className="text-xs text-muted-foreground">@{activeVideo.author}</p>
-                )}
-              </div>
-            </div>
+        <DrawerContent className="max-h-[75vh] overflow-hidden bg-black border-border">
+          <div className="flex items-center justify-end px-3 pt-2 pb-1">
             <button 
               onClick={() => setActiveVideo(null)}
-              className="p-1.5 rounded-full bg-muted hover:bg-muted/80"
+              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20"
             >
-              <X className="w-4 h-4 text-muted-foreground" />
+              <X className="w-4 h-4 text-white" />
             </button>
           </div>
           {activeVideo && (
-            <div className="w-full flex justify-center px-4 pb-6 overflow-hidden">
-              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '340px', height: '600px' }}>
+            <div className="w-full flex justify-center pb-4 overflow-hidden">
+              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '320px', height: '520px' }}>
                 <iframe
-                  src={`https://www.tiktok.com/embed/v2/${activeVideo.videoId}`}
+                  src={`https://www.tiktok.com/embed/v2/${activeVideo.videoId}?autoplay=1`}
                   className="border-0"
                   style={{ width: '100%', height: '100%' }}
                   allow="autoplay; encrypted-media"
@@ -224,29 +142,29 @@ export const SocialVideoEmbed = ({
         </DrawerContent>
       </Drawer>
 
-      {/* Instagram embed drawer — uses official embed.js */}
+      {/* Instagram immersive drawer — iframe embed, no chrome */}
       <Drawer open={showInstagram} onOpenChange={setShowInstagram}>
-        <DrawerContent className="max-h-[85vh] overflow-hidden">
-          <div className="flex items-center justify-between px-4 pt-2 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737] flex items-center justify-center">
-                <Play className="w-3 h-3 text-white fill-white ml-0.5" />
-              </div>
-              <p className="text-sm font-semibold">Instagram</p>
-            </div>
+        <DrawerContent className="max-h-[75vh] overflow-hidden bg-black border-border">
+          <div className="flex items-center justify-end px-3 pt-2 pb-1">
             <button 
               onClick={() => setShowInstagram(false)}
-              className="p-1.5 rounded-full bg-muted hover:bg-muted/80"
+              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20"
             >
-              <X className="w-4 h-4 text-muted-foreground" />
+              <X className="w-4 h-4 text-white" />
             </button>
           </div>
           {showInstagram && hasInstagram && (
-            <div className="w-full px-4 pb-6 overflow-y-auto" data-vaul-no-drag
-              onPointerDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            >
-              <InstagramEmbed permalink={instagramPermalink} />
+            <div className="w-full flex justify-center pb-4 overflow-hidden">
+              <div className="rounded-xl overflow-hidden" style={{ width: '100%', maxWidth: '320px', height: '520px' }}>
+                <iframe
+                  src={instagramEmbedUrl}
+                  className="border-0"
+                  style={{ width: '100%', height: '100%', background: '#000' }}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  scrolling="no"
+                />
+              </div>
             </div>
           )}
         </DrawerContent>
