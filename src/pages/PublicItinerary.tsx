@@ -650,9 +650,12 @@ const PublicItinerary = () => {
   const renderIconCard = (experience: LikedExperience) => {
     const liked = isItemLiked(experience.id, 'experience');
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
+    const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
+    const category = dbExp?.category || experience.category;
+    const price = dbExp?.price || (experience.price ? experience.price : null);
     const expSlug = dbExp?.slug || slugify(experience.title);
     const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = generateProductUrl(destSlug, expSlug, dbExp?.areaSlug);
+    const expUrl = destSlug ? generateProductUrl(destSlug, expSlug, dbExp?.areaSlug) : `/things-to-do`;
     return (
       <div
         key={experience.id}
@@ -660,8 +663,8 @@ const PublicItinerary = () => {
         onClick={() => navigate(expUrl)}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
-          {experience.videoThumbnail ? (
-            <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" />
+          {thumbnail ? (
+            <img src={thumbnail} alt={experience.title} className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <MapPin className="w-6 h-6 text-muted-foreground" />
@@ -684,7 +687,21 @@ const PublicItinerary = () => {
         </div>
         <div className="mt-2 space-y-0.5">
           <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{experience.title}</h3>
-          <p className="text-xs text-muted-foreground truncate">{experience.location}</p>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+            {category && <span>{category}</span>}
+            {timingMap[experience.id] && (
+              <>
+                <span className="opacity-40">·</span>
+                <TimingIcon icon={timingMap[experience.id].primary_time_icon} className="w-3 h-3" />
+              </>
+            )}
+            {price && (
+              <>
+                <span className="opacity-40">·</span>
+                <span>{price}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
