@@ -13,15 +13,25 @@ import { useCurrency, CURRENCIES, setGlobalCurrency } from "@/hooks/useCurrency"
 const CurrencyPicker = () => {
   const { currency, updateCurrency } = useCurrency();
   return (
-    <select
-      value={currency}
-      onChange={(e) => updateCurrency(e.target.value)}
-      className="text-xs font-medium bg-muted border border-border rounded-lg px-2 py-1.5 text-foreground"
-    >
-      {CURRENCIES.map(c => (
-        <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
-      ))}
-    </select>
+    <div className="flex items-center gap-1.5 bg-muted/60 rounded-full p-1">
+      {CURRENCIES.map(c => {
+        const isActive = c.code === currency;
+        return (
+          <button
+            key={c.code}
+            onClick={() => updateCurrency(c.code)}
+            className={cn(
+              "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-150 active:scale-95",
+              isActive
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {c.symbol}
+          </button>
+        );
+      })}
+    </div>
   );
 };
 
