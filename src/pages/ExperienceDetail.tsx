@@ -21,6 +21,7 @@ import {
   Calendar, Zap, CloudSun, HelpCircle, Send, ThumbsUp,
   Check, Car, Lightbulb, Navigation, Anchor
 } from "lucide-react";
+import { TimingIcon } from "@/components/TimingIcon";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
