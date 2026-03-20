@@ -594,42 +594,68 @@ export default function ExperienceDetail() {
           <SEOHead title={`${experience.title} in ${experience.location}`} description={`${experience.title} — ${experience.category} activity in ${experience.location}. ${experience.description?.slice(0, 120) || 'Discover and add to your itinerary.'}`} canonicalPath={shareUrl.replace('https://swam.app', '')} indexability="public_indexed" image={experience.videoThumbnail} jsonLd={experienceJsonLd} />
         )}
         <div className="bg-background overflow-y-auto">
-          {/* Photo Gallery */}
+          {/* ========== PREMIUM HERO ========== */}
           <div className="relative">
             {gallery.length > 1 ? (
               <PhotoGallery images={gallery} title={experience.title} />
             ) : experience.videoUrl ? (
-              <div className="aspect-[4/3] overflow-hidden bg-muted"><video ref={videoRef} poster={experience.videoThumbnail} className="w-full h-full object-cover" muted loop playsInline autoPlay><source src={experience.videoUrl} type="video/mp4" /></video></div>
+              <div className="aspect-[3/4] overflow-hidden bg-muted"><video ref={videoRef} poster={experience.videoThumbnail} className="w-full h-full object-cover" muted loop playsInline autoPlay><source src={experience.videoUrl} type="video/mp4" /></video></div>
             ) : (
-              <div className="aspect-[4/3] overflow-hidden bg-muted"><img src={gallery[0]} alt={experience.title} className="w-full h-full object-cover" /></div>
+              <div className="aspect-[3/4] overflow-hidden bg-muted"><img src={gallery[0]} alt={experience.title} className="w-full h-full object-cover" /></div>
             )}
+
+            {/* Top floating buttons */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-              <button onClick={handleGoBack} className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg"><ArrowLeft className="w-5 h-5 text-foreground" /></button>
+              <button onClick={handleGoBack} className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center"><ArrowLeft className="w-5 h-5 text-white" /></button>
               <div className="flex items-center gap-2">
-                <ShareDrawer title={experience.title} url={shareUrl} onInvite={() => {}}><button className="w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg"><Share2 className="w-5 h-5 text-foreground" /></button></ShareDrawer>
-                <button onClick={handleLikeClick} className={cn("w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-lg", liked && "bg-primary/15")}><Heart className={cn("w-5 h-5", liked ? "fill-primary text-primary" : "text-foreground")} /></button>
+                <ShareDrawer title={experience.title} url={shareUrl} onInvite={() => {}}><button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center"><Share2 className="w-5 h-5 text-white" /></button></ShareDrawer>
+                <button onClick={handleLikeClick} className={cn("w-10 h-10 rounded-full backdrop-blur-xl flex items-center justify-center", liked ? "bg-primary/80" : "bg-black/30")}><Heart className={cn("w-5 h-5", liked ? "fill-white text-white" : "text-white")} /></button>
+              </div>
+            </div>
+
+            {/* Bottom gradient overlay with title stack */}
+            <div className="absolute inset-x-0 bottom-0 z-10">
+              <div className="bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-24 pb-5 px-4">
+                {/* Location line */}
+                <div className="flex items-center gap-1.5 mb-2">
+                  <MapPin className="w-3.5 h-3.5 text-white/70" />
+                  {linkedPoi ? (
+                    <span className="text-sm text-white/90 font-medium">{linkedPoi.name}{experience.location ? `, ${experience.location}` : ''}</span>
+                  ) : (
+                    <span className="text-sm text-white/90 font-medium">{experience.location}</span>
+                  )}
+                </div>
+                {/* Title */}
+                <h1 className="text-[26px] font-extrabold text-white tracking-tight leading-[1.1] mb-3" style={{ fontFamily: '-apple-system, SF Pro Display, system-ui, sans-serif', letterSpacing: '-0.5px' }}>
+                  {experience.title}
+                </h1>
+                {/* Meta row — social proof · price · timing */}
+                <div className="flex items-center gap-2 flex-wrap text-[13px]">
+                  {likedByCount > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
+                      <Heart className="w-3 h-3 fill-white/80 text-white/80" />
+                      Saved by {likedByCount} traveller{likedByCount !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                  {experience.price && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
+                      From {experience.price}
+                    </span>
+                  )}
+                  {experience.bestTime && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
+                      <Calendar className="w-3 h-3" />
+                      {experience.bestTime}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="px-4 py-4">
-            <h1 className="text-2xl font-bold tracking-tight mb-1">{experience.title}</h1>
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-3 flex-wrap">
-              <MapPin className="w-4 h-4" />
-              {linkedPoi ? (
-                <Link to={`/things-to-do/${resolvedDestination?.slug || destParam}/${resolvedArea?.slug || areaParam}/${linkedPoi.slug}`} className="text-primary hover:underline font-medium">{linkedPoi.name}</Link>
-              ) : (
-                <span>{experience.location}</span>
-              )}
-              {linkedPoi && experience.location && <span className="text-muted-foreground/50">·</span>}
-              {linkedPoi && experience.location && <span>{experience.location}</span>}
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><span>Liked by <strong className="text-foreground">{likedByCount}</strong></span></div>
-            </div>
-
-            {/* Add to Itinerary CTA */}
-            <div className="mb-6">
+            {/* Add to Itinerary CTA — immediately after hero */}
+            <div className="mb-5">
               <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator, videoThumbnail: experience.videoThumbnail, category: experience.category, location: experience.location, price: experience.price || "" }} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
                 <Button size="lg" className={cn("w-full h-14 rounded-2xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
               </ItinerarySelector>
