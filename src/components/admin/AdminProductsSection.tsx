@@ -102,6 +102,42 @@ const GalleryEditor = ({ value, onChange, productSlug }: { value: any[]; onChang
   );
 };
 
+// ---- Cover Image uploader ----
+const CoverImageUploader = ({ value, onChange, productSlug }: { value: string; onChange: (v: string) => void; productSlug?: string }) => {
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const file = files[0];
+    const folder = productSlug || 'general';
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `${folder}/cover-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: true });
+    if (!error) {
+      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
+      if (urlData?.publicUrl) onChange(urlData.publicUrl);
+    }
+    setUploading(false);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {value && (
+        <div className="relative group w-full h-24 rounded-md overflow-hidden border border-border">
+          <img src={value} alt="Cover" className="w-full h-full object-cover" />
+          <Button size="sm" variant="ghost" className="absolute top-1 right-1 h-5 w-5 p-0 bg-background/80 rounded-full opacity-0 group-hover:opacity-100" onClick={() => onChange('')}><Trash2 className="w-3 h-3" /></Button>
+        </div>
+      )}
+      <label className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-md p-2 cursor-pointer hover:border-primary/50 transition-colors">
+        <input type="file" accept="image/*" className="hidden" onChange={e => handleUpload(e.target.files)} disabled={uploading} />
+        {uploading ? <><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /><span className="text-xs text-muted-foreground">Uploading…</span></> : <><Upload className="w-4 h-4 text-muted-foreground" /><span className="text-xs text-muted-foreground">{value ? 'Replace cover' : 'Upload cover image'}</span></>}
+      </label>
+      <Input value={value} placeholder="Or paste URL..." className="text-xs" onChange={e => onChange(e.target.value)} />
+    </div>
+  );
+
+
 export const AdminProductsSection = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
