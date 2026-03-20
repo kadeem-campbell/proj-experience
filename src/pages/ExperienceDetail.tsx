@@ -163,7 +163,7 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
 };
 
 export default function ExperienceDetail() {
-  const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams<{ id?: string; location?: string; legacySlug?: string; slug?: string; destination?: string; area?: string }>() as any;
+  const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams<{ id?: string; location?: string; legacySlug?: string; slug?: string; destination?: string; area?: string }>();
   const navigate = useNavigate();
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
