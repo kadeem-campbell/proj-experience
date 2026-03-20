@@ -21,6 +21,7 @@ import {
   Calendar, Zap, CloudSun, HelpCircle, Send, ThumbsUp,
   Check, Car, Lightbulb, Navigation, Anchor
 } from "lucide-react";
+import { TimingIcon } from "@/components/TimingIcon";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { cn } from "@/lib/utils";
@@ -161,15 +162,13 @@ const BestTimeSection = ({ productId }: { productId: string }) => {
   const display = resolved?.derived_display;
   if (!display) return null;
 
-  const iconMap: Record<string, string> = { sunrise: '🌅', sun: '☀️', sunset: '🌇', moon: '🌙', flexible: '⏰', mixed: '🔄' };
-
   return (
     <div className="mb-6">
       <h2 className="text-lg font-semibold mb-3">Best time to go</h2>
       <div className="p-4 rounded-2xl bg-card border border-border">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">
-            {iconMap[display.primary_time_icon] || '☀️'}
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <TimingIcon icon={display.primary_time_icon} className="w-6 h-6" />
           </div>
           <div className="flex-1">
             <p className="font-medium text-foreground">{display.primary_time_label}</p>

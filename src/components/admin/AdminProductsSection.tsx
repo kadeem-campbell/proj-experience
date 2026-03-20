@@ -20,6 +20,7 @@ import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Archive, Eye, RefreshCw, Plus, Trash2, CheckCircle, AlertTriangle, XCircle, ExternalLink, Upload, Loader2 } from 'lucide-react';
+import { TimingIcon } from '@/components/TimingIcon';
 import { generateEntityDocuments } from '@/services/entityDocGenerator';
 import { validateProduct, persistReadinessScore, persistValidationResults } from '@/services/publishValidator';
 
@@ -693,8 +694,8 @@ const TimingEditor = ({ productId }: { productId: string }) => {
         <Card className="p-3 bg-muted/30">
           <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">Frontend display preview</Label>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-lg">
-              {displayPreview.primary_time_icon === 'sunrise' ? '🌅' : displayPreview.primary_time_icon === 'sun' ? '☀️' : displayPreview.primary_time_icon === 'sunset' ? '🌇' : displayPreview.primary_time_icon === 'moon' ? '🌙' : '⏰'}
+            <span className="text-primary">
+              <TimingIcon icon={displayPreview.primary_time_icon} className="w-5 h-5" />
             </span>
             <div>
               <p className="text-xs font-medium">{displayPreview.primary_time_label}</p>

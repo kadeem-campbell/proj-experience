@@ -2,6 +2,7 @@ import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { Layers, MapPin, Search, ChevronRight, Plus } from "lucide-react";
+import { TimingIcon } from "@/components/TimingIcon";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -165,9 +166,7 @@ const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; 
     return experience.price || '';
   }, [experience.averagePrice, experience.price, convert]);
 
-  const timingIcon = timingDisplay ? (
-    { sunrise: '🌅', sun: '☀️', sunset: '🌇', moon: '🌙', flexible: '⏰', mixed: '🔄' }[timingDisplay.primary_time_icon] || null
-  ) : null;
+  const hasTimingIcon = !!timingDisplay;
 
   return (
     <div 
@@ -180,9 +179,9 @@ const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; 
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
         )}
-        {timingIcon && (
+        {hasTimingIcon && (
           <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background/80 backdrop-blur-sm">
-            <span className="text-xs">{timingIcon}</span>
+            <TimingIcon icon={timingDisplay!.primary_time_icon} className="w-3 h-3 text-foreground" />
             <span className="text-[9px] font-medium text-foreground">{timingDisplay!.primary_time_label}</span>
           </div>
         )}
