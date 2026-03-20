@@ -35,6 +35,14 @@ export const AdminTaxonomySection = () => {
     queryKey: ['admin-price-options-full'],
     queryFn: async () => { const { data } = await supabase.from('price_options').select('*').order('display_order'); return data || []; },
   });
+  const { data: inclusionItems = [] } = useQuery({
+    queryKey: ['admin-inclusion-items-full'],
+    queryFn: async () => { const { data } = await (supabase as any).from('inclusion_items').select('*').order('name'); return data || []; },
+  });
+  const { data: transportModes = [] } = useQuery({
+    queryKey: ['admin-transport-modes-full'],
+    queryFn: async () => { const { data } = await (supabase as any).from('transport_modes').select('*').order('name'); return data || []; },
+  });
   const { data: products = [] } = useQuery({
     queryKey: ['admin-products-mini'],
     queryFn: async () => { const { data } = await supabase.from('products').select('id, title').order('title'); return data || []; },
