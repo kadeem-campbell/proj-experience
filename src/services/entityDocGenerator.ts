@@ -27,6 +27,9 @@ interface EnrichedProduct {
   intents: { name: string; score: number }[];
   positioning: Record<string, number> | null;
   pois: { name: string; slug: string }[];
+  inclusions: { name: string; emoji: string; category: string }[];
+  transport: { name: string; emoji: string; description: string }[];
+  timing: any | null;
 }
 
 // ============ FETCH ENRICHMENT ============
@@ -46,6 +49,9 @@ const fetchEnrichment = async (productId: string): Promise<EnrichedProduct | nul
     { data: intentLinks },
     { data: pos },
     { data: poiLinks },
+    { data: inclusionLinks },
+    { data: transportLinks },
+    { data: timingProfiles },
   ] = await Promise.all([
     product.destination_id
       ? supabase.from("destinations").select("*").eq("id", product.destination_id).maybeSingle()
@@ -61,12 +67,18 @@ const fetchEnrichment = async (productId: string): Promise<EnrichedProduct | nul
     supabase.from("product_intent_affinities").select("*, traveller_intent_profiles(name)").eq("product_id", productId) as any,
     supabase.from("product_positioning_profiles").select("*").eq("product_id", productId).maybeSingle() as any,
     supabase.from("product_pois").select("*, pois(name, slug)").eq("product_id", productId) as any,
+    supabase.from("product_inclusions").select("*, inclusion_items(name, emoji, category)").eq("product_id", productId).order("display_order") as any,
+    supabase.from("product_transport").select("*, transport_modes(name, emoji)").eq("product_id", productId).order("display_order") as any,
+    supabase.from("product_timing_profiles").select("*").eq("product_id", productId).eq("is_active", true).order("profile_type") as any,
   ]);
 
   const enrichedOptions = (opts || []).map((o: any) => ({
     ...o,
     price_options: o.price_options || [],
   }));
+
+  // Resolve active timing profile
+  const defaultTiming = (timingProfiles || []).find((t: any) => t.profile_type === 'default') || (timingProfiles || [])[0] || null;
 
   return {
     product: product as unknown as Product,
@@ -83,6 +95,40 @@ const fetchEnrichment = async (productId: string): Promise<EnrichedProduct | nul
     })).filter((i: any) => i.name),
     positioning: pos ? (() => { const { product_id, updated_at, ...scores } = pos; return scores; })() : null,
     pois: (poiLinks || []).map((p: any) => p.pois).filter(Boolean),
+    inclusions: (inclusionLinks || []).map((i: any) => ({
+      name: i.inclusion_items?.name || '',
+      emoji: i.inclusion_items?.emoji || '',
+      category: i.inclusion_items?.category || '',
+    })).filter((i: any) => i.name),
+    transport: (transportLinks || []).map((t: any) => ({
+      name: t.transport_modes?.name || '',
+      emoji: t.transport_modes?.emoji || '',
+      description: t.description || '',
+    })).filter((t: any) => t.name),
+    timing: defaultTiming,
+  };
+};
+
+// ============ TIMING HELPERS ============
+
+const deriveTimingDisplay = (timing: any) => {
+  if (!timing) return null;
+  const peak = timing.peak_start_hour;
+  let icon = 'sun';
+  let label = 'Daytime';
+  if (peak !== null && peak !== undefined) {
+    if (peak <= 6) { icon = 'sunrise'; label = 'Early morning'; }
+    else if (peak <= 10) { icon = 'sunrise'; label = 'Morning'; }
+    else if (peak <= 14) { icon = 'sun'; label = 'Midday'; }
+    else if (peak <= 17) { icon = 'sun'; label = 'Afternoon'; }
+    else if (peak <= 20) { icon = 'sunset'; label = 'Sunset / Evening'; }
+    else { icon = 'moon'; label = 'Night'; }
+  }
+  if (timing.flexibility_level === 'high') { icon = 'flexible'; label = 'Flexible timing'; }
+  return {
+    primary_time_icon: icon,
+    primary_time_label: label,
+    short_timing_phrase: timing.timing_note || `Best at ${label.toLowerCase()}`,
   };
 };
 
@@ -93,119 +139,173 @@ const generateJsonLd = (e: EnrichedProduct) =>
 
 // ============ GENERATE LLM GROUNDING ============
 
-const generateLlmGrounding = (e: EnrichedProduct) => ({
-  entity_type: "product",
-  id: e.product.id,
-  title: e.product.title,
-  slug: e.product.slug,
-  description: e.product.description,
-  product_family: e.product.product_family,
-  destination: e.destination?.name || null,
-  area: e.area?.name || null,
-  pois: e.pois.map(p => p.name),
-  activity_type_id: e.product.activity_type_id,
-  themes: e.themes,
-  formats: e.formats,
-  duration_minutes: e.product.duration_minutes,
-  highlights: e.product.highlights_json,
-  hosts: e.hosts.map(h => ({ name: h.display_name || h.username, verified: h.is_verified })),
-  pricing: e.options.flatMap(o => o.price_options.map(p => ({
-    option: o.name,
-    category: p.pricing_category,
-    amount: p.amount,
-    currency: p.currency_code,
-  }))),
-  semantic_scores: e.semantics,
-  intent_affinities: e.intents,
-  positioning: e.positioning,
-  visibility: e.product.visibility_output_state,
-  publish_state: e.product.publish_state,
-  canonical_url: e.product.canonical_url || `${BASE}/things-to-do/${e.destination?.slug || "explore"}/${e.product.slug}`,
-});
+const generateLlmGrounding = (e: EnrichedProduct) => {
+  const p = e.product as any;
+  const areaSlug = e.area?.slug;
+  const canonicalUrl = p.canonical_url || `${BASE}/things-to-do/${e.destination?.slug || "explore"}${areaSlug ? `/${areaSlug}` : ''}/${p.slug}`;
+
+  return {
+    entity_type: "product",
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    description: p.description,
+    product_family: p.product_family,
+    destination: e.destination?.name || null,
+    area: e.area?.name || null,
+    pois: e.pois.map(poi => poi.name),
+    activity_type_id: p.activity_type_id,
+    themes: e.themes,
+    formats: e.formats,
+    duration_minutes: p.duration_minutes,
+    highlights: p.highlights_json,
+    meeting_points: p.meeting_points_json,
+    local_tips: p.local_tips_json,
+    getting_there: p.getting_there_description,
+    inclusions: e.inclusions.map(i => i.name),
+    transport_modes: e.transport.map(t => ({ mode: t.name, description: t.description })),
+    hosts: e.hosts.map(h => ({ name: h.display_name || h.username, verified: h.is_verified })),
+    pricing: e.options.flatMap(o => o.price_options.map(pr => ({
+      option: o.name,
+      category: pr.pricing_category,
+      amount: pr.amount,
+      amount_max: (pr as any).amount_max || null,
+      currency: pr.currency_code,
+    }))),
+    average_price_per_person: p.average_price_per_person,
+    semantic_scores: e.semantics,
+    intent_affinities: e.intents,
+    positioning: e.positioning,
+    timing: e.timing ? {
+      timezone: e.timing.local_timezone,
+      peak_window: { start: e.timing.peak_start_hour, end: e.timing.peak_end_hour },
+      secondary_window: e.timing.secondary_start_hour != null ? { start: e.timing.secondary_start_hour, end: e.timing.secondary_end_hour } : null,
+      confidence: e.timing.confidence_score,
+      flexibility: e.timing.flexibility_level,
+      reason_tags: e.timing.reason_tags,
+      note: e.timing.timing_note,
+      hourly_scores: e.timing.hourly_scores,
+      display: deriveTimingDisplay(e.timing),
+    } : null,
+    visibility: p.visibility_output_state,
+    publish_state: p.publish_state,
+    canonical_url: canonicalUrl,
+  };
+};
 
 // ============ GENERATE SEARCH DOCUMENT ============
 
-const generateSearchDocument = (e: EnrichedProduct) => ({
-  id: e.product.id,
-  title: e.product.title,
-  slug: e.product.slug,
-  description: e.product.description?.slice(0, 500),
-  destination: e.destination?.name || null,
-  destination_slug: e.destination?.slug || null,
-  area: e.area?.name || null,
-  product_family: e.product.product_family,
-  activity_type_id: e.product.activity_type_id,
-  themes: e.themes,
-  formats: e.formats,
-  duration_minutes: e.product.duration_minutes,
-  cover_image: e.product.cover_image_url,
-  min_price: Math.min(...e.options.flatMap(o => o.price_options.map(p => p.amount)).filter(Boolean), Infinity),
-  currency: e.options[0]?.price_options?.[0]?.currency_code || "USD",
-  host_names: e.hosts.map(h => h.display_name || h.username),
-  semantic_top: e.semantics
-    ? Object.entries(e.semantics).filter(([, v]) => (v as number) >= 0.6).map(([k]) => k.replace("_score", ""))
-    : [],
-  intent_top: e.intents.filter(i => i.score >= 0.6).map(i => i.name),
-  pois: e.pois.map(p => p.name),
-  publish_score: e.product.publish_score,
-  visibility: e.product.visibility_output_state,
-  indexability: e.product.indexability_state,
-});
+const generateSearchDocument = (e: EnrichedProduct) => {
+  const p = e.product as any;
+  return {
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    description: p.description?.slice(0, 500),
+    destination: e.destination?.name || null,
+    destination_slug: e.destination?.slug || null,
+    area: e.area?.name || null,
+    area_slug: e.area?.slug || null,
+    product_family: p.product_family,
+    activity_type_id: p.activity_type_id,
+    themes: e.themes,
+    formats: e.formats,
+    duration_minutes: p.duration_minutes,
+    cover_image: p.cover_image_url,
+    min_price: Math.min(...e.options.flatMap(o => o.price_options.map(pr => pr.amount)).filter(Boolean), Infinity),
+    average_price: p.average_price_per_person,
+    currency: e.options[0]?.price_options?.[0]?.currency_code || "USD",
+    host_names: e.hosts.map(h => h.display_name || h.username),
+    inclusions: e.inclusions.map(i => i.name),
+    semantic_top: e.semantics
+      ? Object.entries(e.semantics).filter(([, v]) => (v as number) >= 0.6).map(([k]) => k.replace("_score", ""))
+      : [],
+    intent_top: e.intents.filter(i => i.score >= 0.6).map(i => i.name),
+    pois: e.pois.map(poi => poi.name),
+    timing_label: deriveTimingDisplay(e.timing)?.primary_time_label || null,
+    publish_score: p.publish_score,
+    visibility: p.visibility_output_state,
+    indexability: p.indexability_state,
+  };
+};
 
 // ============ GENERATE FEED DOCUMENT ============
 
-const generateFeedDocument = (e: EnrichedProduct) => ({
-  id: e.product.id,
-  title: e.product.title,
-  description: e.product.description,
-  url: e.product.canonical_url || `${BASE}/things-to-do/${e.destination?.slug || "explore"}/${e.product.slug}`,
-  image_url: e.product.cover_image_url,
-  destination: e.destination?.name,
-  latitude: e.destination?.latitude,
-  longitude: e.destination?.longitude,
-  duration_minutes: e.product.duration_minutes,
-  offers: e.options.flatMap(o => o.price_options.map(p => ({
-    name: `${o.name} - ${p.pricing_category}`,
-    price: p.amount,
-    currency: p.currency_code,
-  }))),
-  provider: e.hosts[0] ? { name: e.hosts[0].display_name || e.hosts[0].username } : null,
-});
+const generateFeedDocument = (e: EnrichedProduct) => {
+  const p = e.product as any;
+  const areaSlug = e.area?.slug;
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    url: p.canonical_url || `${BASE}/things-to-do/${e.destination?.slug || "explore"}${areaSlug ? `/${areaSlug}` : ''}/${p.slug}`,
+    image_url: p.cover_image_url,
+    destination: e.destination?.name,
+    latitude: e.destination?.latitude,
+    longitude: e.destination?.longitude,
+    duration_minutes: p.duration_minutes,
+    offers: e.options.flatMap(o => o.price_options.map(pr => ({
+      name: `${o.name} - ${pr.pricing_category}`,
+      price: pr.amount,
+      price_max: (pr as any).amount_max || null,
+      currency: pr.currency_code,
+    }))),
+    inclusions: e.inclusions.map(i => i.name),
+    provider: e.hosts[0] ? { name: e.hosts[0].display_name || e.hosts[0].username } : null,
+  };
+};
 
 // ============ GENERATE PUBLIC PAGE PAYLOAD ============
 
-const generatePublicPagePayload = (e: EnrichedProduct) => ({
-  product: {
-    id: e.product.id,
-    title: e.product.title,
-    slug: e.product.slug,
-    description: e.product.description,
-    product_family: e.product.product_family,
-    cover_image_url: e.product.cover_image_url,
-    video_url: e.product.video_url,
-    gallery: e.product.gallery_json,
-    highlights: e.product.highlights_json,
-    meeting_points: e.product.meeting_points_json,
-    duration_minutes: e.product.duration_minutes,
-    seo_title: e.product.seo_title,
-    seo_description: e.product.seo_description,
-    canonical_url: e.product.canonical_url,
-  },
-  destination: e.destination ? { id: e.destination.id, name: e.destination.name, slug: e.destination.slug } : null,
-  area: e.area ? { id: e.area.id, name: e.area.name, slug: e.area.slug } : null,
-  options: e.options.map(o => ({
-    id: o.id, name: o.name, slug: o.slug, option_type: o.option_type,
-    is_default: o.is_default_option, duration_minutes: o.duration_minutes,
-    prices: o.price_options.map(p => ({ category: p.pricing_category, amount: p.amount, currency: p.currency_code })),
-  })),
-  hosts: e.hosts.map(h => ({ name: h.display_name || h.username, slug: h.slug, avatar: h.avatar_url, verified: h.is_verified })),
-  themes: e.themes,
-  formats: e.formats,
-  pois: e.pois,
-  semantics: e.semantics,
-  intents: e.intents,
-  positioning: e.positioning,
-});
+const generatePublicPagePayload = (e: EnrichedProduct) => {
+  const p = e.product as any;
+  return {
+    product: {
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      description: p.description,
+      product_family: p.product_family,
+      cover_image_url: p.cover_image_url,
+      video_url: p.video_url,
+      gallery: p.gallery_json,
+      highlights: p.highlights_json,
+      meeting_points: p.meeting_points_json,
+      local_tips: p.local_tips_json,
+      getting_there_description: p.getting_there_description,
+      duration_minutes: p.duration_minutes,
+      average_price_per_person: p.average_price_per_person,
+      tiktok_url: p.tiktok_url,
+      instagram_url: p.instagram_url,
+      seo_title: p.seo_title,
+      seo_description: p.seo_description,
+      canonical_url: p.canonical_url,
+    },
+    destination: e.destination ? { id: e.destination.id, name: e.destination.name, slug: e.destination.slug } : null,
+    area: e.area ? { id: e.area.id, name: e.area.name, slug: e.area.slug } : null,
+    options: e.options.map(o => ({
+      id: o.id, name: o.name, slug: o.slug, option_type: o.option_type,
+      is_default: o.is_default_option, duration_minutes: o.duration_minutes,
+      prices: o.price_options.map(pr => ({ category: pr.pricing_category, amount: pr.amount, amount_max: (pr as any).amount_max, currency: pr.currency_code })),
+    })),
+    hosts: e.hosts.map(h => ({ name: h.display_name || h.username, slug: h.slug, avatar: h.avatar_url, verified: h.is_verified })),
+    inclusions: e.inclusions,
+    transport: e.transport,
+    themes: e.themes,
+    formats: e.formats,
+    pois: e.pois,
+    semantics: e.semantics,
+    intents: e.intents,
+    positioning: e.positioning,
+    timing: e.timing ? {
+      timezone: e.timing.local_timezone,
+      peak_window: { start: e.timing.peak_start_hour, end: e.timing.peak_end_hour },
+      confidence: e.timing.confidence_score,
+      flexibility: e.timing.flexibility_level,
+      display: deriveTimingDisplay(e.timing),
+    } : null,
+  };
+};
 
 // ============ HASH ============
 
