@@ -33,6 +33,67 @@ const ScoreRow = ({ label, value, onChange }: { label: string; value: number; on
   </div>
 );
 
+// ---- Highlights inline editor ----
+const HighlightsEditor = ({ value, onChange }: { value: any[]; onChange: (v: string[]) => void }) => {
+  const items: string[] = Array.isArray(value) ? value.filter(Boolean).map(String) : [];
+  const [draft, setDraft] = useState('');
+
+  const add = () => {
+    const t = draft.trim();
+    if (!t) return;
+    onChange([...items, t]);
+    setDraft('');
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {items.map((h, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <Input value={h} className="text-xs" onChange={e => { const next = [...items]; next[i] = e.target.value; onChange(next); }} />
+          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={() => onChange(items.filter((_, j) => j !== i))}><Trash2 className="w-3 h-3" /></Button>
+        </div>
+      ))}
+      <div className="flex gap-2">
+        <Input value={draft} placeholder="Add highlight..." className="text-xs" onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add())} />
+        <Button size="sm" variant="outline" onClick={add} disabled={!draft.trim()}><Plus className="w-3 h-3" /></Button>
+      </div>
+    </div>
+  );
+};
+
+// ---- Gallery inline editor ----
+const GalleryEditor = ({ value, onChange }: { value: any[]; onChange: (v: string[]) => void }) => {
+  const items: string[] = Array.isArray(value) ? value.filter(Boolean).map(String) : [];
+  const [draft, setDraft] = useState('');
+
+  const add = () => {
+    const t = draft.trim();
+    if (!t) return;
+    onChange([...items, t]);
+    setDraft('');
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-3 gap-2">
+        {items.map((url, i) => (
+          <div key={i} className="relative group">
+            <img src={url} alt="" className="w-full h-20 object-cover rounded-md border border-border" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <div className="mt-1">
+              <Input value={url} className="text-[10px] h-6" onChange={e => { const next = [...items]; next[i] = e.target.value; onChange(next); }} />
+            </div>
+            <Button size="sm" variant="ghost" className="absolute top-0 right-0 h-5 w-5 p-0 bg-background/80 rounded-full opacity-0 group-hover:opacity-100" onClick={() => onChange(items.filter((_, j) => j !== i))}><Trash2 className="w-3 h-3" /></Button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Input value={draft} placeholder="Paste image URL..." className="text-xs" onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add())} />
+        <Button size="sm" variant="outline" onClick={add} disabled={!draft.trim()}><Plus className="w-3 h-3 mr-1" />Add</Button>
+      </div>
+    </div>
+  );
+};
+
 export const AdminProductsSection = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
