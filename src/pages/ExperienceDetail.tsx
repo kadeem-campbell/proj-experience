@@ -474,7 +474,7 @@ export default function ExperienceDetail() {
       {/* Meeting Points */}
       {hasMeetingPoints && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">Where to find it</h2>
+          <h2 className="text-lg font-semibold mb-4">Access points</h2>
           <div className="space-y-2">
             {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
               <div key={index} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
