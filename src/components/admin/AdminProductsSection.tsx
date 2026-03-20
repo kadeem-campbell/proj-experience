@@ -280,8 +280,8 @@ export const AdminProductsSection = () => {
             <Input type="number" value={item.duration_minutes || ''} onChange={e => onChange('duration_minutes', parseInt(e.target.value) || null)} />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Cover Image URL</Label>
-            <Input value={item.cover_image_url || ''} onChange={e => onChange('cover_image_url', e.target.value)} />
+            <Label className="text-xs text-muted-foreground">Cover Image</Label>
+            <CoverImageUploader value={item.cover_image_url || ''} onChange={v => onChange('cover_image_url', v)} productSlug={item.slug} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
