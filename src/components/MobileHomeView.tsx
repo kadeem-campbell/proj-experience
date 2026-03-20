@@ -14,6 +14,7 @@ import { generateProductPageUrl } from "@/utils/slugUtils";
 import { useHomeCarousels } from "@/hooks/useHomeCarousels";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrency } from "@/hooks/useCurrency";
 import { CardActionMenu } from "@/components/CardActionMenu";
 import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
@@ -154,6 +155,14 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 // Experience card — no heart on homepage, action menu top-right
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
+  const { currencyInfo } = useCurrency();
+
+  const displayPrice = useMemo(() => {
+    if (experience.averagePrice) {
+      return `${currencyInfo.symbol}${experience.averagePrice} avg`;
+    }
+    return experience.price || '';
+  }, [experience.averagePrice, experience.price, currencyInfo.symbol]);
 
   return (
     <div 
@@ -187,8 +196,8 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm text-foreground truncate">{experience.title}</h3>
         <p className="text-xs text-muted-foreground truncate">{experience.location}</p>
-        {experience.price && (
-          <p className="text-xs text-muted-foreground truncate">{experience.price} typical</p>
+        {displayPrice && (
+          <p className="text-xs text-muted-foreground truncate">{displayPrice}</p>
         )}
       </div>
     </div>
