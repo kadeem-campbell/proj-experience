@@ -331,3 +331,19 @@ export const useHostBySlug = (slug: string) => {
     enabled: !!slug,
   });
 };
+
+export const useAreaById = (id: string) => {
+  return useQuery({
+    queryKey: ["area-by-id", id],
+    queryFn: async (): Promise<Area | null> => {
+      const { data, error } = await supabase
+        .from("areas")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) return null;
+      return data as unknown as Area | null;
+    },
+    enabled: !!id,
+  });
+};
