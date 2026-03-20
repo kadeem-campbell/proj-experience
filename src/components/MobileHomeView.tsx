@@ -2,7 +2,7 @@ import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { Layers, MapPin, Search, ChevronRight, Plus } from "lucide-react";
-import { TimingIcon } from "@/components/TimingIcon";
+
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { MobileShell } from "@/components/MobileShell";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
+
 
 const filterCategories = [
   { label: "Beaches", category: "Beach", icon: catBeaches },
@@ -154,8 +154,8 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Experience card — with timing icon
-const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; timingDisplay?: { primary_time_icon: string; primary_time_label: string } | null }) => {
+// Experience card — clean: title + price only
+const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
   const { convert } = useCurrency();
 
@@ -165,8 +165,6 @@ const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; 
     }
     return experience.price || '';
   }, [experience.averagePrice, experience.price, convert]);
-
-  const hasTimingIcon = !!timingDisplay;
 
   return (
     <div 
@@ -178,12 +176,6 @@ const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; 
           <img src={experience.videoThumbnail} alt={experience.title} loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
-        )}
-        {hasTimingIcon && (
-          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background/80 backdrop-blur-sm">
-            <TimingIcon icon={timingDisplay!.primary_time_icon} className="w-3 h-3 text-foreground" />
-            <span className="text-[9px] font-medium text-foreground">{timingDisplay!.primary_time_label}</span>
-          </div>
         )}
         <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
@@ -205,7 +197,6 @@ const MobileExperienceCard = ({ experience, timingDisplay }: { experience: any; 
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm text-foreground truncate">{experience.title}</h3>
-        <p className="text-xs text-muted-foreground truncate">{experience.location}</p>
         {displayPrice && (
           <p className="text-xs text-muted-foreground truncate">{displayPrice}</p>
         )}
@@ -284,7 +275,7 @@ export const MobileHomeView = () => {
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useProductListings();
   const { data: homeCarousels = [] } = useHomeCarousels();
-  const timingMap = useTimingDisplayMap();
+  
 
   // Fetch destinations to map selectedCity name → destination ID
   const { data: allDestinations = [] } = useQuery({
@@ -475,7 +466,7 @@ export const MobileHomeView = () => {
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3">Experiences</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {filteredExperiences.slice(0, 12).map(exp => (
-                      <MobileExperienceCard key={exp.id} experience={exp} timingDisplay={timingMap[exp.id]} />
+                      <MobileExperienceCard key={exp.id} experience={exp} />
                     ))}
                   </div>
                 </div>
@@ -548,9 +539,9 @@ export const MobileHomeView = () => {
                   title={activeCategory ? `${catLabel} — ${title}` : title}
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
-                  {items.slice(0, 10).map((experience) => (
-                    <MobileExperienceCard key={experience.id} experience={experience} timingDisplay={timingMap[experience.id]} />
-                  ))}
+                    {items.slice(0, 10).map((experience) => (
+                     <MobileExperienceCard key={experience.id} experience={experience} />
+                    ))}
                 </HorizontalScrollRow>
               );
             }

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { TimingIcon } from "@/components/TimingIcon";
+import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 import { Link } from "react-router-dom";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { 
@@ -57,6 +59,7 @@ interface ItineraryPanelProps {
 
 export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
   const { toast } = useToast();
+  const timingMap = useTimingDisplayMap();
   const {
     activeItinerary,
     addExperience,
@@ -298,6 +301,12 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
                         <MapPin className="w-3 h-3" />
                         <span className="truncate">{experience.location}</span>
                         <span className="font-medium text-primary">{experience.price}</span>
+                        {timingMap[experience.id] && (
+                          <span className="flex items-center gap-0.5 text-muted-foreground">
+                            <TimingIcon icon={timingMap[experience.id].primary_time_icon} className="w-3 h-3" />
+                            <span className="truncate">{timingMap[experience.id].primary_time_label}</span>
+                          </span>
+                        )}
                       </div>
                     </div>
                     <Button
