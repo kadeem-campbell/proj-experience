@@ -185,6 +185,7 @@ interface ProductValidationContext {
   duplicateSlugs?: string[];
   hasCanonicalEntry?: boolean;
   hasRouteEntry?: boolean;
+  timingProfiles?: any[];
   reviewCount?: number;
   saveCount?: number;
   copyCount?: number;

@@ -77,8 +77,10 @@ const fetchEnrichment = async (productId: string): Promise<EnrichedProduct | nul
     price_options: o.price_options || [],
   }));
 
-  // Resolve active timing profile
-  const defaultTiming = (timingProfiles || []).find((t: any) => t.profile_type === 'default') || (timingProfiles || [])[0] || null;
+  // Resolve active timing profile using canonical engine
+  const allTimingProfiles = timingProfiles || [];
+  const resolved = allTimingProfiles.length > 0 ? resolveTimingProfile(allTimingProfiles as TimingProfileRecord[]) : null;
+  const defaultTiming = resolved?.source_profile || allTimingProfiles[0] || null;
 
   return {
     product: product as unknown as Product,
