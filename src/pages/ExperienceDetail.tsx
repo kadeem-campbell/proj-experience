@@ -657,12 +657,10 @@ export default function ExperienceDetail() {
                 </h1>
                 {/* Meta row — social proof · price · timing */}
                 <div className="flex items-center gap-2 flex-wrap text-[13px]">
-                  {likedByCount > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
-                      <Heart className="w-3 h-3 fill-white/80 text-white/80" />
-                      Saved by {likedByCount} traveller{likedByCount !== 1 ? 's' : ''}
-                    </span>
-                  )}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
+                    <Heart className="w-3 h-3 fill-white/80 text-white/80" />
+                    Saved by {likedByCount} travellers this month
+                  </span>
                   {experience.price && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 font-medium">
                       From {experience.price}
