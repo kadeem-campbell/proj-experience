@@ -1173,7 +1173,7 @@ const PublicItinerary = () => {
                             const dbE = allDbExperiences.find(e => e.id === exp.id);
                             const s = dbE?.slug || slugify(exp.title);
                             const d = dbE?.destinationSlug || slugify(exp.location || '');
-                            navigate(generateProductUrl(d, s, dbE?.areaSlug));
+                            navigate(d ? generateProductUrl(d, s, dbE?.areaSlug) : `/things-to-do`);
                           }}
                           className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-muted/40 rounded-lg transition-colors"
                         >
