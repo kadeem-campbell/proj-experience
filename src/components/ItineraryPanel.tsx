@@ -584,11 +584,17 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
                       </div>
 
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link to={generateProductPageUrl(experience.location || '', experience.title)}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </Link>
+                        {(() => {
+                          const dbProd = allDbProducts.find(p => p.id === experience.id);
+                          const slug = dbProd?.slug || slugify(experience.title);
+                          return (
+                            <Link to={generateProductPageUrl(experience.location || '', experience.title, slug)}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                          );
+                        })()}
                         <Button
                           variant="ghost"
                           size="icon"
