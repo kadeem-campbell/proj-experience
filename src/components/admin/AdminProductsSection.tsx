@@ -569,7 +569,105 @@ export const AdminProductsSection = () => {
   );
 };
 
-// ============ SUB-EDITORS ============
+// ============ INCLUSIONS EDITOR ============
+
+const InclusionsEditor = ({ productId }: { productId: string }) => {
+  const qc = useQueryClient();
+  const { data: linked = [] } = useQuery({
+    queryKey: ['admin-product-inclusions', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_inclusions').select('*, inclusion_items(*)').eq('product_id', productId).order('display_order') as any;
+      return data || [];
+    },
+  });
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['admin-inclusion-items'],
+    queryFn: async () => { const { data } = await supabase.from('inclusion_items').select('*').eq('is_active', true).order('name') as any; return data || []; },
+  });
+
+  const add = async (itemId: string) => {
+    await supabase.from('product_inclusions').insert({ product_id: productId, inclusion_item_id: itemId, display_order: linked.length } as any);
+    qc.invalidateQueries({ queryKey: ['admin-product-inclusions', productId] });
+  };
+  const remove = async (id: string) => {
+    await supabase.from('product_inclusions').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-product-inclusions', productId] });
+  };
+
+  return (
+    <div>
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">What's Included</h4>
+      <p className="text-[10px] text-muted-foreground mb-2">Add-ons and inclusions for this experience.</p>
+      <div className="flex flex-wrap gap-1 mb-2">
+        {linked.map((l: any) => (
+          <Badge key={l.id} variant="secondary" className="text-[10px] cursor-pointer" onClick={() => remove(l.id)}>
+            {l.inclusion_items?.emoji} {l.inclusion_items?.name} ✕
+          </Badge>
+        ))}
+      </div>
+      <Select onValueChange={add}>
+        <SelectTrigger className="w-48"><SelectValue placeholder="Add inclusion..." /></SelectTrigger>
+        <SelectContent>
+          {allItems.filter((item: any) => !linked.some((l: any) => l.inclusion_item_id === item.id)).map((item: any) => (
+            <SelectItem key={item.id} value={item.id}>{item.emoji} {item.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+// ============ TRANSPORT EDITOR ============
+
+const TransportEditor = ({ productId }: { productId: string }) => {
+  const qc = useQueryClient();
+  const { data: linked = [] } = useQuery({
+    queryKey: ['admin-product-transport', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_transport').select('*, transport_modes(*)').eq('product_id', productId).order('display_order') as any;
+      return data || [];
+    },
+  });
+  const { data: allModes = [] } = useQuery({
+    queryKey: ['admin-transport-modes'],
+    queryFn: async () => { const { data } = await supabase.from('transport_modes').select('*').eq('is_active', true).order('name') as any; return data || []; },
+  });
+
+  const add = async (modeId: string) => {
+    await supabase.from('product_transport').insert({ product_id: productId, transport_mode_id: modeId, display_order: linked.length } as any);
+    qc.invalidateQueries({ queryKey: ['admin-product-transport', productId] });
+  };
+  const remove = async (id: string) => {
+    await supabase.from('product_transport').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-product-transport', productId] });
+  };
+  const updateDesc = async (id: string, desc: string) => {
+    await supabase.from('product_transport').update({ description: desc } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-product-transport', productId] });
+  };
+
+  return (
+    <div className="space-y-2">
+      {linked.map((l: any) => (
+        <div key={l.id} className="flex items-start gap-2">
+          <Badge variant="secondary" className="text-[10px] shrink-0 mt-1">{l.transport_modes?.emoji} {l.transport_modes?.name}</Badge>
+          <Input className="text-xs flex-1" placeholder="Description..." defaultValue={l.description || ''} onBlur={e => updateDesc(l.id, e.target.value)} />
+          <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={() => remove(l.id)}><Trash2 className="w-3 h-3" /></Button>
+        </div>
+      ))}
+      <Select onValueChange={add}>
+        <SelectTrigger className="w-48"><SelectValue placeholder="Add transport..." /></SelectTrigger>
+        <SelectContent>
+          {allModes.filter((m: any) => !linked.some((l: any) => l.transport_mode_id === m.id)).map((m: any) => (
+            <SelectItem key={m.id} value={m.id}>{m.emoji} {m.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+
 
 const OptionsEditor = ({ productId }: { productId: string }) => {
   const qc = useQueryClient();
