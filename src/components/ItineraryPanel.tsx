@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { TimingIcon } from "@/components/TimingIcon";
 import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
+import { useProductListings } from "@/hooks/useProductListings";
 import { Link } from "react-router-dom";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { 
@@ -60,6 +61,7 @@ interface ItineraryPanelProps {
 export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
   const { toast } = useToast();
   const timingMap = useTimingDisplayMap();
+  const allDbProducts = useProductListings();
   const {
     activeItinerary,
     addExperience,
@@ -572,15 +574,27 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
                           <MapPin className="w-3 h-3" />
                           <span className="truncate">{experience.location}</span>
                           <span className="font-medium text-primary">{experience.price}</span>
+                          {timingMap[experience.id] && (
+                            <span className="flex items-center gap-0.5">
+                              <TimingIcon icon={timingMap[experience.id].primary_time_icon} className="w-3 h-3" />
+                              <span className="truncate">{timingMap[experience.id].primary_time_label}</span>
+                            </span>
+                          )}
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link to={generateProductPageUrl(experience.location || '', experience.title)}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </Link>
+                        {(() => {
+                          const dbProd = allDbProducts.find(p => p.id === experience.id);
+                          const slug = dbProd?.slug || slugify(experience.title);
+                          return (
+                            <Link to={generateProductPageUrl(experience.location || '', experience.title, slug)}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                          );
+                        })()}
                         <Button
                           variant="ghost"
                           size="icon"
