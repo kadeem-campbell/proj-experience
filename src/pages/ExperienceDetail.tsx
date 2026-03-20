@@ -259,6 +259,17 @@ export default function ExperienceDetail() {
   const { data: productArea } = useAreaById(product?.primary_area_id || '');
   const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug((!product && !productLoading) ? resolvedSlug : '');
 
+  // Fetch linked POI for breadcrumb
+  const { data: linkedPoi } = useQuery({
+    queryKey: ['product-linked-poi', product?.primary_poi_id],
+    queryFn: async () => {
+      if (!product?.primary_poi_id) return null;
+      const { data } = await supabase.from('pois').select('id, name, slug, area_id').eq('id', product.primary_poi_id).maybeSingle() as any;
+      return data;
+    },
+    enabled: !!product?.primary_poi_id,
+  });
+
   const handleGoBack = () => {
     if (window.history.state && window.history.state.idx > 0) navigate(-1);
     else navigate('/things-to-do');
