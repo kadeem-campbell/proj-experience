@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const CURRENCIES = [
   { code: 'USD', symbol: '$', label: 'USD ($)' },
@@ -8,18 +9,55 @@ export const CURRENCIES = [
   { code: 'KES', symbol: 'KSh', label: 'KES (KSh)' },
 ];
 
-// Approximate exchange rates from USD (base)
-const RATES_FROM_USD: Record<string, number> = {
-  USD: 1,
-  GBP: 0.79,
-  EUR: 0.92,
-  TZS: 2500,
-  KES: 153,
+// Fallback rates (used while live rates load or if API fails)
+const FALLBACK_RATES: Record<string, number> = {
+  USD: 1, GBP: 0.79, EUR: 0.92, TZS: 2500, KES: 153,
 };
+
+// Module-level shared state so all hook instances use the same rates
+let sharedRates: Record<string, number> = { ...FALLBACK_RATES };
+let ratesFetched = false;
+let fetchPromise: Promise<void> | null = null;
+
+async function fetchLiveRates() {
+  if (ratesFetched) return;
+  if (fetchPromise) return fetchPromise;
+
+  fetchPromise = (async () => {
+    try {
+      // Check localStorage cache first (1 hour TTL)
+      const cached = localStorage.getItem('swam-exchange-rates');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.ts < 60 * 60 * 1000) {
+          sharedRates = parsed.rates;
+          ratesFetched = true;
+          return;
+        }
+      }
+
+      const { data, error } = await supabase.functions.invoke('exchange-rates');
+      if (error) throw error;
+
+      if (data?.rates) {
+        sharedRates = data.rates;
+        ratesFetched = true;
+        localStorage.setItem('swam-exchange-rates', JSON.stringify({ rates: data.rates, ts: Date.now() }));
+        // Notify all hook instances to re-render
+        window.dispatchEvent(new CustomEvent('swam-rates-updated'));
+      }
+    } catch (err) {
+      console.warn('Failed to fetch live exchange rates, using fallback:', err);
+      ratesFetched = true; // Don't retry endlessly
+    }
+  })();
+
+  return fetchPromise;
+}
 
 /** Convert a USD amount to the target currency */
 export const convertFromUSD = (amountUSD: number, targetCode: string): number => {
-  const rate = RATES_FROM_USD[targetCode] || 1;
+  const rate = sharedRates[targetCode] || FALLBACK_RATES[targetCode] || 1;
   return Math.round(amountUSD * rate);
 };
 
@@ -53,11 +91,21 @@ export const setGlobalCurrency = (code: string) => {
 
 export const useCurrency = () => {
   const [currency, setCurrency] = useState(() => detectCurrency());
+  const [, forceUpdate] = useState(0);
 
   useEffect(() => {
-    const handler = (e: Event) => setCurrency((e as CustomEvent).detail);
-    window.addEventListener('swam-currency-change', handler);
-    return () => window.removeEventListener('swam-currency-change', handler);
+    // Fetch live rates on mount
+    fetchLiveRates();
+
+    const currencyHandler = (e: Event) => setCurrency((e as CustomEvent).detail);
+    const ratesHandler = () => forceUpdate(n => n + 1);
+
+    window.addEventListener('swam-currency-change', currencyHandler);
+    window.addEventListener('swam-rates-updated', ratesHandler);
+    return () => {
+      window.removeEventListener('swam-currency-change', currencyHandler);
+      window.removeEventListener('swam-rates-updated', ratesHandler);
+    };
   }, []);
 
   const updateCurrency = (code: string) => {
