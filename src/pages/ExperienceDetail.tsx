@@ -321,15 +321,21 @@ export default function ExperienceDetail() {
   const likedByCount = (experience?.likeCount || 0) + likeCountDelta;
 
   const resolvedDestination = productDestination || productDestinationById;
+  const resolvedArea = productArea;
 
   const shareUrl = useMemo(() => {
     if (!experience) return window.location.href;
     const baseUrl = window.location.hostname === 'localhost' ? window.location.origin : 'https://swam.app';
     if ((experience as any).isProduct && resolvedDestination) {
-      return `${baseUrl}/things-to-do/${resolvedDestination.slug}/${experience.slug || ''}`;
+      const destSlug = resolvedDestination.slug;
+      const areaSlug = resolvedArea?.slug;
+      if (areaSlug) {
+        return `${baseUrl}/things-to-do/${destSlug}/${areaSlug}/${experience.slug || ''}`;
+      }
+      return `${baseUrl}/things-to-do/${destSlug}/${experience.slug || ''}`;
     }
     return `${baseUrl}${generateProductPageUrl(experience.location, experience.title, (experience as any).slug)}`;
-  }, [experience, resolvedDestination]);
+  }, [experience, resolvedDestination, resolvedArea]);
 
   useEffect(() => {
     if (experience) {
