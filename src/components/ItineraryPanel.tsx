@@ -3,7 +3,7 @@ import { TimingIcon } from "@/components/TimingIcon";
 import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 import { useProductListings } from "@/hooks/useProductListings";
 import { Link } from "react-router-dom";
-import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
+import { slugify, generateProductUrl } from "@/utils/slugUtils";
 import { 
   GripVertical, 
   Trash2, 
