@@ -74,12 +74,14 @@ export const AdminTaxonomySection = () => {
   return (
     <div>
       <h2 className="text-xl font-bold mb-1">Taxonomy & Pricing</h2>
-      <p className="text-sm text-muted-foreground mb-4">Activity types, themes, product options, price options</p>
+      <p className="text-sm text-muted-foreground mb-4">Activity types, themes, inclusions, transport modes, product options, price options</p>
 
       <Tabs defaultValue="activity-types">
         <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="activity-types">Activity Types ({activityTypes.length})</TabsTrigger>
           <TabsTrigger value="themes">Themes ({themes.length})</TabsTrigger>
+          <TabsTrigger value="inclusions">Inclusions ({inclusionItems.length})</TabsTrigger>
+          <TabsTrigger value="transport">Transport ({transportModes.length})</TabsTrigger>
           <TabsTrigger value="options">Options ({options.length})</TabsTrigger>
           <TabsTrigger value="prices">Price Options ({priceOptions.length})</TabsTrigger>
         </TabsList>
