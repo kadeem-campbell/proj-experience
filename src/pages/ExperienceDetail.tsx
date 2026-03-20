@@ -716,6 +716,7 @@ export default function ExperienceDetail() {
               {experience.category && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm">{categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}<span className="font-medium">{experience.category}</span></div>}
               {experience.duration && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Clock className="w-4 h-4 text-primary" /><span className="font-medium">{experience.duration}</span></div>}
               {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><Users className="w-4 h-4 text-primary" /><span className="font-medium">{experience.groupSize}</span></div>}
+              {bestTimeDisplay && <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-sm"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-4 h-4 text-primary" /><span className="font-medium">{bestTimeDisplay.primary_time_label}</span></div>}
             </div>
 
             {renderContentSections('desktop')}
