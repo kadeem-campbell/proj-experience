@@ -600,7 +600,7 @@ const PublicItinerary = () => {
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
             {thumbnail ? (
-              <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
+              <img src={thumbnail} alt="" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <MapPin className="w-4 h-4 text-muted-foreground/40" />
