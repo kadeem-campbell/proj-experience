@@ -439,6 +439,11 @@ export const AdminProductsSection = () => {
         ) : <p className="text-xs text-muted-foreground">Save product first to manage experience details.</p>}
       </TabsContent>
 
+      {/* ======= TIMING ======= */}
+      <TabsContent value="timing" className="space-y-3 mt-3">
+        {item.id ? <TimingEditor productId={item.id} /> : <p className="text-xs text-muted-foreground">Save product first to manage timing.</p>}
+      </TabsContent>
+
       {/* ======= HOSTS ======= */}
       <TabsContent value="hosts" className="space-y-3 mt-3">
         {item.id ? <HostsEditor productId={item.id} hosts={hosts} /> : <p className="text-xs text-muted-foreground">Save the product first to manage hosts.</p>}
