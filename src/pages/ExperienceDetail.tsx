@@ -655,9 +655,9 @@ export default function ExperienceDetail() {
             {/* Info Pills — refined, smaller */}
             <div className="flex flex-wrap gap-1.5 mb-6">
               {experience.category && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]">{categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}<span className="font-medium text-foreground/80">{experience.category}</span></div>}
-              {experience.duration && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
-              {experience.groupSize && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
-              {bestTimeDisplay && <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span></div>}
+              {experience.duration && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
+              {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
+              {bestTimeDisplay && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span></div>}
             </div>
 
             {renderContentSections('mobile')}
