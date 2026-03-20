@@ -67,7 +67,7 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
     setNewQuestion(""); setShowAskForm(false);
   };
 
-  if (localFaqs.length === 0 && !showAskForm) return null;
+  // Always show — even if empty, user can ask
 
   return (
     <div className="mb-6">
