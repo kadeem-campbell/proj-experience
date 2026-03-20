@@ -522,7 +522,7 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 2. Highlights — curated reasons to go, not boxed rows */}
+      {/* 2. Highlights — curated reasons to go */}
       {hasHighlights && (
         <div className="mb-8">
           <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Why this experience</h2>
@@ -533,6 +533,20 @@ export default function ExperienceDetail() {
                   <Sparkles className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <span className="text-[13.5px] leading-snug text-foreground">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 2b. Gallery — 2×2 photo grid */}
+      {gallery.length > 1 && (
+        <div className="mb-8">
+          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Gallery</h2>
+          <div className="grid grid-cols-2 gap-1.5 rounded-xl overflow-hidden">
+            {gallery.slice(0, 4).map((img: string, i: number) => (
+              <div key={i} className="aspect-square overflow-hidden bg-muted">
+                <img src={img} alt={`${experience.title} ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
               </div>
             ))}
           </div>
