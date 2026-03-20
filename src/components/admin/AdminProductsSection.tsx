@@ -637,7 +637,7 @@ const PriceEditor = ({ optionId }: { optionId: string }) => {
   return (
     <div className="pl-4 border-l-2 border-border space-y-2">
       {prices.map((p: any) => (
-        <div key={p.id} className="flex items-center gap-2 text-xs">
+        <div key={p.id} className="flex flex-wrap items-center gap-2 text-xs">
           <Select value={p.pricing_category} onValueChange={v => updatePrice(p.id, 'pricing_category', v)}>
             <SelectTrigger className="w-24 h-7 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -660,12 +660,17 @@ const PriceEditor = ({ optionId }: { optionId: string }) => {
             <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="USD">USD</SelectItem>
+              <SelectItem value="GBP">GBP</SelectItem>
+              <SelectItem value="EUR">EUR</SelectItem>
               <SelectItem value="TZS">TZS</SelectItem>
               <SelectItem value="KES">KES</SelectItem>
-              <SelectItem value="EUR">EUR</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="number" className="w-20 h-7 text-xs" value={p.amount} onChange={e => updatePrice(p.id, 'amount', parseFloat(e.target.value) || 0)} />
+          <div className="flex items-center gap-1">
+            <Input type="number" className="w-20 h-7 text-xs" placeholder="Min" value={p.amount} onChange={e => updatePrice(p.id, 'amount', parseFloat(e.target.value) || 0)} />
+            <span className="text-muted-foreground">–</span>
+            <Input type="number" className="w-20 h-7 text-xs" placeholder="Max (opt)" value={p.amount_max || ''} onChange={e => updatePrice(p.id, 'amount_max', parseFloat(e.target.value) || null)} />
+          </div>
           <Button size="sm" variant="ghost" className="h-6 w-6 p-0 shrink-0" onClick={() => deletePrice(p.id)}><Trash2 className="w-3 h-3" /></Button>
         </div>
       ))}
