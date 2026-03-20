@@ -126,13 +126,13 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
   });
   if (inclusions.length === 0) return null;
   return (
-    <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-3">What's typically included</h2>
-      <div className="grid grid-cols-2 gap-2">
+    <div className="mb-7">
+      <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>What's included</h2>
+      <div className="space-y-0">
         {inclusions.map((inc: any) => (
-          <div key={inc.id} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-card border border-border">
-            <span className="text-base">{inc.inclusion_items?.emoji || '✓'}</span>
-            <span className="text-sm">{inc.inclusion_items?.name}</span>
+          <div key={inc.id} className="flex items-center gap-3 py-2.5 border-b border-border/40 last:border-0">
+            <Check className="w-4 h-4 text-primary flex-shrink-0" />
+            <span className="text-[13.5px] text-foreground">{inc.inclusion_items?.name}</span>
           </div>
         ))}
       </div>
