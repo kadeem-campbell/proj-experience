@@ -14,12 +14,11 @@ import PoiDetail from "@/pages/PoiDetail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Plus, ArrowLeft, Share2, MapPin, Users, Clock, Star, Heart,
   MessageCircle, Flame, TrendingUp, Sparkles, ChevronRight,
   Calendar, Zap, CloudSun, HelpCircle, Send, ThumbsUp,
-  Check, Car, Lightbulb, Navigation
+  Check, Car, Lightbulb, Navigation, Anchor
 } from "lucide-react";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
@@ -32,6 +31,7 @@ import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { AuthModal } from "@/components/AuthModal";
+import { useCurrency } from "@/hooks/useCurrency";
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
 import catNature from "@/assets/cat-nature.png";
@@ -44,27 +44,6 @@ const categoryIconMap: Record<string, string> = {
   "Beach": catBeaches, "Adventure": catAdventure, "Party": catNightlife,
   "Wildlife": catSafari, "Food": catFood, "Water Sports": catAdventure,
   "Nightlife": catNightlife, "Culture": catNature,
-};
-
-const CURRENCIES = [
-  { code: 'USD', symbol: '$', label: 'USD ($)' },
-  { code: 'GBP', symbol: '£', label: 'GBP (£)' },
-  { code: 'EUR', symbol: '€', label: 'EUR (€)' },
-  { code: 'TZS', symbol: 'TSh', label: 'TZS (TSh)' },
-  { code: 'KES', symbol: 'KSh', label: 'KES (KSh)' },
-];
-
-// Detect default currency from timezone/locale
-const detectCurrency = (): string => {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-    const locale = navigator.language || '';
-    if (tz.includes('London') || tz.includes('Europe/London') || locale.startsWith('en-GB')) return 'GBP';
-    if (tz.includes('Europe/') && !tz.includes('London')) return 'EUR';
-    if (tz.includes('Nairobi') || locale.includes('KE')) return 'KES';
-    if (tz.includes('Dar_es_Salaam') || locale.includes('TZ')) return 'TZS';
-  } catch {}
-  return 'USD';
 };
 
 // Questions Section
