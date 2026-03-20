@@ -649,11 +649,13 @@ const PublicItinerary = () => {
     const liked = isItemLiked(experience.id, 'experience');
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
     const expSlug = dbExp?.slug || slugify(experience.title);
+    const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
+    const expUrl = generateProductUrl(destSlug, expSlug, dbExp?.areaSlug);
     return (
       <div
         key={experience.id}
         className="cursor-pointer group"
-        onClick={() => navigate(generateProductPageUrl(experience.location || '', experience.title, expSlug))}
+        onClick={() => navigate(expUrl)}
       >
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {experience.videoThumbnail ? (
