@@ -156,8 +156,7 @@ const BestTimeSection = ({ productId }: { productId: string }) => {
 
   if (profiles.length === 0) return null;
 
-  const { resolveTimingProfile: resolve } = require('@/lib/timing');
-  const resolved = resolve(profiles);
+  const resolved = resolveTimingProfileFn(profiles);
   const display = resolved?.derived_display;
   if (!display) return null;
 
@@ -177,7 +176,7 @@ const BestTimeSection = ({ productId }: { productId: string }) => {
           </div>
         </div>
         {resolved.preferred_windows?.secondary && (
-          <p className="text-xs text-muted-foreground mt-2 ml-15">
+          <p className="text-xs text-muted-foreground mt-2 pl-[60px]">
             Also good: {resolved.preferred_windows.secondary.label} ({resolved.preferred_windows.secondary.start_hour}:00–{resolved.preferred_windows.secondary.end_hour}:00)
           </p>
         )}
