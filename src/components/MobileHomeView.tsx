@@ -275,7 +275,7 @@ export const MobileHomeView = () => {
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useProductListings();
   const { data: homeCarousels = [] } = useHomeCarousels();
-  const timingMap = useTimingDisplayMap();
+  
 
   // Fetch destinations to map selectedCity name → destination ID
   const { data: allDestinations = [] } = useQuery({
