@@ -302,7 +302,7 @@ export default function ExperienceDetail() {
   const navigate = useNavigate();
   const { itineraries, isInItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { trackPageView, trackClick } = useInteractions();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
