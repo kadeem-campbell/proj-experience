@@ -50,24 +50,68 @@ const categoryIconMap: Record<string, string> = {
 
 // Questions Section
 const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: string }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAskForm, setShowAskForm] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
-  const [localFaqs, setLocalFaqs] = useState(faqs || []);
+
+  // Fetch persisted questions from DB
+  const { data: dbQuestions = [], refetch: refetchQuestions } = useQuery({
+    queryKey: ['product-questions', experienceId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('entity_id', experienceId)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+    enabled: !!experienceId,
+  });
+
+  // Fetch answers for these questions
+  const questionIds = dbQuestions.map((q: any) => q.id);
+  const { data: dbAnswers = [] } = useQuery({
+    queryKey: ['product-answers', questionIds],
+    queryFn: async () => {
+      if (questionIds.length === 0) return [];
+      const { data } = await supabase
+        .from('answers')
+        .select('*')
+        .in('question_id', questionIds);
+      return data || [];
+    },
+    enabled: questionIds.length > 0,
+  });
 
   const handleAsk = () => {
     if (!isAuthenticated) { setShowAuthModal(true); return; }
     setShowAskForm(true);
   };
 
-  const handleSubmitQuestion = () => {
-    if (!newQuestion.trim()) return;
-    setLocalFaqs(prev => [...prev, { q: newQuestion.trim(), a: "", likes: 0, pending: true }]);
-    setNewQuestion(""); setShowAskForm(false);
+  const handleSubmitQuestion = async () => {
+    if (!newQuestion.trim() || !user) return;
+    const { error } = await supabase.from('questions').insert({
+      entity_id: experienceId,
+      entity_type: 'product',
+      user_id: user.id,
+      body: newQuestion.trim(),
+      status: 'open',
+    });
+    if (!error) {
+      setNewQuestion(""); setShowAskForm(false);
+      refetchQuestions();
+    }
   };
 
-  // Always show — even if empty, user can ask
+  // Merge legacy faqs + db questions
+  const allQuestions = [
+    ...dbQuestions.map((q: any) => {
+      const ans = dbAnswers.find((a: any) => a.question_id === q.id && a.is_best);
+      return { q: q.body, a: ans?.body || '', likes: q.vote_count || 0, pending: q.status === 'open', id: q.id };
+    }),
+    ...(faqs || []).filter((f: any) => f.q),
+  ];
 
   return (
     <div className="mb-6">
@@ -86,10 +130,10 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
           </div>
         </div>
       )}
-      {localFaqs.length > 0 && (
+      {allQuestions.length > 0 && (
         <div className="space-y-3">
-          {localFaqs.map((faq: any, index: number) => (
-            <div key={index} className="p-3.5 rounded-xl bg-card border border-border">
+          {allQuestions.map((faq: any, index: number) => (
+            <div key={faq.id || index} className="p-3.5 rounded-xl bg-card border border-border">
               <div className="flex items-start gap-2">
                 <HelpCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                 <div className="flex-1">
