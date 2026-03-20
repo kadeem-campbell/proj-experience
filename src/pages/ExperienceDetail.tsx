@@ -482,11 +482,11 @@ export default function ExperienceDetail() {
           <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Why this experience</h2>
           <div className={cn("grid gap-2.5", layout === 'desktop' ? "grid-cols-2" : "grid-cols-1")}>
             {experience.highlights?.map((item: string, index: number) => (
-              <div key={index} className="flex items-start gap-3 py-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Sparkles className="w-4 h-4 text-primary" />
+              <div key={index} className="flex items-center gap-3 py-2.5">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <span className="text-[14px] leading-relaxed text-foreground">{item}</span>
+                <span className="text-[13.5px] leading-snug text-foreground">{item}</span>
               </div>
             ))}
           </div>
