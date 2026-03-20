@@ -588,14 +588,14 @@ const PublicItinerary = () => {
     const price = dbExp?.price || (experience.price ? experience.price : null);
     const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
     const category = dbExp?.category || experience.category;
-    const expSlug = dbExp?.slug || slugify(experience.title);
-    const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = generateProductUrl(destSlug || 'explore', expSlug, dbExp?.areaSlug);
+    const expUrl = dbExp?.slug && dbExp?.destinationSlug
+      ? generateProductUrl(dbExp.destinationSlug, dbExp.slug, dbExp.areaSlug)
+      : null;
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
         <div
-          onClick={() => navigate(expUrl)}
+          onClick={() => expUrl && navigate(expUrl)}
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
