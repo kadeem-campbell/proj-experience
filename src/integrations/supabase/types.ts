@@ -3595,6 +3595,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           destination_id: string | null
+          duration_minutes: number | null
           gallery: Json | null
           gallery_json: Json | null
           highlights: Json | null
@@ -3603,6 +3604,7 @@ export type Database = {
           indexability_state: string | null
           instagram_url: string | null
           meeting_points: Json | null
+          meeting_points_json: Json | null
           primary_area_id: string | null
           primary_poi_id: string | null
           product_family: string
@@ -3627,6 +3629,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           destination_id?: string | null
+          duration_minutes?: number | null
           gallery?: Json | null
           gallery_json?: Json | null
           highlights?: Json | null
@@ -3635,6 +3638,7 @@ export type Database = {
           indexability_state?: string | null
           instagram_url?: string | null
           meeting_points?: Json | null
+          meeting_points_json?: Json | null
           primary_area_id?: string | null
           primary_poi_id?: string | null
           product_family?: string
@@ -3659,6 +3663,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           destination_id?: string | null
+          duration_minutes?: number | null
           gallery?: Json | null
           gallery_json?: Json | null
           highlights?: Json | null
@@ -3667,6 +3672,7 @@ export type Database = {
           indexability_state?: string | null
           instagram_url?: string | null
           meeting_points?: Json | null
+          meeting_points_json?: Json | null
           primary_area_id?: string | null
           primary_poi_id?: string | null
           product_family?: string
