@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Archive, Eye, RefreshCw, Plus, Trash2, CheckCircle, AlertTriangle, XCircle, ExternalLink } from 'lucide-react';
+import { Archive, Eye, RefreshCw, Plus, Trash2, CheckCircle, AlertTriangle, XCircle, ExternalLink, Upload, Loader2 } from 'lucide-react';
 import { generateEntityDocuments } from '@/services/entityDocGenerator';
 import { validateProduct, persistReadinessScore, persistValidationResults } from '@/services/publishValidator';
 
@@ -61,16 +61,27 @@ const HighlightsEditor = ({ value, onChange }: { value: any[]; onChange: (v: str
   );
 };
 
-// ---- Gallery inline editor ----
-const GalleryEditor = ({ value, onChange }: { value: any[]; onChange: (v: string[]) => void }) => {
+// ---- Gallery inline editor with file upload ----
+const GalleryEditor = ({ value, onChange, productSlug }: { value: any[]; onChange: (v: string[]) => void; productSlug?: string }) => {
   const items: string[] = Array.isArray(value) ? value.filter(Boolean).map(String) : [];
-  const [draft, setDraft] = useState('');
+  const [uploading, setUploading] = useState(false);
 
-  const add = () => {
-    const t = draft.trim();
-    if (!t) return;
-    onChange([...items, t]);
-    setDraft('');
+  const handleUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const newUrls: string[] = [];
+    const folder = productSlug || 'general';
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: true });
+      if (!error) {
+        const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
+        if (urlData?.publicUrl) newUrls.push(urlData.publicUrl);
+      }
+    }
+    if (newUrls.length > 0) onChange([...items, ...newUrls]);
+    setUploading(false);
   };
 
   return (
@@ -79,17 +90,14 @@ const GalleryEditor = ({ value, onChange }: { value: any[]; onChange: (v: string
         {items.map((url, i) => (
           <div key={i} className="relative group">
             <img src={url} alt="" className="w-full h-20 object-cover rounded-md border border-border" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-            <div className="mt-1">
-              <Input value={url} className="text-[10px] h-6" onChange={e => { const next = [...items]; next[i] = e.target.value; onChange(next); }} />
-            </div>
             <Button size="sm" variant="ghost" className="absolute top-0 right-0 h-5 w-5 p-0 bg-background/80 rounded-full opacity-0 group-hover:opacity-100" onClick={() => onChange(items.filter((_, j) => j !== i))}><Trash2 className="w-3 h-3" /></Button>
           </div>
         ))}
       </div>
-      <div className="flex gap-2">
-        <Input value={draft} placeholder="Paste image URL..." className="text-xs" onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), add())} />
-        <Button size="sm" variant="outline" onClick={add} disabled={!draft.trim()}><Plus className="w-3 h-3 mr-1" />Add</Button>
-      </div>
+      <label className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-md p-3 cursor-pointer hover:border-primary/50 transition-colors">
+        <input type="file" accept="image/*" multiple className="hidden" onChange={e => handleUpload(e.target.files)} disabled={uploading} />
+        {uploading ? <><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /><span className="text-xs text-muted-foreground">Uploading…</span></> : <><Upload className="w-4 h-4 text-muted-foreground" /><span className="text-xs text-muted-foreground">Click to upload images</span></>}
+      </label>
     </div>
   );
 };
@@ -289,8 +297,8 @@ export const AdminProductsSection = () => {
 
         <Separator />
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Gallery</h4>
-        <p className="text-[10px] text-muted-foreground">Additional photos (URLs). The cover image is included automatically.</p>
-        <GalleryEditor value={item.gallery_json || []} onChange={v => onChange('gallery_json', v)} />
+        <p className="text-[10px] text-muted-foreground">Upload product photos. The cover image is included automatically.</p>
+        <GalleryEditor value={item.gallery_json || []} onChange={v => onChange('gallery_json', v)} productSlug={item.slug} />
 
         <Separator />
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Social Media</h4>
