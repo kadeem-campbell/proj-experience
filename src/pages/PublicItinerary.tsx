@@ -590,7 +590,7 @@ const PublicItinerary = () => {
     const category = dbExp?.category || experience.category;
     const expSlug = dbExp?.slug || slugify(experience.title);
     const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = destSlug ? generateProductUrl(destSlug, expSlug, dbExp?.areaSlug) : `/things-to-do`;
+    const expUrl = generateProductUrl(destSlug || 'explore', expSlug, dbExp?.areaSlug);
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
