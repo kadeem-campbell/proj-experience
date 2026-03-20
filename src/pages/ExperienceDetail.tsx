@@ -179,8 +179,10 @@ export default function ExperienceDetail() {
   const isMobile = useIsMobile();
 
   // Resolve the slug from any route pattern
-  // For /things-to-do/:destination (when ThingsToDo delegates), destParam IS the slug
-  const resolvedSlug = slug || legacySlug || destParam || id || '';
+  // /things-to-do/:dest/:area/:slug → slug is 'slug' param
+  // /things-to-do/:dest/:slug → slug is 'slug' param (area absent)
+  // fallback for old routes
+  const resolvedSlug = slug || legacySlug || id || '';
 
   // Try to find as a product first (new entity system)
   const { data: product, isLoading: productLoading } = useProductBySlug(resolvedSlug);
@@ -188,6 +190,7 @@ export default function ExperienceDetail() {
   const { data: productHosts = [] } = useProductHosts(product?.id || '');
   const { data: productDestination } = useDestinationBySlug(destParam || '');
   const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
+  const { data: productArea } = useAreaById(product?.primary_area_id || '');
 
   // Fallback: try legacy experiences table when product not found
   const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug(
