@@ -582,13 +582,15 @@ const PublicItinerary = () => {
   const renderListRow = (experience: LikedExperience, _idx?: number, _total?: number) => {
     const liked = isItemLiked(experience.id, 'experience');
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
-    const price = experience.price ? `${experience.price} avg` : null;
 
-    // Resolve slug from DB if available
+    // Resolve from DB — use DB data as primary source for category, price, image, slug
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
+    const price = dbExp?.price || (experience.price ? experience.price : null);
+    const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
+    const category = dbExp?.category || experience.category;
     const expSlug = dbExp?.slug || slugify(experience.title);
     const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = generateProductUrl(destSlug, expSlug, dbExp?.areaSlug);
+    const expUrl = destSlug ? generateProductUrl(destSlug, expSlug, dbExp?.areaSlug) : `/things-to-do`;
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
@@ -597,7 +599,7 @@ const PublicItinerary = () => {
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-            {experience.videoThumbnail ? (
+            {thumbnail ? (
               <img src={experience.videoThumbnail} alt="" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
