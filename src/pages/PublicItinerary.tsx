@@ -590,7 +590,7 @@ const PublicItinerary = () => {
     const category = dbExp?.category || experience.category;
     const expSlug = dbExp?.slug || slugify(experience.title);
     const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = destSlug ? generateProductUrl(destSlug, expSlug, dbExp?.areaSlug) : `/things-to-do`;
+    const expUrl = generateProductUrl(destSlug || 'explore', expSlug, dbExp?.areaSlug);
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
@@ -655,7 +655,7 @@ const PublicItinerary = () => {
     const price = dbExp?.price || (experience.price ? experience.price : null);
     const expSlug = dbExp?.slug || slugify(experience.title);
     const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
-    const expUrl = destSlug ? generateProductUrl(destSlug, expSlug, dbExp?.areaSlug) : `/things-to-do`;
+    const expUrl = generateProductUrl(destSlug || 'explore', expSlug, dbExp?.areaSlug);
     return (
       <div
         key={experience.id}
@@ -1173,7 +1173,7 @@ const PublicItinerary = () => {
                             const dbE = allDbExperiences.find(e => e.id === exp.id);
                             const s = dbE?.slug || slugify(exp.title);
                             const d = dbE?.destinationSlug || slugify(exp.location || '');
-                            navigate(d ? generateProductUrl(d, s, dbE?.areaSlug) : `/things-to-do`);
+                            navigate(generateProductUrl(d || 'explore', s, dbE?.areaSlug));
                           }}
                           className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:bg-muted/40 rounded-lg transition-colors"
                         >
