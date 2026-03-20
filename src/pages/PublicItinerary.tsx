@@ -587,15 +587,13 @@ const PublicItinerary = () => {
     // Resolve slug from DB if available
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
     const expSlug = dbExp?.slug || slugify(experience.title);
-
-    const metaParts: string[] = [];
-    if (experience.location) metaParts.push(experience.location);
-    if (experience.category) metaParts.push(experience.category);
+    const destSlug = dbExp?.destinationSlug || slugify(experience.location || '');
+    const expUrl = generateProductUrl(destSlug, expSlug, dbExp?.areaSlug);
 
     return (
       <div key={experience.id} className="flex items-center border-b border-border/30 last:border-b-0">
         <div
-          onClick={() => navigate(generateProductPageUrl(experience.location || '', experience.title, expSlug))}
+          onClick={() => navigate(expUrl)}
           className="flex-1 flex items-center gap-3 py-3 px-4 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left cursor-pointer"
         >
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
