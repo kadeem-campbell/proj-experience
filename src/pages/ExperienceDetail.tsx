@@ -391,6 +391,9 @@ export default function ExperienceDetail() {
         likeCount: seededLikeCount, slug: product.slug, isProduct: true,
         localTips: (product as any).local_tips_json || [],
         gettingThereDescription: (product as any).getting_there_description || '',
+        googleMapsUrl: (product as any).google_maps_url || '',
+        googlePlaceId: (product as any).google_place_id || '',
+        placeName: (product as any).place_name || '',
       };
     }
     if (legacyExperience) {
