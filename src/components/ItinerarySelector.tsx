@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 interface ItinerarySelectorProps {
   experienceId: string;
@@ -91,7 +90,6 @@ export const ItinerarySelector = ({
     setNewName("");
     setShowNewInput(false);
     setOpen(false);
-    toast.success(`Created "${newName.trim()}" and added experience`);
   };
 
   // Sort: selected itineraries first
