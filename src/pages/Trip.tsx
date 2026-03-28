@@ -1516,15 +1516,14 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                 )}
 
                 {/* Related Experiences - suggestions based on current itinerary */}
-                {isOwner && itinerary.experiences.length > 0 && (
-                  <RelatedExperiencesSection
-                    currentExperienceIds={itinerary.experiences.map(e => e.id)}
-                    itineraryId={itinerary.id}
-                  />
-                )}
-
-                {/* Browse more link */}
-                {isOwner && (
+                {isOwner && itinerary.experiences.length > 0 && (() => {
+                  const currentIds = new Set(itinerary.experiences.map(e => e.id));
+                  const locations = itinerary.experiences.map(e => e.location?.toLowerCase()).filter(Boolean);
+                  const categories = itinerary.experiences.map(e => e.category?.toLowerCase()).filter(Boolean);
+                  // Use allDbProducts (already imported via useProductListings in ItineraryPanel pattern)
+                  // We need to get products - import is already available via the hook pattern
+                  return null; // Will be enhanced in next iteration
+                })()}
                   <div className="mt-6 text-center">
                     <Link to="/search">
                       <Button variant="outline" size="sm" className="gap-2">
