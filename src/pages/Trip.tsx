@@ -1494,7 +1494,7 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                 )}
               </div>
             ) : (
-              /* Experiences Grid View - 3 cols mobile, 6 cols desktop */
+              /* Experiences Grid View */
               <div className="p-3 md:p-6 animate-in fade-in duration-150">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {filteredExperiences.map(renderExperienceCard)}
@@ -1510,6 +1510,26 @@ export default function Trip({ useActiveItinerary = false }: TripPageProps) {
                     <Link to="/things-to-do">
                       <Button variant="outline" size="sm">
                         Discover Experiences
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Related Experiences - suggestions based on current itinerary */}
+                {isOwner && itinerary.experiences.length > 0 && (
+                  <RelatedExperiencesSection
+                    currentExperienceIds={itinerary.experiences.map(e => e.id)}
+                    itineraryId={itinerary.id}
+                  />
+                )}
+
+                {/* Browse more link */}
+                {isOwner && (
+                  <div className="mt-6 text-center">
+                    <Link to="/search">
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <Plus className="w-4 h-4" />
+                        Browse more experiences
                       </Button>
                     </Link>
                   </div>
