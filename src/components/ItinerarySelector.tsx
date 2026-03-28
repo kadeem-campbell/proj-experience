@@ -69,11 +69,9 @@ export const ItinerarySelector = ({
     if (alreadyAdded) {
       removeExperienceFromItinerary(itinerary.id, experienceId);
       onRemove?.();
-      toast.success(`Removed from "${itinerary.name}"`);
     } else {
       const result = addExperienceToItinerary(itinerary.id, experienceData);
       if (result.alreadyExists) {
-        toast.error(`Already in "${itinerary.name}"`);
         return;
       }
       setActiveItinerary(itinerary.id);
@@ -81,7 +79,6 @@ export const ItinerarySelector = ({
       if (justAddedTimer.current) clearTimeout(justAddedTimer.current);
       justAddedTimer.current = setTimeout(() => setJustAdded(null), 1500);
       onAdd?.();
-      toast.success(`Added to "${itinerary.name}"`);
     }
   };
 
