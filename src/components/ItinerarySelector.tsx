@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 interface ItinerarySelectorProps {
   experienceId: string;
@@ -69,11 +68,9 @@ export const ItinerarySelector = ({
     if (alreadyAdded) {
       removeExperienceFromItinerary(itinerary.id, experienceId);
       onRemove?.();
-      toast.success(`Removed from "${itinerary.name}"`);
     } else {
       const result = addExperienceToItinerary(itinerary.id, experienceData);
       if (result.alreadyExists) {
-        toast.error(`Already in "${itinerary.name}"`);
         return;
       }
       setActiveItinerary(itinerary.id);
@@ -81,7 +78,6 @@ export const ItinerarySelector = ({
       if (justAddedTimer.current) clearTimeout(justAddedTimer.current);
       justAddedTimer.current = setTimeout(() => setJustAdded(null), 1500);
       onAdd?.();
-      toast.success(`Added to "${itinerary.name}"`);
     }
   };
 
@@ -94,7 +90,6 @@ export const ItinerarySelector = ({
     setNewName("");
     setShowNewInput(false);
     setOpen(false);
-    toast.success(`Created "${newName.trim()}" and added experience`);
   };
 
   // Sort: selected itineraries first
