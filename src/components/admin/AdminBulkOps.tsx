@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { Upload, Download, Loader2, Check, AlertCircle, FileSpreadsheet, Code2 } from 'lucide-react';
+import { Upload, Download, Loader2, Check, AlertCircle, FileSpreadsheet, Code2, Plus } from 'lucide-react';
 
 type TableName = 'products' | 'destinations' | 'areas' | 'hosts' | 'activity_types' | 'themes' | 'pois' | 'collections' | 'public_itineraries' | 'options' | 'price_options';
 
