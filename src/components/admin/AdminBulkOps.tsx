@@ -58,14 +58,16 @@ export const AdminBulkOps = () => {
       <h2 className="text-xl font-bold mb-1">Bulk Operations</h2>
       <p className="text-sm text-muted-foreground mb-4">Import, export, and bulk-update any entity table</p>
 
-      <Tabs defaultValue="product-bulk">
+      <Tabs defaultValue="quick-add">
         <TabsList className="mb-4 flex flex-wrap gap-1 h-auto">
+          <TabsTrigger value="quick-add" className="gap-1"><Plus className="w-3 h-3" /> Quick Add Products</TabsTrigger>
           <TabsTrigger value="product-bulk" className="gap-1"><FileSpreadsheet className="w-3 h-3" /> Product Bulk</TabsTrigger>
           <TabsTrigger value="csv-import" className="gap-1"><Upload className="w-3 h-3" /> CSV Import</TabsTrigger>
           <TabsTrigger value="json-update" className="gap-1"><Code2 className="w-3 h-3" /> JSON Update</TabsTrigger>
           <TabsTrigger value="field-update" className="gap-1"><FileSpreadsheet className="w-3 h-3" /> Field Update</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="quick-add"><QuickAddProductsPanel /></TabsContent>
         <TabsContent value="product-bulk"><ProductBulkPanel /></TabsContent>
         <TabsContent value="csv-import"><CSVImportPanel /></TabsContent>
         <TabsContent value="json-update"><JSONUpdatePanel /></TabsContent>
