@@ -658,7 +658,7 @@ export default function ExperienceDetail() {
           <SEOHead title={`${experience.title} in ${experience.location}`} description={`${experience.title} — ${experience.category} activity in ${experience.location}. ${experience.description?.slice(0, 120) || 'Discover and add to your itinerary.'}`} canonicalPath={shareUrl.replace('https://swam.app', '')} indexability="public_indexed" image={experience.videoThumbnail} jsonLd={experienceJsonLd} />
         )}
         <div className="bg-background overflow-y-auto">
-          {/* ========== PREMIUM HERO ========== */}
+          {/* ========== CINEMATIC HERO ========== */}
           <div className="relative">
             {gallery.length > 1 ? (
               <PhotoGallery images={gallery} title={experience.title} />
@@ -670,42 +670,42 @@ export default function ExperienceDetail() {
 
             {/* Top floating buttons */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-              <button onClick={handleGoBack} className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center"><ArrowLeft className="w-5 h-5 text-white" /></button>
+              <button onClick={handleGoBack} className="w-10 h-10 rounded-full bg-black/25 backdrop-blur-2xl flex items-center justify-center border border-white/10"><ArrowLeft className="w-5 h-5 text-white" /></button>
               <div className="flex items-center gap-2">
-                <ShareDrawer title={experience.title} url={shareUrl} onInvite={() => {}}><button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center"><Share2 className="w-5 h-5 text-white" /></button></ShareDrawer>
-                <button onClick={handleLikeClick} className={cn("w-10 h-10 rounded-full backdrop-blur-xl flex items-center justify-center", liked ? "bg-primary/80" : "bg-black/30")}><Heart className={cn("w-5 h-5", liked ? "fill-white text-white" : "text-white")} /></button>
+                <ShareDrawer title={experience.title} url={shareUrl} onInvite={() => {}}><button className="w-10 h-10 rounded-full bg-black/25 backdrop-blur-2xl flex items-center justify-center border border-white/10"><Share2 className="w-5 h-5 text-white" /></button></ShareDrawer>
+                <button onClick={handleLikeClick} className={cn("w-10 h-10 rounded-full backdrop-blur-2xl flex items-center justify-center border border-white/10", liked ? "bg-primary/70" : "bg-black/25")}><Heart className={cn("w-5 h-5", liked ? "fill-white text-white" : "text-white")} /></button>
               </div>
             </div>
 
-            {/* Bottom gradient overlay — cinematic, not muddy */}
+            {/* Bottom gradient — Luma-style deep fade */}
             <div className="absolute inset-x-0 bottom-0 z-10">
-              <div className="pt-32 pb-5 px-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.12) 70%, transparent 100%)' }}>
-                {/* Location line */}
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-white/60" />
+              <div className="pt-40 pb-6 px-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 35%, rgba(0,0,0,0.15) 65%, transparent 100%)' }}>
+                {/* Location */}
+                <div className="flex items-center gap-1.5 mb-2">
+                  <MapPin className="w-3 h-3 text-white/50" />
                   {linkedPoi ? (
-                    <span className="text-[13px] text-white/80 font-medium tracking-wide">{linkedPoi.name}{experience.location ? `, ${experience.location}` : ''}</span>
+                    <span className="text-[12px] text-white/70 font-medium tracking-wide uppercase">{linkedPoi.name}{experience.location ? ` · ${experience.location}` : ''}</span>
                   ) : (
-                    <span className="text-[13px] text-white/80 font-medium tracking-wide">{experience.location}</span>
+                    <span className="text-[12px] text-white/70 font-medium tracking-wide uppercase">{experience.location}</span>
                   )}
                 </div>
                 {/* Title */}
-                <h1 className="text-[24px] font-extrabold text-white leading-[1.15] mb-2.5" style={{ fontFamily: '-apple-system, SF Pro Display, system-ui, sans-serif', letterSpacing: '-0.3px' }}>
+                <h1 className="text-[26px] font-extrabold text-white leading-[1.1] mb-3" style={{ fontFamily: '-apple-system, SF Pro Display, system-ui, sans-serif', letterSpacing: '-0.5px' }}>
                   {experience.title}
                 </h1>
-                {/* Meta row */}
-                <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                    <Heart className="w-3 h-3 fill-white/60 text-white/60" />
-                    Saved by {likedByCount} travellers
+                {/* Social proof pills */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <Heart className="w-3 h-3 fill-white/50 text-white/50" />
+                    {likedByCount} saves
                   </span>
                   {experience.price && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-semibold" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
                       From {experience.price}
                     </span>
                   )}
                   {experience.bestTime && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
                       <Calendar className="w-3 h-3" />
                       {experience.bestTime}
                     </span>
@@ -715,20 +715,43 @@ export default function ExperienceDetail() {
             </div>
           </div>
 
-          <div className="px-4 pt-5 pb-4">
-            {/* Add to Itinerary CTA */}
-            <div className="mb-4">
+          {/* Content area */}
+          <div className="px-5 pt-6 pb-4">
+            {/* Primary CTA — full-width, premium */}
+            <div className="mb-5">
               <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator, videoThumbnail: experience.videoThumbnail, category: experience.category, location: experience.location, price: experience.price || "" }} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-                <Button size="lg" className={cn("w-full h-[52px] rounded-2xl font-semibold text-[15px] bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
+                <Button size="lg" className={cn("w-full h-[54px] rounded-2xl font-bold text-[15px] bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10 tracking-[-0.01em]", justAdded && "animate-pulse")}>
+                  <span className="flex items-center gap-2.5"><Plus className="w-5 h-5" />Add to Itinerary</span>
+                </Button>
               </ItinerarySelector>
             </div>
 
-            {/* Info Pills — refined, smaller */}
-            <div className="flex flex-wrap gap-1.5 mb-6">
-              {experience.category && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]">{categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}<span className="font-medium text-foreground/80">{experience.category}</span></div>}
-              {experience.duration && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
-              {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
-              {bestTimeDisplay && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span></div>}
+            {/* Info Pills — premium chips */}
+            <div className="flex flex-wrap gap-2 mb-7">
+              {experience.category && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
+                  {categoryIcon && <img src={categoryIcon} alt="" className="w-4.5 h-4.5 object-contain" />}
+                  <span className="font-medium text-foreground/80">{experience.category}</span>
+                </div>
+              )}
+              {experience.duration && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
+                  <Clock className="w-4 h-4 text-primary/60" />
+                  <span className="font-medium text-foreground/80">{experience.duration}</span>
+                </div>
+              )}
+              {experience.groupSize && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
+                  <Users className="w-4 h-4 text-primary/60" />
+                  <span className="font-medium text-foreground/80">{experience.groupSize}</span>
+                </div>
+              )}
+              {bestTimeDisplay && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
+                  <TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-4 h-4 text-primary/60" />
+                  <span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span>
+                </div>
+              )}
             </div>
 
             {renderContentSections('mobile')}
