@@ -514,75 +514,68 @@ export default function ExperienceDetail() {
     return `/hosts/${match ? match.slug || match.username : creatorName.toLowerCase().replace(/\s+/g, '-')}`;
   };
 
-  // ========== SHARED CONTENT SECTIONS — premium guided order ==========
-  // Order: About → Highlights → Social/Visual → Hosts → Inclusions → Access/Logistics → Local Tips → Related
+  // ========== SHARED CONTENT SECTIONS — Luma/Spotify premium guided order ==========
   const renderContentSections = (layout: 'mobile' | 'desktop') => (
     <>
-      {/* 1. About — editorial, refined */}
+      {/* 1. About */}
       {hasDescription && (
-        <div className="mb-7">
-          <p className="text-[13.5px] text-foreground/70 leading-[1.75]">{experience.description}</p>
+        <div className="mb-8">
+          <p className="text-[15px] text-foreground/80 leading-[1.8] tracking-[-0.01em]">{experience.description}</p>
         </div>
       )}
 
-      {/* 2. Highlights — curated reasons to go */}
+      {/* 2. Highlights */}
       {hasHighlights && (
         <div className="mb-8">
-          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Why this experience</h2>
-          <div className={cn("grid gap-2.5", layout === 'desktop' ? "grid-cols-2" : "grid-cols-1")}>
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Why this experience</h2>
+          <div className={cn("space-y-0", layout === 'desktop' ? "grid grid-cols-2 gap-0 space-y-0" : "")}>
             {experience.highlights?.map((item: string, index: number) => (
-              <div key={index} className="flex items-center gap-3 py-2.5">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <div key={index} className="flex items-center gap-3.5 py-3.5 border-b border-border/30 last:border-0">
+                <div className="w-8 h-8 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-4 h-4 text-primary" />
                 </div>
-                <span className="text-[13.5px] leading-snug text-foreground">{item}</span>
+                <span className="text-[14px] leading-snug text-foreground font-medium">{item}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* 2b. Gallery — 2×2 photo grid */}
+      {/* 2b. Gallery */}
       {gallery.length > 1 && (
         <div className="mb-8">
-          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Gallery</h2>
-          <div className="grid grid-cols-2 gap-1.5 rounded-xl overflow-hidden">
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Gallery</h2>
+          <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden">
             {gallery.slice(0, 4).map((img: string, i: number) => (
               <div key={i} className="aspect-square overflow-hidden bg-muted">
-                <img src={img} alt={`${experience.title} ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                <img src={img} alt={`${experience.title} ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" />
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* 3. Watch it live — tappable, dynamic, visual */}
+      {/* 3. Social */}
       {hasSocialContent && (
         <div className="mb-8 -mx-4">
-          <h2 className="text-base font-bold tracking-tight mb-3 uppercase text-muted-foreground/70 px-4" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>See it in action</h2>
-          <SocialVideoEmbed 
-            experienceTitle={experience.title}
-            location={experience.location}
-            tiktokVideos={experience.tiktokVideos || []}
-            instagramEmbed={experience.instagramEmbed}
-            className="px-4"
-          />
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4 px-4">See it in action</h2>
+          <SocialVideoEmbed experienceTitle={experience.title} location={experience.location} tiktokVideos={experience.tiktokVideos || []} instagramEmbed={experience.instagramEmbed} className="px-4" />
         </div>
       )}
 
-      {/* 4. Hosts — human, warm, not boxed */}
+      {/* 4. Hosts */}
       {hasCreators && creatorNames.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Your hosts</h2>
-          <div className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Your hosts</h2>
+          <div className="space-y-2">
             {creatorNames.map((creatorName: string, idx: number) => (
-              <div key={idx} className="flex items-center gap-4 py-2 cursor-pointer active:opacity-70 transition-opacity" onClick={() => navigate(getHostUrl(creatorName))}>
-                <Avatar className="w-14 h-14 ring-2 ring-primary/10 ring-offset-2 ring-offset-background">
-                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-bold text-lg">{creatorName.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <div key={idx} className="flex items-center gap-4 p-3 rounded-2xl bg-card border border-border/50 cursor-pointer active:scale-[0.98] transition-all" onClick={() => navigate(getHostUrl(creatorName))}>
+                <Avatar className="w-12 h-12 ring-2 ring-primary/10 ring-offset-2 ring-offset-background">
+                  <AvatarFallback className="bg-gradient-to-br from-primary/15 to-accent/10 text-primary font-bold text-base">{creatorName.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <p className="font-semibold text-[15px]">@{creatorName}</p>
-                  <p className="text-sm text-muted-foreground">Local host · Verified</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[14px] truncate">@{creatorName}</p>
+                  <p className="text-xs text-muted-foreground">Local host · Verified</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
@@ -591,38 +584,35 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 5. What's typically included — compact utility */}
+      {/* 5. Inclusions */}
       {(experience as any).isProduct && <InclusionsSection productId={experience.id} />}
 
-      {/* 6. Location — Get Directions */}
+      {/* 6. Location */}
       {((experience as any).googleMapsUrl || (experience as any).googlePlaceId) && (
-        <div className="mb-7">
-          <h2 className="text-base font-bold tracking-tight mb-3 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Location</h2>
-          <a
-            href={(experience as any).googleMapsUrl || `https://www.google.com/maps/place/?q=place_id:${(experience as any).googlePlaceId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3.5 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
-          >
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Navigation className="w-4.5 h-4.5 text-primary" />
+        <div className="mb-8">
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Location</h2>
+          <a href={(experience as any).googleMapsUrl || `https://www.google.com/maps/place/?q=place_id:${(experience as any).googlePlaceId}`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all active:scale-[0.98]">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Navigation className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold">{(experience as any).placeName || 'View on Map'}</p>
-              <p className="text-xs text-muted-foreground">Get directions on Google Maps</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Get directions on Google Maps</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </a>
         </div>
       )}
-      {/* 7. Access points — utility, tighter */}
+
+      {/* 7. Access points */}
       {hasMeetingPoints && (
-        <div className="mb-6">
-          <h2 className="text-base font-bold tracking-tight mb-3 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Access points</h2>
-          <div className="space-y-1.5">
+        <div className="mb-8">
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Access points</h2>
+          <div className="rounded-2xl border border-border/50 overflow-hidden">
             {experience.meetingPoints?.map((point: { name: string; type: string }, index: number) => (
-              <div key={index} className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0">
-                <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <div key={index} className="flex items-center gap-3 px-4 py-3.5 border-b border-border/30 last:border-0">
+                <MapPin className="w-4 h-4 text-primary/60 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{point.name}</p>
                   {point.type && <p className="text-xs text-muted-foreground">{point.type}</p>}
@@ -633,31 +623,29 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 8. Getting There — utility */}
-      {(experience as any).isProduct && (
-        <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />
-      )}
+      {/* 8. Getting There */}
+      {(experience as any).isProduct && <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />}
 
-      {/* 9. Local Tips — insider, whispered tone */}
+      {/* 9. Local Tips */}
       {hasLocalTips && (
         <div className="mb-8">
-          <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Insider tips</h2>
-          <div className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Insider tips</h2>
+          <div className="space-y-2">
             {(experience as any).localTips.map((tip: string, i: number) => (
-              <div key={i} className="flex items-start gap-3 pl-1">
-                <span className="text-lg leading-none mt-0.5">💡</span>
-                <p className="text-[14px] text-muted-foreground leading-relaxed italic">{tip}</p>
+              <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-muted/30 border border-border/30">
+                <Lightbulb className="w-4 h-4 text-primary/60 mt-0.5 shrink-0" />
+                <p className="text-[13.5px] text-foreground/80 leading-relaxed">{tip}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* 10. Related saves / people also added */}
+      {/* 10. Related */}
       <PairingBlock experienceId={experience.id} />
       <IncludedInItineraries experienceId={experience.id} />
 
-      {/* 12. Questions */}
+      {/* 11. Questions */}
       <QuestionsSection faqs={experience.faqs || []} experienceId={experience.id} />
     </>
   );
@@ -670,7 +658,7 @@ export default function ExperienceDetail() {
           <SEOHead title={`${experience.title} in ${experience.location}`} description={`${experience.title} — ${experience.category} activity in ${experience.location}. ${experience.description?.slice(0, 120) || 'Discover and add to your itinerary.'}`} canonicalPath={shareUrl.replace('https://swam.app', '')} indexability="public_indexed" image={experience.videoThumbnail} jsonLd={experienceJsonLd} />
         )}
         <div className="bg-background overflow-y-auto">
-          {/* ========== PREMIUM HERO ========== */}
+          {/* ========== CINEMATIC HERO ========== */}
           <div className="relative">
             {gallery.length > 1 ? (
               <PhotoGallery images={gallery} title={experience.title} />
@@ -682,42 +670,42 @@ export default function ExperienceDetail() {
 
             {/* Top floating buttons */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-              <button onClick={handleGoBack} className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center"><ArrowLeft className="w-5 h-5 text-white" /></button>
+              <button onClick={handleGoBack} className="w-10 h-10 rounded-full bg-black/25 backdrop-blur-2xl flex items-center justify-center border border-white/10"><ArrowLeft className="w-5 h-5 text-white" /></button>
               <div className="flex items-center gap-2">
-                <ShareDrawer title={experience.title} url={shareUrl} onInvite={() => {}}><button className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center"><Share2 className="w-5 h-5 text-white" /></button></ShareDrawer>
-                <button onClick={handleLikeClick} className={cn("w-10 h-10 rounded-full backdrop-blur-xl flex items-center justify-center", liked ? "bg-primary/80" : "bg-black/30")}><Heart className={cn("w-5 h-5", liked ? "fill-white text-white" : "text-white")} /></button>
+                <ShareDrawer title={experience.title} url={shareUrl} onInvite={() => {}}><button className="w-10 h-10 rounded-full bg-black/25 backdrop-blur-2xl flex items-center justify-center border border-white/10"><Share2 className="w-5 h-5 text-white" /></button></ShareDrawer>
+                <button onClick={handleLikeClick} className={cn("w-10 h-10 rounded-full backdrop-blur-2xl flex items-center justify-center border border-white/10", liked ? "bg-primary/70" : "bg-black/25")}><Heart className={cn("w-5 h-5", liked ? "fill-white text-white" : "text-white")} /></button>
               </div>
             </div>
 
-            {/* Bottom gradient overlay — cinematic, not muddy */}
+            {/* Bottom gradient — Luma-style deep fade */}
             <div className="absolute inset-x-0 bottom-0 z-10">
-              <div className="pt-32 pb-5 px-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.12) 70%, transparent 100%)' }}>
-                {/* Location line */}
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-white/60" />
+              <div className="pt-40 pb-6 px-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 35%, rgba(0,0,0,0.15) 65%, transparent 100%)' }}>
+                {/* Location */}
+                <div className="flex items-center gap-1.5 mb-2">
+                  <MapPin className="w-3 h-3 text-white/50" />
                   {linkedPoi ? (
-                    <span className="text-[13px] text-white/80 font-medium tracking-wide">{linkedPoi.name}{experience.location ? `, ${experience.location}` : ''}</span>
+                    <span className="text-[12px] text-white/70 font-medium tracking-wide uppercase">{linkedPoi.name}{experience.location ? ` · ${experience.location}` : ''}</span>
                   ) : (
-                    <span className="text-[13px] text-white/80 font-medium tracking-wide">{experience.location}</span>
+                    <span className="text-[12px] text-white/70 font-medium tracking-wide uppercase">{experience.location}</span>
                   )}
                 </div>
                 {/* Title */}
-                <h1 className="text-[24px] font-extrabold text-white leading-[1.15] mb-2.5" style={{ fontFamily: '-apple-system, SF Pro Display, system-ui, sans-serif', letterSpacing: '-0.3px' }}>
+                <h1 className="text-[26px] font-extrabold text-white leading-[1.1] mb-3" style={{ fontFamily: '-apple-system, SF Pro Display, system-ui, sans-serif', letterSpacing: '-0.5px' }}>
                   {experience.title}
                 </h1>
-                {/* Meta row */}
-                <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                    <Heart className="w-3 h-3 fill-white/60 text-white/60" />
-                    Saved by {likedByCount} travellers
+                {/* Social proof pills */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <Heart className="w-3 h-3 fill-white/50 text-white/50" />
+                    {likedByCount} saves
                   </span>
                   {experience.price && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-semibold" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
                       From {experience.price}
                     </span>
                   )}
                   {experience.bestTime && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
                       <Calendar className="w-3 h-3" />
                       {experience.bestTime}
                     </span>
@@ -727,20 +715,43 @@ export default function ExperienceDetail() {
             </div>
           </div>
 
-          <div className="px-4 pt-5 pb-4">
-            {/* Add to Itinerary CTA */}
-            <div className="mb-4">
+          {/* Content area */}
+          <div className="px-5 pt-6 pb-4">
+            {/* Primary CTA — full-width, premium */}
+            <div className="mb-5">
               <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator, videoThumbnail: experience.videoThumbnail, category: experience.category, location: experience.location, price: experience.price || "" }} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-                <Button size="lg" className={cn("w-full h-[52px] rounded-2xl font-semibold text-[15px] bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
+                <Button size="lg" className={cn("w-full h-[54px] rounded-2xl font-bold text-[15px] bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10 tracking-[-0.01em]", justAdded && "animate-pulse")}>
+                  <span className="flex items-center gap-2.5"><Plus className="w-5 h-5" />Add to Itinerary</span>
+                </Button>
               </ItinerarySelector>
             </div>
 
-            {/* Info Pills — refined, smaller */}
-            <div className="flex flex-wrap gap-1.5 mb-6">
-              {experience.category && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]">{categoryIcon && <img src={categoryIcon} alt="" className="w-4 h-4 object-contain" />}<span className="font-medium text-foreground/80">{experience.category}</span></div>}
-              {experience.duration && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Clock className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.duration}</span></div>}
-              {experience.groupSize && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><Users className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{experience.groupSize}</span></div>}
-              {bestTimeDisplay && <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 text-[13px]"><TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-3.5 h-3.5 text-primary/70" /><span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span></div>}
+            {/* Info Pills — premium chips */}
+            <div className="flex flex-wrap gap-2 mb-7">
+              {experience.category && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
+                  {categoryIcon && <img src={categoryIcon} alt="" className="w-4.5 h-4.5 object-contain" />}
+                  <span className="font-medium text-foreground/80">{experience.category}</span>
+                </div>
+              )}
+              {experience.duration && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
+                  <Clock className="w-4 h-4 text-primary/60" />
+                  <span className="font-medium text-foreground/80">{experience.duration}</span>
+                </div>
+              )}
+              {experience.groupSize && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
+                  <Users className="w-4 h-4 text-primary/60" />
+                  <span className="font-medium text-foreground/80">{experience.groupSize}</span>
+                </div>
+              )}
+              {bestTimeDisplay && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
+                  <TimingIcon icon={bestTimeDisplay.primary_time_icon} className="w-4 h-4 text-primary/60" />
+                  <span className="font-medium text-foreground/80">{bestTimeDisplay.primary_time_label}</span>
+                </div>
+              )}
             </div>
 
             {renderContentSections('mobile')}

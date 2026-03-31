@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { Upload, Download, Loader2, Check, AlertCircle, FileSpreadsheet, Code2 } from 'lucide-react';
+import { Upload, Download, Loader2, Check, AlertCircle, FileSpreadsheet, Code2, Plus } from 'lucide-react';
 
 type TableName = 'products' | 'destinations' | 'areas' | 'hosts' | 'activity_types' | 'themes' | 'pois' | 'collections' | 'public_itineraries' | 'options' | 'price_options';
 
@@ -58,20 +58,125 @@ export const AdminBulkOps = () => {
       <h2 className="text-xl font-bold mb-1">Bulk Operations</h2>
       <p className="text-sm text-muted-foreground mb-4">Import, export, and bulk-update any entity table</p>
 
-      <Tabs defaultValue="product-bulk">
+      <Tabs defaultValue="quick-add">
         <TabsList className="mb-4 flex flex-wrap gap-1 h-auto">
+          <TabsTrigger value="quick-add" className="gap-1"><Plus className="w-3 h-3" /> Quick Add Products</TabsTrigger>
           <TabsTrigger value="product-bulk" className="gap-1"><FileSpreadsheet className="w-3 h-3" /> Product Bulk</TabsTrigger>
           <TabsTrigger value="csv-import" className="gap-1"><Upload className="w-3 h-3" /> CSV Import</TabsTrigger>
           <TabsTrigger value="json-update" className="gap-1"><Code2 className="w-3 h-3" /> JSON Update</TabsTrigger>
           <TabsTrigger value="field-update" className="gap-1"><FileSpreadsheet className="w-3 h-3" /> Field Update</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="quick-add"><QuickAddProductsPanel /></TabsContent>
         <TabsContent value="product-bulk"><ProductBulkPanel /></TabsContent>
         <TabsContent value="csv-import"><CSVImportPanel /></TabsContent>
         <TabsContent value="json-update"><JSONUpdatePanel /></TabsContent>
         <TabsContent value="field-update"><FieldUpdatePanel /></TabsContent>
       </Tabs>
     </div>
+  );
+};
+
+// ============ QUICK ADD PRODUCTS ============
+const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+
+const QuickAddProductsPanel = () => {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [rows, setRows] = useState<{ title: string; description: string; destination_id: string }[]>([
+    { title: '', description: '', destination_id: '' },
+    { title: '', description: '', destination_id: '' },
+    { title: '', description: '', destination_id: '' },
+  ]);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ success: number; failed: number } | null>(null);
+
+  // Fetch destinations for dropdown
+  const [destinations, setDestinations] = useState<{ id: string; name: string }[]>([]);
+  useState(() => {
+    supabase.from('destinations').select('id, name').eq('is_active', true).order('name').then(({ data }) => {
+      setDestinations(data || []);
+    });
+  });
+
+  const updateRow = (i: number, field: string, value: string) => {
+    setRows(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: value } : r));
+  };
+
+  const addRow = () => setRows(prev => [...prev, { title: '', description: '', destination_id: '' }]);
+
+  const removeRow = (i: number) => setRows(prev => prev.filter((_, idx) => idx !== i));
+
+  const handleSubmit = async () => {
+    const valid = rows.filter(r => r.title.trim());
+    if (!valid.length) { toast({ title: 'Add at least one product title', variant: 'destructive' }); return; }
+
+    setLoading(true);
+    let success = 0, failed = 0;
+
+    for (const row of valid) {
+      const slug = toSlug(row.title);
+      const { error } = await (supabase as any).from('products').insert({
+        title: row.title.trim(),
+        slug,
+        description: row.description.trim() || null,
+        destination_id: row.destination_id || null,
+        visibility_state: 'published',
+        publish_state: 'published',
+      });
+      if (error) failed++; else success++;
+    }
+
+    setResult({ success, failed });
+    setLoading(false);
+    qc.invalidateQueries();
+    toast({ title: `${success} products created${failed ? `, ${failed} failed` : ''}` });
+    if (success > 0) {
+      setRows([{ title: '', description: '', destination_id: '' }, { title: '', description: '', destination_id: '' }, { title: '', description: '', destination_id: '' }]);
+    }
+  };
+
+  return (
+    <Card className="p-6 space-y-4">
+      <div>
+        <p className="text-sm font-medium mb-1">Quickly add multiple products</p>
+        <p className="text-xs text-muted-foreground">Fill in titles and optionally descriptions + destinations. Products are created as published.</p>
+      </div>
+
+      <div className="space-y-3">
+        {rows.map((row, i) => (
+          <div key={i} className="flex gap-2 items-start">
+            <span className="text-xs text-muted-foreground mt-2.5 w-5 shrink-0">{i + 1}</span>
+            <Input value={row.title} onChange={e => updateRow(i, 'title', e.target.value)} placeholder="Product title *" className="flex-1 text-sm" />
+            <Input value={row.description} onChange={e => updateRow(i, 'description', e.target.value)} placeholder="Short description" className="flex-1 text-sm" />
+            <Select value={row.destination_id} onValueChange={v => updateRow(i, 'destination_id', v)}>
+              <SelectTrigger className="w-[160px] text-xs"><SelectValue placeholder="Destination" /></SelectTrigger>
+              <SelectContent>{destinations.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
+            </Select>
+            {rows.length > 1 && (
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 shrink-0" onClick={() => removeRow(i)}>
+                <AlertCircle className="w-3 h-3" />
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={addRow}><Plus className="w-3 h-3 mr-1" /> Add Row</Button>
+        <Button onClick={handleSubmit} disabled={loading} className="ml-auto">
+          {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+          Create {rows.filter(r => r.title.trim()).length} Products
+        </Button>
+      </div>
+
+      {result && (
+        <div className="text-sm flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-500" /> {result.success} created
+          {result.failed > 0 && <span className="text-destructive">{result.failed} failed</span>}
+        </div>
+      )}
+    </Card>
   );
 };
 
