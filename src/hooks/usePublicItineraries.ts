@@ -21,6 +21,19 @@ export interface PublicItinerary {
   creatorId?: string;
 }
 
+const normalizeIncludedExperiences = (experiences: LikedExperience[]): LikedExperience[] => {
+  const seenIds = new Set<string>();
+
+  return experiences.filter((experience) => {
+    if (!experience?.id || seenIds.has(experience.id)) {
+      return false;
+    }
+
+    seenIds.add(experience.id);
+    return true;
+  });
+};
+
 const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
   const { data, error } = await supabase
     .from("public_itineraries")
@@ -106,7 +119,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
           id: e.id,
           title: product?.title || e.title || "",
           creator: e.creator || "",
-          videoThumbnail: product?.cover_image || e.videoThumbnail || "",
+          videoThumbnail: product?.cover_image || e.videoThumbnail || e.video_thumbnail || "",
           category: e.category || "",
           location: e.location || "",
           price: e.price || "",
@@ -117,7 +130,9 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
 
     // Prefer join table if it has data, otherwise use enriched JSONB
     const linkedExperiences = linkedByItinerary[row.id] || [];
-    const experiences = linkedExperiences.length > 0 ? linkedExperiences : jsonExperiences;
+    const experiences = normalizeIncludedExperiences(
+      linkedExperiences.length > 0 ? linkedExperiences : jsonExperiences
+    );
 
     return {
       id: row.slug || row.id,
