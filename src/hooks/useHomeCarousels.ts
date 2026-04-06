@@ -9,6 +9,7 @@ export interface HomeCarousel {
   displayOrder: number;
   destinationIds: string[]; // multi-city
   itemIds: string[];
+  tag: string | null;
 }
 
 export const useHomeCarousels = () => {
