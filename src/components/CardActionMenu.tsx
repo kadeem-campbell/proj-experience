@@ -40,6 +40,7 @@ const ActionMenuContent = ({
   slug,
   onClose,
 }: Omit<CardActionMenuProps, "children"> & { onClose: () => void }) => {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [showItineraryPicker, setShowItineraryPicker] = useState(false);
   const [showNewInput, setShowNewInput] = useState(false);
