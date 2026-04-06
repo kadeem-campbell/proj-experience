@@ -5,6 +5,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useProductListings } from "@/hooks/useProductListings";
 import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 import { TimingIcon } from "@/components/TimingIcon";
+import { PresentationMode } from "@/components/PresentationMode";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays } from "date-fns";
