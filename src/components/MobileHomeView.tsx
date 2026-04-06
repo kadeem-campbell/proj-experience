@@ -386,6 +386,40 @@ export const MobileHomeView = () => {
         </button>
       </div>
 
+      {/* Category icon row */}
+      <div className="px-4 pb-3">
+        <div className="flex justify-between">
+          {[
+            { label: "Beaches", icon: catBeaches, tag: "Beaches" },
+            { label: "Nightlife", icon: catNightlife, tag: "Nightlife" },
+            { label: "Nature", icon: catNature, tag: "Nature" },
+            { label: "Adventure", icon: catAdventure, tag: "Adventure" },
+            { label: "Food", icon: catFood, tag: "Food" },
+            { label: "Safari", icon: catSafari, tag: "Safari" },
+          ].map((cat) => {
+            const isActive = activeTag === cat.tag;
+            return (
+              <button
+                key={cat.label}
+                onClick={() => setActiveTag(isActive ? "" : cat.tag)}
+                className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+              >
+                <div className={cn(
+                  "w-14 h-14 rounded-full overflow-hidden flex items-center justify-center transition-all",
+                  isActive ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "bg-muted"
+                )}>
+                  <img src={cat.icon} alt={cat.label} className="w-full h-full object-cover" />
+                </div>
+                <span className={cn(
+                  "text-[11px] font-medium",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )}>{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Tag filter pills */}
       <TagFilterPills tags={availableTags} activeTag={activeTag} onTagChange={setActiveTag} />
 
