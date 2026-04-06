@@ -306,6 +306,11 @@ export const MobileHomeView = () => {
   }, [selectedDestId, selectedCity, allItinerariesData]);
 
   // City-filtered products
+  const experiences = useMemo(() => {
+    if (!selectedDestId) return allExpsData;
+    return allExpsData.filter(e => e.destinationId === selectedDestId);
+  }, [selectedDestId, allExpsData]);
+
   // Derive unique tags from visible carousels for filter pills
   const availableTags = useMemo(() => {
     const tags = new Set<string>();
