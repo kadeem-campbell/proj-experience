@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart, Calendar, Users, Globe, Eye, EyeOff } from "lucide-react";
+import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart, Calendar, Users, Globe, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
@@ -440,11 +440,25 @@ const MyItinerariesPage = () => {
       <MobileShell hideAvatar>
         <div className="flex flex-col h-full">
           {/* Fixed header */}
-          <div className="sticky top-0 z-10 bg-background px-4 pt-2 pb-3 border-b border-border/30">
+           <div className="sticky top-0 z-10 bg-background px-4 pt-2 pb-3 border-b border-border/30">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    if (window.history.state && window.history.state.idx > 0) {
+                      navigate(-1);
+                    } else {
+                      navigate('/profile');
+                    }
+                  }}
+                  className="p-1 -ml-1 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
+                </div>
               </div>
               <button
                 onClick={() => { setNewName(""); setNewDescription(""); setNewVisibility("private"); setNewPeople("2"); setNewCity(""); setShowCreate(true); }}

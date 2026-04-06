@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, ArrowLeft } from "lucide-react";
 
 const LikedPage = () => {
   const navigate = useNavigate();
@@ -33,7 +33,21 @@ const LikedPage = () => {
     return (
       <MobileShell hideAvatar>
         <div className="px-4 pt-2">
-          <h1 className="text-2xl font-bold text-foreground mb-6">Liked</h1>
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/profile');
+                }
+              }}
+              className="p-1 -ml-1 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-2xl font-bold text-foreground">Liked</h1>
+          </div>
 
           {loading ? (
             <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
