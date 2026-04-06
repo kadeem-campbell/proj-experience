@@ -1044,40 +1044,42 @@ const PublicItinerary = () => {
               </span>
             </div>
           ) : isOwned ? (
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Heart className="w-3.5 h-3.5 text-primary/70" />
-                  <span>Your itinerary · <span className="font-semibold text-foreground">{itinerary.experiences.length}</span> experiences</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setPresentationOpen(true)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted text-xs font-medium text-foreground active:scale-95 transition-transform"
-                >
-                  <Presentation className="w-3.5 h-3.5" />
-                  Present
-                </button>
-                <button
-                  onClick={() => ownedItinerary && togglePublic(ownedItinerary.id)}
-                  className={cn(
-                    "flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium active:scale-95 transition-transform",
-                    ownedItinerary?.isPublic
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {ownedItinerary?.isPublic ? (
-                    <><Globe className="w-3.5 h-3.5" /> Public</>
-                  ) : (
-                    <><Lock className="w-3.5 h-3.5" /> Private</>
-                  )}
-                </button>
-              </div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Heart className="w-3.5 h-3.5 text-primary/70" />
+                <span>Your itinerary · <span className="font-semibold text-foreground">{itinerary.experiences.length}</span> experiences</span>
+              </span>
             </div>
           ) : null}
         </div>
+
+        {/* Present / Visibility controls for owned itineraries */}
+        {isOwned && (
+          <div className="px-4 py-2.5 border-b border-border/30 flex items-center gap-2">
+            <button
+              onClick={() => setPresentationOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted text-xs font-medium text-foreground active:scale-95 transition-transform"
+            >
+              <Presentation className="w-3.5 h-3.5" />
+              Present
+            </button>
+            <button
+              onClick={() => ownedItinerary && togglePublic(ownedItinerary.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium active:scale-95 transition-transform",
+                ownedItinerary?.isPublic
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {ownedItinerary?.isPublic ? (
+                <><Globe className="w-3.5 h-3.5" /> Public</>
+              ) : (
+                <><Lock className="w-3.5 h-3.5" /> Private</>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="flex-1 w-full">
