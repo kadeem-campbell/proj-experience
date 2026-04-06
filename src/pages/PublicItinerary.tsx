@@ -80,6 +80,8 @@ import {
   TrendingUp,
   Flame,
   BookmarkCheck,
+  Lock,
+  Presentation,
 } from "lucide-react";
 
 // Time slot configurations
