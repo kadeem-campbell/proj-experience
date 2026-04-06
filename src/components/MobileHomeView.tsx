@@ -489,9 +489,13 @@ export const MobileHomeView = () => {
             const resolvedSlug = carousel.slug.replace('city', destSlug || 'explore');
           
             if (carousel.contentType === 'poi') {
-              const carouselPois = carousel.itemIds.length > 0
-                ? filteredPois.filter((p: any) => carousel.itemIds.includes(p.id))
+              let carouselPois = carousel.itemIds.length > 0
+                ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
                 : filteredPois;
+              // Apply city filter to curated POIs too
+              if (selectedDestId && carousel.itemIds.length > 0) {
+                carouselPois = carouselPois.filter((p: any) => p.destination_id === selectedDestId);
+              }
               if (carouselPois.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
