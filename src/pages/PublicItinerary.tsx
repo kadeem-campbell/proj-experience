@@ -578,7 +578,7 @@ const PublicItinerary = () => {
       setViewMode(mode);
     }
   };
-
+import { PresentationMode } from "@/components/PresentationMode";
 
   // --- Render functions ---
 
