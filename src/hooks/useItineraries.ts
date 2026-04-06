@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LikedExperience } from './useLikedExperiences';
 import { validateEmail } from '@/utils/inputValidation';
@@ -39,6 +39,11 @@ export const useItineraries = () => {
   const [activeItineraryId, setActiveItineraryIdState] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const itinerariesRef = useRef<Itinerary[]>([]);
+
+  useEffect(() => {
+    itinerariesRef.current = itineraries;
+  }, [itineraries]);
 
   // Convert DB row to Itinerary
   const dbToItinerary = (row: any): Itinerary => ({
@@ -280,6 +285,8 @@ export const useItineraries = () => {
 
   // Save itineraries (to DB or localStorage) - fire and forget for optimistic UI
   const saveItineraries = useCallback((newItineraries: Itinerary[]) => {
+    itinerariesRef.current = newItineraries;
+
     // Update state immediately for instant UI
     setItineraries(newItineraries);
     
@@ -324,21 +331,12 @@ export const useItineraries = () => {
       collaborators: []
     };
 
-    if (userId) {
-      await supabase.from('itineraries').insert(itineraryToDb(newItinerary, userId));
-    }
-
-    const updated = [...itineraries, newItinerary];
-    setItineraries(updated);
-    
-    if (!userId) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent('itinerariesChanged', { detail: updated }));
-    }
+    const updated = [...itinerariesRef.current, newItinerary];
+    saveItineraries(updated);
     
     setActiveItinerary(newId);
     return newItinerary;
-  }, [userId, itineraries, setActiveItinerary]);
+  }, [userId, saveItineraries, setActiveItinerary]);
 
   const deleteItinerary = useCallback(async (id: string) => {
     if (userId) {
@@ -403,14 +401,19 @@ export const useItineraries = () => {
   }, [activeItineraryId, itineraries, saveItineraries]);
 
   const addExperienceToItinerary = useCallback((itineraryId: string, experience: Omit<LikedExperience, 'likedAt'>): { success: boolean; alreadyExists: boolean } => {
-    const targetItinerary = itineraries.find(i => i.id === itineraryId);
+    const currentItineraries = itinerariesRef.current;
+    const targetItinerary = currentItineraries.find(i => i.id === itineraryId);
+
+    if (!targetItinerary) {
+      return { success: false, alreadyExists: false };
+    }
     
     // Check if experience already exists in this itinerary
     if (targetItinerary?.experiences.some(e => e.id === experience.id)) {
       return { success: false, alreadyExists: true };
     }
     
-    const updated = itineraries.map(i => {
+    const updated = currentItineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
         ...i,
@@ -420,7 +423,57 @@ export const useItineraries = () => {
     });
     saveItineraries(updated);
     return { success: true, alreadyExists: false };
-  }, [itineraries, saveItineraries]);
+  }, [saveItineraries]);
+
+  const addExperiencesToItinerary = useCallback((
+    itineraryId: string,
+    experiences: Omit<LikedExperience, 'likedAt'>[]
+  ): { addedCount: number; alreadyIncludedCount: number } => {
+    const currentItineraries = itinerariesRef.current;
+    const targetItinerary = currentItineraries.find(i => i.id === itineraryId);
+
+    if (!targetItinerary || experiences.length === 0) {
+      return { addedCount: 0, alreadyIncludedCount: experiences.length };
+    }
+
+    const existingIds = new Set(targetItinerary.experiences.map((experience) => experience.id));
+    const nextExperiences: LikedExperience[] = [];
+    let alreadyIncludedCount = 0;
+
+    for (const experience of experiences) {
+      if (!experience?.id || existingIds.has(experience.id)) {
+        alreadyIncludedCount += 1;
+        continue;
+      }
+
+      existingIds.add(experience.id);
+      nextExperiences.push({
+        ...experience,
+        likedAt: new Date().toISOString(),
+      });
+    }
+
+    if (nextExperiences.length === 0) {
+      return { addedCount: 0, alreadyIncludedCount };
+    }
+
+    const updated = currentItineraries.map((itinerary) => {
+      if (itinerary.id !== itineraryId) return itinerary;
+
+      return {
+        ...itinerary,
+        experiences: [...itinerary.experiences, ...nextExperiences],
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    saveItineraries(updated);
+
+    return {
+      addedCount: nextExperiences.length,
+      alreadyIncludedCount,
+    };
+  }, [saveItineraries]);
 
   const removeExperience = useCallback((experienceId: string) => {
     if (!activeItineraryId) return;
@@ -752,6 +805,7 @@ export const useItineraries = () => {
     renameItinerary,
     addExperience,
     addExperienceToItinerary,
+    addExperiencesToItinerary,
     removeExperience,
     removeExperienceFromItinerary,
     reorderExperiences,

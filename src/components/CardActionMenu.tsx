@@ -55,6 +55,7 @@ const ActionMenuContent = ({
     setActiveItinerary,
     createItinerary,
     addExperienceToItinerary,
+    addExperiencesToItinerary,
     removeExperienceFromItinerary,
   } = useItineraries();
 
@@ -117,9 +118,10 @@ const ActionMenuContent = ({
         toast.error("No experiences to add");
         return;
       }
-      let addedCount = 0;
-      for (const exp of exps.slice(0, 30)) {
-        const result = addExperienceToItinerary(itinerary.id, {
+
+      const { addedCount } = addExperiencesToItinerary(
+        itinerary.id,
+        exps.slice(0, 30).map((exp: any) => ({
           id: exp.id,
           title: exp.title || "",
           creator: exp.creator || "",
@@ -127,9 +129,9 @@ const ActionMenuContent = ({
           category: exp.category || "",
           location: exp.location || "",
           price: exp.price || "",
-        });
-        if (!result.alreadyExists) addedCount++;
-      }
+        }))
+      );
+
       setActiveItinerary(itinerary.id);
       if (addedCount > 0) {
         setJustAdded(itinerary.id);
@@ -169,14 +171,15 @@ const ActionMenuContent = ({
     } else {
       // For itinerary type: copy experiences into the new itinerary
       const exps = entityData?.experiences || [];
-      for (const exp of exps.slice(0, 20)) {
-        await addExperienceToItinerary(newIt.id, {
+      const { addedCount } = addExperiencesToItinerary(
+        newIt.id,
+        exps.slice(0, 20).map((exp: any) => ({
           id: exp.id, title: exp.title || "", creator: exp.creator || "",
-          videoThumbnail: exp.videoThumbnail || "", category: exp.category || "",
+          videoThumbnail: exp.videoThumbnail || exp.video_thumbnail || "", category: exp.category || "",
           location: exp.location || "", price: exp.price || "",
-        });
-      }
-      toast.success(`Created "${newName.trim()}" with ${Math.min(exps.length, 20)} activities`);
+        }))
+      );
+      toast.success(`Created "${newName.trim()}" with ${addedCount} activities`);
     }
     setNewName("");
     setShowNewInput(false);
