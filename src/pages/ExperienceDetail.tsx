@@ -617,12 +617,14 @@ export default function ExperienceDetail() {
       {/* 9. Local Tips */}
       {hasLocalTips && (
         <div className="mb-8">
-          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Insider tips</h2>
-          <div className="space-y-2">
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Local tips</h2>
+          <div className="space-y-2.5">
             {(experience as any).localTips.map((tip: string, i: number) => (
-              <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-muted/30 border border-border/30">
-                <Lightbulb className="w-4 h-4 text-primary/60 mt-0.5 shrink-0" />
-                <p className="text-[13.5px] text-foreground/80 leading-relaxed">{tip}</p>
+              <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-card border border-border/40">
+                <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <p className="text-[13.5px] text-foreground/75 leading-relaxed italic">{tip}</p>
               </div>
             ))}
           </div>
