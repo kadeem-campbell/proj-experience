@@ -25,7 +25,7 @@ export const ExportDropdown = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <Link to="/my-trips">
+        <Link to="/itineraries">
           <DropdownMenuItem>
             <Eye className="w-4 h-4 mr-2" />
             View Itinerary {itineraryCount > 0 && `(${itineraryCount})`}

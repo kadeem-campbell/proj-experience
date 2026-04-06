@@ -142,7 +142,7 @@ export const ItinerarySelector = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     setOpen(false);
-                    navigate(`/my-trips/${itinerary.id}`);
+                    navigate(`/itineraries/${itinerary.id}`);
                   }}
                   className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                   aria-label={`Go to ${itinerary.name}`}

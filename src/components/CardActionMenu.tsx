@@ -268,7 +268,7 @@ const ActionMenuContent = ({
                       onClick={(e) => {
                         e.stopPropagation();
                         onClose();
-                        navigate(`/my-trips/${it.id}`);
+                        navigate(`/itineraries/${it.id}`);
                       }}
                       className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                       aria-label={`Go to ${it.name}`}
