@@ -16,6 +16,7 @@ export interface Poi {
   is_public_page: boolean;
   google_place_id: string | null;
   wikidata_id: string | null;
+  opening_hours_json: Record<string, string> | null;
 }
 
 export const usePoiBySlug = (slug: string) => {
