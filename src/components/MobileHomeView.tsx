@@ -3,12 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { Layers, MapPin, Search, ChevronRight, Plus } from "lucide-react";
 
-import catBeaches from "@/assets/cat-beaches.png";
-import catNightlife from "@/assets/cat-nightlife.png";
-import catNature from "@/assets/cat-nature.png";
-import catAdventure from "@/assets/cat-adventure.png";
-import catFood from "@/assets/cat-food.png";
-import catSafari from "@/assets/cat-safari.png";
 import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useProductListings } from "@/hooks/useProductListings";
 import { generateProductPageUrl } from "@/utils/slugUtils";
@@ -21,15 +15,7 @@ import { MobileShell } from "@/components/MobileShell";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-
-const filterCategories = [
-  { label: "Beaches", category: "Beach", icon: catBeaches },
-  { label: "Nightlife", category: "Nightlife", icon: catNightlife },
-  { label: "Nature", category: "Nature", icon: catNature },
-  { label: "Adventure", category: "Adventure", icon: catAdventure },
-  { label: "Food", category: "Food", icon: catFood },
-  { label: "Safari", category: "Safari", icon: catSafari },
-];
+import type { HomeCarousel } from "@/hooks/useHomeCarousels";
 
 const rotatingPlaceholders = [
   "Search the best beaches",
@@ -39,38 +25,34 @@ const rotatingPlaceholders = [
   "Search sunset spots",
 ];
 
-const CategoryFilterPills = ({ 
-  activeCategory, 
-  onCategoryChange 
+// Dynamic tag-based filter pills derived from carousel tags
+const TagFilterPills = ({ 
+  tags,
+  activeTag, 
+  onTagChange 
 }: { 
-  activeCategory: string; 
-  onCategoryChange: (cat: string) => void;
+  tags: string[];
+  activeTag: string; 
+  onTagChange: (tag: string) => void;
 }) => {
+  if (tags.length === 0) return null;
   return (
     <div className="px-4 pb-3">
-      <div className="flex justify-between">
-        {filterCategories.map((cat) => {
-          const isActive = activeCategory === cat.category;
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+        {tags.map((tag) => {
+          const isActive = activeTag === tag;
           return (
             <button
-              key={cat.label}
-              onClick={() => onCategoryChange(isActive ? "" : cat.category)}
-              className="flex flex-col items-center gap-1 transition-all active:scale-95"
-            >
-              <div className={cn(
-                "w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
+              key={tag}
+              onClick={() => onTagChange(isActive ? "" : tag)}
+              className={cn(
+                "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-medium transition-all active:scale-95 shrink-0",
                 isActive 
-                  ? "ring-2 ring-primary bg-primary/5" 
-                  : "bg-muted"
-              )}>
-                <img src={cat.icon} alt={cat.label} className="w-9 h-9 object-contain" />
-              </div>
-              <span className={cn(
-                "text-[11px] font-medium transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )}>
-                {cat.label}
-              </span>
+                  ? "bg-primary text-primary-foreground shadow-md" 
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {tag}
             </button>
           );
         })}
