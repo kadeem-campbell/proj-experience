@@ -578,7 +578,7 @@ export const MobileHomeView = () => {
             {experiences.length > 0 && (
               <HorizontalScrollRow title="Popular Experiences" onTitleClick={() => navigate("/search")}>
                 {experiences.slice(0, 10).map((exp) => (
-                  <MobileExperienceCard key={exp.id} experience={exp} />
+                  <MobileExperienceCard key={exp.id} experience={exp} timingMap={timingMap} />
                 ))}
               </HorizontalScrollRow>
             )}
