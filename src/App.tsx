@@ -61,9 +61,8 @@ const App = () => (
             <Route path="/hosts/:username" element={<HostProfile />} />
             <Route path="/hosts" element={<Hosts />} />
 
-            {/* Itineraries — single canonical family */}
+            {/* Itineraries — single canonical family (public + private) */}
             <Route path="/itineraries/:slug" element={<PublicItinerary />} />
-            <Route path="/itineraries" element={<Itineraries />} />
 
             {/* Collections — single canonical family (subtype in data, not path) */}
             <Route path="/collections/:slug" element={<Collection />} />
