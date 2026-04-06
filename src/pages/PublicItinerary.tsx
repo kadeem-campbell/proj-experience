@@ -1721,6 +1721,15 @@ import { PresentationMode } from "@/components/PresentationMode";
       </Drawer>
 
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
+
+      {isOwned && ownedItinerary && (
+        <PresentationMode
+          open={presentationOpen}
+          onOpenChange={setPresentationOpen}
+          itinerary={ownedItinerary}
+          selectedTrip={null}
+        />
+      )}
     </Wrapper>
   );
 };
