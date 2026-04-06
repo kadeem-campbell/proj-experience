@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, ArrowLeft } from "lucide-react";
 
 const LikedPage = () => {
   const navigate = useNavigate();
