@@ -306,32 +306,14 @@ export const MobileHomeView = () => {
   }, [selectedDestId, selectedCity, allItinerariesData]);
 
   // City-filtered products
-  const experiences = useMemo(() => {
-    if (!selectedDestId) return allExpsData;
-    return allExpsData.filter(e => e.destinationId === selectedDestId);
-  }, [selectedDestId, allExpsData]);
-
-  const matchesCategory = useCallback((expCategory: string, filterCategory: string) => {
-    if (!filterCategory) return true;
-    const norm = expCategory?.toLowerCase() || '';
-    const filter = filterCategory.toLowerCase();
-    if (norm === filter) return true;
-    if (filter === 'nature' && norm === 'wildlife') return true;
-    if (filter === 'safari' && norm === 'safari') return true;
-    return false;
-  }, []);
-
-  const categoryExperiences = useMemo(() => {
-    if (!activeCategory) return experiences;
-    return experiences.filter(e => matchesCategory(e.category, activeCategory));
-  }, [experiences, activeCategory, matchesCategory]);
-
-  const categoryItineraries = useMemo(() => {
-    if (!activeCategory) return itineraries;
-    return itineraries.filter(it => 
-      it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory))
-    );
-  }, [itineraries, activeCategory, matchesCategory]);
+  // Derive unique tags from visible carousels for filter pills
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    homeCarousels.forEach(c => {
+      if (c.tag) tags.add(c.tag);
+    });
+    return Array.from(tags).sort();
+  }, [homeCarousels]);
 
   const normalizeText = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
   const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");
@@ -348,18 +330,18 @@ export const MobileHomeView = () => {
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
     if (terms.length === 0) return [];
-    return categoryExperiences.filter(e => {
+    return experiences.filter(e => {
       const fields = [e.title, e.location, e.category, e.creator].map(f => normalizeText(f || "")).join(" ");
       return terms.some(term => termMatches(term, fields));
     });
-  }, [searchQuery, categoryExperiences]);
+  }, [searchQuery, experiences]);
 
   const filteredItineraries = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
     if (terms.length === 0) return [];
-    return categoryItineraries.filter(it => {
+    return itineraries.filter(it => {
       const fields = [it.name, it.creatorName].map(f => normalizeText(f || "")).join(" ");
       const expMatch = it.experiences?.some((exp: any) => {
         const ef = [exp.title, exp.location, exp.category].map((f: string) => normalizeText(f || "")).join(" ");
@@ -367,11 +349,9 @@ export const MobileHomeView = () => {
       });
       return terms.some(term => termMatches(term, fields)) || expMatch;
     });
-  }, [searchQuery, categoryItineraries]);
+  }, [searchQuery, itineraries]);
 
   const hasSearchResults = searchQuery.trim().length > 0;
-
-  const catLabel = activeCategory ? categoryLabelMap[activeCategory] || activeCategory : "";
 
   // City-filtered POIs
   const filteredPois = useMemo(() => {
@@ -394,8 +374,8 @@ export const MobileHomeView = () => {
         </button>
       </div>
 
-      {/* Category filter pills */}
-      <CategoryFilterPills activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+      {/* Tag filter pills */}
+      <TagFilterPills tags={availableTags} activeTag={activeTag} onTagChange={setActiveTag} />
 
       {/* Search results */}
       {hasSearchResults ? (
