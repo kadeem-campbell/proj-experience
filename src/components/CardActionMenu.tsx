@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Drawer,
   DrawerContent,
@@ -10,7 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Heart, Copy, MessageCircle, Check, Share2, Plus, Minus, Layers } from "lucide-react";
+import { Heart, Copy, MessageCircle, Check, Share2, Plus, Minus, Layers, ExternalLink } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
@@ -39,6 +40,7 @@ const ActionMenuContent = ({
   slug,
   onClose,
 }: Omit<CardActionMenuProps, "children"> & { onClose: () => void }) => {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [showItineraryPicker, setShowItineraryPicker] = useState(false);
   const [showNewInput, setShowNewInput] = useState(false);
@@ -246,25 +248,45 @@ const ActionMenuContent = ({
               const added = isExpInItinerary(it.id);
               const wasJust = justAdded === it.id;
               return (
-                <button
+                <div
                   key={it.id}
-                  onClick={() => handleToggleItinerary(it)}
                   className={cn(
-                    "w-full flex items-center justify-between px-3 py-3 text-left transition-colors active:bg-muted/80 rounded-lg",
+                    "w-full flex items-center px-3 py-3 transition-colors active:bg-muted/80 rounded-lg",
                     added && "bg-primary/5"
                   )}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <button
+                    onClick={() => handleToggleItinerary(it)}
+                    className="flex items-center gap-2.5 min-w-0 flex-1 text-left"
+                  >
                     <div className={cn("w-2 h-2 rounded-full flex-shrink-0", it.id === activeItineraryId ? "bg-primary" : "bg-muted-foreground/30")} />
                     <span className="text-sm font-medium truncate">{it.name}</span>
                     <span className="text-xs text-muted-foreground flex-shrink-0">({it.experiences.length})</span>
+                  </button>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                        navigate(`/my-trips/${it.id}`);
+                      }}
+                      className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      aria-label={`Go to ${it.name}`}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleToggleItinerary(it)}
+                      className="p-2 rounded-full hover:bg-muted transition-colors"
+                    >
+                      {added ? (
+                        wasJust ? <Check className="w-5 h-5 text-primary animate-in zoom-in-50 duration-200" /> : <Minus className="w-5 h-5 text-destructive" />
+                      ) : (
+                        <Plus className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </button>
                   </div>
-                  {added ? (
-                    wasJust ? <Check className="w-5 h-5 text-primary flex-shrink-0 animate-in zoom-in-50 duration-200" /> : <Minus className="w-5 h-5 text-destructive flex-shrink-0" />
-                  ) : (
-                    <Plus className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                  )}
-                </button>
+                </div>
               );
             })
           )}
