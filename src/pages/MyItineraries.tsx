@@ -426,105 +426,42 @@ const MyItinerariesPage = () => {
 
   // ============ MOBILE VIEW ============
   if (isMobile) {
-    const visibleNotifications = showAllNotifications ? updates : updates.slice(0, 1);
     return (
       <MobileShell hideAvatar>
         <div className="flex flex-col h-full">
           {/* Fixed header */}
            <div className="sticky top-0 z-10 bg-background px-4 pt-2 pb-3 border-b border-border/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    if (window.history.state && window.history.state.idx > 0) {
-                      navigate(-1);
-                    } else {
-                      navigate('/profile');
-                    }
-                  }}
-                  className="p-1 -ml-1 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
-                  <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
-                </div>
-              </div>
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => { setNewName(""); setNewDescription(""); setNewVisibility("private"); setNewPeople("2"); setNewCity(""); setShowCreate(true); }}
-                className="px-4 py-2.5 rounded-full bg-primary flex items-center gap-2 shadow-lg active:scale-95 transition-transform"
+                onClick={() => {
+                  if (window.history.state && window.history.state.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate('/profile');
+                  }
+                }}
+                className="p-1 -ml-1 text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Plus className="w-4 h-4 text-primary-foreground" />
-                <span className="text-sm font-semibold text-primary-foreground">Create Itinerary</span>
+                <ArrowLeft className="w-5 h-5" />
               </button>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
+              </div>
             </div>
+
+            {/* Create button — own row */}
+            <button
+              onClick={() => { setNewName(""); setNewDescription(""); setNewVisibility("private"); setNewPeople("2"); setNewCity(""); setShowCreate(true); }}
+              className="mt-3 w-full py-2.5 rounded-full bg-primary flex items-center justify-center gap-2 shadow-lg active:scale-[0.97] transition-transform"
+            >
+              <Plus className="w-4 h-4 text-primary-foreground" />
+              <span className="text-sm font-semibold text-primary-foreground">Create Itinerary</span>
+            </button>
           </div>
 
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {/* Notifications */}
-            {updates.length > 0 && (
-              <div className="mt-3 mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-primary" />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Updates</span>
-                    {unreadCount > 0 && (
-                      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-                        {unreadCount}
-                      </span>
-                    )}
-                  </div>
-                  {unreadCount > 0 && (
-                    <button onClick={markAllRead} className="text-xs text-primary font-medium">Mark all read</button>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  {visibleNotifications.map(update => (
-                    <button
-                      key={update.id}
-                      onClick={() => {
-                        markAsRead(update.itineraryId);
-                        navigate(`/itineraries/${update.itineraryId}`);
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors",
-                        !update.read ? "bg-primary/5" : "hover:bg-muted/40"
-                      )}
-                    >
-                      {!update.read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
-                      <div className="flex-1 min-w-0">
-                        <p className={cn("text-sm truncate", !update.read ? "font-semibold text-foreground" : "text-muted-foreground")}>
-                          {update.message}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {new Date(update.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                        </p>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 shrink-0" />
-                    </button>
-                  ))}
-                </div>
-                {updates.length > 1 && !showAllNotifications && (
-                  <button 
-                    onClick={() => setShowAllNotifications(true)}
-                    className="w-full text-center py-2 mt-1 text-xs text-primary font-medium"
-                  >
-                    Show all {updates.length} updates
-                  </button>
-                )}
-                {showAllNotifications && updates.length > 1 && (
-                  <button 
-                    onClick={() => setShowAllNotifications(false)}
-                    className="w-full text-center py-2 mt-1 text-xs text-muted-foreground font-medium"
-                  >
-                    Show less
-                  </button>
-                )}
-              </div>
-            )}
-
             {/* Loading */}
             {isLoading ? (
               <div className="flex justify-center py-16">
@@ -539,9 +476,9 @@ const MyItinerariesPage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-1 pb-4">
+              <div className="grid grid-cols-2 gap-3 pt-4 pb-4">
                 {itineraries.map(itinerary => (
-                  <ItineraryPlaylistCard
+                  <ItineraryGridCard
                     key={itinerary.id}
                     itinerary={itinerary}
                     onTap={() => handleTap(itinerary)}

@@ -14,10 +14,11 @@ import { MobileShell } from "@/components/MobileShell";
 import { AuthModal } from "@/components/AuthModal";
 import { 
   Camera, Check, Heart, MapPin, Loader2, User, Mail, AtSign, 
-  Layers, LogOut
+  Layers, LogOut, Bell, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
