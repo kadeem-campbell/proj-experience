@@ -45,7 +45,7 @@ export const useProductListings = () => {
         videoUrl: p.video_url || undefined,
         category: p.activity_types?.name || "",
         location: p.destinations?.name || "",
-        price: p.average_price_per_person ? `$${p.average_price_per_person} avg` : "",
+        price: p.average_price_per_person ? `$${Math.round(p.average_price_per_person * 0.8)}–$${Math.round(p.average_price_per_person * 1.2)}` : "",
         slug: p.slug || undefined,
         destinationId: p.destination_id || null,
         destinationSlug: p.destinations?.slug || undefined,
