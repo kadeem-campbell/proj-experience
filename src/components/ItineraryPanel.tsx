@@ -299,13 +299,33 @@ export const ItineraryPanel = ({ isMobile = false }: ItineraryPanelProps) => {
                     </span>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm truncate">{experience.title}</h4>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        <MapPin className="w-3 h-3" />
-                        <span className="truncate">{experience.location}</span>
-                        <span className="font-medium text-primary">{experience.price}</span>
-                        {timingMap[experience.id] && (
-                          <TimingIcon icon={timingMap[experience.id].primary_time_icon} className="w-3 h-3" />
-                        )}
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1 truncate">
+                        {(() => {
+                          const dbProd = allDbProducts.find(p => p.id === experience.id);
+                          const cat = dbProd?.category || experience.category;
+                          const timing = timingMap[experience.id];
+                          const timingIcon = timing?.primary_time_icon || (() => {
+                            const c = (cat || '').toLowerCase();
+                            if (c.includes('nightlife') || c.includes('party') || c.includes('bar') || c.includes('club')) return 'moon';
+                            if (c.includes('sunset') || c.includes('cruise') || c.includes('evening')) return 'sunset';
+                            if (c.includes('sunrise') || c.includes('yoga') || c.includes('morning')) return 'sunrise';
+                            return 'sun';
+                          })();
+                          const displayPrice = dbProd?.price || experience.price;
+                          return (
+                            <>
+                              {cat && <span className="truncate">{cat}</span>}
+                              {cat && <span className="opacity-40">·</span>}
+                              <TimingIcon icon={timingIcon} className="w-3 h-3 text-muted-foreground/60 shrink-0" />
+                              {displayPrice && (
+                                <>
+                                  <span className="opacity-40">·</span>
+                                  <span className="whitespace-nowrap">{displayPrice} avg</span>
+                                </>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                     <Button
