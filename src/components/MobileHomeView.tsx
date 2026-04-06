@@ -495,10 +495,6 @@ export const MobileHomeView = () => {
               let carouselPois = carousel.itemIds.length > 0
                 ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
                 : filteredPois;
-              // Apply city filter to curated POIs too
-              if (selectedDestId && carousel.itemIds.length > 0) {
-                carouselPois = carouselPois.filter((p: any) => p.destination_id === selectedDestId);
-              }
               if (carouselPois.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
