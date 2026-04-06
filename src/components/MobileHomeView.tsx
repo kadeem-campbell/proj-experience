@@ -505,19 +505,51 @@ export const MobileHomeView = () => {
               );
             }
           });
-          return <>{elements}</>;
+          if (elements.length > 0) return <>{elements}</>;
+          // Fallback: no matching carousels — show default content
+          return null;
         })()
       ) : null}
 
-      {activeTag && (() => {
-        const tagCarousels = homeCarousels.filter(c => c.tag === activeTag);
-        if (tagCarousels.length === 0) return (
-          <div className="text-center py-12 px-4">
-            <p className="text-sm text-muted-foreground">No {activeTag.toLowerCase()} content found</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Try a different filter</p>
-          </div>
+      {/* Fallback: show all content when no carousels are visible */}
+      {(() => {
+        // Check if any carousel content was rendered
+        let visibleCarousels = homeCarousels.filter((carousel) => {
+          if (carousel.destinationIds.length === 0) return !selectedDestId;
+          if (!selectedDestId) return false;
+          return carousel.destinationIds.includes(selectedDestId);
+        });
+        if (activeTag) visibleCarousels = visibleCarousels.filter(c => c.tag === activeTag);
+        
+        const hasCarouselContent = visibleCarousels.length > 0;
+        if (hasCarouselContent) return null;
+
+        // Show default rows as fallback
+        return (
+          <>
+            {experiences.length > 0 && (
+              <HorizontalScrollRow title="Popular Experiences" onTitleClick={() => navigate("/search")}>
+                {experiences.slice(0, 10).map((exp) => (
+                  <MobileExperienceCard key={exp.id} experience={exp} />
+                ))}
+              </HorizontalScrollRow>
+            )}
+            {itineraries.length > 0 && (
+              <HorizontalScrollRow title="Top Itineraries" onTitleClick={() => navigate("/itineraries")}>
+                {itineraries.slice(0, 8).map((it) => (
+                  <MobileItineraryCard key={it.id} itinerary={it} />
+                ))}
+              </HorizontalScrollRow>
+            )}
+            {filteredPois.length > 0 && (
+              <HorizontalScrollRow title="Places to Visit" onTitleClick={() => navigate(`/${selectedDestSlug || 'explore'}`)}>
+                {filteredPois.slice(0, 10).map((poi: any) => (
+                  <MobilePoiCard key={poi.id} poi={poi} destinationSlug={selectedDestSlug} />
+                ))}
+              </HorizontalScrollRow>
+            )}
+          </>
         );
-        return null;
       })()}
       </>
       )}
