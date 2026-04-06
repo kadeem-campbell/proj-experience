@@ -80,6 +80,7 @@ export const useHomeCarousels = () => {
           displayOrder: c.home_display_order ?? 999,
           destinationIds: destByCollection[c.id] || [],
           itemIds,
+          tag: c.tag || null,
         };
       }).sort((a, b) => a.displayOrder - b.displayOrder);
     },
