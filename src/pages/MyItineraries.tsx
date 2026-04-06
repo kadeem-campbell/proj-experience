@@ -36,8 +36,8 @@ const categoryIconFallback: Record<string, string> = {
   "Culture": catNature,
 };
 
-// Spotify-style itinerary card — like a playlist (mobile)
-const ItineraryPlaylistCard = ({ 
+// Instagram-style itinerary grid card (mobile)
+const ItineraryGridCard = ({ 
   itinerary, 
   onTap, 
   onOptions 
@@ -49,44 +49,35 @@ const ItineraryPlaylistCard = ({
   const experienceCount = itinerary.experiences?.length || 0;
   const coverImage = itinerary.coverImage || itinerary.experiences?.[0]?.videoThumbnail;
   const location = itinerary.experiences?.[0]?.location || "";
-  const date = itinerary.startDate 
-    ? new Date(itinerary.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    : null;
 
   return (
-    <button
-      onClick={onTap}
-      className="w-full flex items-center gap-3 py-2.5 hover:bg-muted/50 active:scale-[0.98] transition-transform duration-150 text-left group"
-    >
-      <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted shadow-sm">
+    <div className="relative group" onClick={onTap}>
+      <div className="aspect-square rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
-          <img src={coverImage} alt="" className="w-full h-full object-cover" />
+          <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <Layers className="w-5 h-5 text-primary/40" />
+            <Layers className="w-8 h-8 text-primary/40" />
           </div>
         )}
+        {/* Gradient overlay at bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+        {/* Info overlay */}
+        <div className="absolute bottom-0 inset-x-0 p-2.5">
+          <h3 className="font-bold text-sm text-white line-clamp-1 drop-shadow-sm">{itinerary.name}</h3>
+          <p className="text-[11px] text-white/80 mt-0.5">
+            {experienceCount} experience{experienceCount !== 1 ? 's' : ''}
+          </p>
+        </div>
+        {/* Options button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onOptions(e); }}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/30 backdrop-blur-sm active:scale-95 transition-transform"
+        >
+          <MoreHorizontal className="w-4 h-4 text-white" />
+        </button>
       </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-sm text-foreground line-clamp-1">{itinerary.name}</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {experienceCount} experience{experienceCount !== 1 ? 's' : ''}
-          {date && ` · ${date}`}
-        </p>
-        {location && (
-          <div className="flex items-center gap-1 mt-0.5">
-            <MapPin className="w-2.5 h-2.5 text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground truncate">{location}</span>
-          </div>
-        )}
-      </div>
-      <button
-        onClick={onOptions}
-        className="p-2 rounded-full hover:bg-muted transition-colors duration-150"
-      >
-        <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-      </button>
-    </button>
+    </div>
   );
 };
 
