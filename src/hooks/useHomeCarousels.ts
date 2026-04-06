@@ -66,7 +66,9 @@ export const useHomeCarousels = () => {
       });
 
       return collections.map((c: any) => {
-        const contentType = c.content_type || "itinerary";
+        // Normalize deprecated 'experience' type to 'product'
+        const rawType = c.content_type || "itinerary";
+        const contentType = rawType === "experience" ? "product" : rawType;
         const itemIds = itemsByCollection[c.id] || [];
 
         return {

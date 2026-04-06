@@ -476,8 +476,11 @@ export const MobileHomeView = () => {
           // - No destination links = global (show always)
           // - Has destination links = only show when matching city is selected
           const filteredCarousels = homeCarousels.filter((carousel) => {
-            if (carousel.destinationIds.length === 0) return true; // global
-            if (!selectedDestId) return false; // market-scoped but no city selected
+            if (carousel.destinationIds.length === 0) {
+              // Global carousels: show only when NO city is selected
+              return !selectedDestId;
+            }
+            if (!selectedDestId) return false;
             return carousel.destinationIds.includes(selectedDestId);
           });
 
