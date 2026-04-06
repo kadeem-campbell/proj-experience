@@ -16,6 +16,7 @@ export interface Poi {
   is_public_page: boolean;
   google_place_id: string | null;
   wikidata_id: string | null;
+  opening_hours_json: Record<string, string> | null;
 }
 
 export const usePoiBySlug = (slug: string) => {
@@ -64,8 +65,7 @@ export const usePoiProducts = (poiId: string) => {
       if (error || !links) return [];
       return links
         .map((l: any) => l.products)
-        .filter(Boolean)
-        .filter((p: any) => p.is_active);
+        .filter(Boolean);
     },
     enabled: !!poiId,
   });
