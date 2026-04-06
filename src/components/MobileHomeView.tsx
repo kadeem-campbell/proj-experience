@@ -3,12 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { Layers, MapPin, Search, ChevronRight, Plus } from "lucide-react";
 
-import catBeaches from "@/assets/cat-beaches.png";
-import catNightlife from "@/assets/cat-nightlife.png";
-import catNature from "@/assets/cat-nature.png";
-import catAdventure from "@/assets/cat-adventure.png";
-import catFood from "@/assets/cat-food.png";
-import catSafari from "@/assets/cat-safari.png";
 import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useProductListings } from "@/hooks/useProductListings";
 import { generateProductPageUrl } from "@/utils/slugUtils";
@@ -21,15 +15,7 @@ import { MobileShell } from "@/components/MobileShell";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-
-const filterCategories = [
-  { label: "Beaches", category: "Beach", icon: catBeaches },
-  { label: "Nightlife", category: "Nightlife", icon: catNightlife },
-  { label: "Nature", category: "Nature", icon: catNature },
-  { label: "Adventure", category: "Adventure", icon: catAdventure },
-  { label: "Food", category: "Food", icon: catFood },
-  { label: "Safari", category: "Safari", icon: catSafari },
-];
+import type { HomeCarousel } from "@/hooks/useHomeCarousels";
 
 const rotatingPlaceholders = [
   "Search the best beaches",
@@ -39,38 +25,34 @@ const rotatingPlaceholders = [
   "Search sunset spots",
 ];
 
-const CategoryFilterPills = ({ 
-  activeCategory, 
-  onCategoryChange 
+// Dynamic tag-based filter pills derived from carousel tags
+const TagFilterPills = ({ 
+  tags,
+  activeTag, 
+  onTagChange 
 }: { 
-  activeCategory: string; 
-  onCategoryChange: (cat: string) => void;
+  tags: string[];
+  activeTag: string; 
+  onTagChange: (tag: string) => void;
 }) => {
+  if (tags.length === 0) return null;
   return (
     <div className="px-4 pb-3">
-      <div className="flex justify-between">
-        {filterCategories.map((cat) => {
-          const isActive = activeCategory === cat.category;
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+        {tags.map((tag) => {
+          const isActive = activeTag === tag;
           return (
             <button
-              key={cat.label}
-              onClick={() => onCategoryChange(isActive ? "" : cat.category)}
-              className="flex flex-col items-center gap-1 transition-all active:scale-95"
-            >
-              <div className={cn(
-                "w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all overflow-hidden",
+              key={tag}
+              onClick={() => onTagChange(isActive ? "" : tag)}
+              className={cn(
+                "whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-medium transition-all active:scale-95 shrink-0",
                 isActive 
-                  ? "ring-2 ring-primary bg-primary/5" 
-                  : "bg-muted"
-              )}>
-                <img src={cat.icon} alt={cat.label} className="w-9 h-9 object-contain" />
-              </div>
-              <span className={cn(
-                "text-[11px] font-medium transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )}>
-                {cat.label}
-              </span>
+                  ? "bg-primary text-primary-foreground shadow-md" 
+                  : "bg-muted text-muted-foreground"
+              )}
+            >
+              {tag}
             </button>
           );
         })}
@@ -250,24 +232,13 @@ const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: s
 };
 
 
-const categoryLabelMap: Record<string, string> = {
-  "Beach": "Beaches",
-  "Nightlife": "Nightlife",
-  "Wildlife": "Wildlife",
-  "Adventure": "Adventures",
-  "Food": "Food spots",
-  "Culture": "Cultural experiences",
-  "Water Sports": "Water sports",
-};
-
 export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // Read city from URL — MobileShell is the source of truth for city changes
   const selectedCity = searchParams.get("city") || "";
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [activeCategory, setActiveCategory] = useState("");
+  const [activeTag, setActiveTag] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useProductListings();
@@ -340,27 +311,14 @@ export const MobileHomeView = () => {
     return allExpsData.filter(e => e.destinationId === selectedDestId);
   }, [selectedDestId, allExpsData]);
 
-  const matchesCategory = useCallback((expCategory: string, filterCategory: string) => {
-    if (!filterCategory) return true;
-    const norm = expCategory?.toLowerCase() || '';
-    const filter = filterCategory.toLowerCase();
-    if (norm === filter) return true;
-    if (filter === 'nature' && norm === 'wildlife') return true;
-    if (filter === 'safari' && norm === 'safari') return true;
-    return false;
-  }, []);
-
-  const categoryExperiences = useMemo(() => {
-    if (!activeCategory) return experiences;
-    return experiences.filter(e => matchesCategory(e.category, activeCategory));
-  }, [experiences, activeCategory, matchesCategory]);
-
-  const categoryItineraries = useMemo(() => {
-    if (!activeCategory) return itineraries;
-    return itineraries.filter(it => 
-      it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory))
-    );
-  }, [itineraries, activeCategory, matchesCategory]);
+  // Derive unique tags from visible carousels for filter pills
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    homeCarousels.forEach(c => {
+      if (c.tag) tags.add(c.tag);
+    });
+    return Array.from(tags).sort();
+  }, [homeCarousels]);
 
   const normalizeText = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
   const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");
@@ -377,18 +335,18 @@ export const MobileHomeView = () => {
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
     if (terms.length === 0) return [];
-    return categoryExperiences.filter(e => {
+    return experiences.filter(e => {
       const fields = [e.title, e.location, e.category, e.creator].map(f => normalizeText(f || "")).join(" ");
       return terms.some(term => termMatches(term, fields));
     });
-  }, [searchQuery, categoryExperiences]);
+  }, [searchQuery, experiences]);
 
   const filteredItineraries = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = normalizeText(searchQuery);
     const terms = q.split(" ").filter(t => t.length > 1);
     if (terms.length === 0) return [];
-    return categoryItineraries.filter(it => {
+    return itineraries.filter(it => {
       const fields = [it.name, it.creatorName].map(f => normalizeText(f || "")).join(" ");
       const expMatch = it.experiences?.some((exp: any) => {
         const ef = [exp.title, exp.location, exp.category].map((f: string) => normalizeText(f || "")).join(" ");
@@ -396,11 +354,9 @@ export const MobileHomeView = () => {
       });
       return terms.some(term => termMatches(term, fields)) || expMatch;
     });
-  }, [searchQuery, categoryItineraries]);
+  }, [searchQuery, itineraries]);
 
   const hasSearchResults = searchQuery.trim().length > 0;
-
-  const catLabel = activeCategory ? categoryLabelMap[activeCategory] || activeCategory : "";
 
   // City-filtered POIs
   const filteredPois = useMemo(() => {
@@ -423,8 +379,8 @@ export const MobileHomeView = () => {
         </button>
       </div>
 
-      {/* Category filter pills */}
-      <CategoryFilterPills activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+      {/* Tag filter pills */}
+      <TagFilterPills tags={availableTags} activeTag={activeTag} onTagChange={setActiveTag} />
 
       {/* Search results */}
       {hasSearchResults ? (
@@ -472,22 +428,24 @@ export const MobileHomeView = () => {
       {/* Dynamic collection-driven carousels */}
       {homeCarousels.length > 0 ? (
         (() => {
-          // Filter carousels by market:
-          // - No destination links = global (show always)
-          // - Has destination links = only show when matching city is selected
-          const filteredCarousels = homeCarousels.filter((carousel) => {
+          // Filter carousels by market
+          let visibleCarousels = homeCarousels.filter((carousel) => {
             if (carousel.destinationIds.length === 0) {
-              // Global carousels: show only when NO city is selected
               return !selectedDestId;
             }
             if (!selectedDestId) return false;
             return carousel.destinationIds.includes(selectedDestId);
           });
 
+          // Filter by active tag
+          if (activeTag) {
+            visibleCarousels = visibleCarousels.filter(c => c.tag === activeTag);
+          }
+
           const destSlug = selectedDestSlug;
 
           const elements: React.ReactNode[] = [];
-          filteredCarousels.forEach((carousel) => {
+          visibleCarousels.forEach((carousel) => {
             const title = carousel.name.replace(/\{city\}/g, selectedCity || 'Explore');
             const resolvedSlug = carousel.slug.replace('city', destSlug || 'explore');
           
@@ -499,7 +457,7 @@ export const MobileHomeView = () => {
               elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
-                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  title={title}
                   onTitleClick={() => navigate(`/${destSlug || 'explore'}`)}
                 >
                   {carouselPois.slice(0, 10).map((poi: any) => (
@@ -510,19 +468,15 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'itinerary') {
               let items: any[];
               if (carousel.itemIds.length > 0) {
-                // Curated items: show all linked items — carousel is already market-scoped
                 items = allItinerariesData.filter(it => carousel.itemIds.includes(it.dbId || it.id));
-                if (activeCategory) {
-                  items = items.filter(it => it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory)));
-                }
               } else {
-                items = categoryItineraries.slice(0, 6);
+                items = itineraries.slice(0, 6);
               }
               if (items.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
-                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  title={title}
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 8).map((itinerary) => (
@@ -533,19 +487,15 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'product') {
               let items: any[];
               if (carousel.itemIds.length > 0) {
-                // Curated items: show all linked items — carousel is already market-scoped
                 items = allExpsData.filter(exp => carousel.itemIds.includes(exp.id));
-                if (activeCategory) {
-                  items = items.filter(exp => matchesCategory(exp.category, activeCategory));
-                }
               } else {
-                items = categoryExperiences.slice(0, 8);
+                items = experiences.slice(0, 8);
               }
               if (items.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
-                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  title={title}
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 10).map((experience) => (
@@ -559,12 +509,16 @@ export const MobileHomeView = () => {
         })()
       ) : null}
 
-      {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
-        <div className="text-center py-12 px-4">
-          <p className="text-sm text-muted-foreground">No {catLabel.toLowerCase()} found</p>
-          <p className="text-xs text-muted-foreground/60 mt-1">Try a different category</p>
-        </div>
-      )}
+      {activeTag && (() => {
+        const tagCarousels = homeCarousels.filter(c => c.tag === activeTag);
+        if (tagCarousels.length === 0) return (
+          <div className="text-center py-12 px-4">
+            <p className="text-sm text-muted-foreground">No {activeTag.toLowerCase()} content found</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Try a different filter</p>
+          </div>
+        );
+        return null;
+      })()}
       </>
       )}
     </MobileShell>
