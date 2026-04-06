@@ -137,26 +137,31 @@ export const ItinerarySelector = ({
                   ({itinerary.experiences.length})
                 </span>
               </button>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setOpen(false);
                     navigate(`/my-itineraries`);
                   }}
-                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                 </button>
-                {alreadyAdded ? (
-                  wasJustAdded ? (
-                    <Check className="w-5 h-5 text-primary animate-in zoom-in-50 duration-200" />
+                <button
+                  onClick={() => handleToggleItinerary(itinerary)}
+                  className="p-2 rounded-full hover:bg-muted transition-colors"
+                >
+                  {alreadyAdded ? (
+                    wasJustAdded ? (
+                      <Check className="w-5 h-5 text-primary animate-in zoom-in-50 duration-200" />
+                    ) : (
+                      <Minus className="w-5 h-5 text-destructive" />
+                    )
                   ) : (
-                    <Minus className="w-5 h-5 text-destructive" />
-                  )
-                ) : (
-                  <Plus className="w-5 h-5 text-muted-foreground" />
-                )}
+                    <Plus className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </button>
               </div>
             </div>
           );
