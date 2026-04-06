@@ -65,8 +65,7 @@ export const usePoiProducts = (poiId: string) => {
       if (error || !links) return [];
       return links
         .map((l: any) => l.products)
-        .filter(Boolean)
-        .filter((p: any) => p.is_active);
+        .filter(Boolean);
     },
     enabled: !!poiId,
   });
