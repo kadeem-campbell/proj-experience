@@ -246,7 +246,12 @@ const ItinerariesPage = () => {
     return (
       <MobileShell hideAvatar>
         <div className="mb-6 pt-2" style={{ paddingLeft: '16px', paddingRight: '16px' }}>
-          <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center active:scale-95 transition-transform">
+              <ArrowLeft className="w-4 h-4 text-foreground" />
+            </button>
+            <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
+          </div>
         </div>
 
         {popularItems.length > 0 && (
