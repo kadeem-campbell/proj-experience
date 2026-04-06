@@ -149,14 +149,7 @@ const MobileExperienceCard = ({ experience, timingMap }: { experience: any; timi
   const navigate = useNavigate();
   const { convert } = useCurrency();
 
-  const displayPrice = useMemo(() => {
-    if (experience.averagePrice) {
-      const low = Math.round(experience.averagePrice * 0.8);
-      const high = Math.round(experience.averagePrice * 1.2);
-      return `${convert(low)}–${convert(high)}`;
-    }
-    return experience.price || '';
-  }, [experience.averagePrice, experience.price, convert]);
+  const displayPrice = experience.price || '';
 
   const timing = timingMap[experience.id];
 
