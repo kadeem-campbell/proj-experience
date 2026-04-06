@@ -1,7 +1,8 @@
 /**
  * Admin Carousel/Collection Manager — manage home page carousels,
  * collection membership, ordering, and multi-city assignment.
- * Supports itinerary, experience, product, and POI content types.
+ * Content types: itinerary, product, poi only.
+ * Market scoping inherits from item availability — cannot override beyond what items support.
  */
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -270,7 +271,7 @@ const CarouselRow = ({ col, destinations, destIds, expandedId, setExpandedId, ha
           <div>
             <Label className="text-xs font-semibold">Markets (destinations)</Label>
             <p className="text-[11px] text-muted-foreground mb-2">
-              Leave all unchecked = visible in every market. Check specific ones to restrict. Use {'{city}'} in carousel name for dynamic substitution.
+              Leave all unchecked = visible in every market. Check specific ones to restrict. Market scoping cannot exceed availability of linked items.
             </p>
             <div className="flex flex-wrap gap-2">
               {destinations.map((d: any) => {
@@ -300,7 +301,7 @@ const CarouselRow = ({ col, destinations, destIds, expandedId, setExpandedId, ha
   );
 };
 
-// Searchable item picker + linked items editor
+// Searchable item picker + linked items editor — only shows active/published items
 const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: string; contentType: string }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -309,7 +310,6 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
   const { data: linkedItems = [], refetch } = useQuery({
     queryKey: ['collection-items-admin', collectionId, contentType],
     queryFn: async () => {
-      // Fetch ALL items for this collection (don't filter by item_type — content_type on the collection determines rendering)
       const { data } = await (supabase as any)
         .from('collection_items')
         .select('id, item_id, item_type, position')
@@ -320,7 +320,6 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
       let nameMap: Record<string, { label: string; sub?: string }> = {};
       
       if (ids.length > 0) {
-        // Resolve names from the table matching the collection's content_type
         if (contentType === 'poi') {
           const { data: pois } = await supabase.from('pois').select('id, name, poi_type').in('id', ids);
           (pois || []).forEach((p: any) => { nameMap[p.id] = { label: p.name, sub: p.poi_type }; });
@@ -343,6 +342,7 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
     },
   });
 
+  // Search pool: only active/published items
   const { data: searchPool = [] } = useQuery({
     queryKey: ['collection-search-pool', contentType],
     queryFn: async () => {
@@ -350,9 +350,14 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
         const { data } = await supabase.from('pois').select('id, name, poi_type, destination_id').eq('is_active', true).order('name');
         return (data || []).map((p: any) => ({ id: p.id, label: p.name, sub: p.poi_type }));
       } else if (contentType === 'product') {
-        const { data } = await supabase.from('products').select('id, title, slug').order('title');
+        // Only published + visible products
+        const { data } = await supabase.from('products').select('id, title, slug, publish_state, visibility_output_state')
+          .eq('publish_state', 'published')
+          .in('visibility_output_state', ['public', 'public_indexed', 'marketplace_active'])
+          .order('title');
         return (data || []).map((p: any) => ({ id: p.id, label: p.title, sub: p.slug }));
       } else {
+        // Only active itineraries
         const { data } = await (supabase as any).from('public_itineraries').select('id, name, tag').eq('is_active', true).order('name');
         return (data || []).map((i: any) => ({ id: i.id, label: i.name, sub: i.tag }));
       }
@@ -390,7 +395,7 @@ const CollectionItemsEditor = ({ collectionId, contentType }: { collectionId: st
         <ContentIcon className="w-3 h-3" /> Linked {contentTypeLabel(contentType)} ({linkedItems.length})
       </h4>
       <p className="text-[11px] text-muted-foreground mb-2">
-        Empty = auto-populate from all available {contentTypeLabel(contentType).toLowerCase()} for the selected market(s)
+        Empty = auto-populate from all available {contentTypeLabel(contentType).toLowerCase()} for the selected market(s). Only active/published items shown.
       </p>
 
       <div className="space-y-1 mb-3 max-h-[200px] overflow-y-auto">
