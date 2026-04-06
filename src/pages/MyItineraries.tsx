@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart, Calendar, Users, Globe, Eye, EyeOff } from "lucide-react";
+import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart, Calendar, Users, Globe, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
 import { useItineraryUpdates } from "@/hooks/useItineraryUpdates";
