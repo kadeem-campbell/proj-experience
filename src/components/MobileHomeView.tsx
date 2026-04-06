@@ -147,7 +147,6 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 // Experience/Product card
 const MobileExperienceCard = ({ experience, timingMap }: { experience: any; timingMap: Record<string, any> }) => {
   const navigate = useNavigate();
-  const { convert } = useCurrency();
 
   const displayPrice = experience.price || '';
 
