@@ -457,7 +457,8 @@ const MyItinerariesPage = () => {
                 </button>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
+                </div>
               </div>
               <button
                 onClick={() => { setNewName(""); setNewDescription(""); setNewVisibility("private"); setNewPeople("2"); setNewCity(""); setShowCreate(true); }}
