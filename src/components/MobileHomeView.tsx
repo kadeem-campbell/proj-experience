@@ -145,16 +145,20 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 };
 
 // Experience/Product card
-const MobileExperienceCard = ({ experience }: { experience: any }) => {
+const MobileExperienceCard = ({ experience, timingMap }: { experience: any; timingMap: Record<string, any> }) => {
   const navigate = useNavigate();
   const { convert } = useCurrency();
 
   const displayPrice = useMemo(() => {
     if (experience.averagePrice) {
-      return `${convert(experience.averagePrice)} avg`;
+      const low = Math.round(experience.averagePrice * 0.8);
+      const high = Math.round(experience.averagePrice * 1.2);
+      return `${convert(low)}–${convert(high)}`;
     }
     return experience.price || '';
   }, [experience.averagePrice, experience.price, convert]);
+
+  const timing = timingMap[experience.id];
 
   return (
     <div 
@@ -187,9 +191,12 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm text-foreground truncate">{experience.title}</h3>
-        {displayPrice && (
-          <p className="text-xs text-muted-foreground truncate">{displayPrice}</p>
-        )}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
+          {timing && (
+            <TimingIcon icon={timing.primary_time_icon} className="w-3.5 h-3.5 text-muted-foreground/70" />
+          )}
+          {displayPrice && <span>{displayPrice}</span>}
+        </div>
       </div>
     </div>
   );
