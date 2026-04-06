@@ -170,15 +170,15 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
   });
   if (inclusions.length === 0) return null;
   return (
-    <div className="mb-7">
-      <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Typically included</h2>
-      <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
-        {inclusions.map((inc: any, i: number) => (
-          <div key={inc.id} className={cn("flex items-center gap-3 px-4 py-3", i < inclusions.length - 1 && "border-b border-border/30")}>
-            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Check className="w-3 h-3 text-primary" />
+    <div className="mb-8">
+      <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Typically included</h2>
+      <div className="grid grid-cols-2 gap-2">
+        {inclusions.map((inc: any) => (
+          <div key={inc.id} className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-card border border-border/40">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Check className="w-3.5 h-3.5 text-primary" />
             </div>
-            <span className="text-[13.5px] text-foreground/90">{inc.inclusion_items?.name}</span>
+            <span className="text-[13px] font-medium text-foreground/85 leading-tight">{inc.inclusion_items?.name}</span>
           </div>
         ))}
       </div>
@@ -520,7 +520,8 @@ export default function ExperienceDetail() {
       {/* 1. About */}
       {hasDescription && (
         <div className="mb-8">
-          <p className="text-[15px] text-foreground/80 leading-[1.8] tracking-[-0.01em]">{experience.description}</p>
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-3">About</h2>
+          <p className="text-[15px] text-foreground/75 leading-[1.75]">{experience.description}</p>
         </div>
       )}
 
@@ -541,19 +542,7 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 2b. Gallery */}
-      {gallery.length > 1 && (
-        <div className="mb-8">
-          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Gallery</h2>
-          <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden">
-            {gallery.slice(0, 4).map((img: string, i: number) => (
-              <div key={i} className="aspect-square overflow-hidden bg-muted">
-                <img src={img} alt={`${experience.title} ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Gallery removed — hero images are sufficient */}
 
       {/* 3. Social */}
       {hasSocialContent && (
@@ -623,18 +612,19 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 8. Getting There */}
-      {(experience as any).isProduct && <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />}
+      {/* Getting There removed — local tips is sufficient */}
 
       {/* 9. Local Tips */}
       {hasLocalTips && (
         <div className="mb-8">
-          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Insider tips</h2>
-          <div className="space-y-2">
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Local tips</h2>
+          <div className="space-y-2.5">
             {(experience as any).localTips.map((tip: string, i: number) => (
-              <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-muted/30 border border-border/30">
-                <Lightbulb className="w-4 h-4 text-primary/60 mt-0.5 shrink-0" />
-                <p className="text-[13.5px] text-foreground/80 leading-relaxed">{tip}</p>
+              <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-card border border-border/40">
+                <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <p className="text-[13.5px] text-foreground/75 leading-relaxed italic">{tip}</p>
               </div>
             ))}
           </div>
