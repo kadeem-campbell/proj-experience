@@ -612,8 +612,7 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 8. Getting There */}
-      {(experience as any).isProduct && <GettingThereSection productId={experience.id} description={(experience as any).gettingThereDescription} />}
+      {/* Getting There removed — local tips is sufficient */}
 
       {/* 9. Local Tips */}
       {hasLocalTips && (
