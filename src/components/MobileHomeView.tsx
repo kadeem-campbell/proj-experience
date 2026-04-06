@@ -187,7 +187,7 @@ const MobileExperienceCard = ({ experience, timingMap }: { experience: any; timi
           {timing && (
             <TimingIcon icon={timing.primary_time_icon} className="w-3.5 h-3.5 text-muted-foreground/70" />
           )}
-          {displayPrice && <span>{displayPrice}</span>}
+          {displayPrice && <span>from {displayPrice}</span>}
         </div>
       </div>
     </div>
