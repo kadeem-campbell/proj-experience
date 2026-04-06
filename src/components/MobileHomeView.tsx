@@ -151,6 +151,14 @@ const MobileExperienceCard = ({ experience, timingMap }: { experience: any; timi
   const displayPrice = experience.price || '';
 
   const timing = timingMap[experience.id];
+  // Fallback timing icon based on activity category when no profile exists
+  const timingIcon = timing?.primary_time_icon || (() => {
+    const cat = (experience.category || '').toLowerCase();
+    if (cat.includes('nightlife') || cat.includes('party') || cat.includes('bar') || cat.includes('club')) return 'moon';
+    if (cat.includes('sunset') || cat.includes('cruise') || cat.includes('evening')) return 'sunset';
+    if (cat.includes('yoga') || cat.includes('meditation') || cat.includes('sunrise') || cat.includes('morning')) return 'sunrise';
+    return 'sun';
+  })();
 
   return (
     <div 
