@@ -54,7 +54,7 @@ export const MainLayout = ({
   if (!showSidebar) {
     return (
       <div className="h-screen flex flex-col w-full bg-background overflow-hidden">
-        <main className="flex-1 overflow-auto min-w-0">
+        <main data-scroll-root="true" className="flex-1 overflow-auto min-w-0">
           {children}
         </main>
       </div>
@@ -75,7 +75,7 @@ export const MainLayout = ({
         
         <SidebarInset className="flex-1 flex flex-col min-w-0">
           <div className="flex flex-1 overflow-hidden">
-            <main className="flex-1 overflow-auto min-w-0">
+            <main data-scroll-root="true" className="flex-1 overflow-auto min-w-0">
               {children}
             </main>
             {showItineraryPanel && <ItineraryPanel />}
