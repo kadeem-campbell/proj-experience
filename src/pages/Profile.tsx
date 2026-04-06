@@ -27,6 +27,7 @@ const ProfilePage = () => {
   const { likedExperiences, likedItineraries } = useUserLikes();
   const { itineraries } = useItineraries();
   const isMobile = useIsMobile();
+  const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isEditing, setIsEditing] = useState(false);
