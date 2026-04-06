@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Drawer,
   DrawerContent,
@@ -10,7 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Heart, Copy, MessageCircle, Check, Share2, Plus, Minus, Layers } from "lucide-react";
+import { Heart, Copy, MessageCircle, Check, Share2, Plus, Minus, Layers, ExternalLink } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
