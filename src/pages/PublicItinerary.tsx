@@ -1081,33 +1081,6 @@ const PublicItinerary = () => {
           ) : null}
         </div>
 
-        {/* Present / Visibility controls for owned itineraries */}
-        {isOwned && (
-          <div className="px-4 py-2.5 border-b border-border/30 flex items-center gap-2">
-            <button
-              onClick={() => setPresentationOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted text-xs font-medium text-foreground active:scale-95 transition-transform"
-            >
-              <Presentation className="w-3.5 h-3.5" />
-              Present
-            </button>
-            <button
-              onClick={() => ownedItinerary && togglePublic(ownedItinerary.id)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium active:scale-95 transition-transform",
-                ownedItinerary?.isPublic
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted text-muted-foreground"
-              )}
-            >
-              {ownedItinerary?.isPublic ? (
-                <><Globe className="w-3.5 h-3.5" /> Public</>
-              ) : (
-                <><Lock className="w-3.5 h-3.5" /> Private</>
-              )}
-            </button>
-          </div>
-        )}
 
         {/* Main Content */}
         <div className="flex-1 w-full">
