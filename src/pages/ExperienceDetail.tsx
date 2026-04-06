@@ -720,7 +720,7 @@ export default function ExperienceDetail() {
             <div className="flex flex-wrap gap-2 mb-7">
               {experience.category && (
                 <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/50 text-[13px]">
-                  {categoryIcon && <img src={categoryIcon} alt="" className="w-4.5 h-4.5 object-contain" />}
+                  {categoryIcon && <img src={categoryIcon} alt="" className="w-5 h-5 object-contain" />}
                   <span className="font-medium text-foreground/80">{experience.category}</span>
                 </div>
               )}
