@@ -272,6 +272,51 @@ const ProfilePage = () => {
             </button>
           </div>
 
+          {/* Notifications */}
+          {updates.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Updates</span>
+                  {unreadCount > 0 && (
+                    <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} className="text-xs text-primary font-medium">Mark all read</button>
+                )}
+              </div>
+              <div className="space-y-1">
+                {updates.slice(0, 3).map(update => (
+                  <button
+                    key={update.id}
+                    onClick={() => {
+                      markAsRead(update.itineraryId);
+                      navigate(`/itineraries/${update.itineraryId}`);
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-colors",
+                      !update.read ? "bg-primary/5" : "hover:bg-muted/40"
+                    )}
+                  >
+                    {!update.read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+                    <div className="flex-1 min-w-0">
+                      <p className={cn("text-sm truncate", !update.read ? "font-semibold text-foreground" : "text-muted-foreground")}>
+                        {update.message}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {new Date(update.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Sign out */}
           <button
