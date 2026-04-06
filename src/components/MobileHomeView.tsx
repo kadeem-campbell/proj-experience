@@ -232,24 +232,13 @@ const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: s
 };
 
 
-const categoryLabelMap: Record<string, string> = {
-  "Beach": "Beaches",
-  "Nightlife": "Nightlife",
-  "Wildlife": "Wildlife",
-  "Adventure": "Adventures",
-  "Food": "Food spots",
-  "Culture": "Cultural experiences",
-  "Water Sports": "Water sports",
-};
-
 export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // Read city from URL — MobileShell is the source of truth for city changes
   const selectedCity = searchParams.get("city") || "";
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [activeCategory, setActiveCategory] = useState("");
+  const [activeTag, setActiveTag] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useProductListings();
