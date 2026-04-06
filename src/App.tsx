@@ -73,6 +73,7 @@ const App = () => (
             {/* ═══════════════════════════════════════════════════
                 INTERNAL / AUTHENTICATED — noindex, disallowed in robots
             ═══════════════════════════════════════════════════ */}
+            <Route path="/itineraries" element={<Itineraries />} />
             <Route path="/my-trips/:id" element={<Trip />} />
             <Route path="/my-trips" element={<Trip useActiveItinerary={true} />} />
             <Route path="/create-experience" element={<CreateExperience />} />
