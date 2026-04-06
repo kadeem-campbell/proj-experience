@@ -428,22 +428,24 @@ export const MobileHomeView = () => {
       {/* Dynamic collection-driven carousels */}
       {homeCarousels.length > 0 ? (
         (() => {
-          // Filter carousels by market:
-          // - No destination links = global (show always)
-          // - Has destination links = only show when matching city is selected
-          const filteredCarousels = homeCarousels.filter((carousel) => {
+          // Filter carousels by market
+          let visibleCarousels = homeCarousels.filter((carousel) => {
             if (carousel.destinationIds.length === 0) {
-              // Global carousels: show only when NO city is selected
               return !selectedDestId;
             }
             if (!selectedDestId) return false;
             return carousel.destinationIds.includes(selectedDestId);
           });
 
+          // Filter by active tag
+          if (activeTag) {
+            visibleCarousels = visibleCarousels.filter(c => c.tag === activeTag);
+          }
+
           const destSlug = selectedDestSlug;
 
           const elements: React.ReactNode[] = [];
-          filteredCarousels.forEach((carousel) => {
+          visibleCarousels.forEach((carousel) => {
             const title = carousel.name.replace(/\{city\}/g, selectedCity || 'Explore');
             const resolvedSlug = carousel.slug.replace('city', destSlug || 'explore');
           
@@ -455,7 +457,7 @@ export const MobileHomeView = () => {
               elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
-                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  title={title}
                   onTitleClick={() => navigate(`/${destSlug || 'explore'}`)}
                 >
                   {carouselPois.slice(0, 10).map((poi: any) => (
@@ -466,19 +468,15 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'itinerary') {
               let items: any[];
               if (carousel.itemIds.length > 0) {
-                // Curated items: show all linked items — carousel is already market-scoped
                 items = allItinerariesData.filter(it => carousel.itemIds.includes(it.dbId || it.id));
-                if (activeCategory) {
-                  items = items.filter(it => it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory)));
-                }
               } else {
-                items = categoryItineraries.slice(0, 6);
+                items = itineraries.slice(0, 6);
               }
               if (items.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
-                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  title={title}
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 8).map((itinerary) => (
@@ -489,19 +487,15 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'product') {
               let items: any[];
               if (carousel.itemIds.length > 0) {
-                // Curated items: show all linked items — carousel is already market-scoped
                 items = allExpsData.filter(exp => carousel.itemIds.includes(exp.id));
-                if (activeCategory) {
-                  items = items.filter(exp => matchesCategory(exp.category, activeCategory));
-                }
               } else {
-                items = categoryExperiences.slice(0, 8);
+                items = experiences.slice(0, 8);
               }
               if (items.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
-                  title={activeCategory ? `${catLabel} — ${title}` : title}
+                  title={title}
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 10).map((experience) => (
@@ -515,12 +509,16 @@ export const MobileHomeView = () => {
         })()
       ) : null}
 
-      {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
-        <div className="text-center py-12 px-4">
-          <p className="text-sm text-muted-foreground">No {catLabel.toLowerCase()} found</p>
-          <p className="text-xs text-muted-foreground/60 mt-1">Try a different category</p>
-        </div>
-      )}
+      {activeTag && (() => {
+        const tagCarousels = homeCarousels.filter(c => c.tag === activeTag);
+        if (tagCarousels.length === 0) return (
+          <div className="text-center py-12 px-4">
+            <p className="text-sm text-muted-foreground">No {activeTag.toLowerCase()} content found</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Try a different filter</p>
+          </div>
+        );
+        return null;
+      })()}
       </>
       )}
     </MobileShell>
