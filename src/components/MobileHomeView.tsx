@@ -9,11 +9,10 @@ import catNature from "@/assets/cat-nature.png";
 import catAdventure from "@/assets/cat-adventure.png";
 import catFood from "@/assets/cat-food.png";
 import catSafari from "@/assets/cat-safari.png";
-import { usePopularItineraries, usePublicItineraries } from "@/hooks/usePublicItineraries";
+import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useProductListings } from "@/hooks/useProductListings";
 import { generateProductPageUrl } from "@/utils/slugUtils";
 import { useHomeCarousels } from "@/hooks/useHomeCarousels";
-import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrency } from "@/hooks/useCurrency";
 import { CardActionMenu } from "@/components/CardActionMenu";
@@ -114,7 +113,7 @@ const HorizontalScrollRow = ({
   );
 };
 
-// Itinerary card — same size as experience card
+// Itinerary card
 const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   const navigate = useNavigate();
   const experienceCount = itinerary.experiences?.length || 0;
@@ -123,7 +122,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   return (
     <div 
       className="group/card flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
-      onClick={() => navigate(`/itineraries/${itinerary.id}`)}
+      onClick={() => navigate(`/itineraries/${itinerary.slug || itinerary.id}`)}
     >
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {coverImage ? (
@@ -154,7 +153,7 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
   );
 };
 
-// Experience card — clean: title + price only
+// Experience/Product card
 const MobileExperienceCard = ({ experience }: { experience: any }) => {
   const navigate = useNavigate();
   const { convert } = useCurrency();
@@ -205,51 +204,51 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
   );
 };
 
-// POI card
+// POI card — same visual style as experience cards (not tall/skinny)
 const MobilePoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
   const navigate = useNavigate();
 
   return (
     <div 
-      className="flex-shrink-0 w-[36vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
-      onClick={() => navigate(`/things-to-do/${destinationSlug || 'zanzibar'}/${poi.slug}`)}
+      className="group/card flex-shrink-0 w-[44vw] snap-start cursor-pointer active:scale-[0.97] transition-transform duration-100 will-change-transform"
+      onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
     >
-      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted">
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {poi.cover_image ? (
           <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-foreground/10 to-foreground/5 flex items-center justify-center">
-            <MapPin className="w-6 h-6 text-muted-foreground/30" />
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <MapPin className="w-8 h-8 text-primary/40" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <p className="text-white text-[13px] font-bold line-clamp-2 leading-tight">{poi.name}</p>
-          <p className="text-white/60 text-[10px] font-medium mt-0.5 capitalize">{poi.poi_type}</p>
+        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
+          <CardActionMenu
+            entityId={poi.id}
+            entityType="experience"
+            entityData={{
+              id: poi.id, title: poi.name, creator: '',
+              videoThumbnail: poi.cover_image || '', category: poi.poi_type || '',
+              location: '', price: '',
+            }}
+            title={poi.name}
+            slug={poi.slug}
+          >
+            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-foreground/80 backdrop-blur-xl shadow-lg transition-all duration-150 active:scale-90">
+              <Plus className="w-5 h-5 text-background" />
+            </button>
+          </CardActionMenu>
         </div>
+      </div>
+      <div className="mt-2 space-y-0.5">
+        <h3 className="font-semibold text-sm text-foreground truncate">{poi.name}</h3>
+        {poi.poi_type && (
+          <p className="text-xs text-muted-foreground truncate capitalize">{poi.poi_type}</p>
+        )}
       </div>
     </div>
   );
 };
 
-
-// Static alias map
-const cityAliases: Record<string, string[]> = {
-  "Zanzibar": ["Zanzibar", "Stone Town", "Kendwa", "Nungwi", "Paje", "Jambiani"],
-  "Dar es Salaam": ["Dar es Salaam", "Dar Es Salaam", "Dar"],
-};
-
-const matchesCity = (location: string, city: string): boolean => {
-  if (!city) return true;
-  const aliases = cityAliases[city] || [city];
-  return aliases.some(a => location.toLowerCase().includes(a.toLowerCase()));
-};
-
-const itineraryMatchesCity = (itinerary: any, city: string): boolean => {
-  if (!city) return true;
-  if (itinerary.name?.toLowerCase().includes(city.toLowerCase())) return true;
-  return itinerary.experiences?.some((e: any) => matchesCity(e.location || "", city)) || false;
-};
 
 const categoryLabelMap: Record<string, string> = {
   "Beach": "Beaches",
@@ -263,19 +262,16 @@ const categoryLabelMap: Record<string, string> = {
 
 export const MobileHomeView = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [selectedCity, setSelectedCity] = useState(() => {
-    const urlCity = searchParams.get("city");
-    if (urlCity) return urlCity;
-    try { return localStorage.getItem("swam_selected_city") || ""; } catch { return ""; }
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Read city from URL — MobileShell is the source of truth for city changes
+  const selectedCity = searchParams.get("city") || "";
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeCategory, setActiveCategory] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useProductListings();
   const { data: homeCarousels = [] } = useHomeCarousels();
-  
 
   // Fetch destinations to map selectedCity name → destination ID
   const { data: allDestinations = [] } = useQuery({
@@ -289,20 +285,26 @@ export const MobileHomeView = () => {
 
   const selectedDestId = useMemo(() => {
     if (!selectedCity) return null;
-    const d = allDestinations.find((d: any) => d.name.toLowerCase() === selectedCity.toLowerCase() || d.slug === selectedCity.toLowerCase());
+    const cityLower = selectedCity.toLowerCase();
+    const d = allDestinations.find((d: any) => d.name.toLowerCase() === cityLower || d.slug === cityLower);
     return d?.id || null;
   }, [selectedCity, allDestinations]);
 
-  // POIs for third carousel
+  const selectedDestSlug = useMemo(() => {
+    if (!selectedCity) return '';
+    const d = allDestinations.find((d: any) => d.name.toLowerCase() === selectedCity.toLowerCase() || d.slug === selectedCity.toLowerCase());
+    return d?.slug || slugify(selectedCity);
+  }, [selectedCity, allDestinations]);
+
+  // POIs
   const { data: pois = [] } = useQuery({
     queryKey: ["home-pois"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("pois")
         .select("id, name, slug, poi_type, cover_image, destination_id")
         .eq("is_active", true)
         .order("name");
-      if (error) return [];
       return data || [];
     },
     staleTime: 10 * 60 * 1000,
@@ -318,31 +320,25 @@ export const MobileHomeView = () => {
   useEffect(() => {
     const q = searchParams.get("q");
     setSearchQuery(q || "");
-    const city = searchParams.get("city");
-    // Always follow URL — MobileShell manages localStorage persistence
-    setSelectedCity(city || "");
   }, [searchParams]);
 
-  const handleCityChange = useCallback((city: string) => {
-    setSelectedCity(city);
-  }, []);
-
+  // City-filtered itineraries — match by destination_id from public_itineraries
   const itineraries = useMemo(() => {
-    if (!selectedCity) return allItinerariesData;
-    return allItinerariesData.filter(it => itineraryMatchesCity(it, selectedCity));
-  }, [selectedCity, allItinerariesData]);
+    if (!selectedDestId) return allItinerariesData;
+    return allItinerariesData.filter(it => {
+      // Match by destination_id on the itinerary itself
+      if ((it as any).destinationId === selectedDestId) return true;
+      // Fallback: name match
+      if (it.name?.toLowerCase().includes(selectedCity.toLowerCase())) return true;
+      return false;
+    });
+  }, [selectedDestId, selectedCity, allItinerariesData]);
 
+  // City-filtered products
   const experiences = useMemo(() => {
-    let filtered = allExpsData;
-    if (selectedCity && selectedDestId) {
-      filtered = filtered.filter(e => 
-        e.destinationId === selectedDestId || matchesCity(e.location || "", selectedCity)
-      );
-    } else if (selectedCity) {
-      filtered = filtered.filter(e => matchesCity(e.location || "", selectedCity));
-    }
-    return filtered;
-  }, [selectedCity, selectedDestId, allExpsData]);
+    if (!selectedDestId) return allExpsData;
+    return allExpsData.filter(e => e.destinationId === selectedDestId);
+  }, [selectedDestId, allExpsData]);
 
   const matchesCategory = useCallback((expCategory: string, filterCategory: string) => {
     if (!filterCategory) return true;
@@ -404,8 +400,13 @@ export const MobileHomeView = () => {
 
   const hasSearchResults = searchQuery.trim().length > 0;
 
-  const cityLabel = selectedCity || "your city";
   const catLabel = activeCategory ? categoryLabelMap[activeCategory] || activeCategory : "";
+
+  // City-filtered POIs
+  const filteredPois = useMemo(() => {
+    if (!selectedDestId) return pois;
+    return pois.filter((p: any) => p.destination_id === selectedDestId);
+  }, [pois, selectedDestId]);
 
   return (
     <MobileShell hideAvatar notFixed>
@@ -419,14 +420,6 @@ export const MobileHomeView = () => {
           <span className="text-[15px] text-muted-foreground flex-1 truncate">
             {searchQuery || rotatingPlaceholders[placeholderIndex]}
           </span>
-          {searchQuery && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setSearchQuery(""); }}
-              className="p-1 rounded-full hover:bg-background/50"
-            >
-              <span className="text-muted-foreground text-sm">✕</span>
-            </button>
-          )}
         </button>
       </div>
 
@@ -479,42 +472,50 @@ export const MobileHomeView = () => {
       {/* Dynamic collection-driven carousels */}
       {homeCarousels.length > 0 ? (
         (() => {
+          // Filter carousels by market:
+          // - No destination links = global (show always)
+          // - Has destination links = only show when matching city is selected
           const filteredCarousels = homeCarousels.filter((carousel) => {
-            if (carousel.destinationIds.length === 0) return true;
-            if (!selectedDestId) return false;
+            if (carousel.destinationIds.length === 0) return true; // global
+            if (!selectedDestId) return false; // market-scoped but no city selected
             return carousel.destinationIds.includes(selectedDestId);
           });
 
-          const destSlug = selectedCity ? slugify(selectedCity) : '';
+          const destSlug = selectedDestSlug;
 
           const elements: React.ReactNode[] = [];
           filteredCarousels.forEach((carousel) => {
-            const title = carousel.name.replace('{city}', selectedCity || 'your city');
-            const resolvedSlug = carousel.slug.replace('city', selectedCity ? slugify(selectedCity) : 'city');
+            const title = carousel.name.replace(/\{city\}/g, selectedCity || 'Explore');
+            const resolvedSlug = carousel.slug.replace('city', destSlug || 'explore');
           
             if (carousel.contentType === 'poi') {
-              // POI carousel
-              const allPoisForCarousel = carousel.itemIds.length > 0
-                ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
-                : selectedDestId
-                  ? pois.filter((p: any) => p.destination_id === selectedDestId)
-                  : pois;
-              if (allPoisForCarousel.length === 0) return;
+              const carouselPois = carousel.itemIds.length > 0
+                ? filteredPois.filter((p: any) => carousel.itemIds.includes(p.id))
+                : filteredPois;
+              if (carouselPois.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
                   key={carousel.id}
                   title={activeCategory ? `${catLabel} — ${title}` : title}
                   onTitleClick={() => navigate(`/${destSlug || 'explore'}`)}
                 >
-                  {allPoisForCarousel.slice(0, 10).map((poi: any) => (
+                  {carouselPois.slice(0, 10).map((poi: any) => (
                     <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
                   ))}
                 </HorizontalScrollRow>
               );
             } else if (carousel.contentType === 'itinerary') {
-              const items = carousel.itemIds.length > 0
-                ? categoryItineraries.filter(it => carousel.itemIds.includes(it.dbId || it.id))
-                : categoryItineraries.slice(0, 6);
+              // Resolve from carousel's itemIds against ALL itineraries (curated), then filter by category
+              let items: any[];
+              if (carousel.itemIds.length > 0) {
+                items = allItinerariesData.filter(it => carousel.itemIds.includes(it.dbId || it.id));
+                // Apply category filter on curated items
+                if (activeCategory) {
+                  items = items.filter(it => it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory)));
+                }
+              } else {
+                items = categoryItineraries.slice(0, 6);
+              }
               if (items.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
@@ -528,10 +529,16 @@ export const MobileHomeView = () => {
                 </HorizontalScrollRow>
               );
             } else if (carousel.contentType === 'product') {
-              // product carousel
-              const items = carousel.itemIds.length > 0
-                ? allExpsData.filter(exp => carousel.itemIds.includes(exp.id))
-                : categoryExperiences.slice(0, 8);
+              let items: any[];
+              if (carousel.itemIds.length > 0) {
+                // Curated: resolve from full product list
+                items = allExpsData.filter(exp => carousel.itemIds.includes(exp.id));
+                if (activeCategory) {
+                  items = items.filter(exp => matchesCategory(exp.category, activeCategory));
+                }
+              } else {
+                items = categoryExperiences.slice(0, 8);
+              }
               if (items.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
@@ -539,9 +546,9 @@ export const MobileHomeView = () => {
                   title={activeCategory ? `${catLabel} — ${title}` : title}
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
-                    {items.slice(0, 10).map((experience) => (
-                     <MobileExperienceCard key={experience.id} experience={experience} />
-                    ))}
+                  {items.slice(0, 10).map((experience) => (
+                    <MobileExperienceCard key={experience.id} experience={experience} />
+                  ))}
                 </HorizontalScrollRow>
               );
             }
@@ -549,8 +556,6 @@ export const MobileHomeView = () => {
           return <>{elements}</>;
         })()
       ) : null}
-
-
 
       {activeCategory && categoryExperiences.length === 0 && categoryItineraries.length === 0 && (
         <div className="text-center py-12 px-4">
