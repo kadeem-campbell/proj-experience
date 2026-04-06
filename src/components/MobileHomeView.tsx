@@ -495,10 +495,6 @@ export const MobileHomeView = () => {
               let carouselPois = carousel.itemIds.length > 0
                 ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
                 : filteredPois;
-              // Apply city filter to curated POIs too
-              if (selectedDestId && carousel.itemIds.length > 0) {
-                carouselPois = carouselPois.filter((p: any) => p.destination_id === selectedDestId);
-              }
               if (carouselPois.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
@@ -514,11 +510,8 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'itinerary') {
               let items: any[];
               if (carousel.itemIds.length > 0) {
+                // Curated items: show all linked items — carousel is already market-scoped
                 items = allItinerariesData.filter(it => carousel.itemIds.includes(it.dbId || it.id));
-                // Apply city filter to curated itineraries
-                if (selectedDestId) {
-                  items = items.filter(it => (it as any).destinationId === selectedDestId);
-                }
                 if (activeCategory) {
                   items = items.filter(it => it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory)));
                 }
@@ -540,11 +533,8 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'product') {
               let items: any[];
               if (carousel.itemIds.length > 0) {
+                // Curated items: show all linked items — carousel is already market-scoped
                 items = allExpsData.filter(exp => carousel.itemIds.includes(exp.id));
-                // Apply city filter to curated products
-                if (selectedDestId) {
-                  items = items.filter(exp => exp.destinationId === selectedDestId);
-                }
                 if (activeCategory) {
                   items = items.filter(exp => matchesCategory(exp.category, activeCategory));
                 }
