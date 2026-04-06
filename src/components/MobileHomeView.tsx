@@ -390,7 +390,6 @@ export const MobileHomeView = () => {
       <div className="px-4 pb-3">
         <div className="flex justify-between">
           {[
-            { label: "Beaches", icon: catBeaches, tag: "Beaches" },
             { label: "Nightlife", icon: catNightlife, tag: "Nightlife" },
             { label: "Nature", icon: catNature, tag: "Nature" },
             { label: "Adventure", icon: catAdventure, tag: "Adventure" },
@@ -420,8 +419,6 @@ export const MobileHomeView = () => {
         </div>
       </div>
 
-      {/* Tag filter pills */}
-      <TagFilterPills tags={availableTags} activeTag={activeTag} onTagChange={setActiveTag} />
 
       {/* Search results */}
       {hasSearchResults ? (
