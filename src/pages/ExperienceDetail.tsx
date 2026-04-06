@@ -520,7 +520,8 @@ export default function ExperienceDetail() {
       {/* 1. About */}
       {hasDescription && (
         <div className="mb-8">
-          <p className="text-[15px] text-foreground/80 leading-[1.8] tracking-[-0.01em]">{experience.description}</p>
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-3">About</h2>
+          <p className="text-[15px] text-foreground/75 leading-[1.75]">{experience.description}</p>
         </div>
       )}
 
