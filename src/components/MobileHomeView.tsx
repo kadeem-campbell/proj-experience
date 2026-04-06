@@ -419,8 +419,6 @@ export const MobileHomeView = () => {
         </div>
       </div>
 
-      {/* Tag filter pills */}
-      <TagFilterPills tags={availableTags} activeTag={activeTag} onTagChange={setActiveTag} />
 
       {/* Search results */}
       {hasSearchResults ? (
