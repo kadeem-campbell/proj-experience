@@ -117,15 +117,17 @@ export const ItinerarySelector = ({
           const alreadyAdded = isInItinerary(itinerary.id);
           const wasJustAdded = justAdded === itinerary.id;
           return (
-            <button
+            <div
               key={itinerary.id}
-              onClick={() => handleToggleItinerary(itinerary)}
               className={cn(
-                "w-full flex items-center justify-between px-4 py-3.5 text-left transition-colors active:bg-muted/80",
+                "w-full flex items-center px-4 py-3.5 transition-colors active:bg-muted/80",
                 alreadyAdded && "bg-primary/5"
               )}
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => handleToggleItinerary(itinerary)}
+                className="flex items-center gap-3 min-w-0 flex-1 text-left"
+              >
                 <div className={cn(
                   "w-2.5 h-2.5 rounded-full flex-shrink-0",
                   itinerary.id === activeItineraryId ? "bg-primary" : "bg-muted-foreground/30"
@@ -134,17 +136,29 @@ export const ItinerarySelector = ({
                 <span className="text-xs text-muted-foreground flex-shrink-0">
                   ({itinerary.experiences.length})
                 </span>
-              </div>
-              {alreadyAdded ? (
-                wasJustAdded ? (
-                  <Check className="w-5 h-5 text-primary flex-shrink-0 animate-in zoom-in-50 duration-200" />
+              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpen(false);
+                    navigate(`/my-itineraries`);
+                  }}
+                  className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+                {alreadyAdded ? (
+                  wasJustAdded ? (
+                    <Check className="w-5 h-5 text-primary animate-in zoom-in-50 duration-200" />
+                  ) : (
+                    <Minus className="w-5 h-5 text-destructive" />
+                  )
                 ) : (
-                  <Minus className="w-5 h-5 text-destructive flex-shrink-0" />
-                )
-              ) : (
-                <Plus className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              )}
-            </button>
+                  <Plus className="w-5 h-5 text-muted-foreground" />
+                )}
+              </div>
+            </div>
           );
         })}
       </div>
