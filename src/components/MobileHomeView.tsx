@@ -514,11 +514,8 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'itinerary') {
               let items: any[];
               if (carousel.itemIds.length > 0) {
+                // Curated items: show all linked items — carousel is already market-scoped
                 items = allItinerariesData.filter(it => carousel.itemIds.includes(it.dbId || it.id));
-                // Apply city filter to curated itineraries
-                if (selectedDestId) {
-                  items = items.filter(it => (it as any).destinationId === selectedDestId);
-                }
                 if (activeCategory) {
                   items = items.filter(it => it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory)));
                 }
