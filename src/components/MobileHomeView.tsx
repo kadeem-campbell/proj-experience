@@ -3,6 +3,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { Layers, MapPin, Search, ChevronRight, Plus } from "lucide-react";
 
+import catBeaches from "@/assets/cat-beaches.png";
+import catNightlife from "@/assets/cat-nightlife.png";
+import catNature from "@/assets/cat-nature.png";
+import catAdventure from "@/assets/cat-adventure.png";
+import catFood from "@/assets/cat-food.png";
+import catSafari from "@/assets/cat-safari.png";
+
 import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useProductListings } from "@/hooks/useProductListings";
 import { generateProductPageUrl } from "@/utils/slugUtils";
