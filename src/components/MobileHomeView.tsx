@@ -243,7 +243,7 @@ export const MobileHomeView = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  const selectedCity = searchParams.get("city") || "";
+  const selectedCity = searchParams.get("city") || (() => { try { return localStorage.getItem("swam_selected_city") || ""; } catch { return ""; } })();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeTag, setActiveTag] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
