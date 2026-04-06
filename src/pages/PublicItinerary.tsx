@@ -5,6 +5,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useProductListings } from "@/hooks/useProductListings";
 import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 import { TimingIcon } from "@/components/TimingIcon";
+import { PresentationMode } from "@/components/PresentationMode";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format, addDays } from "date-fns";
@@ -80,6 +81,8 @@ import {
   TrendingUp,
   Flame,
   BookmarkCheck,
+  Lock,
+  Presentation,
 } from "lucide-react";
 
 // Time slot configurations
@@ -153,8 +156,10 @@ const PublicItinerary = () => {
     itineraries, 
     copyItinerary,
     createTrip,
+    togglePublic,
     isLoading: itinerariesLoading,
   } = useItineraries();
+  const [presentationOpen, setPresentationOpen] = useState(false);
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { addUpdate } = useItineraryUpdates();
@@ -1039,11 +1044,37 @@ const PublicItinerary = () => {
               </span>
             </div>
           ) : isOwned ? (
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Heart className="w-3.5 h-3.5 text-primary/70" />
-                <span>Your itinerary · <span className="font-semibold text-foreground">{itinerary.experiences.length}</span> experiences</span>
-              </span>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Heart className="w-3.5 h-3.5 text-primary/70" />
+                  <span>Your itinerary · <span className="font-semibold text-foreground">{itinerary.experiences.length}</span> experiences</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPresentationOpen(true)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted text-xs font-medium text-foreground active:scale-95 transition-transform"
+                >
+                  <Presentation className="w-3.5 h-3.5" />
+                  Present
+                </button>
+                <button
+                  onClick={() => ownedItinerary && togglePublic(ownedItinerary.id)}
+                  className={cn(
+                    "flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium active:scale-95 transition-transform",
+                    ownedItinerary?.isPublic
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {ownedItinerary?.isPublic ? (
+                    <><Globe className="w-3.5 h-3.5" /> Public</>
+                  ) : (
+                    <><Lock className="w-3.5 h-3.5" /> Private</>
+                  )}
+                </button>
+              </div>
             </div>
           ) : null}
         </div>
@@ -1691,6 +1722,15 @@ const PublicItinerary = () => {
       </Drawer>
 
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
+
+      {isOwned && ownedItinerary && (
+        <PresentationMode
+          open={presentationOpen}
+          onOpenChange={setPresentationOpen}
+          itinerary={ownedItinerary}
+          selectedTrip={null}
+        />
+      )}
     </Wrapper>
   );
 };

@@ -61,9 +61,8 @@ const App = () => (
             <Route path="/hosts/:username" element={<HostProfile />} />
             <Route path="/hosts" element={<Hosts />} />
 
-            {/* Itineraries — single canonical family */}
+            {/* Itineraries — single canonical family (public + private) */}
             <Route path="/itineraries/:slug" element={<PublicItinerary />} />
-            <Route path="/itineraries" element={<Itineraries />} />
 
             {/* Collections — single canonical family (subtype in data, not path) */}
             <Route path="/collections/:slug" element={<Collection />} />
@@ -74,6 +73,7 @@ const App = () => (
             {/* ═══════════════════════════════════════════════════
                 INTERNAL / AUTHENTICATED — noindex, disallowed in robots
             ═══════════════════════════════════════════════════ */}
+            <Route path="/itineraries" element={<Itineraries />} />
             <Route path="/my-trips/:id" element={<Trip />} />
             <Route path="/my-trips" element={<Trip useActiveItinerary={true} />} />
             <Route path="/create-experience" element={<CreateExperience />} />

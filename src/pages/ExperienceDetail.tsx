@@ -835,7 +835,7 @@ export default function ExperienceDetail() {
                   <h3 className="text-sm font-semibold mb-3">In your itineraries</h3>
                   <div className="space-y-2">
                     {itineraries.filter(i => i.experiences.some(e => e.id === experience.id)).map(itinerary => (
-                      <Link key={itinerary.id} to={`/my-trips/${itinerary.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group">
+                      <Link key={itinerary.id} to={`/itineraries/${itinerary.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0"><MapPin className="w-4 h-4 text-primary" /></div>
                         <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{itinerary.name}</p><p className="text-xs text-muted-foreground">{itinerary.experiences.length} experiences</p></div>
                         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />

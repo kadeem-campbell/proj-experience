@@ -85,7 +85,7 @@ export const LiveActivityBanner = ({ experienceCount }: LiveActivityBannerProps)
     // Only navigate to itinerary if there's exactly one itinerary
     // Otherwise, let user choose from sidebar
     if (itineraries.length === 1) {
-      navigate(`/my-trips/${itineraries[0].id}`);
+      navigate(`/itineraries/${itineraries[0].id}`);
     }
   };
 
