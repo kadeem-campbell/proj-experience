@@ -2,6 +2,8 @@ import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { slugify } from "@/utils/slugUtils";
 import { Layers, MapPin, Search, ChevronRight, Plus } from "lucide-react";
+import { TimingIcon } from "@/components/TimingIcon";
+import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
@@ -143,16 +145,20 @@ const MobileItineraryCard = ({ itinerary }: { itinerary: any }) => {
 };
 
 // Experience/Product card
-const MobileExperienceCard = ({ experience }: { experience: any }) => {
+const MobileExperienceCard = ({ experience, timingMap }: { experience: any; timingMap: Record<string, any> }) => {
   const navigate = useNavigate();
   const { convert } = useCurrency();
 
   const displayPrice = useMemo(() => {
     if (experience.averagePrice) {
-      return `${convert(experience.averagePrice)} avg`;
+      const low = Math.round(experience.averagePrice * 0.8);
+      const high = Math.round(experience.averagePrice * 1.2);
+      return `${convert(low)}–${convert(high)}`;
     }
     return experience.price || '';
   }, [experience.averagePrice, experience.price, convert]);
+
+  const timing = timingMap[experience.id];
 
   return (
     <div 
@@ -185,9 +191,12 @@ const MobileExperienceCard = ({ experience }: { experience: any }) => {
       </div>
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm text-foreground truncate">{experience.title}</h3>
-        {displayPrice && (
-          <p className="text-xs text-muted-foreground truncate">{displayPrice}</p>
-        )}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
+          {timing && (
+            <TimingIcon icon={timing.primary_time_icon} className="w-3.5 h-3.5 text-muted-foreground/70" />
+          )}
+          {displayPrice && <span>{displayPrice}</span>}
+        </div>
       </div>
     </div>
   );
@@ -250,6 +259,7 @@ export const MobileHomeView = () => {
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useProductListings();
   const { data: homeCarousels = [] } = useHomeCarousels();
+  const timingMap = useTimingDisplayMap();
 
   // Fetch destinations to map selectedCity name → destination ID
   const { data: allDestinations = [] } = useQuery({
@@ -453,7 +463,7 @@ export const MobileHomeView = () => {
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3">Experiences</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {filteredExperiences.slice(0, 12).map(exp => (
-                      <MobileExperienceCard key={exp.id} experience={exp} />
+                      <MobileExperienceCard key={exp.id} experience={exp} timingMap={timingMap} />
                     ))}
                   </div>
                 </div>
@@ -537,7 +547,7 @@ export const MobileHomeView = () => {
                   onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {items.slice(0, 10).map((experience) => (
-                    <MobileExperienceCard key={experience.id} experience={experience} />
+                    <MobileExperienceCard key={experience.id} experience={experience} timingMap={timingMap} />
                   ))}
                 </HorizontalScrollRow>
               );
@@ -568,7 +578,7 @@ export const MobileHomeView = () => {
             {experiences.length > 0 && (
               <HorizontalScrollRow title="Popular Experiences" onTitleClick={() => navigate("/search")}>
                 {experiences.slice(0, 10).map((exp) => (
-                  <MobileExperienceCard key={exp.id} experience={exp} />
+                  <MobileExperienceCard key={exp.id} experience={exp} timingMap={timingMap} />
                 ))}
               </HorizontalScrollRow>
             )}
