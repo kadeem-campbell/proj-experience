@@ -542,19 +542,7 @@ export default function ExperienceDetail() {
         </div>
       )}
 
-      {/* 2b. Gallery */}
-      {gallery.length > 1 && (
-        <div className="mb-8">
-          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Gallery</h2>
-          <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden">
-            {gallery.slice(0, 4).map((img: string, i: number) => (
-              <div key={i} className="aspect-square overflow-hidden bg-muted">
-                <img src={img} alt={`${experience.title} ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Gallery removed — hero images are sufficient */}
 
       {/* 3. Social */}
       {hasSocialContent && (
