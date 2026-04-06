@@ -41,6 +41,7 @@ export const ItinerarySelector = ({
   children 
 }: ItinerarySelectorProps) => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState("");
   const isMobile = useIsMobile();
