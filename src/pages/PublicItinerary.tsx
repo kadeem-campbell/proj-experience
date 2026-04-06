@@ -1080,7 +1080,6 @@ const PublicItinerary = () => {
             </button>
           </div>
         )}
-        </div>
 
         {/* Main Content */}
         <div className="flex-1 w-full">
