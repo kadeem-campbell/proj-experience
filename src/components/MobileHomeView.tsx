@@ -489,9 +489,13 @@ export const MobileHomeView = () => {
             const resolvedSlug = carousel.slug.replace('city', destSlug || 'explore');
           
             if (carousel.contentType === 'poi') {
-              const carouselPois = carousel.itemIds.length > 0
-                ? filteredPois.filter((p: any) => carousel.itemIds.includes(p.id))
+              let carouselPois = carousel.itemIds.length > 0
+                ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
                 : filteredPois;
+              // Apply city filter to curated POIs too
+              if (selectedDestId && carousel.itemIds.length > 0) {
+                carouselPois = carouselPois.filter((p: any) => p.destination_id === selectedDestId);
+              }
               if (carouselPois.length === 0) return;
               elements.push(
                 <HorizontalScrollRow
@@ -505,11 +509,13 @@ export const MobileHomeView = () => {
                 </HorizontalScrollRow>
               );
             } else if (carousel.contentType === 'itinerary') {
-              // Resolve from carousel's itemIds against ALL itineraries (curated), then filter by category
               let items: any[];
               if (carousel.itemIds.length > 0) {
                 items = allItinerariesData.filter(it => carousel.itemIds.includes(it.dbId || it.id));
-                // Apply category filter on curated items
+                // Apply city filter to curated itineraries
+                if (selectedDestId) {
+                  items = items.filter(it => (it as any).destinationId === selectedDestId);
+                }
                 if (activeCategory) {
                   items = items.filter(it => it.experiences?.some((e: any) => matchesCategory(e.category, activeCategory)));
                 }
@@ -531,8 +537,11 @@ export const MobileHomeView = () => {
             } else if (carousel.contentType === 'product') {
               let items: any[];
               if (carousel.itemIds.length > 0) {
-                // Curated: resolve from full product list
                 items = allExpsData.filter(exp => carousel.itemIds.includes(exp.id));
+                // Apply city filter to curated products
+                if (selectedDestId) {
+                  items = items.filter(exp => exp.destinationId === selectedDestId);
+                }
                 if (activeCategory) {
                   items = items.filter(exp => matchesCategory(exp.category, activeCategory));
                 }
