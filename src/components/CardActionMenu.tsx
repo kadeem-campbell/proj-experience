@@ -108,16 +108,48 @@ const ActionMenuContent = ({
   };
 
   const handleToggleItinerary = (itinerary: any) => {
-    const alreadyAdded = isExpInItinerary(itinerary.id);
     if ("vibrate" in navigator) navigator.vibrate(10);
+
+    // For itinerary entities, copy ALL experiences into the target itinerary
+    if (entityType === "itinerary") {
+      const exps = entityData?.experiences || [];
+      if (exps.length === 0) {
+        toast.error("No experiences to add");
+        return;
+      }
+      let addedCount = 0;
+      for (const exp of exps.slice(0, 30)) {
+        const result = addExperienceToItinerary(itinerary.id, {
+          id: exp.id,
+          title: exp.title || "",
+          creator: exp.creator || "",
+          videoThumbnail: exp.videoThumbnail || exp.video_thumbnail || "",
+          category: exp.category || "",
+          location: exp.location || "",
+          price: exp.price || "",
+        });
+        if (!result.alreadyExists) addedCount++;
+      }
+      setActiveItinerary(itinerary.id);
+      if (addedCount > 0) {
+        setJustAdded(itinerary.id);
+        if (justAddedTimer.current) clearTimeout(justAddedTimer.current);
+        justAddedTimer.current = setTimeout(() => setJustAdded(null), 1500);
+        toast.success(`Added ${addedCount} activities to "${itinerary.name}"`);
+      } else {
+        toast.info(`All activities already in "${itinerary.name}"`);
+      }
+      onClose();
+      return;
+    }
+
+    // Single experience toggle
+    const alreadyAdded = isExpInItinerary(itinerary.id);
     if (alreadyAdded) {
       removeExperienceFromItinerary(itinerary.id, entityId);
       toast.success(`Removed from "${itinerary.name}"`);
     } else {
-      const expData = entityType === "experience" ? entityData : {
-        id: entityId, title, creator: "", videoThumbnail: entityData?.coverImage || "", category: "", location: "", price: "",
-      };
-      const result = addExperienceToItinerary(itinerary.id, expData);
+      const result = addExperienceToItinerary(itinerary.id, entityData);
       if (result.alreadyExists) { toast.error(`Already in "${itinerary.name}"`); return; }
       setActiveItinerary(itinerary.id);
       setJustAdded(itinerary.id);
