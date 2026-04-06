@@ -155,8 +155,11 @@ const PublicItinerary = () => {
     itineraries, 
     copyItinerary,
     createTrip,
+    togglePublic,
     isLoading: itinerariesLoading,
   } = useItineraries();
+  const { isAuthenticated } = useAuth();
+  const [presentationOpen, setPresentationOpen] = useState(false);
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { addUpdate } = useItineraryUpdates();
