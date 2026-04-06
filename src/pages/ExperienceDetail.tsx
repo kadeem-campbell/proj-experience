@@ -170,15 +170,15 @@ const InclusionsSection = ({ productId }: { productId: string }) => {
   });
   if (inclusions.length === 0) return null;
   return (
-    <div className="mb-7">
-      <h2 className="text-base font-bold tracking-tight mb-4 uppercase text-muted-foreground/70" style={{ fontSize: '11px', letterSpacing: '1.5px' }}>Typically included</h2>
-      <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
-        {inclusions.map((inc: any, i: number) => (
-          <div key={inc.id} className={cn("flex items-center gap-3 px-4 py-3", i < inclusions.length - 1 && "border-b border-border/30")}>
-            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Check className="w-3 h-3 text-primary" />
+    <div className="mb-8">
+      <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Typically included</h2>
+      <div className="grid grid-cols-2 gap-2">
+        {inclusions.map((inc: any) => (
+          <div key={inc.id} className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-card border border-border/40">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Check className="w-3.5 h-3.5 text-primary" />
             </div>
-            <span className="text-[13.5px] text-foreground/90">{inc.inclusion_items?.name}</span>
+            <span className="text-[13px] font-medium text-foreground/85 leading-tight">{inc.inclusion_items?.name}</span>
           </div>
         ))}
       </div>
