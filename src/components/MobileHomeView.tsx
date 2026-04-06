@@ -151,6 +151,14 @@ const MobileExperienceCard = ({ experience, timingMap }: { experience: any; timi
   const displayPrice = experience.price || '';
 
   const timing = timingMap[experience.id];
+  // Fallback timing icon based on activity category when no profile exists
+  const timingIcon = timing?.primary_time_icon || (() => {
+    const cat = (experience.category || '').toLowerCase();
+    if (cat.includes('nightlife') || cat.includes('party') || cat.includes('bar') || cat.includes('club')) return 'moon';
+    if (cat.includes('sunset') || cat.includes('cruise') || cat.includes('evening')) return 'sunset';
+    if (cat.includes('yoga') || cat.includes('meditation') || cat.includes('sunrise') || cat.includes('morning')) return 'sunrise';
+    return 'sun';
+  })();
 
   return (
     <div 
@@ -184,10 +192,8 @@ const MobileExperienceCard = ({ experience, timingMap }: { experience: any; timi
       <div className="mt-2 space-y-0.5">
         <h3 className="font-semibold text-sm text-foreground truncate">{experience.title}</h3>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
-          {timing && (
-            <TimingIcon icon={timing.primary_time_icon} className="w-3.5 h-3.5 text-muted-foreground/70" />
-          )}
-          {displayPrice && <span>{displayPrice}</span>}
+          <TimingIcon icon={timingIcon} className="w-3.5 h-3.5 text-muted-foreground/70" />
+          {displayPrice && <span>from {displayPrice}</span>}
         </div>
       </div>
     </div>
