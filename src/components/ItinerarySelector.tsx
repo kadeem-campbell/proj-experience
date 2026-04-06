@@ -142,9 +142,10 @@ export const ItinerarySelector = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     setOpen(false);
-                    navigate(`/my-itineraries`);
+                    navigate(`/my-trips/${itinerary.id}`);
                   }}
                   className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  aria-label={`Go to ${itinerary.name}`}
                 >
                   <ExternalLink className="w-4 h-4" />
                 </button>
