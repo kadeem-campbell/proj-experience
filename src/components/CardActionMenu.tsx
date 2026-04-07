@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { useNavigate } from "react-router-dom";
 import {
   Drawer,
