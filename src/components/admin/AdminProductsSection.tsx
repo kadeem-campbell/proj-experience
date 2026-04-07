@@ -1505,6 +1505,14 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         { data: pos },
         { data: intentLinks },
         { data: entityDocs },
+        { data: timingProfiles },
+        { data: faqRows },
+        { data: questionRows },
+        { data: canonicalEntry },
+        { data: routeEntry },
+        { data: duplicateRows },
+        { data: saveRows },
+        { count: galleryMediaCount },
       ] = await Promise.all([
         supabase.from('options').select('*, price_options(*)').eq('product_id', productId) as any,
         supabase.from('product_hosts').select('*, hosts(*)').eq('product_id', productId) as any,
@@ -1519,9 +1527,19 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         supabase.from('product_positioning_profiles').select('*').eq('product_id', productId).maybeSingle() as any,
         supabase.from('product_intent_affinities').select('id').eq('product_id', productId) as any,
         supabase.from('entity_documents').select('id').eq('entity_id', productId).eq('entity_type', 'product') as any,
+        supabase.from('product_timing_profiles').select('*').eq('product_id', productId).eq('is_active', true) as any,
+        supabase.from('experience_faqs').select('id').eq('experience_id', productId) as any,
+        supabase.from('questions').select('id').eq('entity_id', productId).eq('entity_type', 'product') as any,
+        supabase.from('canonical_decisions').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle() as any,
+        supabase.from('page_route_registry').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle() as any,
+        supabase.from('products').select('slug').eq('slug', product.slug).neq('id', productId) as any,
+        supabase.from('user_likes').select('id').eq('item_id', productId) as any,
+        supabase.from('media_assets').select('id', { count: 'exact', head: true }).eq('entity_id', productId).eq('entity_type', 'product').eq('asset_type', 'image') as any,
       ]);
 
       const hosts = (hostLinks || []).map((h: any) => h.hosts).filter(Boolean);
+      const galleryJson = (product as any).gallery_json || (product as any).gallery || [];
+      const totalGallery = (galleryMediaCount || 0) + (Array.isArray(galleryJson) ? galleryJson.length : 0);
       const res = validateProduct({
         product,
         options: opts || [],
@@ -1533,6 +1551,14 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         positioningProfile: pos,
         intentAffinityCount: (intentLinks || []).length,
         entityDocCount: (entityDocs || []).length,
+        timingProfiles: timingProfiles || [],
+        faqCount: (faqRows || []).length,
+        questionCount: (questionRows || []).length,
+        hasCanonicalEntry: !!canonicalEntry,
+        hasRouteEntry: !!routeEntry,
+        duplicateSlugs: (duplicateRows || []).map((r: any) => r.slug),
+        galleryCount: totalGallery,
+        saveCount: (saveRows || []).length,
       });
       await persistReadinessScore(res);
       await persistValidationResults(res);
