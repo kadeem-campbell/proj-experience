@@ -300,6 +300,7 @@ export const CardActionMenu = ({
   children,
 }: CardActionMenuProps) => {
   const [open, setOpen] = useState(false);
+  const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const isMobile = useIsMobile();
 
   const handleOpen = useCallback(
@@ -314,18 +315,25 @@ export const CardActionMenu = ({
   const sharedProps = {
     entityId, entityType, entityData, title, slug,
     onClose: () => setOpen(false),
+    onOpenCreateDrawer: () => {
+      setOpen(false);
+      setTimeout(() => setShowCreateDrawer(true), 300);
+    },
   };
 
   if (!isMobile) {
     return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild onClick={handleOpen}>
-          {children}
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-4" align="end" sideOffset={8}>
-          <ActionMenuContent {...sharedProps} />
-        </PopoverContent>
-      </Popover>
+      <>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild onClick={handleOpen}>
+            {children}
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-4" align="end" sideOffset={8}>
+            <ActionMenuContent {...sharedProps} />
+          </PopoverContent>
+        </Popover>
+        <CreateItineraryDrawer open={showCreateDrawer} onOpenChange={setShowCreateDrawer} />
+      </>
     );
   }
 
@@ -344,6 +352,7 @@ export const CardActionMenu = ({
           </div>
         </DrawerContent>
       </Drawer>
+      <CreateItineraryDrawer open={showCreateDrawer} onOpenChange={setShowCreateDrawer} />
     </>
   );
 };
