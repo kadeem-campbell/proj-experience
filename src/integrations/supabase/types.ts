@@ -3829,6 +3829,7 @@ export type Database = {
           seo_title: string | null
           slug: string
           tiktok_url: string | null
+          tiktok_urls_json: Json | null
           title: string
           updated_at: string | null
           video_url: string | null
@@ -3868,6 +3869,7 @@ export type Database = {
           seo_title?: string | null
           slug: string
           tiktok_url?: string | null
+          tiktok_urls_json?: Json | null
           title: string
           updated_at?: string | null
           video_url?: string | null
@@ -3907,6 +3909,7 @@ export type Database = {
           seo_title?: string | null
           slug?: string
           tiktok_url?: string | null
+          tiktok_urls_json?: Json | null
           title?: string
           updated_at?: string | null
           video_url?: string | null

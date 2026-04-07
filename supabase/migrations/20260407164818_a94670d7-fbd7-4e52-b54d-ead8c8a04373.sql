@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS tiktok_urls_json jsonb DEFAULT '[]'::jsonb;
