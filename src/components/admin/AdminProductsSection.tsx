@@ -600,6 +600,124 @@ export const AdminProductsSection = () => {
   );
 };
 
+// ============ FAQ EDITOR ============
+
+const FaqEditor = ({ productId }: { productId: string }) => {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [newQ, setNewQ] = useState('');
+  const [newA, setNewA] = useState('');
+
+  const { data: faqs = [], isLoading } = useQuery({
+    queryKey: ['admin-faqs', productId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('experience_faqs')
+        .select('*')
+        .eq('experience_id', productId)
+        .order('display_order') as any;
+      return data || [];
+    },
+  });
+
+  // Also show community questions
+  const { data: communityQs = [] } = useQuery({
+    queryKey: ['admin-community-qs', productId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('questions')
+        .select('*, answers(*)')
+        .eq('entity_id', productId)
+        .eq('entity_type', 'product')
+        .order('created_at', { ascending: false }) as any;
+      return data || [];
+    },
+  });
+
+  const addFaq = async () => {
+    if (!newQ.trim() || !newA.trim()) return;
+    const { error } = await supabase.from('experience_faqs').insert({
+      experience_id: productId,
+      question: newQ.trim(),
+      answer: newA.trim(),
+      display_order: faqs.length,
+      is_active: true,
+    });
+    if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
+    setNewQ(''); setNewA('');
+    qc.invalidateQueries({ queryKey: ['admin-faqs', productId] });
+    toast({ title: 'FAQ added' });
+  };
+
+  const deleteFaq = async (id: string) => {
+    await supabase.from('experience_faqs').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-faqs', productId] });
+    toast({ title: 'FAQ deleted' });
+  };
+
+  const updateFaq = async (id: string, field: string, value: any) => {
+    await supabase.from('experience_faqs').update({ [field]: value } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-faqs', productId] });
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Curated FAQs */}
+      {faqs.map((faq: any) => (
+        <Card key={faq.id} className="p-3 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 space-y-1.5">
+              <Input
+                value={faq.question}
+                onChange={e => updateFaq(faq.id, 'question', e.target.value)}
+                placeholder="Question"
+                className="text-xs"
+              />
+              <Textarea
+                value={faq.answer}
+                onChange={e => updateFaq(faq.id, 'answer', e.target.value)}
+                placeholder="Answer"
+                rows={2}
+                className="text-xs"
+              />
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => deleteFaq(faq.id)}>
+              <Trash2 className="w-3 h-3 text-destructive" />
+            </Button>
+          </div>
+        </Card>
+      ))}
+
+      {/* Add new FAQ */}
+      <Card className="p-3 space-y-2 border-dashed">
+        <Input value={newQ} onChange={e => setNewQ(e.target.value)} placeholder="New question..." className="text-xs" />
+        <Textarea value={newA} onChange={e => setNewA(e.target.value)} placeholder="Answer..." rows={2} className="text-xs" />
+        <Button size="sm" onClick={addFaq} disabled={!newQ.trim() || !newA.trim()}>
+          <Plus className="w-3 h-3 mr-1" /> Add FAQ
+        </Button>
+      </Card>
+
+      {/* Community Questions */}
+      {communityQs.length > 0 && (
+        <div className="mt-4">
+          <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Community Questions ({communityQs.length})</h5>
+          {communityQs.map((q: any) => (
+            <Card key={q.id} className="p-2.5 mb-2">
+              <p className="text-xs font-medium">{q.body}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="outline" className="text-[10px]">{q.status}</Badge>
+                {q.answers?.length > 0 && <span className="text-[10px] text-muted-foreground">{q.answers.length} answer(s)</span>}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {isLoading && <p className="text-xs text-muted-foreground">Loading...</p>}
+    </div>
+  );
+};
+
 // ============ TIMING EDITOR ============
 
 import { buildHourlyCurve, deriveTimingDisplay, validateTimingProfiles, normalizeHourlyScores, normalizeReasonTags } from '@/lib/timing';
