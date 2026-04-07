@@ -744,11 +744,9 @@ export default function ExperienceDetail() {
           <div className="px-5 pt-6 pb-4">
             {/* Primary CTA — full-width, premium */}
             <div className="mb-5">
-              <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator, videoThumbnail: experience.videoThumbnail, category: experience.category, location: experience.location, price: experience.price || "" }} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-                <Button size="lg" className={cn("w-full h-[54px] rounded-2xl font-bold text-[15px] bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10 tracking-[-0.01em]", justAdded && "animate-pulse")}>
+              <Button size="lg" onClick={handleOpenItinerarySheet} className={cn("w-full h-[54px] rounded-2xl font-bold text-[15px] bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10 tracking-[-0.01em]", justAdded && "animate-pulse")}>
                   <span className="flex items-center gap-2.5"><Plus className="w-5 h-5" />Add to Itinerary</span>
                 </Button>
-              </ItinerarySelector>
             </div>
 
             {/* Info Pills — premium chips */}
