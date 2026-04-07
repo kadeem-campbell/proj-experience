@@ -19,8 +19,17 @@ import {
   Plus, ArrowLeft, Share2, MapPin, Users, Clock, Heart,
   MessageCircle, Flame, TrendingUp, Sparkles, ChevronRight,
   Calendar, Zap, CloudSun, HelpCircle, Send, ThumbsUp,
-  Check, Car, Lightbulb, Navigation, Anchor
+  Check, Car, Lightbulb, Navigation, Anchor, Search, X, ListPlus, ExternalLink
 } from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
+import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { TimingIcon } from "@/components/TimingIcon";
 import { useItineraries } from "@/hooks/useItineraries";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
