@@ -526,7 +526,6 @@ const MyItinerariesPage = () => {
                     placeholder="e.g. Zanzibar Weekend"
                     className="w-full bg-transparent border-0 outline-none text-base font-medium text-foreground placeholder:text-muted-foreground/50"
                     style={{ fontSize: '16px' }}
-                    autoFocus
                     onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
                   />
                 </div>

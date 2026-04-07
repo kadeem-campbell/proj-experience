@@ -170,40 +170,16 @@ export const ItinerarySelector = ({
       </div>
 
       <div className="border-t border-border p-3">
-        {showNewInput ? (
-          <div className="flex gap-2">
-            <Input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Itinerary name"
-              className="h-10 text-sm"
-              style={{ fontSize: '16px' }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateAndAdd();
-                if (e.key === 'Escape') {
-                  setShowNewInput(false);
-                  setNewName("");
-                }
-              }}
-            />
-            <Button 
-              size="sm" 
-              className="h-10 px-4"
-              onClick={handleCreateAndAdd}
-              disabled={!newName.trim()}
-            >
-              Add
-            </Button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setShowNewInput(true)}
-            className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-primary active:bg-muted rounded-lg transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Create new itinerary
-          </button>
-        )}
+        <button
+          onClick={() => {
+            setOpen(false);
+            navigate("/my-trips?create=true");
+          }}
+          className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-primary active:bg-muted rounded-lg transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          New itinerary
+        </button>
       </div>
     </>
   );

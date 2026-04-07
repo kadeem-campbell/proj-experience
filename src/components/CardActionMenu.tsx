@@ -208,34 +208,18 @@ const ActionMenuContent = ({
           ← Back
         </button>
 
-        {/* Create new — always on top */}
+        {/* Create new — navigate to full create flow */}
         <div className="border-b border-border pb-2 mb-1">
-          {showNewInput ? (
-            <div className="flex gap-2">
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Itinerary name"
-                className="h-10 text-sm"
-                style={{ fontSize: "16px" }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreateNew();
-                  if (e.key === "Escape") { setShowNewInput(false); setNewName(""); }
-                }}
-              />
-              <Button size="sm" className="h-10 px-4" onClick={handleCreateNew} disabled={!newName.trim()}>
-                Add
-              </Button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowNewInput(true)}
-              className="w-full flex items-center gap-2 px-2 py-2.5 text-sm font-semibold text-primary active:bg-muted rounded-lg transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Create new itinerary
-            </button>
-          )}
+          <button
+            onClick={() => {
+              onClose();
+              navigate("/my-trips?create=true");
+            }}
+            className="w-full flex items-center gap-2 px-2 py-2.5 text-sm font-semibold text-primary active:bg-muted rounded-lg transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            New itinerary
+          </button>
         </div>
 
         {/* Existing itineraries */}
