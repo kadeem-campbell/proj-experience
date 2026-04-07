@@ -122,9 +122,11 @@ export default function DestinationPage() {
 
       {/* Products */}
       <div className="px-4 mt-8 pb-8">
-        <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-3">
-          {products.length} thing{products.length !== 1 ? "s" : ""} to do
-        </h2>
+        {products.length > 0 && (
+          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-3">
+            {products.length} thing{products.length !== 1 ? "s" : ""} to do
+          </h2>
+        )}
         {products.length > 0 ? (
           <div className="grid grid-cols-2 gap-x-3 gap-y-5">
             {products.map((item) => (
