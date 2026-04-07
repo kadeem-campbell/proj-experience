@@ -139,7 +139,7 @@ export default function PoiDetail() {
     return ig?.url || "";
   }, [mediaAssets]);
 
-  const hasSocialContent = tiktokVideos.length > 0 || !!instagramEmbed;
+  const hasSocialContent = tiktokVideos.length > 0;
   const openingHours = (poi as any)?.opening_hours_json as Record<string, string> | null;
   const hasOpeningHours = openingHours && Object.keys(openingHours).length > 0;
 
