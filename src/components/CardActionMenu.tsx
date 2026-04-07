@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { useNavigate } from "react-router-dom";
 import {
   Drawer,
@@ -39,12 +40,11 @@ const ActionMenuContent = ({
   title,
   slug,
   onClose,
-}: Omit<CardActionMenuProps, "children"> & { onClose: () => void }) => {
+  onOpenCreateDrawer,
+}: Omit<CardActionMenuProps, "children"> & { onClose: () => void; onOpenCreateDrawer: () => void }) => {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [showItineraryPicker, setShowItineraryPicker] = useState(false);
-  const [showNewInput, setShowNewInput] = useState(false);
-  const [newName, setNewName] = useState("");
   const [justAdded, setJustAdded] = useState<string | null>(null);
   const justAddedTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -163,32 +163,6 @@ const ActionMenuContent = ({
     }
   };
 
-  const handleCreateNew = async () => {
-    if (!newName.trim()) return;
-    if ("vibrate" in navigator) navigator.vibrate(10);
-    const newIt = await createItinerary(newName.trim());
-    if (entityType === "experience") {
-      await addExperienceToItinerary(newIt.id, entityData);
-      toast.success(`Created "${newName.trim()}" and added`);
-    } else {
-      // For itinerary type: copy experiences into the new itinerary
-      const exps = entityData?.experiences || [];
-      const { addedCount } = addExperiencesToItinerary(
-        newIt.id,
-        exps.slice(0, 20).map((exp: any) => ({
-          id: exp.id, title: exp.title || "", creator: exp.creator || "",
-          videoThumbnail: exp.videoThumbnail || exp.video_thumbnail || "", category: exp.category || "",
-          location: exp.location || "", price: exp.price || "",
-        }))
-      );
-      toast.success(`Created "${newName.trim()}" with ${addedCount} activities`);
-    }
-    setNewName("");
-    setShowNewInput(false);
-    setShowItineraryPicker(false);
-    onClose();
-  };
-
   const sortedItineraries = [...itineraries].sort((a, b) => {
     const aIn = isExpInItinerary(a.id) ? 0 : 1;
     const bIn = isExpInItinerary(b.id) ? 0 : 1;
@@ -208,12 +182,12 @@ const ActionMenuContent = ({
           ← Back
         </button>
 
-        {/* Create new — navigate to full create flow */}
+        {/* Create new — opens full create drawer */}
         <div className="border-b border-border pb-2 mb-1">
           <button
             onClick={() => {
-              onClose();
-              navigate("/my-itineraries?create=true");
+              setShowItineraryPicker(false);
+              onOpenCreateDrawer();
             }}
             className="w-full flex items-center gap-2 px-2 py-2.5 text-sm font-semibold text-primary active:bg-muted rounded-lg transition-colors"
           >
@@ -326,6 +300,7 @@ export const CardActionMenu = ({
   children,
 }: CardActionMenuProps) => {
   const [open, setOpen] = useState(false);
+  const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const isMobile = useIsMobile();
 
   const handleOpen = useCallback(
@@ -340,18 +315,25 @@ export const CardActionMenu = ({
   const sharedProps = {
     entityId, entityType, entityData, title, slug,
     onClose: () => setOpen(false),
+    onOpenCreateDrawer: () => {
+      setOpen(false);
+      setTimeout(() => setShowCreateDrawer(true), 300);
+    },
   };
 
   if (!isMobile) {
     return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild onClick={handleOpen}>
-          {children}
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-4" align="end" sideOffset={8}>
-          <ActionMenuContent {...sharedProps} />
-        </PopoverContent>
-      </Popover>
+      <>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild onClick={handleOpen}>
+            {children}
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-4" align="end" sideOffset={8}>
+            <ActionMenuContent {...sharedProps} />
+          </PopoverContent>
+        </Popover>
+        <CreateItineraryDrawer open={showCreateDrawer} onOpenChange={setShowCreateDrawer} />
+      </>
     );
   }
 
@@ -370,6 +352,7 @@ export const CardActionMenu = ({
           </div>
         </DrawerContent>
       </Drawer>
+      <CreateItineraryDrawer open={showCreateDrawer} onOpenChange={setShowCreateDrawer} />
     </>
   );
 };

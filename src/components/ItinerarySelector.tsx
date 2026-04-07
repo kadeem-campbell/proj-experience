@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Plus, Check, Minus, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -12,7 +13,6 @@ import {
   DrawerContent,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -41,9 +41,8 @@ export const ItinerarySelector = ({
   children 
 }: ItinerarySelectorProps) => {
   const [open, setOpen] = useState(false);
+  const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const navigate = useNavigate();
-  const [showNewInput, setShowNewInput] = useState(false);
-  const [newName, setNewName] = useState("");
   const isMobile = useIsMobile();
   
   const { 
@@ -81,17 +80,6 @@ export const ItinerarySelector = ({
       justAddedTimer.current = setTimeout(() => setJustAdded(null), 1500);
       onAdd?.();
     }
-  };
-
-  const handleCreateAndAdd = async () => {
-    if (!newName.trim()) return;
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    const newItinerary = await createItinerary(newName.trim());
-    await addExperienceToItinerary(newItinerary.id, experienceData);
-    onAdd?.();
-    setNewName("");
-    setShowNewInput(false);
-    setOpen(false);
   };
 
   // Sort: selected itineraries first
@@ -173,7 +161,7 @@ export const ItinerarySelector = ({
         <button
           onClick={() => {
             setOpen(false);
-            navigate("/my-itineraries?create=true");
+            setTimeout(() => setShowCreateDrawer(true), 300);
           }}
           className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-primary active:bg-muted rounded-lg transition-colors"
         >
@@ -186,8 +174,34 @@ export const ItinerarySelector = ({
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerTrigger asChild>
+      <>
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerTrigger asChild>
+            {children || (
+              <Button 
+                size="icon" 
+                className="rounded-full shadow-lg"
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            )}
+          </DrawerTrigger>
+          <DrawerContent className="bg-card border-border" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted-foreground/20 my-3" />
+            {selectorContent}
+            <div className="pb-[env(safe-area-inset-bottom,8px)]" />
+          </DrawerContent>
+        </Drawer>
+        <CreateItineraryDrawer open={showCreateDrawer} onOpenChange={setShowCreateDrawer} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
           {children || (
             <Button 
               size="icon" 
@@ -197,36 +211,16 @@ export const ItinerarySelector = ({
               <Plus className="w-4 h-4" />
             </Button>
           )}
-        </DrawerTrigger>
-        <DrawerContent className="bg-card border-border" onClick={(e) => e.stopPropagation()}>
-          <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted-foreground/20 my-3" />
+        </PopoverTrigger>
+        <PopoverContent 
+          className="w-72 p-0 bg-card border-border shadow-xl z-50"
+          align="end"
+          onClick={(e) => e.stopPropagation()}
+        >
           {selectorContent}
-          <div className="pb-[env(safe-area-inset-bottom,8px)]" />
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        {children || (
-          <Button 
-            size="icon" 
-            className="rounded-full shadow-lg"
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
-        )}
-      </PopoverTrigger>
-      <PopoverContent 
-        className="w-72 p-0 bg-card border-border shadow-xl z-50"
-        align="end"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {selectorContent}
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      <CreateItineraryDrawer open={showCreateDrawer} onOpenChange={setShowCreateDrawer} />
+    </>
   );
 };

@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createItineraryJsonLd } from "@/components/SEOHead";
 import { slugify, generateProductUrl } from "@/utils/slugUtils";
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { useProductListings } from "@/hooks/useProductListings";
 import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 import { TimingIcon } from "@/components/TimingIcon";
@@ -124,6 +125,7 @@ const PublicItinerary = () => {
   const [newItineraryName, setNewItineraryName] = useState("");
   const [showNewItineraryInput, setShowNewItineraryInput] = useState(false);
   const [goToAction, setGoToAction] = useState<{ name: string; id: string } | null>(null);
+  const [showCreateItineraryDrawer, setShowCreateItineraryDrawer] = useState(false);
   
   // Share sheet
   const [showShareSheet, setShowShareSheet] = useState(false);
@@ -1333,7 +1335,7 @@ const PublicItinerary = () => {
             <button
               onClick={() => {
                 setShowAddToItinerarySheet(false);
-                navigate("/my-itineraries?create=true");
+                setTimeout(() => setShowCreateItineraryDrawer(true), 300);
               }}
               className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
             >
@@ -1716,6 +1718,7 @@ const PublicItinerary = () => {
           selectedTrip={null}
         />
       )}
+      <CreateItineraryDrawer open={showCreateItineraryDrawer} onOpenChange={setShowCreateItineraryDrawer} />
     </Wrapper>
   );
 };
