@@ -308,7 +308,7 @@ const PriceSection = ({ experience, productOptions, selectedCurrency }: {
 export default function ExperienceDetail() {
   const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams<{ id?: string; location?: string; legacySlug?: string; slug?: string; destination?: string; area?: string }>();
   const navigate = useNavigate();
-  const { itineraries, isInItinerary } = useItineraries();
+  const { itineraries, addExperienceToItinerary, createItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated, user } = useAuth();
   const { trackPageView, trackClick } = useInteractions();
