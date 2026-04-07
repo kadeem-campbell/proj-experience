@@ -107,6 +107,14 @@ export default function PoiDetail() {
   const typeInfo = typeConfig[poi?.poi_type || ""] || { label: poi?.poi_type || "Place" };
   const liked = poi ? (isAuthenticated ? isDbLiked(poi.id, "experience") : localLiked) : false;
 
+  // Deterministic like count seeded from POI ID
+  const likeCount = useMemo(() => {
+    if (!poi) return 0;
+    let hash = 0;
+    for (let i = 0; i < poi.id.length; i++) { hash = ((hash << 5) - hash) + poi.id.charCodeAt(i); hash |= 0; }
+    return Math.abs(hash % 180) + 20 + (liked ? 1 : 0);
+  }, [poi, liked]);
+
   const handleGoBack = () => {
     if (window.history.state?.idx > 0) navigate(-1);
     else navigate("/things-to-do");
@@ -441,6 +449,12 @@ export default function PoiDetail() {
                     <MapPin className="w-3 h-3" />
                     {typeInfo.label}
                   </span>
+                  {likeCount > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <Heart className="w-3 h-3 fill-white/50 text-white/50" />
+                      {likeCount} saves
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
