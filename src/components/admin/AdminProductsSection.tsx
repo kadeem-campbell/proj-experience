@@ -1495,47 +1495,49 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
       const { data: product } = await supabase.from('products').select('*').eq('id', productId).maybeSingle();
       if (!product) return;
 
-      const [
-        { data: opts },
-        { data: hostLinks },
-        { data: dest },
-        { data: areaData },
-        { data: themeLinks },
-        { data: sem },
-        { data: pos },
-        { data: intentLinks },
-        { data: entityDocs },
-        { data: timingProfiles },
-        { data: faqRows },
-        { data: questionRows },
-        { data: canonicalEntry },
-        { data: routeEntry },
-        { data: duplicateRows },
-        { data: saveRows },
-        { count: galleryMediaCount },
-      ] = await Promise.all([
-        supabase.from('options').select('*, price_options(*)').eq('product_id', productId) as any,
-        supabase.from('product_hosts').select('*, hosts(*)').eq('product_id', productId) as any,
+      const batch1: any[] = await Promise.all([
+        supabase.from('options').select('*, price_options(*)').eq('product_id', productId),
+        supabase.from('product_hosts').select('*, hosts(*)').eq('product_id', productId),
         product.destination_id
           ? supabase.from('destinations').select('*').eq('id', product.destination_id).maybeSingle()
           : Promise.resolve({ data: null }),
         (product as any).primary_area_id
           ? supabase.from('areas').select('*').eq('id', (product as any).primary_area_id).maybeSingle()
           : Promise.resolve({ data: null }),
-        supabase.from('product_themes').select('id').eq('product_id', productId) as any,
-        supabase.from('semantic_product_profiles').select('*').eq('product_id', productId).maybeSingle() as any,
-        supabase.from('product_positioning_profiles').select('*').eq('product_id', productId).maybeSingle() as any,
-        supabase.from('product_intent_affinities').select('id').eq('product_id', productId) as any,
-        supabase.from('entity_documents').select('id').eq('entity_id', productId).eq('entity_type', 'product') as any,
-        supabase.from('product_timing_profiles').select('*').eq('product_id', productId).eq('is_active', true) as any,
-        supabase.from('experience_faqs').select('id').eq('experience_id', productId) as any,
-        supabase.from('questions').select('id').eq('entity_id', productId).eq('entity_type', 'product') as any,
-        supabase.from('canonical_decisions').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle() as any,
-        supabase.from('page_route_registry').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle() as any,
-        supabase.from('products').select('slug').eq('slug', product.slug).neq('id', productId) as any,
-        supabase.from('user_likes').select('id').eq('item_id', productId) as any,
-        supabase.from('media_assets').select('id').eq('entity_id', productId).eq('entity_type', 'product').eq('asset_type', 'image') as any,
+        supabase.from('product_themes').select('id').eq('product_id', productId),
+        supabase.from('semantic_product_profiles').select('*').eq('product_id', productId).maybeSingle(),
+        supabase.from('product_positioning_profiles').select('*').eq('product_id', productId).maybeSingle(),
+        supabase.from('product_intent_affinities').select('id').eq('product_id', productId),
+        supabase.from('entity_documents').select('id').eq('entity_id', productId).eq('entity_type', 'product'),
       ]);
+      const batch2: any[] = await Promise.all([
+        supabase.from('product_timing_profiles').select('*').eq('product_id', productId).eq('is_active', true),
+        supabase.from('experience_faqs').select('id').eq('experience_id', productId),
+        supabase.from('questions').select('id').eq('entity_id', productId).eq('entity_type', 'product'),
+        supabase.from('canonical_decisions').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle(),
+        supabase.from('page_route_registry').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle(),
+        supabase.from('products').select('slug').eq('slug', product.slug).neq('id', productId),
+        supabase.from('user_likes').select('id').eq('item_id', productId),
+        supabase.from('media_assets').select('id').eq('entity_id', productId).eq('entity_type', 'product').eq('asset_type', 'image'),
+      ]);
+
+      const opts = batch1[0].data;
+      const hostLinks = batch1[1].data;
+      const dest = batch1[2].data;
+      const areaData = batch1[3].data;
+      const themeLinks = batch1[4].data;
+      const sem = batch1[5].data;
+      const pos = batch1[6].data;
+      const intentLinks = batch1[7].data;
+      const entityDocs = batch1[8].data;
+      const timingProfiles = batch2[0].data;
+      const faqRows = batch2[1].data;
+      const questionRows = batch2[2].data;
+      const canonicalEntry = batch2[3].data;
+      const routeEntry = batch2[4].data;
+      const duplicateRows = batch2[5].data;
+      const saveRows = batch2[6].data;
+      const galleryMediaRows = batch2[7].data;
 
       const hosts = (hostLinks || []).map((h: any) => h.hosts).filter(Boolean);
       const galleryJson = (product as any).gallery_json || (product as any).gallery || [];
