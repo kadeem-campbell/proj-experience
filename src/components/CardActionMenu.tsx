@@ -181,12 +181,12 @@ const ActionMenuContent = ({
           ← Back
         </button>
 
-        {/* Create new — navigate to full create flow */}
+        {/* Create new — opens full create drawer */}
         <div className="border-b border-border pb-2 mb-1">
           <button
             onClick={() => {
-              onClose();
-              navigate("/my-itineraries?create=true");
+              setShowItineraryPicker(false);
+              onOpenCreateDrawer();
             }}
             className="w-full flex items-center gap-2 px-2 py-2.5 text-sm font-semibold text-primary active:bg-muted rounded-lg transition-colors"
           >
