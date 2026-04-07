@@ -178,7 +178,6 @@ export const ItinerarySelector = ({
               placeholder="Itinerary name"
               className="h-10 text-sm"
               style={{ fontSize: '16px' }}
-              autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleCreateAndAdd();
                 if (e.key === 'Escape') {
