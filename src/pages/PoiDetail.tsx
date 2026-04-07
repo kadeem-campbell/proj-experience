@@ -401,7 +401,6 @@ export default function PoiDetail() {
                   experienceTitle={poi.name}
                   location={destination?.name || destParam || ""}
                   tiktokVideos={tiktokVideos}
-                  instagramEmbed={instagramEmbed}
                 />
               </div>
             )}
