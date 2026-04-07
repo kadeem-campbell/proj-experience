@@ -162,32 +162,6 @@ const ActionMenuContent = ({
     }
   };
 
-  const handleCreateNew = async () => {
-    if (!newName.trim()) return;
-    if ("vibrate" in navigator) navigator.vibrate(10);
-    const newIt = await createItinerary(newName.trim());
-    if (entityType === "experience") {
-      await addExperienceToItinerary(newIt.id, entityData);
-      toast.success(`Created "${newName.trim()}" and added`);
-    } else {
-      // For itinerary type: copy experiences into the new itinerary
-      const exps = entityData?.experiences || [];
-      const { addedCount } = addExperiencesToItinerary(
-        newIt.id,
-        exps.slice(0, 20).map((exp: any) => ({
-          id: exp.id, title: exp.title || "", creator: exp.creator || "",
-          videoThumbnail: exp.videoThumbnail || exp.video_thumbnail || "", category: exp.category || "",
-          location: exp.location || "", price: exp.price || "",
-        }))
-      );
-      toast.success(`Created "${newName.trim()}" with ${addedCount} activities`);
-    }
-    setNewName("");
-    setShowNewInput(false);
-    setShowItineraryPicker(false);
-    onClose();
-  };
-
   const sortedItineraries = [...itineraries].sort((a, b) => {
     const aIn = isExpInItinerary(a.id) ? 0 : 1;
     const bIn = isExpInItinerary(b.id) ? 0 : 1;
