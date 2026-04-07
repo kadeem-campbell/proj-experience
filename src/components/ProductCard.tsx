@@ -1,12 +1,9 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Plus, Heart } from "lucide-react";
-import { useLikedExperiences } from "@/hooks/useLikedExperiences";
-import { useUserLikes } from "@/hooks/useUserLikes";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useRef, useEffect } from "react";
+import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { generateProductPageUrl } from "@/utils/slugUtils";
 import { generateProductPageUrl } from "@/utils/slugUtils";
 
 interface ProductCardProps {
