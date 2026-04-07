@@ -8,32 +8,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useDestinations, type DbDestination } from "@/hooks/useAppData";
-import { useCurrency, CURRENCIES, setGlobalCurrency } from "@/hooks/useCurrency";
 
-const CurrencyPicker = () => {
-  const { currency, updateCurrency } = useCurrency();
-  return (
-    <div className="flex items-center gap-1.5 bg-muted/60 rounded-full p-1">
-      {CURRENCIES.map(c => {
-        const isActive = c.code === currency;
-        return (
-          <button
-            key={c.code}
-            onClick={() => updateCurrency(c.code)}
-            className={cn(
-              "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-150 active:scale-95",
-              isActive
-                ? "bg-foreground text-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {c.symbol}
-          </button>
-        );
-      })}
-    </div>
-  );
-};
+
 
 // Persist city globally via localStorage
 const getPersistedCity = (): string => {
