@@ -583,7 +583,7 @@ export default function ExperienceDetail() {
       {hasSocialContent && (
         <div className="mb-8 -mx-4">
           <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4 px-4">See it in action</h2>
-          <SocialVideoEmbed experienceTitle={experience.title} location={experience.location} tiktokVideos={experience.tiktokVideos || []} instagramEmbed={experience.instagramEmbed} className="px-4" />
+          <SocialVideoEmbed experienceTitle={experience.title} location={experience.location} tiktokVideos={experience.tiktokVideos || []} className="px-4" />
         </div>
       )}
 
