@@ -140,7 +140,7 @@ export const useUserLikes = () => {
     return likes.some(l => l.item_id === itemId && l.item_type === itemType);
   }, [likes]);
 
-  const getLikesByType = useCallback((itemType: 'experience' | 'itinerary'): UserLike[] => {
+  const getLikesByType = useCallback((itemType: 'experience' | 'itinerary' | 'poi'): UserLike[] => {
     return likes.filter(l => l.item_type === itemType);
   }, [likes]);
 
