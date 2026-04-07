@@ -136,7 +136,7 @@ export const useUserLikes = () => {
     }
   };
 
-  const isLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' = 'experience'): boolean => {
+  const isLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' | 'poi' = 'experience'): boolean => {
     return likes.some(l => l.item_id === itemId && l.item_type === itemType);
   }, [likes]);
 
