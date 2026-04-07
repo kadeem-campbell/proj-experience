@@ -83,9 +83,7 @@ export default function DestinationPage() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">{title}</h1>
             {selectedArea && destination && (
-              <button onClick={() => navigate(`/${destSlug}`)} className="text-xs text-muted-foreground font-medium">
-                ← {destination.name}
-              </button>
+              <p className="text-xs text-muted-foreground font-medium">{destination.name}</p>
             )}
           </div>
         </div>
