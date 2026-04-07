@@ -39,12 +39,11 @@ const ActionMenuContent = ({
   title,
   slug,
   onClose,
-}: Omit<CardActionMenuProps, "children"> & { onClose: () => void }) => {
+  onOpenCreateDrawer,
+}: Omit<CardActionMenuProps, "children"> & { onClose: () => void; onOpenCreateDrawer: () => void }) => {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [showItineraryPicker, setShowItineraryPicker] = useState(false);
-  const [showNewInput, setShowNewInput] = useState(false);
-  const [newName, setNewName] = useState("");
   const [justAdded, setJustAdded] = useState<string | null>(null);
   const justAddedTimer = useRef<NodeJS.Timeout | null>(null);
 
