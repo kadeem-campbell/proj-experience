@@ -511,7 +511,7 @@ export const MobileHomeView = () => {
                 <HorizontalScrollRow
                   key={carousel.id}
                   title={title}
-                  onTitleClick={() => navigate(`/${destSlug || 'explore'}`)}
+                  onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
                 >
                   {carouselPois.slice(0, 10).map((poi: any) => (
                     <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
