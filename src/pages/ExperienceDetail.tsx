@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -19,11 +19,19 @@ import {
   Plus, ArrowLeft, Share2, MapPin, Users, Clock, Heart,
   MessageCircle, Flame, TrendingUp, Sparkles, ChevronRight,
   Calendar, Zap, CloudSun, HelpCircle, Send, ThumbsUp,
-  Check, Car, Lightbulb, Navigation, Anchor
+  Check, Car, Lightbulb, Navigation, Anchor, Search, X, ListPlus, ExternalLink
 } from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
+import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { TimingIcon } from "@/components/TimingIcon";
-import { useItineraries } from "@/hooks/useItineraries";
-import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
@@ -300,7 +308,7 @@ const PriceSection = ({ experience, productOptions, selectedCurrency }: {
 export default function ExperienceDetail() {
   const { id, location: locationParam, legacySlug, slug, destination: destParam, area: areaParam } = useParams<{ id?: string; location?: string; legacySlug?: string; slug?: string; destination?: string; area?: string }>();
   const navigate = useNavigate();
-  const { itineraries, isInItinerary } = useItineraries();
+  const { itineraries, addExperienceToItinerary, createItinerary } = useItineraries();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated, user } = useAuth();
   const { trackPageView, trackClick } = useInteractions();
@@ -311,6 +319,10 @@ export default function ExperienceDetail() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [likeCountDelta, setLikeCountDelta] = useState(0);
+  const [showAddToItinerarySheet, setShowAddToItinerarySheet] = useState(false);
+  const [addItinerarySearch, setAddItinerarySearch] = useState("");
+  const [showCreateItineraryDrawer, setShowCreateItineraryDrawer] = useState(false);
+  const [goToAction, setGoToAction] = useState<{ name: string; id: string } | null>(null);
   const { currency: selectedCurrency } = useCurrency();
   const isMobile = useIsMobile();
 
@@ -473,6 +485,29 @@ export default function ExperienceDetail() {
   const hasDescription = !!experience?.description?.trim();
   const hasCreators = (() => { if (!experience?.creator) return false; return experience.creator.trim().length > 0; })();
   const hasLocalTips = (experience as any)?.localTips && (experience as any).localTips.length > 0;
+
+  const handleOpenItinerarySheet = () => {
+    if (!isAuthenticated) { setShowAuthModal(true); return; }
+    setShowAddToItinerarySheet(true);
+  };
+
+  const filteredItineraries = itineraries.filter(i =>
+    !addItinerarySearch.trim() || i.name.toLowerCase().includes(addItinerarySearch.toLowerCase())
+  );
+
+  const handleAddToExistingItinerary = (targetItinerary: Itinerary) => {
+    if (!experience) return;
+    const result = addExperienceToItinerary(targetItinerary.id, {
+      id: experience.id, title: experience.title, creator: experience.creator,
+      videoThumbnail: experience.videoThumbnail, category: experience.category,
+      location: experience.location, price: experience.price || "",
+    });
+    setShowAddToItinerarySheet(false);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 2000);
+    setGoToAction({ name: targetItinerary.name, id: targetItinerary.id });
+    setTimeout(() => setGoToAction(null), 8000);
+  };
 
   const { data: poiMatch, isLoading: poiLoading } = usePoiBySlug((!experience && !productLoading) ? resolvedSlug : "");
 
@@ -709,11 +744,9 @@ export default function ExperienceDetail() {
           <div className="px-5 pt-6 pb-4">
             {/* Primary CTA — full-width, premium */}
             <div className="mb-5">
-              <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator, videoThumbnail: experience.videoThumbnail, category: experience.category, location: experience.location, price: experience.price || "" }} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-                <Button size="lg" className={cn("w-full h-[54px] rounded-2xl font-bold text-[15px] bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10 tracking-[-0.01em]", justAdded && "animate-pulse")}>
+              <Button size="lg" onClick={handleOpenItinerarySheet} className={cn("w-full h-[54px] rounded-2xl font-bold text-[15px] bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10 tracking-[-0.01em]", justAdded && "animate-pulse")}>
                   <span className="flex items-center gap-2.5"><Plus className="w-5 h-5" />Add to Itinerary</span>
                 </Button>
-              </ItinerarySelector>
             </div>
 
             {/* Info Pills — premium chips */}
@@ -810,9 +843,7 @@ export default function ExperienceDetail() {
           <div className="hidden lg:block">
             <div className="sticky top-4 space-y-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
               <div className="rounded-2xl border border-border bg-card p-5">
-                <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator, videoThumbnail: experience.videoThumbnail, category: experience.category, location: experience.location, price: experience.price || "" }} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-                  <Button size="lg" className={cn("w-full h-13 rounded-xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
-                </ItinerarySelector>
+                <Button size="lg" onClick={handleOpenItinerarySheet} className={cn("w-full h-13 rounded-xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90", justAdded && "animate-pulse")}><span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span></Button>
                 <button onClick={handleLikeClick} className={cn("w-full mt-3 h-11 rounded-xl font-medium text-sm flex items-center justify-center gap-2 border transition-all", liked ? "bg-primary/5 border-primary/20 text-primary" : "bg-card border-border text-muted-foreground hover:text-foreground")}>
                   <Heart className={cn("w-4 h-4", liked && "fill-primary")} />{liked ? "Liked" : "Like"}
                 </button>
@@ -852,6 +883,109 @@ export default function ExperienceDetail() {
         </div>
       </main>
       <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
+
+      {/* Go-to action banner */}
+      {goToAction && (
+        <div className="fixed bottom-20 left-4 right-4 z-50 bg-primary/5 border border-primary/10 rounded-xl p-3 shadow-lg backdrop-blur-sm">
+          <button
+            onClick={() => { navigate(`/itineraries/${goToAction.id}`); setGoToAction(null); }}
+            className="flex items-center gap-2 text-sm text-primary font-medium w-full"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Go to {goToAction.name}
+            <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+          </button>
+        </div>
+      )}
+
+      {/* Add to Itinerary Drawer — same as PublicItinerary */}
+      <Drawer open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
+        <DrawerContent className="max-h-[60vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-2 shrink-0">
+            <DrawerTitle>Add to itinerary</DrawerTitle>
+            <DrawerDescription>Save this experience to your collection</DrawerDescription>
+          </DrawerHeader>
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {/* New itinerary option */}
+            <button
+              onClick={() => {
+                setShowAddToItinerarySheet(false);
+                setTimeout(() => setShowCreateItineraryDrawer(true), 300);
+              }}
+              className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-primary" />
+              </div>
+              <span className="font-semibold text-sm text-primary">New itinerary</span>
+            </button>
+
+            {/* Search */}
+            <div className="px-4 py-2">
+              <div className="flex items-center bg-muted rounded-full px-3 py-2">
+                <Search className="w-4 h-4 text-muted-foreground mr-2" />
+                <Input
+                  type="text"
+                  value={addItinerarySearch}
+                  onChange={(e) => setAddItinerarySearch(e.target.value)}
+                  placeholder="Search your itineraries..."
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+                  style={{ fontSize: '16px' }}
+                  onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
+                />
+                {addItinerarySearch && (
+                  <button onClick={() => setAddItinerarySearch("")} className="p-1 rounded-full shrink-0">
+                    <X className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Itinerary list */}
+            <div className="px-2">
+              {filteredItineraries.length > 0 ? (
+                filteredItineraries.map(itin => {
+                  const coverImg = itin.coverImage || itin.experiences?.[0]?.videoThumbnail;
+                  return (
+                    <button
+                      key={itin.id}
+                      onClick={() => handleAddToExistingItinerary(itin)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                    >
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                        {coverImg ? (
+                          <img src={coverImg} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                            <ListPlus className="w-4 h-4 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{itin.name}</p>
+                        <p className="text-xs text-muted-foreground">{itin.experiences.length} experiences</p>
+                      </div>
+                      <span className="text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10">Add</span>
+                    </button>
+                  );
+                })
+              ) : addItinerarySearch.trim() ? (
+                <div className="py-6 px-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    No itineraries match "<span className="font-medium text-foreground">{addItinerarySearch}</span>"
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No itineraries yet. Create one above!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <CreateItineraryDrawer open={showCreateItineraryDrawer} onOpenChange={setShowCreateItineraryDrawer} />
     </div>
   );
 }
