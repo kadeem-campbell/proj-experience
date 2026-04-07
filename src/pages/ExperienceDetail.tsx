@@ -394,11 +394,15 @@ export default function ExperienceDetail() {
         bestTime: '', weather: '',
         meetingPoints: product.meeting_points_json || [],
         faqs: [] as any[],
-        tiktokVideos: (product as any).tiktok_url ? [{ url: (product as any).tiktok_url }] : [],
-        instagramEmbed: (product as any).instagram_url || '',
+        tiktokVideos: (() => {
+          const urlsJson = (product as any).tiktok_urls_json as string[] | null;
+          if (urlsJson && Array.isArray(urlsJson) && urlsJson.length > 0) {
+            return urlsJson.map((url: string) => ({ url }));
+          }
+          return (product as any).tiktok_url ? [{ url: (product as any).tiktok_url }] : [];
+        })(),
         socialLinks: {
           ...((product as any).tiktok_url ? { tiktok: (product as any).tiktok_url } : {}),
-          ...((product as any).instagram_url ? { instagram: (product as any).instagram_url } : {}),
         } as Record<string, string>,
         likeCount: seededLikeCount, slug: product.slug, isProduct: true,
         localTips: (product as any).local_tips_json || [],
@@ -481,7 +485,7 @@ export default function ExperienceDetail() {
 
   const hasHighlights = experience?.highlights && experience.highlights.length > 0;
   const hasMeetingPoints = experience?.meetingPoints && experience.meetingPoints.length > 0;
-  const hasSocialContent = (experience?.tiktokVideos && experience.tiktokVideos.length > 0) || !!experience?.instagramEmbed;
+  const hasSocialContent = experience?.tiktokVideos && experience.tiktokVideos.length > 0;
   const hasDescription = !!experience?.description?.trim();
   const hasCreators = (() => { if (!experience?.creator) return false; return experience.creator.trim().length > 0; })();
   const hasLocalTips = (experience as any)?.localTips && (experience as any).localTips.length > 0;
@@ -583,7 +587,7 @@ export default function ExperienceDetail() {
       {hasSocialContent && (
         <div className="mb-8 -mx-4">
           <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4 px-4">See it in action</h2>
-          <SocialVideoEmbed experienceTitle={experience.title} location={experience.location} tiktokVideos={experience.tiktokVideos || []} instagramEmbed={experience.instagramEmbed} className="px-4" />
+          <SocialVideoEmbed experienceTitle={experience.title} location={experience.location} tiktokVideos={experience.tiktokVideos || []} className="px-4" />
         </div>
       )}
 

@@ -139,7 +139,7 @@ export default function PoiDetail() {
     return ig?.url || "";
   }, [mediaAssets]);
 
-  const hasSocialContent = tiktokVideos.length > 0 || !!instagramEmbed;
+  const hasSocialContent = tiktokVideos.length > 0;
   const openingHours = (poi as any)?.opening_hours_json as Record<string, string> | null;
   const hasOpeningHours = openingHours && Object.keys(openingHours).length > 0;
 
@@ -205,7 +205,6 @@ export default function PoiDetail() {
             experienceTitle={poi.name}
             location={destination?.name || destParam || ""}
             tiktokVideos={tiktokVideos}
-            instagramEmbed={instagramEmbed}
             className="px-4"
           />
         </div>
@@ -402,7 +401,6 @@ export default function PoiDetail() {
                   experienceTitle={poi.name}
                   location={destination?.name || destParam || ""}
                   tiktokVideos={tiktokVideos}
-                  instagramEmbed={instagramEmbed}
                 />
               </div>
             )}
