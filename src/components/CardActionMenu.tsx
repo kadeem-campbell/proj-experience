@@ -213,7 +213,7 @@ const ActionMenuContent = ({
           <button
             onClick={() => {
               onClose();
-              navigate("/my-trips?create=true");
+              navigate("/my-itineraries?create=true");
             }}
             className="w-full flex items-center gap-2 px-2 py-2.5 text-sm font-semibold text-primary active:bg-muted rounded-lg transition-colors"
           >

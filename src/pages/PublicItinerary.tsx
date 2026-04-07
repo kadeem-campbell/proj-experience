@@ -1333,7 +1333,7 @@ const PublicItinerary = () => {
             <button
               onClick={() => {
                 setShowAddToItinerarySheet(false);
-                navigate("/my-trips?create=true");
+                navigate("/my-itineraries?create=true");
               }}
               className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
             >
