@@ -8,32 +8,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useDestinations, type DbDestination } from "@/hooks/useAppData";
-import { useCurrency, CURRENCIES, setGlobalCurrency } from "@/hooks/useCurrency";
 
-const CurrencyPicker = () => {
-  const { currency, updateCurrency } = useCurrency();
-  return (
-    <div className="flex items-center gap-1.5 bg-muted/60 rounded-full p-1">
-      {CURRENCIES.map(c => {
-        const isActive = c.code === currency;
-        return (
-          <button
-            key={c.code}
-            onClick={() => updateCurrency(c.code)}
-            className={cn(
-              "px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-150 active:scale-95",
-              isActive
-                ? "bg-foreground text-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {c.symbol}
-          </button>
-        );
-      })}
-    </div>
-  );
-};
+
 
 // Persist city globally via localStorage
 const getPersistedCity = (): string => {
@@ -148,10 +124,7 @@ const CitySelectorSheet = ({
     <DrawerContent className="max-h-[80vh] overflow-hidden">
       <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
         <h2 className="text-lg font-bold text-foreground mb-1">Select destination</h2>
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-sm text-muted-foreground">Choose where to explore</p>
-          <CurrencyPicker />
-        </div>
+        <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
 
         {loading ? (
           <div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
