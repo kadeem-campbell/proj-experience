@@ -481,7 +481,7 @@ export default function ExperienceDetail() {
 
   const hasHighlights = experience?.highlights && experience.highlights.length > 0;
   const hasMeetingPoints = experience?.meetingPoints && experience.meetingPoints.length > 0;
-  const hasSocialContent = (experience?.tiktokVideos && experience.tiktokVideos.length > 0) || !!experience?.instagramEmbed;
+  const hasSocialContent = experience?.tiktokVideos && experience.tiktokVideos.length > 0;
   const hasDescription = !!experience?.description?.trim();
   const hasCreators = (() => { if (!experience?.creator) return false; return experience.creator.trim().length > 0; })();
   const hasLocalTips = (experience as any)?.localTips && (experience as any).localTips.length > 0;
