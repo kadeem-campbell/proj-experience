@@ -1,12 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Plus, Heart } from "lucide-react";
-import { useLikedExperiences } from "@/hooks/useLikedExperiences";
-import { useUserLikes } from "@/hooks/useUserLikes";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useRef, useEffect } from "react";
+import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { generateProductPageUrl } from "@/utils/slugUtils";
 
 interface ProductCardProps {
@@ -38,15 +34,8 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isPressed, setIsPressed] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isLiked: isLocalLiked, toggleLike: toggleLocalLike } = useLikedExperiences();
-  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
-  const isMobile = useIsMobile();
-
-  const liked = isAuthenticated ? isDbLiked(id, 'experience') : isLocalLiked(id);
 
   useEffect(() => {
     if (isHovered && videoRef.current && videoUrl) {
@@ -64,29 +53,13 @@ export const ProductCard = ({
 
   const handleAddSuccess = () => {};
 
-  const handleLikeClick = useCallback(async (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
-    if (isAuthenticated) {
-      await toggleDbLike(id, 'experience', productData);
-    } else {
-      toggleLocalLike(productData);
-    }
-  }, [id, isAuthenticated, productData, toggleDbLike, toggleLocalLike, isMobile]);
-
   return (
     <Link 
       to={generateProductPageUrl(location, title, slug)}
       className="touch-manipulation block"
-      onTouchStart={() => setIsPressed(true)}
-      onTouchEnd={() => setIsPressed(false)}
     >
       <div 
-        className={cn(
-          "group cursor-pointer transition-transform duration-150 ease-out",
-          isPressed && isMobile && "scale-[0.98]"
-        )}
+        className="group cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -100,8 +73,7 @@ export const ProductCard = ({
               ref={videoRef}
               poster={videoThumbnail}
               className={cn(
-                "w-full h-full object-cover transition-all duration-300 ease-out",
-                isHovered && "scale-[1.03]",
+                "w-full h-full object-cover",
                 imageLoaded ? "opacity-100" : "opacity-0"
               )}
               muted
@@ -120,31 +92,11 @@ export const ProductCard = ({
               loading="lazy"
               onLoad={() => setImageLoaded(true)}
               className={cn(
-                "w-full h-full object-cover transition-all duration-300 ease-out",
-                isHovered && "scale-[1.03]",
+                "w-full h-full object-cover",
                 imageLoaded ? "opacity-100" : "opacity-0"
               )}
             />
           )}
-
-          <button
-            onClick={handleLikeClick}
-            onTouchEnd={handleLikeClick}
-            className={cn(
-              "absolute top-2.5 right-2.5 flex items-center justify-center rounded-full transition-all duration-200 active:scale-90",
-              isMobile ? "w-7 h-7" : "w-8 h-8",
-              "bg-white/10 backdrop-blur-2xl border border-white/15 shadow-lg",
-              "hover:bg-white/20",
-              liked && "bg-white/20"
-            )}
-          >
-            <Heart 
-              className={cn(
-                "w-4 h-4 transition-all duration-200",
-                liked ? "fill-primary text-primary scale-110" : "text-white/90"
-              )} 
-            />
-          </button>
           
           <div
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
@@ -156,12 +108,11 @@ export const ProductCard = ({
               onAdd={handleAddSuccess}
             >
               <button className={cn(
-                "rounded-full flex items-center justify-center transition-all duration-200 active:scale-90",
-                isMobile ? "w-7 h-7" : "w-8 h-8",
-                "bg-white/10 backdrop-blur-2xl border border-white/15 shadow-lg",
-                "hover:bg-white/20"
+                "rounded-full flex items-center justify-center transition-all duration-150 active:scale-90",
+                "w-8 h-8",
+                "bg-black/30 backdrop-blur-xl border border-white/10",
               )}>
-                <Plus className="w-4 h-4 text-white/90" />
+                <Plus className="w-4 h-4 text-white" />
               </button>
             </ItinerarySelector>
           </div>
