@@ -1718,6 +1718,7 @@ const PublicItinerary = () => {
           selectedTrip={null}
         />
       )}
+      <CreateItineraryDrawer open={showCreateItineraryDrawer} onOpenChange={setShowCreateItineraryDrawer} />
     </Wrapper>
   );
 };
