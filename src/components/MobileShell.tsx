@@ -148,10 +148,7 @@ const CitySelectorSheet = ({
     <DrawerContent className="max-h-[80vh] overflow-hidden">
       <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
         <h2 className="text-lg font-bold text-foreground mb-1">Select destination</h2>
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-sm text-muted-foreground">Choose where to explore</p>
-          <CurrencyPicker />
-        </div>
+        <p className="text-sm text-muted-foreground mb-5">Choose where to explore</p>
 
         {loading ? (
           <div className="py-10 flex justify-center"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
