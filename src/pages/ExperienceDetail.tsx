@@ -31,8 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { TimingIcon } from "@/components/TimingIcon";
-import { useItineraries } from "@/hooks/useItineraries";
-import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { cn } from "@/lib/utils";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { SocialVideoEmbed, TikTokVideo } from "@/components/SocialVideoEmbed";
