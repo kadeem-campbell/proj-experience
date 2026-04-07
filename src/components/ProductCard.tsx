@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
 import { generateProductPageUrl } from "@/utils/slugUtils";
-import { generateProductPageUrl } from "@/utils/slugUtils";
 
 interface ProductCardProps {
   id: string;
@@ -35,15 +34,8 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isPressed, setIsPressed] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isLiked: isLocalLiked, toggleLike: toggleLocalLike } = useLikedExperiences();
-  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
-  const isMobile = useIsMobile();
-
-  const liked = isAuthenticated ? isDbLiked(id, 'experience') : isLocalLiked(id);
 
   useEffect(() => {
     if (isHovered && videoRef.current && videoUrl) {
@@ -60,17 +52,6 @@ export const ProductCard = ({
   };
 
   const handleAddSuccess = () => {};
-
-  const handleLikeClick = useCallback(async (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
-    if (isAuthenticated) {
-      await toggleDbLike(id, 'experience', productData);
-    } else {
-      toggleLocalLike(productData);
-    }
-  }, [id, isAuthenticated, productData, toggleDbLike, toggleLocalLike, isMobile]);
 
   return (
     <Link 
