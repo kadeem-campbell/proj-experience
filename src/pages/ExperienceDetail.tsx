@@ -782,6 +782,101 @@ export default function ExperienceDetail() {
           </div>
         </div>
         <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
+
+        {/* Go-to action banner */}
+        {goToAction && (
+          <div className="fixed bottom-20 left-4 right-4 z-50 bg-primary/5 border border-primary/10 rounded-xl p-3 shadow-lg backdrop-blur-sm">
+            <button
+              onClick={() => { navigate(`/itineraries/${goToAction.id}`); setGoToAction(null); }}
+              className="flex items-center gap-2 text-sm text-primary font-medium w-full"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Go to {goToAction.name}
+              <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+            </button>
+          </div>
+        )}
+
+        {/* Add to Itinerary Drawer */}
+        <Drawer open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
+          <DrawerContent className="max-h-[60vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+            <DrawerHeader className="pb-2 shrink-0">
+              <DrawerTitle>Add to itinerary</DrawerTitle>
+              <DrawerDescription>Save this experience to your collection</DrawerDescription>
+            </DrawerHeader>
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <button
+                onClick={() => {
+                  setShowAddToItinerarySheet(false);
+                  setTimeout(() => setShowCreateItineraryDrawer(true), 300);
+                }}
+                className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-primary" />
+                </div>
+                <span className="font-semibold text-sm text-primary">New itinerary</span>
+              </button>
+              <div className="px-4 py-2">
+                <div className="flex items-center bg-muted rounded-full px-3 py-2">
+                  <Search className="w-4 h-4 text-muted-foreground mr-2" />
+                  <Input
+                    type="text"
+                    value={addItinerarySearch}
+                    onChange={(e) => setAddItinerarySearch(e.target.value)}
+                    placeholder="Search your itineraries..."
+                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+                    style={{ fontSize: '16px' }}
+                  />
+                  {addItinerarySearch && (
+                    <button onClick={() => setAddItinerarySearch("")} className="p-1 rounded-full shrink-0">
+                      <X className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="px-2">
+                {filteredItineraries.length > 0 ? (
+                  filteredItineraries.map(itin => {
+                    const coverImg = itin.coverImage || itin.experiences?.[0]?.videoThumbnail;
+                    return (
+                      <button
+                        key={itin.id}
+                        onClick={() => handleAddToExistingItinerary(itin)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                      >
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                          {coverImg ? (
+                            <img src={coverImg} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                              <ListPlus className="w-4 h-4 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{itin.name}</p>
+                          <p className="text-xs text-muted-foreground">{itin.experiences.length} experiences</p>
+                        </div>
+                        <span className="text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10">Add</span>
+                      </button>
+                    );
+                  })
+                ) : addItinerarySearch.trim() ? (
+                  <div className="py-6 px-4 text-center">
+                    <p className="text-sm text-muted-foreground">No itineraries match "<span className="font-medium text-foreground">{addItinerarySearch}</span>"</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-muted-foreground">No itineraries yet. Create one above!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+
+        <CreateItineraryDrawer open={showCreateItineraryDrawer} onOpenChange={setShowCreateItineraryDrawer} />
       </MobileShell>
     );
   }
