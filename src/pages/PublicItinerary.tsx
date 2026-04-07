@@ -1330,36 +1330,18 @@ const PublicItinerary = () => {
           </DrawerHeader>
           <div className="flex-1 overflow-y-auto min-h-0">
             {/* New itinerary option */}
-            {showNewItineraryInput ? (
-              <div className="flex gap-2 p-3 border-b border-border/30">
-                <Input
-                  value={newItineraryName}
-                  onChange={(e) => setNewItineraryName(e.target.value)}
-                  placeholder="Itinerary name..."
-                  className="h-11 flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  style={{ fontSize: '16px' }}
-                  autoFocus
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddToNewItinerary()}
-                  onFocus={(e) => { setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
-                />
-                <Button className="h-11 px-5" onClick={handleAddToNewItinerary} disabled={!newItineraryName.trim()}>
-                  Create
-                </Button>
-                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setShowNewItineraryInput(false)}>
-                  <X className="w-4 h-4" />
-                </Button>
+            <button
+              onClick={() => {
+                setShowAddToItinerarySheet(false);
+                navigate("/my-trips?create=true");
+              }}
+              className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-primary" />
               </div>
-            ) : (
-              <button
-                onClick={() => setShowNewItineraryInput(true)}
-                className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
-              >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Plus className="w-5 h-5 text-primary" />
-                </div>
-                <span className="font-semibold text-sm text-primary">New itinerary</span>
-              </button>
-            )}
+              <span className="font-semibold text-sm text-primary">New itinerary</span>
+            </button>
 
             {/* Search */}
             <div className="px-4 py-2">
