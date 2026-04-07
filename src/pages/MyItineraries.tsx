@@ -482,7 +482,7 @@ const MyItinerariesPage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 pt-4 pb-4">
+              <div className="space-y-4 pt-4 pb-4">
                 {itineraries.map(itinerary => (
                   <ItineraryGridCard
                     key={itinerary.id}
