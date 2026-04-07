@@ -394,11 +394,15 @@ export default function ExperienceDetail() {
         bestTime: '', weather: '',
         meetingPoints: product.meeting_points_json || [],
         faqs: [] as any[],
-        tiktokVideos: (product as any).tiktok_url ? [{ url: (product as any).tiktok_url }] : [],
-        instagramEmbed: (product as any).instagram_url || '',
+        tiktokVideos: (() => {
+          const urlsJson = (product as any).tiktok_urls_json as string[] | null;
+          if (urlsJson && Array.isArray(urlsJson) && urlsJson.length > 0) {
+            return urlsJson.map((url: string) => ({ url }));
+          }
+          return (product as any).tiktok_url ? [{ url: (product as any).tiktok_url }] : [];
+        })(),
         socialLinks: {
           ...((product as any).tiktok_url ? { tiktok: (product as any).tiktok_url } : {}),
-          ...((product as any).instagram_url ? { instagram: (product as any).instagram_url } : {}),
         } as Record<string, string>,
         likeCount: seededLikeCount, slug: product.slug, isProduct: true,
         localTips: (product as any).local_tips_json || [],
