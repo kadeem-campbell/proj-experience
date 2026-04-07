@@ -45,7 +45,6 @@ export const ItinerarySelector = ({
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const isMobile = useIsMobile();
   
   const { 
     itineraries, 
