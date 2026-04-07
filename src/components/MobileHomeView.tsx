@@ -303,6 +303,23 @@ export const MobileHomeView = () => {
     staleTime: 10 * 60 * 1000,
   });
 
+  // Areas for selected destination (for "Explore {city}" carousel)
+  const { data: destAreas = [] } = useQuery({
+    queryKey: ["home-areas", selectedDestId],
+    queryFn: async () => {
+      if (!selectedDestId) return [];
+      const { data } = await supabase
+        .from("areas")
+        .select("id, name, slug, cover_image, destination_id, description")
+        .eq("destination_id", selectedDestId)
+        .eq("is_active", true)
+        .order("display_order");
+      return data || [];
+    },
+    enabled: !!selectedDestId,
+    staleTime: 10 * 60 * 1000,
+  });
+
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderIndex(prev => (prev + 1) % rotatingPlaceholders.length);
