@@ -107,6 +107,14 @@ export default function PoiDetail() {
   const typeInfo = typeConfig[poi?.poi_type || ""] || { label: poi?.poi_type || "Place" };
   const liked = poi ? (isAuthenticated ? isDbLiked(poi.id, "experience") : localLiked) : false;
 
+  // Deterministic like count seeded from POI ID
+  const likeCount = useMemo(() => {
+    if (!poi) return 0;
+    let hash = 0;
+    for (let i = 0; i < poi.id.length; i++) { hash = ((hash << 5) - hash) + poi.id.charCodeAt(i); hash |= 0; }
+    return Math.abs(hash % 180) + 20 + (liked ? 1 : 0);
+  }, [poi, liked]);
+
   const handleGoBack = () => {
     if (window.history.state?.idx > 0) navigate(-1);
     else navigate("/things-to-do");
