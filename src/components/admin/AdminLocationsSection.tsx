@@ -711,6 +711,23 @@ export const AdminLocationsSection = () => {
                   <div className="flex items-center gap-2"><Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} /><span className="text-xs">{item.is_active ? 'Active' : 'Inactive'}</span></div>
                   <div className="flex items-center gap-2"><Switch checked={item.is_public_page ?? false} onCheckedChange={v => onChange('is_public_page', v)} /><span className="text-xs">Public Page</span></div>
                 </div>
+
+                {/* Opening Hours */}
+                <div>
+                  <Label className="text-xs text-muted-foreground font-semibold">Opening Hours (JSON)</Label>
+                  <Textarea
+                    value={item.opening_hours_json ? (typeof item.opening_hours_json === 'string' ? item.opening_hours_json : JSON.stringify(item.opening_hours_json, null, 2)) : ''}
+                    onChange={e => {
+                      try { onChange('opening_hours_json', JSON.parse(e.target.value)); } catch { onChange('opening_hours_json', e.target.value); }
+                    }}
+                    rows={4}
+                    className="font-mono text-xs"
+                    placeholder='{"monday":"8:00 AM - 6:00 PM","tuesday":"8:00 AM - 6:00 PM",...}'
+                  />
+                </div>
+
+                {/* Media Assets (inline management for saved POIs) */}
+                {item.id && <PoiMediaManager poiId={item.id} />}
               </div>
             )}
             onSave={(item, isNew) => saveEntity('pois', item, isNew)}
