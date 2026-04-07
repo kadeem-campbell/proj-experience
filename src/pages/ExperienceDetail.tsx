@@ -319,6 +319,10 @@ export default function ExperienceDetail() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [likeCountDelta, setLikeCountDelta] = useState(0);
+  const [showAddToItinerarySheet, setShowAddToItinerarySheet] = useState(false);
+  const [addItinerarySearch, setAddItinerarySearch] = useState("");
+  const [showCreateItineraryDrawer, setShowCreateItineraryDrawer] = useState(false);
+  const [goToAction, setGoToAction] = useState<{ name: string; id: string } | null>(null);
   const { currency: selectedCurrency } = useCurrency();
   const isMobile = useIsMobile();
 
