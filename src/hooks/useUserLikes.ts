@@ -126,7 +126,7 @@ export const useUserLikes = () => {
             // Replace temp with real
             setLikes(prev => prev.map(l => l.id === tempId ? {
               ...data,
-              item_type: data.item_type as 'experience' | 'itinerary',
+              item_type: data.item_type as 'experience' | 'itinerary' | 'poi',
               item_data: data.item_data as Record<string, any>
             } : l));
           }
