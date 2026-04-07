@@ -37,7 +37,7 @@ export const useUserLikes = () => {
       
       const typedLikes = (data || []).map(like => ({
         ...like,
-        item_type: like.item_type as 'experience' | 'itinerary',
+        item_type: like.item_type as 'experience' | 'itinerary' | 'poi',
         item_data: like.item_data as Record<string, any>
       }));
       
