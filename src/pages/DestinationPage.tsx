@@ -120,34 +120,36 @@ export default function DestinationPage() {
         </div>
       )}
 
-      {/* Products */}
-      <div className="px-4 mt-8 pb-8">
-        {products.length > 0 && (
-          <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-3">
-            {products.length} thing{products.length !== 1 ? "s" : ""} to do
-          </h2>
-        )}
-        {products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
-            {products.map((item) => (
-              <ProductCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                creator=""
-                views=""
-                videoThumbnail={item.cover_image_url || ""}
-                category=""
-                location={locationLabel || destination?.name || ""}
-                price={item.average_price_per_person ? `$${item.average_price_per_person}` : ""}
-                slug={item.slug}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground py-8 text-center">No experiences found yet.</p>
-        )}
-      </div>
+      {/* Products — only on area-level pages */}
+      {selectedArea && (
+        <div className="px-4 mt-8 pb-8">
+          {products.length > 0 && (
+            <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-3">
+              {products.length} thing{products.length !== 1 ? "s" : ""} to do
+            </h2>
+          )}
+          {products.length > 0 ? (
+            <div className="grid grid-cols-2 gap-x-3 gap-y-5">
+              {products.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  creator=""
+                  views=""
+                  videoThumbnail={item.cover_image_url || ""}
+                  category=""
+                  location={locationLabel || destination?.name || ""}
+                  price={item.average_price_per_person ? `$${item.average_price_per_person}` : ""}
+                  slug={item.slug}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground py-8 text-center">No experiences found yet.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 
