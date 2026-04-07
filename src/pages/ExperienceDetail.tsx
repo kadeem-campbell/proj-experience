@@ -63,6 +63,21 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
   const [showAskForm, setShowAskForm] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
 
+  // Fetch curated FAQs from experience_faqs table
+  const { data: curatedFaqs = [] } = useQuery({
+    queryKey: ['product-curated-faqs', experienceId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('experience_faqs')
+        .select('*')
+        .eq('experience_id', experienceId)
+        .eq('is_active', true)
+        .order('display_order');
+      return data || [];
+    },
+    enabled: !!experienceId,
+  });
+
   // Fetch persisted questions from DB
   const { data: dbQuestions = [], refetch: refetchQuestions } = useQuery({
     queryKey: ['product-questions', experienceId],
@@ -112,8 +127,9 @@ const QuestionsSection = ({ faqs, experienceId }: { faqs: any[]; experienceId: s
     }
   };
 
-  // Merge legacy faqs + db questions
+  // Merge curated FAQs + db questions + legacy faqs
   const allQuestions = [
+    ...curatedFaqs.map((f: any) => ({ q: f.question, a: f.answer, likes: 0, id: `faq-${f.id}`, curated: true })),
     ...dbQuestions.map((q: any) => {
       const ans = dbAnswers.find((a: any) => a.question_id === q.id && a.is_best);
       return { q: q.body, a: ans?.body || '', likes: q.vote_count || 0, pending: q.status === 'open', id: q.id };

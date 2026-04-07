@@ -456,6 +456,10 @@ export const AdminProductsSection = () => {
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Local Tips</h4>
             <p className="text-[10px] text-muted-foreground">Insider tips for visitors. One tip per line.</p>
             <HighlightsEditor value={item.local_tips_json || []} onChange={v => onChange('local_tips_json', v)} />
+            <Separator />
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">FAQs</h4>
+            <p className="text-[10px] text-muted-foreground">Curated FAQs shown on the product page. Also shows community questions.</p>
+            <FaqEditor productId={item.id} />
           </>
         ) : <p className="text-xs text-muted-foreground">Save product first to manage experience details.</p>}
       </TabsContent>
