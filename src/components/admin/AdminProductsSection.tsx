@@ -1511,14 +1511,14 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         supabase.from('entity_documents').select('id').eq('entity_id', productId).eq('entity_type', 'product'),
       ]);
       const batch2Promises: Promise<any>[] = [
-        supabase.from('product_timing_profiles').select('*').eq('product_id', productId).eq('is_active', true),
-        supabase.from('experience_faqs').select('id').eq('experience_id', productId),
-        supabase.from('questions').select('id').eq('entity_id', productId).eq('entity_type', 'product'),
-        supabase.from('canonical_decisions').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle(),
-        supabase.from('page_route_registry').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle(),
-        supabase.from('products').select('slug').eq('slug', product.slug).neq('id', productId),
-        supabase.from('user_likes').select('id').eq('item_id', productId),
-        supabase.from('media_assets').select('id').eq('entity_id', productId).eq('entity_type', 'product').eq('asset_type', 'image'),
+        supabase.from('product_timing_profiles').select('*').eq('product_id', productId).eq('is_active', true) as any,
+        supabase.from('experience_faqs').select('id').eq('experience_id', productId) as any,
+        supabase.from('questions').select('id').eq('entity_id', productId).eq('entity_type', 'product') as any,
+        (supabase.from('canonical_decisions').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle()) as any,
+        (supabase.from('page_route_registry').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle()) as any,
+        supabase.from('products').select('slug').eq('slug', product.slug).neq('id', productId) as any,
+        supabase.from('user_likes').select('id').eq('item_id', productId) as any,
+        supabase.from('media_assets').select('id').eq('entity_id', productId).eq('entity_type', 'product').eq('asset_type', 'image') as any,
       ];
       const batch2 = await Promise.all(batch2Promises);
 
