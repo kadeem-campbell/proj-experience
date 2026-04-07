@@ -6,7 +6,7 @@ export interface UserLike {
   id: string;
   user_id: string;
   item_id: string;
-  item_type: 'experience' | 'itinerary';
+  item_type: 'experience' | 'itinerary' | 'poi';
   item_data: Record<string, any>;
   created_at: string;
 }
@@ -37,7 +37,7 @@ export const useUserLikes = () => {
       
       const typedLikes = (data || []).map(like => ({
         ...like,
-        item_type: like.item_type as 'experience' | 'itinerary',
+        item_type: like.item_type as 'experience' | 'itinerary' | 'poi',
         item_data: like.item_data as Record<string, any>
       }));
       
@@ -61,7 +61,7 @@ export const useUserLikes = () => {
   // Toggle like with OPTIMISTIC update - instant UI, background DB sync
   const toggleLike = async (
     itemId: string, 
-    itemType: 'experience' | 'itinerary',
+    itemType: 'experience' | 'itinerary' | 'poi',
     itemData: Record<string, any>
   ): Promise<boolean> => {
     if (!user?.id) return false;
@@ -126,7 +126,7 @@ export const useUserLikes = () => {
             // Replace temp with real
             setLikes(prev => prev.map(l => l.id === tempId ? {
               ...data,
-              item_type: data.item_type as 'experience' | 'itinerary',
+              item_type: data.item_type as 'experience' | 'itinerary' | 'poi',
               item_data: data.item_data as Record<string, any>
             } : l));
           }
@@ -136,11 +136,11 @@ export const useUserLikes = () => {
     }
   };
 
-  const isLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' = 'experience'): boolean => {
+  const isLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' | 'poi' = 'experience'): boolean => {
     return likes.some(l => l.item_id === itemId && l.item_type === itemType);
   }, [likes]);
 
-  const getLikesByType = useCallback((itemType: 'experience' | 'itinerary'): UserLike[] => {
+  const getLikesByType = useCallback((itemType: 'experience' | 'itinerary' | 'poi'): UserLike[] => {
     return likes.filter(l => l.item_type === itemType);
   }, [likes]);
 
@@ -152,8 +152,11 @@ export const useUserLikes = () => {
     getLikesByType,
     likedExperiences: getLikesByType('experience'),
     likedItineraries: getLikesByType('itinerary'),
+    likedPois: getLikesByType('poi'),
     experienceCount: getLikesByType('experience').length,
     itineraryCount: getLikesByType('itinerary').length,
+    poiCount: getLikesByType('poi').length,
+    totalCount: likes.length,
     refresh: fetchLikes
   };
 };

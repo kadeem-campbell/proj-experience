@@ -52,7 +52,7 @@ const ItineraryGridCard = ({
 
   return (
     <div className="relative group" onClick={onTap}>
-      <div className="aspect-square rounded-xl overflow-hidden bg-muted">
+      <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-muted">
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
@@ -61,13 +61,19 @@ const ItineraryGridCard = ({
           </div>
         )}
         {/* Gradient overlay at bottom */}
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         {/* Info overlay */}
-        <div className="absolute bottom-0 inset-x-0 p-2.5">
-          <h3 className="font-bold text-sm text-white line-clamp-1 drop-shadow-sm">{itinerary.name}</h3>
-          <p className="text-[11px] text-white/80 mt-0.5">
+        <div className="absolute bottom-0 inset-x-0 p-3">
+          <h3 className="font-bold text-sm text-white line-clamp-2 drop-shadow-sm leading-tight">{itinerary.name}</h3>
+          <p className="text-[11px] text-white/70 mt-1">
             {experienceCount} experience{experienceCount !== 1 ? 's' : ''}
           </p>
+          {location && (
+            <div className="flex items-center gap-1 mt-1">
+              <MapPin className="w-3 h-3 text-white/60" />
+              <span className="text-[10px] text-white/60 truncate">{location}</span>
+            </div>
+          )}
         </div>
         {/* Options button */}
         <button

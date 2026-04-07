@@ -24,7 +24,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, userProfile, refreshProfile, isAuthenticated } = useAuth();
-  const { likedExperiences, likedItineraries } = useUserLikes();
+  const { likedExperiences, likedItineraries, likedPois, totalCount } = useUserLikes();
   const { itineraries } = useItineraries();
   const isMobile = useIsMobile();
   const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
@@ -263,11 +263,11 @@ const ProfilePage = () => {
               <p className="text-[10px] text-muted-foreground">Itineraries</p>
             </button>
             <button onClick={() => navigate('/liked')} className="text-center p-3 rounded-xl bg-muted/30 border border-border active:scale-[0.97] transition-transform">
-              <p className="text-lg font-bold text-foreground">{likedExperiences.length + likedItineraries.length}</p>
-              <p className="text-[10px] text-muted-foreground">Saved</p>
+              <p className="text-lg font-bold text-foreground">{totalCount}</p>
+              <p className="text-[10px] text-muted-foreground">Likes</p>
             </button>
             <button className="text-center p-3 rounded-xl bg-muted/30 border border-border">
-              <p className="text-lg font-bold text-foreground">0</p>
+              <p className="text-lg font-bold text-foreground">{itineraries.reduce((sum, it) => sum + (it.trips?.length || 0), 0)}</p>
               <p className="text-[10px] text-muted-foreground">Trips</p>
             </button>
           </div>
