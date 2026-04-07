@@ -52,7 +52,7 @@ const ItineraryGridCard = ({
 
   return (
     <div className="relative group active:scale-[0.98] transition-transform" onClick={onTap}>
-      <div className="aspect-[9/16] rounded-3xl overflow-hidden bg-muted relative">
+      <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-muted relative">
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
