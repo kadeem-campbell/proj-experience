@@ -218,7 +218,6 @@ const ActionMenuContent = ({
                 placeholder="Itinerary name"
                 className="h-10 text-sm"
                 style={{ fontSize: "16px" }}
-                autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleCreateNew();
                   if (e.key === "Escape") { setShowNewInput(false); setNewName(""); }
