@@ -83,17 +83,6 @@ export const ItinerarySelector = ({
     }
   };
 
-  const handleCreateAndAdd = async () => {
-    if (!newName.trim()) return;
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    const newItinerary = await createItinerary(newName.trim());
-    await addExperienceToItinerary(newItinerary.id, experienceData);
-    onAdd?.();
-    setNewName("");
-    setShowNewInput(false);
-    setOpen(false);
-  };
-
   // Sort: selected itineraries first
   const sortedItineraries = [...itineraries].sort((a, b) => {
     const aIn = isInItinerary(a.id) ? 0 : 1;
