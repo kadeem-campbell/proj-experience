@@ -174,7 +174,7 @@ export const ItinerarySelector = ({
         <button
           onClick={() => {
             setOpen(false);
-            navigate("/my-itineraries?create=true");
+            setTimeout(() => setShowCreateDrawer(true), 300);
           }}
           className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-primary active:bg-muted rounded-lg transition-colors"
         >
