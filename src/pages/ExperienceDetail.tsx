@@ -486,6 +486,29 @@ export default function ExperienceDetail() {
   const hasCreators = (() => { if (!experience?.creator) return false; return experience.creator.trim().length > 0; })();
   const hasLocalTips = (experience as any)?.localTips && (experience as any).localTips.length > 0;
 
+  const handleOpenItinerarySheet = () => {
+    if (!isAuthenticated) { setShowAuthModal(true); return; }
+    setShowAddToItinerarySheet(true);
+  };
+
+  const filteredItineraries = itineraries.filter(i =>
+    !addItinerarySearch.trim() || i.name.toLowerCase().includes(addItinerarySearch.toLowerCase())
+  );
+
+  const handleAddToExistingItinerary = (targetItinerary: Itinerary) => {
+    if (!experience) return;
+    const result = addExperienceToItinerary(targetItinerary.id, {
+      id: experience.id, title: experience.title, creator: experience.creator,
+      videoThumbnail: experience.videoThumbnail, category: experience.category,
+      location: experience.location, price: experience.price || "",
+    });
+    setShowAddToItinerarySheet(false);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 2000);
+    setGoToAction({ name: targetItinerary.name, id: targetItinerary.id });
+    setTimeout(() => setGoToAction(null), 8000);
+  };
+
   const { data: poiMatch, isLoading: poiLoading } = usePoiBySlug((!experience && !productLoading) ? resolvedSlug : "");
 
   // Loading states
