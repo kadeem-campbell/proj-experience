@@ -1,7 +1,10 @@
 /**
  * Locations section — Countries, Destinations, Areas, POIs + World Model overlays.
  */
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { AdminEntityTable } from './AdminEntityTable';
