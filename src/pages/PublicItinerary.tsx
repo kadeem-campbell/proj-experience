@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { SEOHead, createItineraryJsonLd } from "@/components/SEOHead";
 import { slugify, generateProductUrl } from "@/utils/slugUtils";
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { useProductListings } from "@/hooks/useProductListings";
 import { useTimingDisplayMap } from "@/hooks/useTimingDisplay";
 import { TimingIcon } from "@/components/TimingIcon";
