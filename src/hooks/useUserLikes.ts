@@ -152,8 +152,11 @@ export const useUserLikes = () => {
     getLikesByType,
     likedExperiences: getLikesByType('experience'),
     likedItineraries: getLikesByType('itinerary'),
+    likedPois: getLikesByType('poi'),
     experienceCount: getLikesByType('experience').length,
     itineraryCount: getLikesByType('itinerary').length,
+    poiCount: getLikesByType('poi').length,
+    totalCount: likes.length,
     refresh: fetchLikes
   };
 };
