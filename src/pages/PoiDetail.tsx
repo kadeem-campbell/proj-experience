@@ -11,11 +11,20 @@ import { ShareDrawer } from "@/components/ShareDrawer";
 import { SocialVideoEmbed } from "@/components/SocialVideoEmbed";
 import {
   ArrowLeft, MapPin, Share2, ChevronRight, Clock,
-  Heart, Navigation2, Sparkles, Plus,
+  Heart, Navigation2, Sparkles, Plus, Search, X, ListPlus, ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { Input } from "@/components/ui/input";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
+import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -41,7 +50,6 @@ const OpeningHoursSection = ({ hours }: { hours: Record<string, string> }) => {
   };
   const today = days[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
 
-  // Check if all days have the same hours
   const uniqueHours = [...new Set(days.map(d => hours[d]).filter(Boolean))];
   const isUniform = uniqueHours.length === 1;
 
@@ -59,24 +67,17 @@ const OpeningHoursSection = ({ hours }: { hours: Record<string, string> }) => {
               <p className="text-xs text-muted-foreground mt-0.5">{uniqueHours[0]}</p>
             </div>
           </div>
-          {hours.note && <p className="text-xs text-muted-foreground/70 mt-2.5 italic">{hours.note}</p>}
+          {hours.note && <p className="text-xs text-muted-foreground/70 mt-3 italic">{hours.note}</p>}
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/40 overflow-hidden">
+        <div className="space-y-1.5">
           {days.map(day => (
-            hours[day] ? (
-              <div key={day} className={cn(
-                "flex items-center justify-between px-4 py-2.5 border-b border-border/20 last:border-0",
-                day === today && "bg-primary/5"
-              )}>
-                <span className={cn("text-sm font-medium", day === today ? "text-primary" : "text-foreground/80")}>
-                  {dayLabels[day]}
-                </span>
-                <span className="text-sm text-muted-foreground">{hours[day]}</span>
-              </div>
-            ) : null
+            <div key={day} className={cn("flex items-center justify-between px-4 py-2.5 rounded-xl text-sm", day === today ? "bg-primary/5 font-semibold" : "")}>
+              <span className={cn("text-muted-foreground", day === today && "text-primary")}>{dayLabels[day]}</span>
+              <span className={cn("font-medium", day === today ? "text-primary" : "text-foreground")}>{hours[day] || "Closed"}</span>
+            </div>
           ))}
-          {hours.note && <div className="px-4 py-2.5 bg-muted/30"><p className="text-xs text-muted-foreground/70 italic">{hours.note}</p></div>}
+          {hours.note && <p className="text-xs text-muted-foreground/70 mt-2 italic px-4">{hours.note}</p>}
         </div>
       )}
     </div>
@@ -89,8 +90,14 @@ export default function PoiDetail() {
   const isMobile = useIsMobile();
   const { isAuthenticated } = useAuth();
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
+  const { itineraries, addExperienceToItinerary, createItinerary } = useItineraries();
   const [localLiked, setLocalLiked] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAddToItinerarySheet, setShowAddToItinerarySheet] = useState(false);
+  const [addItinerarySearch, setAddItinerarySearch] = useState("");
+  const [showCreateItineraryDrawer, setShowCreateItineraryDrawer] = useState(false);
+  const [goToAction, setGoToAction] = useState<{ name: string; id: string } | null>(null);
 
   const { data: poi, isLoading: poiLoading } = usePoiBySlug(slug || "");
   const { data: destination } = useDestinationBySlug(destParam || "");
@@ -115,6 +122,29 @@ export default function PoiDetail() {
     }
   };
 
+  const handleOpenItinerarySheet = () => {
+    if (!isAuthenticated) { setShowAuthModal(true); return; }
+    setShowAddToItinerarySheet(true);
+  };
+
+  const filteredItineraries = itineraries.filter(i =>
+    !addItinerarySearch.trim() || i.name.toLowerCase().includes(addItinerarySearch.toLowerCase())
+  );
+
+  const handleAddToExistingItinerary = (targetItinerary: Itinerary) => {
+    if (!poi) return;
+    addExperienceToItinerary(targetItinerary.id, {
+      id: poi.id, title: poi.name, creator: "",
+      videoThumbnail: poi.cover_image || "", category: typeInfo.label,
+      location: destination?.name || destParam || "", price: "",
+    });
+    setShowAddToItinerarySheet(false);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 2000);
+    setGoToAction({ name: targetItinerary.name, id: targetItinerary.id });
+    setTimeout(() => setGoToAction(null), 8000);
+  };
+
   const shareUrl = typeof window !== "undefined"
     ? `${window.location.origin}/things-to-do/${destParam}/${slug}`
     : "";
@@ -132,11 +162,6 @@ export default function PoiDetail() {
     return mediaAssets
       .filter((m: any) => m.media_type === "tiktok" || m.media_type === "video")
       .map((m: any) => ({ videoId: m.id, url: m.url, author: m.caption || "" }));
-  }, [mediaAssets]);
-
-  const instagramEmbed = useMemo(() => {
-    const ig = mediaAssets.find((m: any) => m.media_type === "instagram");
-    return ig?.url || "";
   }, [mediaAssets]);
 
   const hasSocialContent = tiktokVideos.length > 0;
@@ -164,18 +189,114 @@ export default function PoiDetail() {
   if (!poi) return null;
 
   const canonicalPath = `/things-to-do/${destParam}/${slug}`;
-  const poiExperienceData = { id: poi.id, title: poi.name, creator: "", videoThumbnail: poi.cover_image || "", category: typeInfo.label, location: destination?.name || destParam || "", price: "" };
+
+  // ── Add to Itinerary Drawer (shared) ──
+  const itineraryDrawer = (
+    <>
+      {/* Go-to action banner */}
+      {goToAction && (
+        <div className="fixed bottom-20 left-4 right-4 z-50 bg-primary/5 border border-primary/10 rounded-xl p-3 shadow-lg backdrop-blur-sm">
+          <button
+            onClick={() => { navigate(`/itineraries/${goToAction.id}`); setGoToAction(null); }}
+            className="flex items-center gap-2 text-sm text-primary font-medium w-full"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Go to {goToAction.name}
+            <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+          </button>
+        </div>
+      )}
+
+      <Drawer open={showAddToItinerarySheet} onOpenChange={setShowAddToItinerarySheet}>
+        <DrawerContent className="max-h-[60vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
+          <DrawerHeader className="pb-2 shrink-0">
+            <DrawerTitle>Add to itinerary</DrawerTitle>
+            <DrawerDescription>Save this place to your collection</DrawerDescription>
+          </DrawerHeader>
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <button
+              onClick={() => {
+                setShowAddToItinerarySheet(false);
+                setTimeout(() => setShowCreateItineraryDrawer(true), 300);
+              }}
+              className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-primary" />
+              </div>
+              <span className="font-semibold text-sm text-primary">New itinerary</span>
+            </button>
+            <div className="px-4 py-2">
+              <div className="flex items-center bg-muted rounded-full px-3 py-2">
+                <Search className="w-4 h-4 text-muted-foreground mr-2" />
+                <Input
+                  type="text"
+                  value={addItinerarySearch}
+                  onChange={(e) => setAddItinerarySearch(e.target.value)}
+                  placeholder="Search your itineraries..."
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+                  style={{ fontSize: '16px' }}
+                />
+                {addItinerarySearch && (
+                  <button onClick={() => setAddItinerarySearch("")} className="p-1 rounded-full shrink-0">
+                    <X className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="px-2">
+              {filteredItineraries.length > 0 ? (
+                filteredItineraries.map(itin => {
+                  const coverImg = itin.coverImage || itin.experiences?.[0]?.videoThumbnail;
+                  return (
+                    <button
+                      key={itin.id}
+                      onClick={() => handleAddToExistingItinerary(itin)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                    >
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                        {coverImg ? (
+                          <img src={coverImg} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                            <ListPlus className="w-4 h-4 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{itin.name}</p>
+                        <p className="text-xs text-muted-foreground">{itin.experiences.length} experiences</p>
+                      </div>
+                      <span className="text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10">Add</span>
+                    </button>
+                  );
+                })
+              ) : addItinerarySearch.trim() ? (
+                <div className="py-6 px-4 text-center">
+                  <p className="text-sm text-muted-foreground">No itineraries match "<span className="font-medium text-foreground">{addItinerarySearch}</span>"</p>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No itineraries yet. Create one above!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <CreateItineraryDrawer open={showCreateItineraryDrawer} onOpenChange={setShowCreateItineraryDrawer} />
+    </>
+  );
 
   // ─── Shared content sections ───
   const renderContentSections = () => (
     <>
       {/* Add to Itinerary CTA */}
       <div className="mb-5">
-        <ItinerarySelector experienceId={poi.id} experienceData={poiExperienceData} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-          <Button size="lg" className={cn("w-full h-[54px] rounded-2xl font-bold text-[15px] bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10 tracking-[-0.01em]", justAdded && "animate-pulse")}>
-            <span className="flex items-center gap-2.5"><Plus className="w-5 h-5" />Add to Itinerary</span>
-          </Button>
-        </ItinerarySelector>
+        <Button size="lg" onClick={handleOpenItinerarySheet} className={cn("w-full h-[54px] rounded-2xl font-bold text-[15px] bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-foreground/10 tracking-[-0.01em]", justAdded && "animate-pulse")}>
+          <span className="flex items-center gap-2.5"><Plus className="w-5 h-5" />Add to Itinerary</span>
+        </Button>
       </div>
 
       {/* Type pill */}
@@ -194,10 +315,17 @@ export default function PoiDetail() {
         </div>
       )}
 
+      {/* Long Description */}
+      {(poi as any).long_description && (
+        <div className="mb-8">
+          <p className="text-[15px] text-foreground/75 leading-[1.75]">{(poi as any).long_description}</p>
+        </div>
+      )}
+
       {/* Opening Times */}
       {hasOpeningHours && <OpeningHoursSection hours={openingHours!} />}
 
-      {/* Social Video — same style as product page */}
+      {/* Social Video */}
       {hasSocialContent && (
         <div className="mb-8 -mx-4">
           <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4 px-4">See it in action</h2>
@@ -284,7 +412,6 @@ export default function PoiDetail() {
                 )}
               </div>
             )}
-            {/* Floating controls */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
               <button onClick={handleGoBack} className="w-10 h-10 rounded-full bg-black/25 backdrop-blur-2xl flex items-center justify-center border border-white/10">
                 <ArrowLeft className="w-5 h-5 text-white" />
@@ -300,7 +427,6 @@ export default function PoiDetail() {
                 </button>
               </div>
             </div>
-            {/* Bottom gradient overlay with title */}
             <div className="absolute inset-x-0 bottom-0 z-10">
               <div className="pt-40 pb-6 px-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 35%, rgba(0,0,0,0.15) 65%, transparent 100%)' }}>
                 <div className="flex items-center gap-1.5 mb-2">
@@ -326,6 +452,7 @@ export default function PoiDetail() {
             <div className="h-8" />
           </div>
         </div>
+        {itineraryDrawer}
       </MobileShell>
     );
   }
@@ -392,6 +519,12 @@ export default function PoiDetail() {
               </div>
             )}
 
+            {(poi as any).long_description && (
+              <div className="mb-8">
+                <p className="text-[15px] text-foreground/75 leading-[1.75]">{(poi as any).long_description}</p>
+              </div>
+            )}
+
             {hasOpeningHours && <OpeningHoursSection hours={openingHours!} />}
 
             {hasSocialContent && (
@@ -447,11 +580,9 @@ export default function PoiDetail() {
           <div className="hidden lg:block">
             <div className="sticky top-4 space-y-4">
               <div className="rounded-2xl border border-border bg-card p-5">
-                <ItinerarySelector experienceId={poi.id} experienceData={poiExperienceData} onAdd={() => { setJustAdded(true); setTimeout(() => setJustAdded(false), 2000); }}>
-                  <Button size="lg" className={cn("w-full h-13 rounded-xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90", justAdded && "animate-pulse")}>
-                    <span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span>
-                  </Button>
-                </ItinerarySelector>
+                <Button size="lg" onClick={handleOpenItinerarySheet} className={cn("w-full h-13 rounded-xl font-semibold text-base bg-primary text-primary-foreground hover:bg-primary/90", justAdded && "animate-pulse")}>
+                  <span className="flex items-center gap-2"><Plus className="w-5 h-5" />Add to Itinerary</span>
+                </Button>
                 <button onClick={handleLikeClick} className={cn("w-full mt-3 h-11 rounded-xl font-medium text-sm flex items-center justify-center gap-2 border transition-all", liked ? "bg-primary/5 border-primary/20 text-primary" : "bg-card border-border text-muted-foreground hover:text-foreground")}>
                   <Heart className={cn("w-4 h-4", liked && "fill-primary")} />{liked ? "Liked" : "Like"}
                 </button>
@@ -466,6 +597,7 @@ export default function PoiDetail() {
           </div>
         </div>
       </div>
+      {itineraryDrawer}
     </MainLayout>
   );
 }

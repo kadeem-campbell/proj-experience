@@ -1,7 +1,10 @@
 /**
  * Locations section — Countries, Destinations, Areas, POIs + World Model overlays.
  */
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { AdminEntityTable } from './AdminEntityTable';
@@ -16,6 +19,58 @@ import { CountryFlagPicker } from './CountryFlagPicker';
 import { Slider } from '@/components/ui/slider';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+
+// Inline POI media manager for admin
+const PoiMediaManager = ({ poiId }: { poiId: string }) => {
+  const qc = useQueryClient();
+  const [newUrl, setNewUrl] = useState('');
+  const [newType, setNewType] = useState('tiktok');
+
+  const { data: media = [] } = useQuery({
+    queryKey: ['admin-poi-media', poiId],
+    queryFn: async () => {
+      const { data } = await supabase.from('media_assets').select('*').eq('entity_id', poiId).eq('entity_type', 'poi').order('display_order');
+      return data || [];
+    },
+  });
+
+  const addMedia = async () => {
+    if (!newUrl.trim()) return;
+    await supabase.from('media_assets').insert({ entity_id: poiId, entity_type: 'poi', url: newUrl.trim(), media_type: newType, display_order: media.length });
+    setNewUrl('');
+    qc.invalidateQueries({ queryKey: ['admin-poi-media', poiId] });
+  };
+
+  const removeMedia = async (id: string) => {
+    await supabase.from('media_assets').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['admin-poi-media', poiId] });
+  };
+
+  return (
+    <div>
+      <Label className="text-xs text-muted-foreground font-semibold">Media Assets (images, TikToks)</Label>
+      <div className="space-y-1 mt-1">
+        {media.map((m: any) => (
+          <div key={m.id} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1.5">
+            <Badge variant="outline" className="text-[9px] shrink-0">{m.media_type}</Badge>
+            <span className="truncate flex-1 font-mono">{m.url}</span>
+            <button onClick={() => removeMedia(m.id)} className="text-destructive shrink-0"><Trash2 className="w-3 h-3" /></button>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2 mt-2">
+        <Select value={newType} onValueChange={setNewType}>
+          <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {['tiktok', 'image', 'video', 'instagram'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Input value={newUrl} onChange={e => setNewUrl(e.target.value)} placeholder="URL..." className="flex-1 text-xs" />
+        <Button size="sm" onClick={addMedia} disabled={!newUrl.trim()}><Plus className="w-3 h-3 mr-1" />Add</Button>
+      </div>
+    </div>
+  );
+};
 
 const CONTINENTS = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Antarctica'];
 const REGIONS = [
@@ -711,6 +766,23 @@ export const AdminLocationsSection = () => {
                   <div className="flex items-center gap-2"><Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} /><span className="text-xs">{item.is_active ? 'Active' : 'Inactive'}</span></div>
                   <div className="flex items-center gap-2"><Switch checked={item.is_public_page ?? false} onCheckedChange={v => onChange('is_public_page', v)} /><span className="text-xs">Public Page</span></div>
                 </div>
+
+                {/* Opening Hours */}
+                <div>
+                  <Label className="text-xs text-muted-foreground font-semibold">Opening Hours (JSON)</Label>
+                  <Textarea
+                    value={item.opening_hours_json ? (typeof item.opening_hours_json === 'string' ? item.opening_hours_json : JSON.stringify(item.opening_hours_json, null, 2)) : ''}
+                    onChange={e => {
+                      try { onChange('opening_hours_json', JSON.parse(e.target.value)); } catch { onChange('opening_hours_json', e.target.value); }
+                    }}
+                    rows={4}
+                    className="font-mono text-xs"
+                    placeholder='{"monday":"8:00 AM - 6:00 PM","tuesday":"8:00 AM - 6:00 PM",...}'
+                  />
+                </div>
+
+                {/* Media Assets (inline management for saved POIs) */}
+                {item.id && <PoiMediaManager poiId={item.id} />}
               </div>
             )}
             onSave={(item, isNew) => saveEntity('pois', item, isNew)}
