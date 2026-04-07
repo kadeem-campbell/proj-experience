@@ -61,7 +61,7 @@ export const useUserLikes = () => {
   // Toggle like with OPTIMISTIC update - instant UI, background DB sync
   const toggleLike = async (
     itemId: string, 
-    itemType: 'experience' | 'itinerary',
+    itemType: 'experience' | 'itinerary' | 'poi',
     itemData: Record<string, any>
   ): Promise<boolean> => {
     if (!user?.id) return false;
