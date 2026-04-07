@@ -1510,7 +1510,7 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         supabase.from('product_intent_affinities').select('id').eq('product_id', productId),
         supabase.from('entity_documents').select('id').eq('entity_id', productId).eq('entity_type', 'product'),
       ]);
-      const batch2: any[] = await Promise.all([
+      const batch2Promises: Promise<any>[] = [
         supabase.from('product_timing_profiles').select('*').eq('product_id', productId).eq('is_active', true),
         supabase.from('experience_faqs').select('id').eq('experience_id', productId),
         supabase.from('questions').select('id').eq('entity_id', productId).eq('entity_type', 'product'),
@@ -1519,7 +1519,8 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         supabase.from('products').select('slug').eq('slug', product.slug).neq('id', productId),
         supabase.from('user_likes').select('id').eq('item_id', productId),
         supabase.from('media_assets').select('id').eq('entity_id', productId).eq('entity_type', 'product').eq('asset_type', 'image'),
-      ]);
+      ];
+      const batch2 = await Promise.all(batch2Promises);
 
       const opts = batch1[0].data;
       const hostLinks = batch1[1].data;
@@ -1541,7 +1542,7 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
 
       const hosts = (hostLinks || []).map((h: any) => h.hosts).filter(Boolean);
       const galleryJson = (product as any).gallery_json || (product as any).gallery || [];
-      const totalGallery = (galleryMediaCount || 0) + (Array.isArray(galleryJson) ? galleryJson.length : 0);
+      const totalGallery = (Array.isArray(galleryMediaRows) ? galleryMediaRows.length : 0) + (Array.isArray(galleryJson) ? galleryJson.length : 0);
       const res = validateProduct({
         product,
         options: opts || [],
