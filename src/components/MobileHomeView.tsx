@@ -516,37 +516,6 @@ export const MobileHomeView = () => {
 
           const elements: React.ReactNode[] = [];
 
-          // "Explore {city}" areas carousel
-          if (destAreas.length > 0 && !activeTag) {
-            elements.push(
-              <HorizontalScrollRow
-                key="explore-areas"
-                title={`Explore ${selectedCity || 'Places'}`}
-                onTitleClick={() => navigate(`/${destSlug}`)}
-              >
-                {destAreas.map((area: any) => (
-                  <button
-                    key={area.id}
-                    onClick={() => navigate(`/${destSlug}/${area.slug}`)}
-                    className="flex-shrink-0 w-[140px]"
-                  >
-                    <div className="relative aspect-[3/2] rounded-xl overflow-hidden bg-muted">
-                      {area.cover_image ? (
-                        <img src={area.cover_image} alt={area.name} className="w-full h-full object-cover" loading="lazy" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute bottom-2 left-2.5 right-2">
-                        <h3 className="text-white font-semibold text-sm drop-shadow-sm truncate">{area.name}</h3>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </HorizontalScrollRow>
-            );
-          }
-
           visibleCarousels.forEach((carousel) => {
             const title = carousel.name.replace(/\{city\}/g, selectedCity || 'Explore');
             const resolvedSlug = carousel.slug.replace('city', destSlug || 'explore');
