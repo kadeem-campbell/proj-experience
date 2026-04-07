@@ -1518,7 +1518,7 @@ const ValidationViewer = ({ productId }: { productId: string }) => {
         (supabase.from('page_route_registry').select('id').eq('entity_id', productId).eq('entity_type', 'product').maybeSingle()) as any,
         supabase.from('products').select('slug').eq('slug', product.slug).neq('id', productId) as any,
         supabase.from('user_likes').select('id').eq('item_id', productId) as any,
-        supabase.from('media_assets').select('id').eq('entity_id', productId).eq('entity_type', 'product').eq('asset_type', 'image') as any,
+        (supabase.from('media_assets' as any).select('id').eq('entity_id', productId).eq('entity_type', 'product').eq('asset_type', 'image')) as any,
       ];
       const batch2 = await Promise.all(batch2Promises);
 
