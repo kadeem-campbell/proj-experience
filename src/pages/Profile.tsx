@@ -24,7 +24,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, userProfile, refreshProfile, isAuthenticated } = useAuth();
-  const { likedExperiences, likedItineraries } = useUserLikes();
+  const { likedExperiences, likedItineraries, likedPois, totalCount } = useUserLikes();
   const { itineraries } = useItineraries();
   const isMobile = useIsMobile();
   const { updates, unreadCount, markAsRead, markAllRead } = useItineraryUpdates();
