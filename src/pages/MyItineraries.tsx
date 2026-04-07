@@ -451,7 +451,7 @@ const MyItinerariesPage = () => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Your Itineraries</h1>
+                <h1 className="text-2xl font-bold text-foreground">My Itineraries</h1>
                 <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
               </div>
             </div>
