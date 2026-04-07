@@ -6,7 +6,7 @@ export interface UserLike {
   id: string;
   user_id: string;
   item_id: string;
-  item_type: 'experience' | 'itinerary';
+  item_type: 'experience' | 'itinerary' | 'poi';
   item_data: Record<string, any>;
   created_at: string;
 }
