@@ -125,6 +125,7 @@ const PublicItinerary = () => {
   const [newItineraryName, setNewItineraryName] = useState("");
   const [showNewItineraryInput, setShowNewItineraryInput] = useState(false);
   const [goToAction, setGoToAction] = useState<{ name: string; id: string } | null>(null);
+  const [showCreateItineraryDrawer, setShowCreateItineraryDrawer] = useState(false);
   
   // Share sheet
   const [showShareSheet, setShowShareSheet] = useState(false);
