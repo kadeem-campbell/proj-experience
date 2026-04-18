@@ -232,8 +232,8 @@ const MobileTopBar = ({
       "top-0 left-0 right-0 z-50 bg-background safe-area-inset-top",
       notFixed ? "relative" : "fixed"
     )}>
-      <div className="px-0 pt-1 pb-2">
-        <div className="flex items-center justify-between bg-white mx-0 px-5 py-3 w-full">
+      <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-2.5">
+        <div className="flex items-center justify-between gap-2.5 w-full">
           <button onClick={() => navigate('/')} className="text-[22px] tracking-[-0.03em] text-foreground" style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}>
             swam<span className="text-primary font-extrabold">.app</span>
           </button>
