@@ -360,7 +360,7 @@ export const MobileSearchOverlay = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-40 bg-background animate-in fade-in duration-150" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', touchAction: 'none' }}>
+    <div className="fixed inset-0 z-[55] bg-background animate-in fade-in duration-150" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', touchAction: 'none' }}>
       {/* Apple-style header: large search field, minimal */}
       <div className="shrink-0 bg-background">
         <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-2.5">
@@ -515,7 +515,7 @@ export const MobileSearchOverlay = ({
 
       {/* City selector drawer */}
       <Drawer open={citySheetOpen} onOpenChange={setCitySheetOpen}>
-        <DrawerContent className="max-h-[80vh] overflow-hidden">
+        <DrawerContent className="max-h-[80vh] overflow-hidden !z-[70]">
           <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
             <h2 className="text-lg font-bold text-foreground mb-1">Select destination</h2>
             <p className="text-sm text-muted-foreground mb-5">Filter your search by city</p>
