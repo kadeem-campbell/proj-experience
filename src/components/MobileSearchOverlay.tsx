@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, X, Layers, Heart, MapPin, Plus, Map as MapIcon, ChevronDown } from "lucide-react";
+import { Search, X, MapPin, Plus, Map as MapIcon, ChevronDown, Layers } from "lucide-react";
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { generateProductPageUrl } from "@/utils/slugUtils";
@@ -8,9 +8,8 @@ import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
-import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { CardActionMenu } from "@/components/CardActionMenu";
 import { useDestinations, type DbDestination } from "@/hooks/useAppData";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
