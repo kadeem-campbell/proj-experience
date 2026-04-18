@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
-import { Plus, Check, Minus, ExternalLink } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { Plus, Search, X, ListPlus } from "lucide-react";
 import { CreateItineraryDrawer } from "@/components/CreateItineraryDrawer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -11,11 +11,13 @@ import {
 import {
   Drawer,
   DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useItineraries, Itinerary } from "@/hooks/useItineraries";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 
 interface ItinerarySelectorProps {
   experienceId: string;
@@ -33,141 +35,108 @@ interface ItinerarySelectorProps {
   children?: React.ReactNode;
 }
 
-export const ItinerarySelector = ({ 
-  experienceId, 
+export const ItinerarySelector = ({
+  experienceId,
   experienceData,
   onAdd,
-  onRemove,
-  children 
+  children,
 }: ItinerarySelectorProps) => {
   const [open, setOpen] = useState(false);
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
-  const navigate = useNavigate();
+  const [addItinerarySearch, setAddItinerarySearch] = useState("");
   const isMobile = useIsMobile();
-  
-  const { 
-    itineraries, 
-    activeItineraryId,
-    setActiveItinerary,
-    createItinerary,
-    addExperienceToItinerary,
-    removeExperienceFromItinerary
-  } = useItineraries();
 
-  const isInItinerary = (itineraryId: string) => {
-    const itinerary = itineraries.find(i => i.id === itineraryId);
-    return itinerary?.experiences.some(e => e.id === experienceId) || false;
-  };
+  const { itineraries, addExperienceToItinerary, setActiveItinerary } = useItineraries();
 
-  const [justAdded, setJustAdded] = useState<string | null>(null);
-  const justAddedTimer = useRef<NodeJS.Timeout | null>(null);
+  const filteredItineraries = useMemo(() => {
+    const q = addItinerarySearch.trim().toLowerCase();
+    if (!q) return itineraries;
+    return itineraries.filter(i => i.name.toLowerCase().includes(q));
+  }, [itineraries, addItinerarySearch]);
 
-  const handleToggleItinerary = (itinerary: Itinerary) => {
-    const alreadyAdded = isInItinerary(itinerary.id);
+  const handleAddToExisting = (itinerary: Itinerary) => {
     if ('vibrate' in navigator) navigator.vibrate(10);
-    
-    if (alreadyAdded) {
-      removeExperienceFromItinerary(itinerary.id, experienceId);
-      onRemove?.();
-    } else {
-      const result = addExperienceToItinerary(itinerary.id, experienceData);
-      if (result.alreadyExists) {
-        return;
-      }
-      setActiveItinerary(itinerary.id);
-      setJustAdded(itinerary.id);
-      if (justAddedTimer.current) clearTimeout(justAddedTimer.current);
-      justAddedTimer.current = setTimeout(() => setJustAdded(null), 1500);
-      onAdd?.();
-    }
+    addExperienceToItinerary(itinerary.id, experienceData);
+    setActiveItinerary(itinerary.id);
+    setOpen(false);
+    setAddItinerarySearch("");
+    onAdd?.();
   };
 
-  // Sort: selected itineraries first
-  const sortedItineraries = [...itineraries].sort((a, b) => {
-    const aIn = isInItinerary(a.id) ? 0 : 1;
-    const bIn = isInItinerary(b.id) ? 0 : 1;
-    return aIn - bIn;
-  });
-
-  const selectorContent = (
+  const sheetContent = (
     <>
-      <div className="px-4 pt-1 pb-3 border-b border-border">
-        <h4 className="font-semibold text-base text-center">Add to itinerary</h4>
-      </div>
-      
-      <div className="max-h-[50vh] overflow-y-auto">
-        {sortedItineraries.length === 0 && (
-          <div className="px-4 py-6 text-center">
-            <p className="text-sm text-muted-foreground">No itineraries yet</p>
-          </div>
-        )}
-        {sortedItineraries.map((itinerary) => {
-          const alreadyAdded = isInItinerary(itinerary.id);
-          const wasJustAdded = justAdded === itinerary.id;
-          return (
-            <div
-              key={itinerary.id}
-              className={cn(
-                "w-full flex items-center px-4 py-3.5 transition-colors active:bg-muted/80",
-                alreadyAdded && "bg-primary/5"
-              )}
-            >
-              <button
-                onClick={() => handleToggleItinerary(itinerary)}
-                className="flex items-center gap-3 min-w-0 flex-1 text-left"
-              >
-                <div className={cn(
-                  "w-2.5 h-2.5 rounded-full flex-shrink-0",
-                  itinerary.id === activeItineraryId ? "bg-primary" : "bg-muted-foreground/30"
-                )} />
-                <span className="text-sm font-medium truncate">{itinerary.name}</span>
-                <span className="text-xs text-muted-foreground flex-shrink-0">
-                  ({itinerary.experiences.length})
-                </span>
-              </button>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOpen(false);
-                    navigate(`/itineraries/${itinerary.id}`);
-                  }}
-                  className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  aria-label={`Go to ${itinerary.name}`}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleToggleItinerary(itinerary)}
-                  className="p-2 rounded-full hover:bg-muted transition-colors"
-                >
-                  {alreadyAdded ? (
-                    wasJustAdded ? (
-                      <Check className="w-5 h-5 text-primary animate-in zoom-in-50 duration-200" />
-                    ) : (
-                      <Minus className="w-5 h-5 text-destructive" />
-                    )
-                  ) : (
-                    <Plus className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="border-t border-border p-3">
+      <DrawerHeader className="pb-2 shrink-0">
+        <DrawerTitle>Add to itinerary</DrawerTitle>
+        <DrawerDescription>Save this experience to your collection</DrawerDescription>
+      </DrawerHeader>
+      <div className="flex-1 overflow-y-auto min-h-0">
         <button
           onClick={() => {
             setOpen(false);
             setTimeout(() => setShowCreateDrawer(true), 300);
           }}
-          className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-primary active:bg-muted rounded-lg transition-colors"
+          className="w-full flex items-center gap-3 p-4 border-b border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
         >
-          <Plus className="w-5 h-5" />
-          New itinerary
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Plus className="w-5 h-5 text-primary" />
+          </div>
+          <span className="font-semibold text-sm text-primary">New itinerary</span>
         </button>
+        <div className="px-4 py-2">
+          <div className="flex items-center bg-muted rounded-full px-3 py-2">
+            <Search className="w-4 h-4 text-muted-foreground mr-2" />
+            <Input
+              type="text"
+              value={addItinerarySearch}
+              onChange={(e) => setAddItinerarySearch(e.target.value)}
+              placeholder="Search your itineraries..."
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+              style={{ fontSize: '16px' }}
+            />
+            {addItinerarySearch && (
+              <button onClick={() => setAddItinerarySearch("")} className="p-1 rounded-full shrink-0">
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="px-2 pb-2">
+          {filteredItineraries.length > 0 ? (
+            filteredItineraries.map(itin => {
+              const coverImg = itin.coverImage || itin.experiences?.[0]?.videoThumbnail;
+              return (
+                <button
+                  key={itin.id}
+                  onClick={() => handleAddToExisting(itin)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                    {coverImg ? (
+                      <img src={coverImg} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                        <ListPlus className="w-4 h-4 text-primary/40" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{itin.name}</p>
+                    <p className="text-xs text-muted-foreground">{itin.experiences.length} experiences</p>
+                  </div>
+                  <span className="text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10">Add</span>
+                </button>
+              );
+            })
+          ) : addItinerarySearch.trim() ? (
+            <div className="py-6 px-4 text-center">
+              <p className="text-sm text-muted-foreground">No itineraries match "<span className="font-medium text-foreground">{addItinerarySearch}</span>"</p>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground">No itineraries yet. Create one above!</p>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
@@ -178,8 +147,8 @@ export const ItinerarySelector = ({
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
             {children || (
-              <Button 
-                size="icon" 
+              <Button
+                size="icon"
                 className="rounded-full shadow-lg"
                 onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
               >
@@ -187,10 +156,11 @@ export const ItinerarySelector = ({
               </Button>
             )}
           </DrawerTrigger>
-          <DrawerContent className="bg-card border-border" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted-foreground/20 my-3" />
-            {selectorContent}
-            <div className="pb-[env(safe-area-inset-bottom,8px)]" />
+          <DrawerContent
+            className="max-h-[60vh] overflow-hidden flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+24px)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {sheetContent}
           </DrawerContent>
         </Drawer>
         <CreateItineraryDrawer open={showCreateDrawer} onOpenChange={setShowCreateDrawer} />
@@ -203,8 +173,8 @@ export const ItinerarySelector = ({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           {children || (
-            <Button 
-              size="icon" 
+            <Button
+              size="icon"
               className="rounded-full shadow-lg"
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
             >
@@ -212,12 +182,12 @@ export const ItinerarySelector = ({
             </Button>
           )}
         </PopoverTrigger>
-        <PopoverContent 
-          className="w-72 p-0 bg-card border-border shadow-xl z-50"
+        <PopoverContent
+          className="w-[360px] max-w-[92vw] p-0 bg-card border-border shadow-xl z-50 flex flex-col max-h-[70vh] overflow-hidden"
           align="end"
           onClick={(e) => e.stopPropagation()}
         >
-          {selectorContent}
+          {sheetContent}
         </PopoverContent>
       </Popover>
       <CreateItineraryDrawer open={showCreateDrawer} onOpenChange={setShowCreateDrawer} />
