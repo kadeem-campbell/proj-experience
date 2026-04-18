@@ -488,15 +488,17 @@ export const MobileSearchOverlay = ({
             )}
 
             <div className="pt-4">
-              <h2 className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wide mb-3">Discover</h2>
+              <h2 className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                {selectedCityData ? `Discover in ${selectedCityData.short_name || selectedCityData.name}` : "Discover"}
+              </h2>
               <div className="grid grid-cols-2 gap-3">
-                {showExperiences && allExpsData.slice(0, 6).map(exp => (
+                {showExperiences && cityScopedExps.slice(0, 6).map(exp => (
                   <SearchExperienceCard key={exp.id} experience={exp} onNavigate={() => handleNavigate(experiencePath(exp))} />
                 ))}
-                {showPlaces && allPois.slice(0, 4).map((p: any) => (
+                {showPlaces && cityScopedPois.slice(0, 4).map((p: any) => (
                   <SearchPlaceCard key={p.id} poi={p} onNavigate={() => handleNavigate(placePath(p))} />
                 ))}
-                {showItineraries && allItinerariesData.slice(0, 4).map(it => (
+                {showItineraries && cityScopedItins.slice(0, 4).map(it => (
                   <SearchItineraryCard key={it.id} itinerary={it} onNavigate={() => handleNavigate(itineraryPath(it))} />
                 ))}
               </div>
@@ -504,6 +506,67 @@ export const MobileSearchOverlay = ({
           </div>
         )}
       </div>
+
+      {/* City selector drawer */}
+      <Drawer open={citySheetOpen} onOpenChange={setCitySheetOpen}>
+        <DrawerContent className="max-h-[80vh] overflow-hidden">
+          <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <h2 className="text-lg font-bold text-foreground mb-1">Select destination</h2>
+            <p className="text-sm text-muted-foreground mb-5">Filter your search by city</p>
+
+            <button
+              onClick={() => { handleCityChange(""); setCitySheetOpen(false); }}
+              className={cn(
+                "w-full flex items-center gap-3 p-3.5 rounded-2xl mb-2 transition-all text-left active:scale-[0.98]",
+                !selectedCity ? "bg-primary/10 border border-primary/30" : "bg-card border border-border/60"
+              )}
+            >
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <MapIcon className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <p className={cn("font-semibold text-sm", !selectedCity ? "text-primary" : "text-foreground")}>Anywhere</p>
+            </button>
+
+            <div className="space-y-2 mb-6">
+              {selectableCities.map((city: DbDestination) => {
+                const isSelected = normalizeCity(selectedCity) === normalizeCity(city.name);
+                const flag = city.flag_svg_url || '';
+                return (
+                  <button
+                    key={city.id}
+                    onClick={() => { handleCityChange(isSelected ? "" : city.name); setCitySheetOpen(false); }}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left active:scale-[0.98]",
+                      isSelected ? "bg-primary/10 border border-primary/30" : "bg-card border border-border/60"
+                    )}
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                      {flag && isSvg(flag) ? <img src={flag} alt="" className="w-full h-full object-cover" /> : <MapIcon className="w-4 h-4 text-muted-foreground" />}
+                    </div>
+                    <p className={cn("font-semibold text-sm flex-1", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            {comingSoonCities.length > 0 && (
+              <>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Coming soon</p>
+                <div className="space-y-1.5">
+                  {comingSoonCities.map((city: DbDestination) => (
+                    <div key={city.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                        {city.flag_svg_url && isSvg(city.flag_svg_url) ? <img src={city.flag_svg_url} alt="" className="w-full h-full object-cover" /> : <MapIcon className="w-4 h-4 text-muted-foreground" />}
+                      </div>
+                      <p className="text-sm font-medium text-foreground flex-1">{city.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
