@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, X, Layers, Heart, MapPin, Plus, Map as MapIcon, ChevronDown } from "lucide-react";
+import { Search, X, MapPin, Plus, Map as MapIcon, ChevronDown, Layers } from "lucide-react";
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { generateProductPageUrl } from "@/utils/slugUtils";
@@ -8,9 +8,7 @@ import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { useUserLikes } from "@/hooks/useUserLikes";
-import { useAuth } from "@/hooks/useAuth";
-import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { CardActionMenu } from "@/components/CardActionMenu";
 import { useDestinations, type DbDestination } from "@/hooks/useAppData";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 
@@ -54,32 +52,34 @@ const scoreMatch = (terms: string[], item: { title?: string; name?: string; loca
 
 // ─── Itinerary card ─────────────────────────────────────
 const SearchItineraryCard = ({ itinerary, onNavigate }: { itinerary: any; onNavigate: () => void }) => {
-  const [localLiked, setLocalLiked] = useState(false);
-  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
-  const liked = isAuthenticated ? isDbLiked(itinerary.id, 'itinerary') : localLiked;
   const experienceCount = itinerary.experiences?.length || 0;
   const coverImage = itinerary.coverImage || itinerary.experiences?.[0]?.videoThumbnail;
 
-  const handleLikeClick = async (e: React.MouseEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    if (isAuthenticated) {
-      await toggleDbLike(itinerary.id, 'itinerary', { id: itinerary.id, name: itinerary.name, coverImage: itinerary.coverImage, creatorName: itinerary.creatorName, experiences: itinerary.experiences?.slice(0, 3) });
-    } else { setLocalLiked(!localLiked); }
-  };
-
   return (
-    <div className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
-      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted">
+    <div className="cursor-pointer active:scale-[0.97] transition-transform" onClick={onNavigate}>
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {coverImage ? <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" /> : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><Layers className="w-8 h-8 text-primary/40" /></div>
         )}
-        <button onClick={handleLikeClick} className={cn("absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90", liked ? "bg-primary/20" : "bg-white/80")}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-primary text-primary" : "text-foreground")} />
-        </button>
         <div className="absolute top-2 left-2 px-2 py-1 rounded-full backdrop-blur-xl shadow-sm flex items-center gap-1 bg-white/80">
           <Layers className="w-3 h-3 text-foreground" /><span className="text-xs font-medium text-foreground">{experienceCount}</span>
+        </div>
+        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
+          <CardActionMenu
+            entityId={itinerary.id}
+            entityType="itinerary"
+            entityData={{
+              id: itinerary.id, title: itinerary.name, creator: itinerary.creatorName || '',
+              videoThumbnail: coverImage || '', category: '', location: '', price: '',
+              experiences: itinerary.experiences,
+            }}
+            title={itinerary.name}
+            slug={itinerary.slug}
+          >
+            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-foreground/80 backdrop-blur-xl shadow-lg transition-all duration-150 active:scale-90">
+              <Plus className="w-5 h-5 text-background" />
+            </button>
+          </CardActionMenu>
         </div>
       </div>
       <div className="mt-2 space-y-0.5">
@@ -92,32 +92,26 @@ const SearchItineraryCard = ({ itinerary, onNavigate }: { itinerary: any; onNavi
 
 // ─── Experience card ────────────────────────────────────
 const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onNavigate: () => void }) => {
-  const [localLiked, setLocalLiked] = useState(false);
-  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
-  const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked;
-
-  const handleLikeClick = async (e: React.MouseEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    if (isAuthenticated) {
-      await toggleDbLike(experience.id, 'experience', { id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category });
-    } else { setLocalLiked(!localLiked); }
-  };
-
   return (
-    <div className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
-      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted">
+    <div className="cursor-pointer active:scale-[0.97] transition-transform" onClick={onNavigate}>
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {experience.videoThumbnail ? <img src={experience.videoThumbnail} alt={experience.title} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-accent/20 to-accent/5" />}
-        <button onClick={handleLikeClick} className={cn("absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90", liked ? "bg-accent/20" : "bg-white/80")}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-accent text-accent" : "text-foreground")} />
-        </button>
-        <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
-          <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator || '', videoThumbnail: experience.videoThumbnail || '', category: experience.category || '', location: experience.location || '', price: experience.price || '' }}>
-            <button className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm bg-white/80 active:scale-90" onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
-              <Plus className="w-4 h-4 text-foreground" />
+        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
+          <CardActionMenu
+            entityId={experience.id}
+            entityType="experience"
+            entityData={{
+              id: experience.id, title: experience.title, creator: experience.creator || '',
+              videoThumbnail: experience.videoThumbnail || '', category: experience.category || '',
+              location: experience.location || '', price: experience.price || '',
+            }}
+            title={experience.title}
+            slug={experience.slug}
+          >
+            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-foreground/80 backdrop-blur-xl shadow-lg transition-all duration-150 active:scale-90">
+              <Plus className="w-5 h-5 text-background" />
             </button>
-          </ItinerarySelector>
+          </CardActionMenu>
         </div>
       </div>
       <div className="mt-2 space-y-0.5">
@@ -132,30 +126,31 @@ const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onN
 
 // ─── Place (POI) card ───────────────────────────────────
 const SearchPlaceCard = ({ poi, onNavigate }: { poi: any; onNavigate: () => void }) => {
-  const [localLiked, setLocalLiked] = useState(false);
-  const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
-  const { isAuthenticated } = useAuth();
-  const liked = isAuthenticated ? isDbLiked(poi.id, 'poi') : localLiked;
-
-  const handleLikeClick = async (e: React.MouseEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    if ('vibrate' in navigator) navigator.vibrate(10);
-    if (isAuthenticated) {
-      await toggleDbLike(poi.id, 'poi', { id: poi.id, name: poi.name, slug: poi.slug, cover_image: poi.cover_image, poi_type: poi.poi_type });
-    } else { setLocalLiked(!localLiked); }
-  };
-
   return (
-    <div className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onNavigate}>
-      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted">
+    <div className="cursor-pointer active:scale-[0.97] transition-transform" onClick={onNavigate}>
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
         {poi.cover_image ? <img src={poi.cover_image} alt={poi.name} className="w-full h-full object-cover" /> : (
           <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center"><MapPin className="w-7 h-7 text-muted-foreground/30" /></div>
         )}
-        <button onClick={handleLikeClick} className={cn("absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-all active:scale-90", liked ? "bg-primary/20" : "bg-white/80")}>
-          <Heart className={cn("w-4 h-4", liked ? "fill-primary text-primary" : "text-foreground")} />
-        </button>
         <div className="absolute top-2 left-2 px-2 py-1 rounded-full backdrop-blur-xl shadow-sm flex items-center gap-1 bg-white/80">
           <MapPin className="w-3 h-3 text-foreground" /><span className="text-xs font-medium text-foreground capitalize">{poi.poi_type || 'place'}</span>
+        </div>
+        <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
+          <CardActionMenu
+            entityId={poi.id}
+            entityType="experience"
+            entityData={{
+              id: poi.id, title: poi.name, creator: '',
+              videoThumbnail: poi.cover_image || '', category: poi.poi_type || '',
+              location: poi.destination_name || '', price: '',
+            }}
+            title={poi.name}
+            slug={poi.slug}
+          >
+            <button className="w-10 h-10 flex items-center justify-center rounded-full bg-foreground/80 backdrop-blur-xl shadow-lg transition-all duration-150 active:scale-90">
+              <Plus className="w-5 h-5 text-background" />
+            </button>
+          </CardActionMenu>
         </div>
       </div>
       <div className="mt-2 space-y-0.5">
