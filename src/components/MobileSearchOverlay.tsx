@@ -515,7 +515,7 @@ export const MobileSearchOverlay = ({
 
       {/* City selector drawer */}
       <Drawer open={citySheetOpen} onOpenChange={setCitySheetOpen}>
-        <DrawerContent className="max-h-[80vh] overflow-hidden z-[60]">
+        <DrawerContent className="max-h-[80vh] overflow-hidden">
           <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
             <h2 className="text-lg font-bold text-foreground mb-1">Select destination</h2>
             <p className="text-sm text-muted-foreground mb-5">Filter your search by city</p>
