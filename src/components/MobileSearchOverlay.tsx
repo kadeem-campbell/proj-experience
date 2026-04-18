@@ -388,26 +388,34 @@ export const MobileSearchOverlay = ({
               </div>
               <button
                 type="button"
-                onClick={() => setCitySheetOpen(true)}
-                className={cn(
-                  "shrink-0 flex items-center justify-center w-9 h-9 rounded-full transition-all active:scale-95 overflow-hidden",
-                  selectedCityData ? "bg-primary/10" : "bg-muted"
-                )}
-                aria-label="Filter by destination"
-              >
-                {selectedCityData?.flag_svg_url && isSvg(selectedCityData.flag_svg_url) ? (
-                  <img src={selectedCityData.flag_svg_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <MapIcon className="w-[18px] h-[18px] text-muted-foreground" />
-                )}
-              </button>
-              <button
-                type="button"
                 onClick={onClose}
                 aria-label="Close search"
                 className="shrink-0 px-1 text-[15px] font-semibold text-primary active:opacity-60 transition-opacity"
               >
                 Close
+              </button>
+              <button
+                type="button"
+                onClick={() => setCitySheetOpen(true)}
+                className={cn(
+                  "shrink-0 flex items-center gap-1 px-1.5 py-1.5 rounded-full transition-all active:scale-95",
+                  selectedCityData ? "bg-primary/10" : "bg-muted"
+                )}
+                aria-label="Filter by destination"
+              >
+                <span className="w-6 h-6 rounded-full overflow-hidden bg-background flex items-center justify-center shrink-0">
+                  {selectedCityData?.flag_svg_url && isSvg(selectedCityData.flag_svg_url) ? (
+                    <img src={selectedCityData.flag_svg_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <MapIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </span>
+                {selectedCityData && (
+                  <span className="text-[12px] font-semibold leading-none text-primary max-w-[60px] truncate pr-0.5">
+                    {selectedCityData.short_name || selectedCityData.name}
+                  </span>
+                )}
+                <ChevronDown className="w-3 h-3 text-muted-foreground mr-0.5" />
               </button>
             </div>
           </form>
