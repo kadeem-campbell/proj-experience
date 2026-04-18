@@ -182,24 +182,29 @@ const CitySelectorSheet = ({
   </Drawer>
 );
 
-// City button - map icon default, selected city flag/code when active
+// City button - matches search overlay city pill (flag + name + chevron)
 const CityButton = ({ selectedCity, selectedCityData, countryFlags, onTap }: { selectedCity: string; selectedCityData: DbDestination | null; countryFlags: Record<string, string>; onTap: () => void }) => {
-  const isActive = !!selectedCityData;
   const displayName = selectedCityData?.short_name || selectedCityData?.name || "";
   const flag = selectedCityData ? (selectedCityData.flag_svg_url || '') : "";
 
   return (
-    <button onClick={onTap} className="flex flex-col items-center justify-center gap-0.5 transition-all">
-      {isActive ? (
-        <>
-          <div className="w-7 h-7 rounded-full relative overflow-hidden shadow-sm bg-muted flex items-center justify-center">
-            {flag ? isSvg(flag) ? <img src={flag} alt="flag" className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span> : <Map className="w-4 h-4 text-muted-foreground" />}
-          </div>
-          <span className="text-[8px] font-bold text-foreground tracking-wide leading-none max-w-[60px] truncate">{displayName}</span>
-        </>
-      ) : (
-        <Map className="w-5 h-5 text-muted-foreground" strokeWidth={2} />
+    <button
+      onClick={onTap}
+      className={cn(
+        "shrink-0 flex items-center gap-1 px-1.5 py-1.5 rounded-full transition-all active:scale-95",
+        selectedCityData ? "bg-primary/10" : "bg-muted"
       )}
+      aria-label="Select destination"
+    >
+      <span className="w-6 h-6 rounded-full overflow-hidden bg-background flex items-center justify-center shrink-0">
+        {flag ? (isSvg(flag) ? <img src={flag} alt="flag" className="w-full h-full object-cover" /> : <span className="text-sm">{flag}</span>) : <Map className="w-3.5 h-3.5 text-muted-foreground" />}
+      </span>
+      {selectedCityData && (
+        <span className="text-[12px] font-semibold leading-none text-primary max-w-[60px] truncate pr-0.5">
+          {displayName}
+        </span>
+      )}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground mr-0.5"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
   );
 };
