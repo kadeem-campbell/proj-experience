@@ -12,7 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Heart, Copy, MessageCircle, Check, Share2, Plus, Minus, Layers, ExternalLink } from "lucide-react";
+import { Heart, Copy, MessageCircle, Check, Share2, Plus, Minus, Layers, ExternalLink, Search, X, ListPlus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useLikedExperiences } from "@/hooks/useLikedExperiences";
@@ -45,6 +45,7 @@ const ActionMenuContent = ({
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [showItineraryPicker, setShowItineraryPicker] = useState(false);
+  const [addItinerarySearch, setAddItinerarySearch] = useState("");
   const [justAdded, setJustAdded] = useState<string | null>(null);
   const justAddedTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -171,81 +172,98 @@ const ActionMenuContent = ({
 
   const ctaLabel = entityType === "itinerary" ? "Use this itinerary" : "Add to itinerary";
 
-  // --- Itinerary picker sub-view ---
+  // --- Itinerary picker sub-view (matches PoiDetail "Add to itinerary" drawer) ---
   if (showItineraryPicker) {
-    return (
-      <div>
-        <button
-          onClick={() => setShowItineraryPicker(false)}
-          className="text-xs text-muted-foreground px-1 mb-2 active:opacity-70"
-        >
-          ← Back
-        </button>
+    const q = addItinerarySearch.trim().toLowerCase();
+    const filteredItineraries = q
+      ? sortedItineraries.filter((it) => it.name.toLowerCase().includes(q))
+      : sortedItineraries;
 
-        {/* Create new — opens full create drawer */}
-        <div className="border-b border-border pb-2 mb-1">
-          <button
-            onClick={() => {
-              setShowItineraryPicker(false);
-              onOpenCreateDrawer();
-            }}
-            className="w-full flex items-center gap-2 px-2 py-2.5 text-sm font-semibold text-primary active:bg-muted rounded-lg transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            New itinerary
-          </button>
+    return (
+      <div className="-mx-4 -mb-4 flex flex-col">
+        <div className="px-4 pt-1 pb-2 text-center">
+          <h3 className="font-semibold text-base">Add to itinerary</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {entityType === "itinerary" ? "Save this itinerary to your collection" : "Save this experience to your collection"}
+          </p>
         </div>
 
-        {/* Existing itineraries */}
-        <div className="max-h-[40vh] overflow-y-auto -mx-1">
-          {sortedItineraries.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No itineraries yet</p>
-          ) : (
-            sortedItineraries.map((it) => {
-              const added = isExpInItinerary(it.id);
-              const wasJust = justAdded === it.id;
+        {/* New itinerary row */}
+        <button
+          onClick={() => {
+            setShowItineraryPicker(false);
+            onOpenCreateDrawer();
+          }}
+          className="w-full flex items-center gap-3 p-4 border-y border-border/30 hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
+        >
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Plus className="w-5 h-5 text-primary" />
+          </div>
+          <span className="font-semibold text-sm text-primary">New itinerary</span>
+        </button>
+
+        {/* Search */}
+        <div className="px-4 py-2">
+          <div className="flex items-center bg-muted rounded-full px-3 py-2">
+            <Search className="w-4 h-4 text-muted-foreground mr-2" />
+            <Input
+              type="text"
+              value={addItinerarySearch}
+              onChange={(e) => setAddItinerarySearch(e.target.value)}
+              placeholder="Search your itineraries..."
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm"
+              style={{ fontSize: '16px' }}
+            />
+            {addItinerarySearch && (
+              <button onClick={() => setAddItinerarySearch("")} className="p-1 rounded-full shrink-0">
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="px-2 pb-4 max-h-[45vh] overflow-y-auto">
+          {filteredItineraries.length > 0 ? (
+            filteredItineraries.map((itin) => {
+              const coverImg = itin.coverImage || itin.experiences?.[0]?.videoThumbnail;
+              const added = isExpInItinerary(itin.id);
               return (
-                <div
-                  key={it.id}
-                  className={cn(
-                    "w-full flex items-center px-3 py-3 transition-colors active:bg-muted/80 rounded-lg",
-                    added && "bg-primary/5"
-                  )}
+                <button
+                  key={itin.id}
+                  onClick={() => handleToggleItinerary(itin)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 active:bg-muted/60 transition-colors text-left"
                 >
-                  <button
-                    onClick={() => handleToggleItinerary(it)}
-                    className="flex items-center gap-2.5 min-w-0 flex-1 text-left"
-                  >
-                    <div className={cn("w-2 h-2 rounded-full flex-shrink-0", it.id === activeItineraryId ? "bg-primary" : "bg-muted-foreground/30")} />
-                    <span className="text-sm font-medium truncate">{it.name}</span>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">({it.experiences.length})</span>
-                  </button>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onClose();
-                        navigate(`/itineraries/${it.id}`);
-                      }}
-                      className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      aria-label={`Go to ${it.name}`}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleToggleItinerary(it)}
-                      className="p-2 rounded-full hover:bg-muted transition-colors"
-                    >
-                      {added ? (
-                        wasJust ? <Check className="w-5 h-5 text-primary animate-in zoom-in-50 duration-200" /> : <Minus className="w-5 h-5 text-destructive" />
-                      ) : (
-                        <Plus className="w-5 h-5 text-muted-foreground" />
-                      )}
-                    </button>
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
+                    {coverImg ? (
+                      <img src={coverImg} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                        <ListPlus className="w-4 h-4 text-primary/40" />
+                      </div>
+                    )}
                   </div>
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{itin.name}</p>
+                    <p className="text-xs text-muted-foreground">{itin.experiences.length} experiences</p>
+                  </div>
+                  <span className={cn(
+                    "text-xs font-medium px-3 py-1.5 rounded-full",
+                    added ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
+                  )}>
+                    {added ? "Added" : "Add"}
+                  </span>
+                </button>
               );
             })
+          ) : addItinerarySearch.trim() ? (
+            <div className="py-6 px-4 text-center">
+              <p className="text-sm text-muted-foreground">No itineraries match "<span className="font-medium text-foreground">{addItinerarySearch}</span>"</p>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground">No itineraries yet. Create one above!</p>
+            </div>
           )}
         </div>
       </div>
