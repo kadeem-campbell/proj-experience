@@ -360,7 +360,7 @@ export const MobileSearchOverlay = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background animate-in fade-in duration-150" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', touchAction: 'none' }}>
+    <div className="fixed inset-0 z-40 bg-background animate-in fade-in duration-150" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', touchAction: 'none' }}>
       {/* Apple-style header: large search field, minimal */}
       <div className="shrink-0 bg-background">
         <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-2.5">
