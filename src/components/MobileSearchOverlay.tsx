@@ -210,6 +210,11 @@ export const MobileSearchOverlay = ({
     const next = new URLSearchParams(searchParams);
     if (city) next.set("city", city); else next.delete("city");
     setSearchParams(next, { replace: true });
+    // Notify other listeners (MobileShell, MobileHomeView) that city changed
+    try {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'swam_selected_city', newValue: city || null }));
+      window.dispatchEvent(new CustomEvent('swam:city-changed', { detail: { city } }));
+    } catch {}
   };
 
   // Fetch POIs (places)
