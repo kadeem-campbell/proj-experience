@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, X, Layers, Heart, MapPin, Plus } from "lucide-react";
+import { Search, X, Layers, Heart, MapPin, Plus, Map as MapIcon, ChevronDown } from "lucide-react";
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { generateProductPageUrl } from "@/utils/slugUtils";
 import { useProductListings } from "@/hooks/useProductListings";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
@@ -11,6 +11,13 @@ import { cn } from "@/lib/utils";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { useDestinations, type DbDestination } from "@/hooks/useAppData";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+
+const isSvg = (s: string) => /^https?:\/\//.test(s) && /\.svg(\?|$)/i.test(s);
+const normalizeCity = (v: string) => v.trim().toLowerCase();
+const getPersistedCity = (): string => { try { return localStorage.getItem("swam_selected_city") || ""; } catch { return ""; } };
+const persistCity = (city: string) => { try { if (city) localStorage.setItem("swam_selected_city", city); else localStorage.removeItem("swam_selected_city"); } catch {} };
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
