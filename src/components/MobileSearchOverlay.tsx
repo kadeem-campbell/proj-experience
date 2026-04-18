@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, X, Layers, Heart, MapPin, Plus } from "lucide-react";
+import { Search, X, Layers, Heart, MapPin, Plus, Map as MapIcon, ChevronDown } from "lucide-react";
 import { lockBodyScroll, unlockBodyScroll } from "@/hooks/useIOSKeyboard";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { generateProductPageUrl } from "@/utils/slugUtils";
 import { useProductListings } from "@/hooks/useProductListings";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
@@ -11,6 +11,13 @@ import { cn } from "@/lib/utils";
 import { useUserLikes } from "@/hooks/useUserLikes";
 import { useAuth } from "@/hooks/useAuth";
 import { ItinerarySelector } from "@/components/ItinerarySelector";
+import { useDestinations, type DbDestination } from "@/hooks/useAppData";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+
+const isSvg = (s: string) => /^https?:\/\//.test(s) && /\.svg(\?|$)/i.test(s);
+const normalizeCity = (v: string) => v.trim().toLowerCase();
+const getPersistedCity = (): string => { try { return localStorage.getItem("swam_selected_city") || ""; } catch { return ""; } };
+const persistCity = (city: string) => { try { if (city) localStorage.setItem("swam_selected_city", city); else localStorage.removeItem("swam_selected_city"); } catch {} };
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -166,11 +173,44 @@ export const MobileSearchOverlay = ({
 }: MobileSearchOverlayProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<FilterType | null>(null);
   const { data: allItinerariesData = [] } = usePopularItineraries();
   const allExpsData = useProductListings();
+  const { data: allDestinations = [] } = useDestinations();
   const isDedicatedSearchRoute = location.pathname === "/search" || location.pathname === "/discover";
+
+  // City filter — adopt pre-selection from URL ?city= or persisted localStorage; blank otherwise
+  const [selectedCity, setSelectedCity] = useState<string>(() => searchParams.get("city") || getPersistedCity() || "");
+  const [citySheetOpen, setCitySheetOpen] = useState(false);
+
+  // Re-sync when overlay re-opens
+  useEffect(() => {
+    if (isOpen) setSelectedCity(searchParams.get("city") || getPersistedCity() || "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const selectableCities = useMemo(
+    () => allDestinations.filter((d: DbDestination) => d.launch_status === 'live'),
+    [allDestinations]
+  );
+  const comingSoonCities = useMemo(
+    () => allDestinations.filter((d: DbDestination) => d.launch_status !== 'live'),
+    [allDestinations]
+  );
+  const selectedCityData = useMemo(
+    () => selectableCities.find((d: DbDestination) => normalizeCity(d.name) === normalizeCity(selectedCity)) || null,
+    [selectableCities, selectedCity]
+  );
+
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city);
+    persistCity(city);
+    const next = new URLSearchParams(searchParams);
+    if (city) next.set("city", city); else next.delete("city");
+    setSearchParams(next, { replace: true });
+  };
 
   // Fetch POIs (places)
   const { data: allPois = [] } = useQuery({
@@ -218,19 +258,46 @@ export const MobileSearchOverlay = ({
   const q = normalize(searchQuery);
   const terms = q.split(" ").filter(t => t.length > 1);
   const hasQuery = terms.length > 0;
+  const cityNorm = normalizeCity(selectedCity);
+  const cityId = selectedCityData?.id || null;
+
+  // City-scoped pools
+  const cityScopedExps = useMemo(() => {
+    if (!cityNorm) return allExpsData;
+    return allExpsData.filter((e: any) =>
+      (e.destinationId && cityId && e.destinationId === cityId) ||
+      normalizeCity(e.location || '').includes(cityNorm)
+    );
+  }, [allExpsData, cityNorm, cityId]);
+
+  const cityScopedItins = useMemo(() => {
+    if (!cityNorm) return allItinerariesData;
+    return allItinerariesData.filter((it: any) =>
+      normalizeCity(it.name || '').includes(cityNorm) ||
+      it.experiences?.some((e: any) => normalizeCity(e.location || '').includes(cityNorm))
+    );
+  }, [allItinerariesData, cityNorm]);
+
+  const cityScopedPois = useMemo(() => {
+    if (!cityNorm) return allPois;
+    return allPois.filter((p: any) =>
+      (cityId && p.destination_id === cityId) ||
+      normalizeCity(p.destination_name || '').includes(cityNorm)
+    );
+  }, [allPois, cityNorm, cityId]);
 
   const liveExperiences = useMemo(() => {
-    if (terms.length === 0) return allExpsData;
-    return allExpsData
+    if (terms.length === 0) return cityScopedExps;
+    return cityScopedExps
       .map(e => ({ item: e, score: scoreMatch(terms, e) }))
       .filter(s => s.score > 0)
       .sort((a, b) => b.score - a.score)
       .map(s => s.item);
-  }, [allExpsData, q]);
+  }, [cityScopedExps, q]);
 
   const liveItineraries = useMemo(() => {
-    if (terms.length === 0) return allItinerariesData;
-    return allItinerariesData.filter(it => {
+    if (terms.length === 0) return cityScopedItins;
+    return cityScopedItins.filter(it => {
       const fields = normalize([it.name, it.creatorName].join(" "));
       const expMatch = it.experiences?.some((exp: any) => {
         const ef = normalize([exp.title, exp.location].join(" "));
@@ -238,16 +305,16 @@ export const MobileSearchOverlay = ({
       });
       return terms.some(t => fields.includes(t) || (stem(t).length > 2 && fields.includes(stem(t)))) || expMatch;
     });
-  }, [allItinerariesData, q]);
+  }, [cityScopedItins, q]);
 
   const livePlaces = useMemo(() => {
-    if (terms.length === 0) return allPois;
-    return allPois
+    if (terms.length === 0) return cityScopedPois;
+    return cityScopedPois
       .map((p: any) => ({ item: p, score: scoreMatch(terms, { title: p.name, location: p.destination_name, category: p.poi_type }) }))
       .filter((s: any) => s.score > 0)
       .sort((a: any, b: any) => b.score - a.score)
       .map((s: any) => s.item);
-  }, [allPois, q]);
+  }, [cityScopedPois, q]);
 
   const showExperiences = typeFilter === null || typeFilter === "experiences";
   const showItineraries = typeFilter === null || typeFilter === "itineraries";
@@ -315,6 +382,27 @@ export const MobileSearchOverlay = ({
                 )}
               </div>
               <button type="button" onClick={onClose} className="text-[17px] font-normal text-primary shrink-0">Cancel</button>
+              <button
+                type="button"
+                onClick={() => setCitySheetOpen(true)}
+                className={cn(
+                  "shrink-0 flex items-center gap-1.5 pl-1 pr-2.5 py-1.5 rounded-full transition-all active:scale-95",
+                  selectedCityData ? "bg-primary/10" : "bg-muted"
+                )}
+                aria-label="Filter by destination"
+              >
+                <span className="w-6 h-6 rounded-full overflow-hidden bg-background flex items-center justify-center shrink-0">
+                  {selectedCityData?.flag_svg_url && isSvg(selectedCityData.flag_svg_url) ? (
+                    <img src={selectedCityData.flag_svg_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <MapIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </span>
+                <span className={cn("text-[13px] font-medium leading-none", selectedCityData ? "text-primary" : "text-foreground/80")}>
+                  {selectedCityData?.short_name || selectedCityData?.name || "Anywhere"}
+                </span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              </button>
             </div>
           </form>
         </div>
@@ -400,15 +488,17 @@ export const MobileSearchOverlay = ({
             )}
 
             <div className="pt-4">
-              <h2 className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wide mb-3">Discover</h2>
+              <h2 className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                {selectedCityData ? `Discover in ${selectedCityData.short_name || selectedCityData.name}` : "Discover"}
+              </h2>
               <div className="grid grid-cols-2 gap-3">
-                {showExperiences && allExpsData.slice(0, 6).map(exp => (
+                {showExperiences && cityScopedExps.slice(0, 6).map(exp => (
                   <SearchExperienceCard key={exp.id} experience={exp} onNavigate={() => handleNavigate(experiencePath(exp))} />
                 ))}
-                {showPlaces && allPois.slice(0, 4).map((p: any) => (
+                {showPlaces && cityScopedPois.slice(0, 4).map((p: any) => (
                   <SearchPlaceCard key={p.id} poi={p} onNavigate={() => handleNavigate(placePath(p))} />
                 ))}
-                {showItineraries && allItinerariesData.slice(0, 4).map(it => (
+                {showItineraries && cityScopedItins.slice(0, 4).map(it => (
                   <SearchItineraryCard key={it.id} itinerary={it} onNavigate={() => handleNavigate(itineraryPath(it))} />
                 ))}
               </div>
@@ -416,6 +506,67 @@ export const MobileSearchOverlay = ({
           </div>
         )}
       </div>
+
+      {/* City selector drawer */}
+      <Drawer open={citySheetOpen} onOpenChange={setCitySheetOpen}>
+        <DrawerContent className="max-h-[80vh] overflow-hidden">
+          <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <h2 className="text-lg font-bold text-foreground mb-1">Select destination</h2>
+            <p className="text-sm text-muted-foreground mb-5">Filter your search by city</p>
+
+            <button
+              onClick={() => { handleCityChange(""); setCitySheetOpen(false); }}
+              className={cn(
+                "w-full flex items-center gap-3 p-3.5 rounded-2xl mb-2 transition-all text-left active:scale-[0.98]",
+                !selectedCity ? "bg-primary/10 border border-primary/30" : "bg-card border border-border/60"
+              )}
+            >
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <MapIcon className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <p className={cn("font-semibold text-sm", !selectedCity ? "text-primary" : "text-foreground")}>Anywhere</p>
+            </button>
+
+            <div className="space-y-2 mb-6">
+              {selectableCities.map((city: DbDestination) => {
+                const isSelected = normalizeCity(selectedCity) === normalizeCity(city.name);
+                const flag = city.flag_svg_url || '';
+                return (
+                  <button
+                    key={city.id}
+                    onClick={() => { handleCityChange(isSelected ? "" : city.name); setCitySheetOpen(false); }}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left active:scale-[0.98]",
+                      isSelected ? "bg-primary/10 border border-primary/30" : "bg-card border border-border/60"
+                    )}
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                      {flag && isSvg(flag) ? <img src={flag} alt="" className="w-full h-full object-cover" /> : <MapIcon className="w-4 h-4 text-muted-foreground" />}
+                    </div>
+                    <p className={cn("font-semibold text-sm flex-1", isSelected ? "text-primary" : "text-foreground")}>{city.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            {comingSoonCities.length > 0 && (
+              <>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Coming soon</p>
+                <div className="space-y-1.5">
+                  {comingSoonCities.map((city: DbDestination) => (
+                    <div key={city.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                        {city.flag_svg_url && isSvg(city.flag_svg_url) ? <img src={city.flag_svg_url} alt="" className="w-full h-full object-cover" /> : <MapIcon className="w-4 h-4 text-muted-foreground" />}
+                      </div>
+                      <p className="text-sm font-medium text-foreground flex-1">{city.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
