@@ -258,19 +258,46 @@ export const MobileSearchOverlay = ({
   const q = normalize(searchQuery);
   const terms = q.split(" ").filter(t => t.length > 1);
   const hasQuery = terms.length > 0;
+  const cityNorm = normalizeCity(selectedCity);
+  const cityId = selectedCityData?.id || null;
+
+  // City-scoped pools
+  const cityScopedExps = useMemo(() => {
+    if (!cityNorm) return allExpsData;
+    return allExpsData.filter((e: any) =>
+      (e.destinationId && cityId && e.destinationId === cityId) ||
+      normalizeCity(e.location || '').includes(cityNorm)
+    );
+  }, [allExpsData, cityNorm, cityId]);
+
+  const cityScopedItins = useMemo(() => {
+    if (!cityNorm) return allItinerariesData;
+    return allItinerariesData.filter((it: any) =>
+      normalizeCity(it.name || '').includes(cityNorm) ||
+      it.experiences?.some((e: any) => normalizeCity(e.location || '').includes(cityNorm))
+    );
+  }, [allItinerariesData, cityNorm]);
+
+  const cityScopedPois = useMemo(() => {
+    if (!cityNorm) return allPois;
+    return allPois.filter((p: any) =>
+      (cityId && p.destination_id === cityId) ||
+      normalizeCity(p.destination_name || '').includes(cityNorm)
+    );
+  }, [allPois, cityNorm, cityId]);
 
   const liveExperiences = useMemo(() => {
-    if (terms.length === 0) return allExpsData;
-    return allExpsData
+    if (terms.length === 0) return cityScopedExps;
+    return cityScopedExps
       .map(e => ({ item: e, score: scoreMatch(terms, e) }))
       .filter(s => s.score > 0)
       .sort((a, b) => b.score - a.score)
       .map(s => s.item);
-  }, [allExpsData, q]);
+  }, [cityScopedExps, q]);
 
   const liveItineraries = useMemo(() => {
-    if (terms.length === 0) return allItinerariesData;
-    return allItinerariesData.filter(it => {
+    if (terms.length === 0) return cityScopedItins;
+    return cityScopedItins.filter(it => {
       const fields = normalize([it.name, it.creatorName].join(" "));
       const expMatch = it.experiences?.some((exp: any) => {
         const ef = normalize([exp.title, exp.location].join(" "));
@@ -278,16 +305,16 @@ export const MobileSearchOverlay = ({
       });
       return terms.some(t => fields.includes(t) || (stem(t).length > 2 && fields.includes(stem(t)))) || expMatch;
     });
-  }, [allItinerariesData, q]);
+  }, [cityScopedItins, q]);
 
   const livePlaces = useMemo(() => {
-    if (terms.length === 0) return allPois;
-    return allPois
+    if (terms.length === 0) return cityScopedPois;
+    return cityScopedPois
       .map((p: any) => ({ item: p, score: scoreMatch(terms, { title: p.name, location: p.destination_name, category: p.poi_type }) }))
       .filter((s: any) => s.score > 0)
       .sort((a: any, b: any) => b.score - a.score)
       .map((s: any) => s.item);
-  }, [allPois, q]);
+  }, [cityScopedPois, q]);
 
   const showExperiences = typeFilter === null || typeFilter === "experiences";
   const showItineraries = typeFilter === null || typeFilter === "itineraries";
