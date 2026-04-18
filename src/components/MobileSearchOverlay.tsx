@@ -8,7 +8,6 @@ import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
 import { CardActionMenu } from "@/components/CardActionMenu";
 import { useDestinations, type DbDestination } from "@/hooks/useAppData";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
