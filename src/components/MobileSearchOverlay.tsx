@@ -210,6 +210,11 @@ export const MobileSearchOverlay = ({
     const next = new URLSearchParams(searchParams);
     if (city) next.set("city", city); else next.delete("city");
     setSearchParams(next, { replace: true });
+    // Notify other listeners (MobileShell, MobileHomeView) that city changed
+    try {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'swam_selected_city', newValue: city || null }));
+      window.dispatchEvent(new CustomEvent('swam:city-changed', { detail: { city } }));
+    } catch {}
   };
 
   // Fetch POIs (places)
@@ -355,7 +360,7 @@ export const MobileSearchOverlay = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-[55] bg-background animate-in fade-in duration-150" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', touchAction: 'none' }}>
+    <div className="fixed inset-0 z-40 bg-background animate-in fade-in duration-150" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', touchAction: 'none' }}>
       {/* Apple-style header: large search field, minimal */}
       <div className="shrink-0 bg-background">
         <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-2.5">
@@ -381,12 +386,11 @@ export const MobileSearchOverlay = ({
                   </button>
                 )}
               </div>
-              <button type="button" onClick={onClose} className="text-[17px] font-normal text-primary shrink-0">Cancel</button>
               <button
                 type="button"
                 onClick={() => setCitySheetOpen(true)}
                 className={cn(
-                  "shrink-0 flex items-center gap-1.5 pl-1 pr-2.5 py-1.5 rounded-full transition-all active:scale-95",
+                  "shrink-0 flex items-center gap-1 px-1.5 py-1.5 rounded-full transition-all active:scale-95",
                   selectedCityData ? "bg-primary/10" : "bg-muted"
                 )}
                 aria-label="Filter by destination"
@@ -398,10 +402,12 @@ export const MobileSearchOverlay = ({
                     <MapIcon className="w-3.5 h-3.5 text-muted-foreground" />
                   )}
                 </span>
-                <span className={cn("text-[13px] font-medium leading-none", selectedCityData ? "text-primary" : "text-foreground/80")}>
-                  {selectedCityData?.short_name || selectedCityData?.name || "Anywhere"}
-                </span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                {selectedCityData && (
+                  <span className="text-[12px] font-semibold leading-none text-primary max-w-[60px] truncate pr-0.5">
+                    {selectedCityData.short_name || selectedCityData.name}
+                  </span>
+                )}
+                <ChevronDown className="w-3 h-3 text-muted-foreground mr-0.5" />
               </button>
             </div>
           </form>
