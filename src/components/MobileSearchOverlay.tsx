@@ -382,6 +382,27 @@ export const MobileSearchOverlay = ({
                 )}
               </div>
               <button type="button" onClick={onClose} className="text-[17px] font-normal text-primary shrink-0">Cancel</button>
+              <button
+                type="button"
+                onClick={() => setCitySheetOpen(true)}
+                className={cn(
+                  "shrink-0 flex items-center gap-1.5 pl-1 pr-2.5 py-1.5 rounded-full transition-all active:scale-95",
+                  selectedCityData ? "bg-primary/10" : "bg-muted"
+                )}
+                aria-label="Filter by destination"
+              >
+                <span className="w-6 h-6 rounded-full overflow-hidden bg-background flex items-center justify-center shrink-0">
+                  {selectedCityData?.flag_svg_url && isSvg(selectedCityData.flag_svg_url) ? (
+                    <img src={selectedCityData.flag_svg_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <MapIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </span>
+                <span className={cn("text-[13px] font-medium leading-none", selectedCityData ? "text-primary" : "text-foreground/80")}>
+                  {selectedCityData?.short_name || selectedCityData?.name || "Anywhere"}
+                </span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              </button>
             </div>
           </form>
         </div>
