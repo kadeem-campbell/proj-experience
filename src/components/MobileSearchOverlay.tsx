@@ -173,11 +173,44 @@ export const MobileSearchOverlay = ({
 }: MobileSearchOverlayProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<FilterType | null>(null);
   const { data: allItinerariesData = [] } = usePopularItineraries();
   const allExpsData = useProductListings();
+  const { data: allDestinations = [] } = useDestinations();
   const isDedicatedSearchRoute = location.pathname === "/search" || location.pathname === "/discover";
+
+  // City filter — adopt pre-selection from URL ?city= or persisted localStorage; blank otherwise
+  const [selectedCity, setSelectedCity] = useState<string>(() => searchParams.get("city") || getPersistedCity() || "");
+  const [citySheetOpen, setCitySheetOpen] = useState(false);
+
+  // Re-sync when overlay re-opens
+  useEffect(() => {
+    if (isOpen) setSelectedCity(searchParams.get("city") || getPersistedCity() || "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const selectableCities = useMemo(
+    () => allDestinations.filter((d: DbDestination) => d.launch_status === 'live'),
+    [allDestinations]
+  );
+  const comingSoonCities = useMemo(
+    () => allDestinations.filter((d: DbDestination) => d.launch_status !== 'live'),
+    [allDestinations]
+  );
+  const selectedCityData = useMemo(
+    () => selectableCities.find((d: DbDestination) => normalizeCity(d.name) === normalizeCity(selectedCity)) || null,
+    [selectableCities, selectedCity]
+  );
+
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city);
+    persistCity(city);
+    const next = new URLSearchParams(searchParams);
+    if (city) next.set("city", city); else next.delete("city");
+    setSearchParams(next, { replace: true });
+  };
 
   // Fetch POIs (places)
   const { data: allPois = [] } = useQuery({
