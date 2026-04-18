@@ -409,6 +409,14 @@ export const MobileSearchOverlay = ({
                 )}
                 <ChevronDown className="w-3 h-3 text-muted-foreground mr-0.5" />
               </button>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close search"
+                className="shrink-0 w-9 h-9 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"
+              >
+                <X className="w-[18px] h-[18px] text-foreground" strokeWidth={2.25} />
+              </button>
             </div>
           </form>
         </div>
@@ -518,20 +526,7 @@ export const MobileSearchOverlay = ({
         <DrawerContent className="max-h-[80vh] overflow-hidden !z-[70]">
           <div className="px-5 pt-2 pb-4 overflow-y-auto max-h-[75vh]" style={{ WebkitOverflowScrolling: 'touch' }}>
             <h2 className="text-lg font-bold text-foreground mb-1">Select destination</h2>
-            <p className="text-sm text-muted-foreground mb-5">Filter your search by city</p>
-
-            <button
-              onClick={() => { handleCityChange(""); setCitySheetOpen(false); }}
-              className={cn(
-                "w-full flex items-center gap-3 p-3.5 rounded-2xl mb-2 transition-all text-left active:scale-[0.98]",
-                !selectedCity ? "bg-primary/10 border border-primary/30" : "bg-card border border-border/60"
-              )}
-            >
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                <MapIcon className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <p className={cn("font-semibold text-sm", !selectedCity ? "text-primary" : "text-foreground")}>Anywhere</p>
-            </button>
+            <p className="text-sm text-muted-foreground mb-5">Tap a city to filter, or tap again to clear</p>
 
             <div className="space-y-2 mb-6">
               {selectableCities.map((city: DbDestination) => {
