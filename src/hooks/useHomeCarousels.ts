@@ -102,9 +102,11 @@ export const matchesContext = (
     if (!c.destinationIds.includes(selectedDestId)) return false;
   }
   // Category gate
-  if (c.categoryIds.length > 0) {
-    if (!activeCategoryId) return false;
+  if (activeCategoryId) {
+    if (c.categoryIds.length === 0) return false;
     if (!c.categoryIds.includes(activeCategoryId)) return false;
+  } else if (c.categoryIds.length > 0) {
+    return false;
   }
   return true;
 };
