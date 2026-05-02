@@ -136,7 +136,51 @@ const CollectionPage = () => {
         .eq("is_active", true)
         .maybeSingle();
 
-      if (!collectionRow) return null;
+      // Fallback: maybe the slug belongs to a CAROUSEL (carousels and collections have separate
+      // slug spaces). Resolve the carousel's items inline so manual / auto / collection-mode
+      // carousels all render here too.
+      if (!collectionRow) {
+        const { data: carouselRow } = await (supabase as any)
+          .from("carousels")
+          .select("id, name, slug, description, content_type, resolution_mode, max_items")
+          .eq("slug", slug!)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (!carouselRow) return null;
+
+        const { data: ciRows } = await (supabase as any)
+          .from("carousel_items")
+          .select("item_id, item_type, position")
+          .eq("carousel_id", carouselRow.id)
+          .order("position", { ascending: true });
+
+        // Expand any collection refs
+        const collIds = (ciRows || []).filter((r: any) => r.item_type === 'collection').map((r: any) => r.item_id);
+        let extraRows: any[] = [];
+        if (collIds.length > 0) {
+          const { data } = await (supabase as any)
+            .from("collection_items")
+            .select("item_id, item_type, position")
+            .in("collection_id", collIds)
+            .order("position", { ascending: true });
+          extraRows = data || [];
+        }
+        const allRows = [...(ciRows || []).filter((r: any) => r.item_type !== 'collection'), ...extraRows];
+        const productIds = allRows.filter((r: any) => r.item_type === 'product' || r.item_type === 'experience').map((r: any) => r.item_id);
+        const itinIds = allRows.filter((r: any) => r.item_type === 'itinerary').map((r: any) => r.item_id);
+
+        const products = productIds.map((id: string) => productListings.find(p => p.id === id)).filter(Boolean);
+        const itins = itinIds.map((id: string) => publicItinerariesList.find((it: any) => it.dbId === id || it.id === id)).filter(Boolean);
+
+        const isItinCarousel = carouselRow.content_type === 'itinerary';
+        return {
+          title: carouselRow.name,
+          description: carouselRow.description || "",
+          contentType: isItinCarousel ? 'itineraries' : 'experiences',
+          items: isItinCarousel ? itins : products,
+          destinationId: null,
+        };
+      }
 
       const contentType = collectionRow.collection_type || 'experiences';
 
