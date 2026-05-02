@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { usePoiBySlug, usePoiMedia, usePoiProducts } from "@/hooks/usePoiBySlug";
 import { useDestinationBySlug } from "@/hooks/useProducts";
 import { useIsMobile } from "@/hooks/use-mobile";
