@@ -288,6 +288,42 @@ export const AdminProductsSection = () => {
 
       {/* ======= BASICS ======= */}
       <TabsContent value="basics" className="space-y-3 mt-3">
+        {/* MASTER INDEX GATE — defaults OFF. Only when ON does this product go live + into sitemap + indexed by search/LLMs */}
+        {(() => {
+          const isLive = item.indexability_state === 'public_indexed' && item.publish_state === 'published';
+          return (
+            <div className={`rounded-lg border-2 p-4 ${isLive ? 'border-green-500/60 bg-green-500/5' : 'border-amber-500/40 bg-amber-500/5'}`}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider">{isLive ? '🟢 INDEX: ON' : '🔒 INDEX: OFF'}</span>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {isLive
+                      ? 'LIVE: published, public, indexed by Google + LLMs, in sitemap.xml.'
+                      : 'HIDDEN: noindex, draft, excluded from sitemap. Flip ON only when ready to publish.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isLive) {
+                      onChange('indexability_state', 'public_noindex');
+                      onChange('publish_state', 'draft');
+                      onChange('visibility_output_state', 'internal_only');
+                    } else {
+                      onChange('indexability_state', 'public_indexed');
+                      onChange('publish_state', 'published');
+                      onChange('visibility_output_state', 'public');
+                    }
+                  }}
+                  className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${isLive ? 'bg-green-500' : 'bg-muted-foreground/30'}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${isLive ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground">Title *</Label>
