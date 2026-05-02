@@ -608,6 +608,9 @@ const RelationEditor = ({ relation, entityId }: { relation: RelationConfig; enti
     }
     qc.invalidateQueries({ queryKey: linksKey });
     qc.invalidateQueries({ queryKey: ['home-carousels'] });
+    qc.invalidateQueries({ queryKey: ['carousels'] });
+    // Invalidate the toolbar-filter membership cache so filters update live
+    qc.invalidateQueries({ queryKey: ['admin-entity-m2m'] });
   };
 
   return (
