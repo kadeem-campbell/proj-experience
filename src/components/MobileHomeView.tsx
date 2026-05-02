@@ -397,23 +397,57 @@ export const MobileHomeView = () => {
     queryKey: ["collection-items", referencedCollectionIds.sort().join(",")],
     enabled: referencedCollectionIds.length > 0,
     queryFn: async () => {
-      const { data } = await (supabase as any)
-        .from("collection_items")
-        .select("collection_id, item_id, item_type, position")
-        .in("collection_id", referencedCollectionIds)
-        .order("position");
-      return data || [];
+      const [itemsRes, destsRes, catsRes] = await Promise.all([
+        (supabase as any)
+          .from("collection_items")
+          .select("collection_id, item_id, item_type, position")
+          .in("collection_id", referencedCollectionIds)
+          .order("position"),
+        (supabase as any)
+          .from("collection_destinations")
+          .select("collection_id, destination_id")
+          .in("collection_id", referencedCollectionIds),
+        (supabase as any)
+          .from("collection_categories")
+          .select("collection_id, activity_type_id")
+          .in("collection_id", referencedCollectionIds),
+      ]);
+      return {
+        items: itemsRes.data || [],
+        destinations: destsRes.data || [],
+        categories: catsRes.data || [],
+      };
     },
     staleTime: 30 * 1000,
   });
 
   const collectionContents = useMemo(() => {
     const m = new Map<string, ResolvedItem[]>();
-    (collectionContentsRaw as any[]).forEach((r: any) => {
+    ((collectionContentsRaw as any)?.items || []).forEach((r: any) => {
       const t = r.item_type === "experience" ? "product" : r.item_type;
       if (!["product","itinerary","poi","area"].includes(t)) return;
       const arr = m.get(r.collection_id) || [];
       arr.push({ type: t, id: r.item_id });
+      m.set(r.collection_id, arr);
+    });
+    return m;
+  }, [collectionContentsRaw]);
+
+  const collectionDestMap = useMemo(() => {
+    const m = new Map<string, string[]>();
+    ((collectionContentsRaw as any)?.destinations || []).forEach((r: any) => {
+      const arr = m.get(r.collection_id) || [];
+      arr.push(r.destination_id);
+      m.set(r.collection_id, arr);
+    });
+    return m;
+  }, [collectionContentsRaw]);
+
+  const collectionCatMap = useMemo(() => {
+    const m = new Map<string, string[]>();
+    ((collectionContentsRaw as any)?.categories || []).forEach((r: any) => {
+      const arr = m.get(r.collection_id) || [];
+      arr.push(r.activity_type_id);
       m.set(r.collection_id, arr);
     });
     return m;
@@ -612,6 +646,8 @@ export const MobileHomeView = () => {
             itinDestMap,
             poiDestMap,
             collectionContents,
+            collectionDestMap,
+            collectionCatMap,
             allProductIds,
           });
           if (resolved.length === 0) return;
@@ -662,46 +698,6 @@ export const MobileHomeView = () => {
             );
           }
         });
-
-        // Fallback: nothing matched the context — show generic auto rows so the
-        // page is never empty (these stay context-aware via market+category filters
-        // already baked into `experiences`/`itineraries`/`filteredPois`).
-        if (elements.length === 0) {
-          const ctxFilteredExperiences = activeCategoryId
-            ? experiences.filter(e => e.activityTypeId === activeCategoryId)
-            : experiences;
-          if (ctxFilteredExperiences.length > 0) {
-            elements.push(
-              <HorizontalScrollRow key="fb-prod" title="Things to do" onTitleClick={() => navigate("/things-to-do")}>
-                {ctxFilteredExperiences.slice(0, 10).map((exp) => (
-                  <MobileExperienceCard key={exp.id} experience={exp} timingMap={timingMap} />
-                ))}
-              </HorizontalScrollRow>
-            );
-          }
-          // Don't surface itinerary/poi fallback when filtering by category —
-          // they don't carry a category and would look unrelated.
-          if (!activeCategoryId) {
-            if (itineraries.length > 0) {
-              elements.push(
-                <HorizontalScrollRow key="fb-itin" title="Top Itineraries" onTitleClick={() => navigate("/itineraries")}>
-                  {itineraries.slice(0, 8).map((it) => (
-                    <MobileItineraryCard key={it.id} itinerary={it} />
-                  ))}
-                </HorizontalScrollRow>
-              );
-            }
-            if (filteredPois.length > 0) {
-              elements.push(
-                <HorizontalScrollRow key="fb-poi" title="Places to Visit" onTitleClick={() => navigate(`/${selectedDestSlug || 'explore'}`)}>
-                  {filteredPois.slice(0, 10).map((poi: any) => (
-                    <MobilePoiCard key={poi.id} poi={poi} destinationSlug={selectedDestSlug} />
-                  ))}
-                </HorizontalScrollRow>
-              );
-            }
-          }
-        }
 
         return <>{elements}</>;
       })()}
