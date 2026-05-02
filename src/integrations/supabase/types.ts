@@ -843,12 +843,10 @@ export type Database = {
           description: string | null
           destination_id: string | null
           display_order: number | null
-          home_display_order: number | null
           id: string
           indexability_state: string | null
           is_active: boolean | null
           name: string
-          show_on_home: boolean | null
           slug: string
           tag: string | null
           updated_at: string | null
@@ -862,12 +860,10 @@ export type Database = {
           description?: string | null
           destination_id?: string | null
           display_order?: number | null
-          home_display_order?: number | null
           id?: string
           indexability_state?: string | null
           is_active?: boolean | null
           name: string
-          show_on_home?: boolean | null
           slug: string
           tag?: string | null
           updated_at?: string | null
@@ -881,12 +877,10 @@ export type Database = {
           description?: string | null
           destination_id?: string | null
           display_order?: number | null
-          home_display_order?: number | null
           id?: string
           indexability_state?: string | null
           is_active?: boolean | null
           name?: string
-          show_on_home?: boolean | null
           slug?: string
           tag?: string | null
           updated_at?: string | null
