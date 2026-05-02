@@ -2465,7 +2465,9 @@ export type Database = {
           experiences: Json | null
           id: string
           is_public: boolean | null
+          last_published_snapshot_at: string | null
           name: string
+          published_at: string | null
           start_date: string | null
           tag: string | null
           theme: string | null
@@ -2484,7 +2486,9 @@ export type Database = {
           experiences?: Json | null
           id?: string
           is_public?: boolean | null
+          last_published_snapshot_at?: string | null
           name?: string
+          published_at?: string | null
           start_date?: string | null
           tag?: string | null
           theme?: string | null
@@ -2503,7 +2507,9 @@ export type Database = {
           experiences?: Json | null
           id?: string
           is_public?: boolean | null
+          last_published_snapshot_at?: string | null
           name?: string
+          published_at?: string | null
           start_date?: string | null
           tag?: string | null
           theme?: string | null
@@ -2635,8 +2641,12 @@ export type Database = {
       itinerary_items: {
         Row: {
           created_at: string | null
+          custom_description: string | null
+          custom_title: string | null
           day_id: string
           display_order: number | null
+          entity_id: string | null
+          entity_type: string | null
           id: string
           item_type: string | null
           notes: string | null
@@ -2646,8 +2656,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          custom_description?: string | null
+          custom_title?: string | null
           day_id: string
           display_order?: number | null
+          entity_id?: string | null
+          entity_type?: string | null
           id?: string
           item_type?: string | null
           notes?: string | null
@@ -2657,8 +2671,12 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          custom_description?: string | null
+          custom_title?: string | null
           day_id?: string
           display_order?: number | null
+          entity_id?: string | null
+          entity_type?: string | null
           id?: string
           item_type?: string | null
           notes?: string | null
@@ -4095,6 +4113,74 @@ export type Database = {
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_itinerary_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          custom_description: string | null
+          custom_title: string | null
+          day_number: number
+          description: string | null
+          display_order: number
+          entity_id: string | null
+          entity_type: string
+          id: string
+          image_url: string | null
+          location: string | null
+          notes: string | null
+          price: string | null
+          public_itinerary_id: string
+          time_slot: string | null
+          title: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          custom_description?: string | null
+          custom_title?: string | null
+          day_number?: number
+          description?: string | null
+          display_order?: number
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          notes?: string | null
+          price?: string | null
+          public_itinerary_id: string
+          time_slot?: string | null
+          title?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          custom_description?: string | null
+          custom_title?: string | null
+          day_number?: number
+          description?: string | null
+          display_order?: number
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          notes?: string | null
+          price?: string | null
+          public_itinerary_id?: string
+          time_slot?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_itinerary_items_public_itinerary_id_fkey"
+            columns: ["public_itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "public_itineraries"
             referencedColumns: ["id"]
           },
         ]
@@ -5735,6 +5821,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_edit_itinerary_day: {
+        Args: { _day_id: string; _user_id: string }
+        Returns: boolean
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
