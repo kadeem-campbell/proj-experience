@@ -432,9 +432,14 @@ const SearchPage = () => {
                   const title = carousel.name.replace('{city}', selectedCityName || 'your city');
                   const resolvedSlug = carousel.slug.replace('city', selectedCityName ? slugify(selectedCityName) : 'city');
 
+                  // Map new manualItems → flat id list per type for legacy rendering below
+                  const manualProductIds   = carousel.manualItems.filter(i => i.type === 'product').map(i => i.id);
+                  const manualItineraryIds = carousel.manualItems.filter(i => i.type === 'itinerary').map(i => i.id);
+                  const manualPoiIds       = carousel.manualItems.filter(i => i.type === 'poi').map(i => i.id);
+
                   if (carousel.contentType === 'itinerary') {
-                    const items = carousel.itemIds.length > 0
-                      ? cityFilteredItineraries.filter(it => carousel.itemIds.includes((it as any).dbId || it.id))
+                    const items = manualItineraryIds.length > 0
+                      ? cityFilteredItineraries.filter(it => manualItineraryIds.includes((it as any).dbId || it.id))
                       : cityFilteredItineraries.slice(0, 8);
                     if (items.length === 0) return;
                     elements.push(
@@ -447,8 +452,8 @@ const SearchPage = () => {
                       </DesktopScrollRow>
                     );
                   } else if (carousel.contentType === 'product') {
-                    const items = carousel.itemIds.length > 0
-                      ? experiences.filter(exp => carousel.itemIds.includes(exp.id))
+                    const items = manualProductIds.length > 0
+                      ? experiences.filter(exp => manualProductIds.includes(exp.id))
                       : cityFilteredExperiences.slice(0, 10);
                     if (items.length === 0) return;
                     elements.push(
@@ -461,8 +466,8 @@ const SearchPage = () => {
                       </DesktopScrollRow>
                     );
                   } else if (carousel.contentType === 'poi') {
-                    const allPoisForCarousel = carousel.itemIds.length > 0
-                      ? pois.filter((p: any) => carousel.itemIds.includes(p.id))
+                    const allPoisForCarousel = manualPoiIds.length > 0
+                      ? pois.filter((p: any) => manualPoiIds.includes(p.id))
                       : selectedDestId
                         ? pois.filter((p: any) => p.destination_id === selectedDestId)
                         : pois;
