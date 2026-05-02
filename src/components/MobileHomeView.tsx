@@ -615,16 +615,16 @@ export const MobileHomeView = () => {
 
         visibleCarousels.forEach(carousel => {
           const title = carousel.name.replace(/\{city\}/g, selectedCity || 'Explore');
-          // Carousel titles deep-link to the underlying Collection page when the
-          // carousel resolves through a single collection. We must use the COLLECTION's
-          // own slug (not the carousel slug) because /collections/:slug looks up by
-          // collections.slug. Manual / multi-collection / auto carousels have no
-          // Collection page to point at, so we skip the click handler.
+          // Carousel titles deep-link to /collections/:slug. The Collection page
+          // resolves either a real collection slug OR a carousel slug as a fallback,
+          // so manual / collection-mode / auto carousels all land on a working page.
+          // Prefer the underlying collection's slug when the carousel wraps a single
+          // collection (cleaner URL); otherwise use the carousel's own slug.
           const linkedCollectionSlug = (carousel.resolutionMode === 'collection' && carousel.collectionIds.length === 1)
             ? collectionSlugMap.get(carousel.collectionIds[0])
             : undefined;
-          const titleHref = linkedCollectionSlug ? `/collections/${linkedCollectionSlug}` : null;
-          const onTitleClick = titleHref ? () => navigate(titleHref) : undefined;
+          const targetSlug = linkedCollectionSlug || carousel.slug;
+          const onTitleClick = targetSlug ? () => navigate(`/collections/${targetSlug}`) : undefined;
 
           // Areas are a special-case: pulled from the active destination's areas.
           if (carousel.contentType === 'area') {
