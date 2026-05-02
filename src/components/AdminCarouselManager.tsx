@@ -16,8 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, X, Folder } from 'lucide-react';
-import { AdminEntityEditor, AdminEntityConfig } from './shared/AdminEntityEditor';
-import { friendlyError } from './shared/friendlyError';
+import { AdminEntityEditor, AdminEntityConfig } from './admin/shared/AdminEntityEditor';
+import { friendlyError } from './admin/shared/friendlyError';
 
 export const AdminCarouselManager = () => {
   const config: AdminEntityConfig = useMemo(() => ({
