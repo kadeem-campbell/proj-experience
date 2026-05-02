@@ -6,7 +6,6 @@ import {
   writeItineraryItem,
   deleteItineraryItem,
   validateEntityForItinerary,
-  ensureDefaultDayId,
   type ItineraryEntityType,
 } from '@/services/itineraryItemsService';
 
