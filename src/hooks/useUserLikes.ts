@@ -7,6 +7,8 @@ export interface UserLike {
   user_id: string;
   item_id: string;
   item_type: 'experience' | 'itinerary' | 'poi';
+  // Existing cards read flexible cached metadata from this object.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   item_data: Record<string, any>;
   created_at: string;
 }
@@ -95,6 +97,7 @@ export const useUserLikes = () => {
   const toggleLike = async (
     itemId: string, 
     itemType: 'experience' | 'itinerary' | 'poi',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     itemData: Record<string, any>
   ): Promise<boolean> => {
     if (!user?.id) return false;
@@ -160,6 +163,7 @@ export const useUserLikes = () => {
             setSharedLikes(sharedLikes.map(l => l.id === tempId ? {
               ...data,
               item_type: data.item_type as 'experience' | 'itinerary' | 'poi',
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               item_data: data.item_data as Record<string, any>
             } : l));
           }
