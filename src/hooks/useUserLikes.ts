@@ -71,6 +71,7 @@ export const useUserLikes = () => {
       const typedLikes = (data || []).map(like => ({
         ...like,
         item_type: like.item_type as 'experience' | 'itinerary' | 'poi',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         item_data: like.item_data as Record<string, any>
       }));
       
