@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { friendlyError } from "@/utils/friendlyError";
 import { Link, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layouts/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -149,7 +150,8 @@ const ProfilePage = () => {
       setIsEditing(false);
       toast({ title: "Profile updated" });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error('Profile update error:', error);
+      toast({ title: "Error", description: friendlyError(error, "Could not update profile."), variant: "destructive" });
     } finally {
       setSaving(false);
     }

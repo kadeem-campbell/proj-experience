@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { friendlyError } from '@/utils/friendlyError';
 import { getShareBaseUrl } from '@/utils/shareUrl';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -268,7 +269,8 @@ export const BulkUploader = () => {
         toast({ title: `Upload done with ${errors.length} errors`, description: `${success}/${dataRows.length} rows imported`, variant: errors.length > success ? 'destructive' : 'default' });
       }
     } catch (err: any) {
-      toast({ title: 'Upload failed', description: err.message, variant: 'destructive' });
+      console.error('Bulk upload failed:', err);
+      toast({ title: 'Upload failed', description: friendlyError(err, 'Could not process upload.'), variant: 'destructive' });
     } finally {
       setUploading(false);
       setProgress({ current: 0, total: 0 });
@@ -280,7 +282,8 @@ export const BulkUploader = () => {
     if (!confirm('Permanently delete this record?')) return;
     const { error } = await (supabase as any).from(table).delete().eq('id', id);
     if (error) {
-      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+      console.error('Delete failed:', error);
+      toast({ title: 'Delete failed', description: friendlyError(error, 'Could not delete record.'), variant: 'destructive' });
     } else {
       toast({ title: 'Deleted' });
       invalidateAll();

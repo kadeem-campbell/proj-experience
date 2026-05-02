@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { friendlyError } from "@/utils/friendlyError";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,12 +94,14 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         if (error.message.includes("already registered") || error.message.includes("exists")) {
           setError("An account with this email already exists. Try logging in instead.");
         } else {
-          setError(error.message);
+          console.error('Google sign-in error:', error);
+          setError(friendlyError(error, "Could not sign in with Google."));
         }
         setIsLoading(false);
       }
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      console.error('Google sign-in error:', err);
+      setError(friendlyError(err, "Something went wrong. Please try again."));
       setIsLoading(false);
     }
   };
@@ -114,12 +117,14 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         if (error.message.includes("already registered") || error.message.includes("exists")) {
           setError("An account with this email already exists. Try logging in instead.");
         } else {
-          setError(error.message);
+          console.error('Apple sign-in error:', error);
+          setError(friendlyError(error, "Could not sign in with Apple."));
         }
         setIsLoading(false);
       }
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      console.error('Apple sign-in error:', err);
+      setError(friendlyError(err, "Something went wrong. Please try again."));
       setIsLoading(false);
     }
   };
@@ -251,7 +256,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         if (signUpError.message.includes("already registered")) {
           setError("This email is already registered. Try logging in.");
         } else {
-          setError(signUpError.message);
+          console.error('Sign-up error:', signUpError);
+          setError(friendlyError(signUpError, "Could not create account."));
         }
         setIsLoading(false);
         return;
@@ -301,7 +307,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         if (signInError.message.includes("Invalid login")) {
           setError("Invalid email or password");
         } else {
-          setError(signInError.message);
+          console.error('Sign-in error:', signInError);
+          setError(friendlyError(signInError, "Could not sign in."));
         }
         setIsLoading(false);
         return;
