@@ -334,6 +334,7 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">All {f.label.toLowerCase()}</SelectItem>
+              <SelectItem value="__none">— No {f.label.toLowerCase()} (global)</SelectItem>
               {((filterOptionsMap as any)[f.key] || []).map((o: any) => (
                 <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
               ))}
