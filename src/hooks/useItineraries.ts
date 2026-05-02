@@ -34,12 +34,40 @@ const ACTIVE_ITINERARY_KEY = 'activeItineraryId';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
+type ItinerariesState = {
+  itineraries: Itinerary[];
+  activeItineraryId: string | null;
+  userId: string | null;
+  isLoading: boolean;
+};
+
+let sharedItinerariesState: ItinerariesState = {
+  itineraries: [],
+  activeItineraryId: null,
+  userId: null,
+  isLoading: true,
+};
+
+const itineraryListeners = new Set<(state: ItinerariesState) => void>();
+
+const setSharedItinerariesState = (next: Partial<ItinerariesState>) => {
+  sharedItinerariesState = { ...sharedItinerariesState, ...next };
+  itineraryListeners.forEach((listener) => listener(sharedItinerariesState));
+};
+
 export const useItineraries = () => {
-  const [itineraries, setItineraries] = useState<Itinerary[]>([]);
-  const [activeItineraryId, setActiveItineraryIdState] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [state, setState] = useState<ItinerariesState>(sharedItinerariesState);
+  const { itineraries, activeItineraryId, userId, isLoading } = state;
+  const setItineraries = useCallback((itineraries: Itinerary[]) => setSharedItinerariesState({ itineraries }), []);
+  const setActiveItineraryIdState = useCallback((activeItineraryId: string | null) => setSharedItinerariesState({ activeItineraryId }), []);
+  const setUserId = useCallback((userId: string | null) => setSharedItinerariesState({ userId }), []);
+  const setIsLoading = useCallback((isLoading: boolean) => setSharedItinerariesState({ isLoading }), []);
   const itinerariesRef = useRef<Itinerary[]>([]);
+
+  useEffect(() => {
+    itineraryListeners.add(setState);
+    return () => { itineraryListeners.delete(setState); };
+  }, []);
 
   useEffect(() => {
     itinerariesRef.current = itineraries;
