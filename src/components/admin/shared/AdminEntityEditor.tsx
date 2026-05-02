@@ -204,6 +204,15 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
     for (const f of config.toolbarFilters || []) {
       const v = filterValues[f.key];
       if (!v || v === '__all') continue;
+      if (v === '__none') {
+        if (f.column) {
+          list = list.filter((it: any) => it[f.column!] === null || it[f.column!] === undefined || it[f.column!] === '');
+        } else if (f.joinTable) {
+          const map = (m2mMembership as any)[f.key] || {};
+          list = list.filter((it: any) => !map[it.id] || map[it.id].size === 0);
+        }
+        continue;
+      }
       if (f.column) {
         list = list.filter((it: any) => String(it[f.column!] ?? '') === v);
       } else if (f.joinTable) {
@@ -325,6 +334,7 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">All {f.label.toLowerCase()}</SelectItem>
+              <SelectItem value="__none">— No {f.label.toLowerCase()} (global)</SelectItem>
               {((filterOptionsMap as any)[f.key] || []).map((o: any) => (
                 <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
               ))}
