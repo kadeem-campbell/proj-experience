@@ -12,7 +12,7 @@
  * Every entity admin (carousels, products, collections, itineraries, hosts, pois, …)
  * should be expressed as a config passed into this component. No bespoke CRUD code.
  */
-import { useMemo, useState, ReactNode } from 'react';
+import { useMemo, useState, useEffect, useRef, ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -344,9 +344,16 @@ const FieldGrid = ({ fields, value, onChange, useBlur = false }: any) => (
 
 const Field = ({ field, value, contextValue, onChange, useBlur }: any) => {
   const [local, setLocal] = useState<any>(value ?? '');
+  const focusedRef = useRef(false);
+  // Sync external value into local state when the server returns a fresh value
+  // (e.g. after another field saves and the row re-renders). Don't clobber while user is editing.
+  useEffect(() => {
+    if (!focusedRef.current) setLocal(value ?? '');
+  }, [value]);
   const commit = (v: any) => onChange(v);
   const change = useBlur ? setLocal : (v: any) => { setLocal(v); onChange(v); };
-  const blurCommit = () => { if (useBlur && local !== value) commit(local); };
+  const blurCommit = () => { focusedRef.current = false; if (useBlur && local !== value) commit(local); };
+  const onFocus = () => { focusedRef.current = true; };
 
   const labelEl = (
     <Label className="text-xs font-medium flex items-center gap-1.5 mb-1">
