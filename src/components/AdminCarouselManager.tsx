@@ -26,7 +26,7 @@ export const AdminCarouselManager = () => {
     table: 'carousels',
     primaryLabelColumn: 'name',
     searchColumns: ['name', 'slug', 'page_location'],
-    orderBy: { column: 'display_order', ascending: true },
+    orderBy: [{ column: 'is_active', ascending: false }, { column: 'display_order', ascending: true }],
     groupBy: { key: 'page_location', labels: { home: 'Home', search: 'Search', destination: 'Destination' } },
     invalidateKeys: [['home-carousels'], ['admin-carousels'], ['carousels']],
     sortable: { orderColumn: 'display_order' },
