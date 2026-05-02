@@ -6,7 +6,17 @@ type AuthState = {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  userProfile: any;
+  userProfile: (Record<string, unknown> & { role?: string }) | null;
+};
+
+type RoleClient = {
+  from: (table: string) => {
+    select: (columns: string) => {
+      eq: (column: string, value: string) => {
+        maybeSingle: () => Promise<{ data: { role?: string } | null; error: { code?: string } | null }>;
+      };
+    };
+  };
 };
 
 let authState: AuthState = {
@@ -46,7 +56,7 @@ const fetchUserProfile = async (userId: string) => {
       return;
     }
     
-    const { data: roleData, error: roleError } = await (supabase as any)
+    const { data: roleData, error: roleError } = await (supabase as unknown as RoleClient)
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
