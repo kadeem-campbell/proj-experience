@@ -15,6 +15,7 @@ export interface ProductListing {
   destinationId?: string | null;
   destinationSlug?: string;
   areaSlug?: string | null;
+  activityTypeId?: string | null;
   averagePrice?: number | null;
   priceMin?: number | null;
   priceMax?: number | null;
@@ -93,6 +94,7 @@ export const useProductListings = () => {
           destinationId: p.destination_id || null,
           destinationSlug: p.destinations?.slug || undefined,
           areaSlug: p.areas?.slug || null,
+          activityTypeId: p.activity_type_id || null,
           averagePrice: avgPrice,
           priceMin: range?.min || null,
           priceMax: range?.max || null,
