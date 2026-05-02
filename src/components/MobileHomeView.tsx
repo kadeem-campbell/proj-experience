@@ -363,14 +363,61 @@ export const MobileHomeView = () => {
     return allExpsData.filter(e => e.destinationId === selectedDestId);
   }, [selectedDestId, allExpsData]);
 
-  // Derive unique tags from visible carousels for filter pills
-  const availableTags = useMemo(() => {
-    const tags = new Set<string>();
-    homeCarousels.forEach(c => {
-      if (c.tag) tags.add(c.tag);
-    });
-    return Array.from(tags).sort();
+  // Lookup maps for the carousel resolver
+  const productDestMap = useMemo(() => {
+    const m = new Map<string, string | null>();
+    allExpsData.forEach(p => m.set(p.id, p.destinationId || null));
+    return m;
+  }, [allExpsData]);
+  const productCatMap = useMemo(() => {
+    const m = new Map<string, string | null>();
+    allExpsData.forEach(p => m.set(p.id, p.activityTypeId || null));
+    return m;
+  }, [allExpsData]);
+  const itinDestMap = useMemo(() => {
+    const m = new Map<string, string | null>();
+    allItinerariesData.forEach((it: any) => m.set(it.dbId || it.id, it.destinationId || null));
+    return m;
+  }, [allItinerariesData]);
+  const poiDestMap = useMemo(() => {
+    const m = new Map<string, string | null>();
+    pois.forEach((p: any) => m.set(p.id, p.destination_id || null));
+    return m;
+  }, [pois]);
+  const allProductIds = useMemo(() => allExpsData.map(p => p.id), [allExpsData]);
+
+  // Pull collection_items for any 'collection' carousels referenced
+  const referencedCollectionIds = useMemo(() => {
+    const ids = new Set<string>();
+    homeCarousels.forEach(c => c.collectionIds.forEach(id => ids.add(id)));
+    return Array.from(ids);
   }, [homeCarousels]);
+
+  const { data: collectionContentsRaw = [] } = useQuery({
+    queryKey: ["collection-items", referencedCollectionIds.sort().join(",")],
+    enabled: referencedCollectionIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("collection_items")
+        .select("collection_id, item_id, item_type, position")
+        .in("collection_id", referencedCollectionIds)
+        .order("position");
+      return data || [];
+    },
+    staleTime: 30 * 1000,
+  });
+
+  const collectionContents = useMemo(() => {
+    const m = new Map<string, ResolvedItem[]>();
+    (collectionContentsRaw as any[]).forEach((r: any) => {
+      const t = r.item_type === "experience" ? "product" : r.item_type;
+      if (!["product","itinerary","poi","area"].includes(t)) return;
+      const arr = m.get(r.collection_id) || [];
+      arr.push({ type: t, id: r.item_id });
+      m.set(r.collection_id, arr);
+    });
+    return m;
+  }, [collectionContentsRaw]);
 
   const normalizeText = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
   const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");
