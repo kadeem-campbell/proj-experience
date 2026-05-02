@@ -421,11 +421,27 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
 };
 
 // ─────────────────────────── EntityRow ───────────────────────────
-const EntityRow = ({ item, config, expanded, onExpand, bulkMode, selected, onToggleSelect, onUpdate, onDelete }: any) => {
+const EntityRow = ({ item, config, expanded, onExpand, bulkMode, selected, onToggleSelect, onUpdate, onDelete, dragEnabled, orderValue }: any) => {
   const primary = config.primaryLabelColumn || 'name';
+  const sortable = useSortable({ id: item.id, disabled: !dragEnabled });
+  const style = { transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition };
   return (
-    <Card className="overflow-hidden">
+    <Card ref={sortable.setNodeRef} style={style} className={cn("overflow-hidden", sortable.isDragging && "opacity-60 ring-2 ring-primary")}>
       <div className="flex items-center gap-2 p-3">
+        {dragEnabled && (
+          <button
+            {...sortable.attributes}
+            {...sortable.listeners}
+            className="shrink-0 cursor-grab active:cursor-grabbing touch-none p-1 text-muted-foreground hover:text-foreground"
+            aria-label="Drag to reorder"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="w-4 h-4" />
+          </button>
+        )}
+        {orderValue !== null && orderValue !== undefined && (
+          <span className="text-[10px] font-mono text-muted-foreground w-7 shrink-0 text-center">#{orderValue}</span>
+        )}
         {bulkMode && <Checkbox checked={selected} onCheckedChange={onToggleSelect} className="shrink-0" />}
         <div className="flex-1 min-w-0 cursor-pointer" onClick={onExpand}>
           <div className="flex items-center gap-2 flex-wrap">
