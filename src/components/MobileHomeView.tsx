@@ -271,11 +271,12 @@ export const MobileHomeView = () => {
   
   const selectedCity = searchParams.get("city") || (() => { try { return localStorage.getItem("swam_selected_city") || ""; } catch { return ""; } })();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [activeTag, setActiveTag] = useState("");
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const { data: allItinerariesData = [] } = usePublicItineraries();
   const allExpsData = useProductListings();
   const { data: homeCarousels = [] } = useHomeCarousels();
+  const { data: homeCategories = [] } = useHomeCategories();
   const timingMap = useTimingDisplayMap();
 
   // Fetch destinations to map selectedCity name → destination ID
