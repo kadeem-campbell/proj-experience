@@ -7,7 +7,6 @@ import { resolveTimingProfile as resolveTimingProfileFn } from "@/lib/timing";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug, useDestinationById, useAreaById } from "@/hooks/useProducts";
-import { useExperienceBySlug } from "@/hooks/useExperienceBySlug";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateProductSchema } from "@/services/schemaGenerator";
 import { usePoiBySlug } from "@/hooks/usePoiBySlug";
