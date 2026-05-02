@@ -26,7 +26,7 @@ import { toast } from "sonner";
 
 interface CardActionMenuProps {
   entityId: string;
-  entityType: "experience" | "itinerary";
+  entityType: "product" | "poi" | "itinerary";
   entityData: any;
   title: string;
   slug?: string;
@@ -89,6 +89,8 @@ const ActionMenuContent = ({
       category: entityData?.category || "",
       location: entityData?.location || "",
       price: entityData?.price || "",
+      entityType: entityType === "poi" ? "poi" : "product",
+      entityId,
     });
   };
 
@@ -132,6 +134,8 @@ const ActionMenuContent = ({
           category: exp.category || "",
           location: exp.location || "",
           price: exp.price || "",
+          entityType: exp.entityType || "product",
+          entityId: exp.entityId || exp.id,
         }))
       );
 
@@ -154,7 +158,7 @@ const ActionMenuContent = ({
       removeExperienceFromItinerary(itinerary.id, entityId);
       toast.success(`Removed from "${itinerary.name}"`);
     } else {
-      const result = addExperienceToItinerary(itinerary.id, entityData);
+      const result = addExperienceToItinerary(itinerary.id, { ...entityData, entityType, entityId });
       if (result.alreadyExists) { toast.error(`Already in "${itinerary.name}"`); return; }
       setActiveItinerary(itinerary.id);
       setJustAdded(itinerary.id);
