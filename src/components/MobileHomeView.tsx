@@ -603,6 +603,14 @@ export const MobileHomeView = () => {
         visibleCarousels.forEach(carousel => {
           const title = carousel.name.replace(/\{city\}/g, selectedCity || 'Explore');
           const resolvedSlug = carousel.slug.replace('city', destSlug || 'explore');
+          // Only link the title to a real Collection page when the carousel actually
+          // resolves through a single collection. Manual / multi-collection / auto carousels
+          // have no Collection page to point at, so we skip the click handler (avoids
+          // the "Collection not found" dead-end).
+          const titleHref = (carousel.resolutionMode === 'collection' && carousel.collectionIds.length === 1)
+            ? `/collections/${resolvedSlug}`
+            : null;
+          const onTitleClick = titleHref ? () => navigate(titleHref) : undefined;
 
           // Areas are a special-case: pulled from the active destination's areas.
           if (carousel.contentType === 'area') {
@@ -665,7 +673,7 @@ export const MobileHomeView = () => {
                 key={carousel.id + '-prod'}
                 title={title}
                
-                onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
+                onTitleClick={onTitleClick}
               >
                 {productItems.map((experience) => (
                   <MobileExperienceCard key={experience.id} experience={experience} timingMap={timingMap} />
@@ -679,7 +687,7 @@ export const MobileHomeView = () => {
                 key={carousel.id + '-itin'}
                 title={title}
                
-                onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
+                onTitleClick={onTitleClick}
               >
                 {itineraryItems.map((itinerary) => (
                   <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -693,7 +701,7 @@ export const MobileHomeView = () => {
                 key={carousel.id + '-poi'}
                 title={title}
                
-                onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
+                onTitleClick={onTitleClick}
               >
                 {poiItems.map((poi: any) => (
                   <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
