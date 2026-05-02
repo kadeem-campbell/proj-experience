@@ -349,7 +349,6 @@ export default function ExperienceDetail() {
   const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
   const { data: productArea } = useAreaById(product?.primary_area_id || '');
   // Products are the only canonical entity for Things to do — no experience fallback.
-  const legacyLoading = false;
   const bestTimeDisplay = useBestTimeDisplay(product?.id || '');
 
   // Fetch linked POI for breadcrumb
@@ -507,7 +506,7 @@ export default function ExperienceDetail() {
   const { data: poiMatch, isLoading: poiLoading } = usePoiBySlug((!experience && !productLoading) ? resolvedSlug : "");
 
   // Loading states
-  if (!experience && (productLoading || legacyLoading)) {
+  if (!experience && productLoading) {
     return isMobile ? (
       <MobileShell hideTopBar><div className="flex justify-center items-center min-h-[60vh]"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div></MobileShell>
     ) : (
