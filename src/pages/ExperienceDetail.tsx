@@ -348,7 +348,9 @@ export default function ExperienceDetail() {
   const { data: productDestination } = useDestinationBySlug(destParam || '');
   const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
   const { data: productArea } = useAreaById(product?.primary_area_id || '');
-  const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug((!product && !productLoading) ? resolvedSlug : '');
+  // Products are the only canonical entity for Things to do — no experience fallback.
+  const legacyExperience: null = null;
+  const legacyLoading = false;
   const bestTimeDisplay = useBestTimeDisplay(product?.id || '');
 
   // Fetch linked POI for breadcrumb
