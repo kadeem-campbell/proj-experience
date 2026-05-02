@@ -18,6 +18,7 @@ let authState: AuthState = {
 
 let initialized = false;
 let profileRequestUserId: string | null = null;
+let profileInFlightUserId: string | null = null;
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
@@ -29,7 +30,9 @@ const setAuthState = (next: Partial<AuthState>) => {
 
 const fetchUserProfile = async (userId: string) => {
   if (profileRequestUserId === userId && authState.userProfile) return;
+  if (profileInFlightUserId === userId) return;
   profileRequestUserId = userId;
+  profileInFlightUserId = userId;
 
   try {
     const { data: profileData, error: profileError } = await supabase
@@ -61,6 +64,8 @@ const fetchUserProfile = async (userId: string) => {
     });
   } catch (error) {
     console.error('Error fetching profile:', error);
+  } finally {
+    if (profileInFlightUserId === userId) profileInFlightUserId = null;
   }
 };
 
@@ -70,9 +75,13 @@ const initAuth = () => {
 
   const applySession = (session: Session | null) => {
     const user = session?.user ?? null;
-    setAuthState({ session, user, loading: false, userProfile: user ? authState.userProfile : null });
+    const sameUser = user?.id && authState.user?.id === user.id;
+    setAuthState({ session, user, loading: false, userProfile: user && sameUser ? authState.userProfile : null });
     if (user) void fetchUserProfile(user.id);
-    else profileRequestUserId = null;
+    else {
+      profileRequestUserId = null;
+      profileInFlightUserId = null;
+    }
   };
 
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
