@@ -131,13 +131,52 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
     contentType === 'poi' ? 'poi' : contentType === 'itinerary' ? 'itinerary' : 'product'
   );
 
+  // For collection mode, also fetch carousel's own markets/categories so we can filter the pool.
+  const { data: carouselScope } = useQuery({
+    queryKey: ['carousel-scope', carouselId],
+    enabled: mode === 'collection',
+    queryFn: async () => {
+      const [m, c] = await Promise.all([
+        (supabase as any).from('carousel_destinations').select('destination_id').eq('carousel_id', carouselId),
+        (supabase as any).from('carousel_categories').select('activity_type_id').eq('carousel_id', carouselId),
+      ]);
+      return {
+        markets: new Set((m.data || []).map((r: any) => r.destination_id)),
+        categories: new Set((c.data || []).map((r: any) => r.activity_type_id)),
+      };
+    },
+  });
+
   // Search pool = items the admin can ADD (matches current mode + contentType).
   const { data: searchPool = [] } = useQuery({
-    queryKey: ['carousel-search-pool', mode, contentType],
+    queryKey: ['carousel-search-pool', mode, contentType, carouselId, carouselScope?.markets.size, carouselScope?.categories.size],
     queryFn: async () => {
       if (mode === 'collection') {
         const { data } = await (supabase as any).from('collections').select('id, name, slug, collection_type').eq('is_active', true).order('name');
-        return (data || []).map((c: any) => ({ id: c.id, label: c.name, sub: c.collection_type, type: 'collection' }));
+        let pool = (data || []);
+        // Filter by overlap with carousel markets/categories (empty carousel scope = no restriction)
+        const wantMarkets = carouselScope?.markets;
+        const wantCats = carouselScope?.categories;
+        if ((wantMarkets && wantMarkets.size > 0) || (wantCats && wantCats.size > 0)) {
+          const ids = pool.map((p: any) => p.id);
+          const [cd, cc] = await Promise.all([
+            (supabase as any).from('collection_destinations').select('collection_id, destination_id').in('collection_id', ids),
+            (supabase as any).from('collection_categories').select('collection_id, activity_type_id').in('collection_id', ids),
+          ]);
+          const byMarket: Record<string, Set<string>> = {};
+          (cd.data || []).forEach((r: any) => { (byMarket[r.collection_id] ||= new Set()).add(r.destination_id); });
+          const byCat: Record<string, Set<string>> = {};
+          (cc.data || []).forEach((r: any) => { (byCat[r.collection_id] ||= new Set()).add(r.activity_type_id); });
+          pool = pool.filter((p: any) => {
+            const cm = byMarket[p.id];
+            const cc2 = byCat[p.id];
+            // collection's own scope must overlap (or be empty = global)
+            const marketOk = !wantMarkets?.size || !cm || cm.size === 0 || [...cm].some(x => wantMarkets.has(x));
+            const catOk = !wantCats?.size || !cc2 || cc2.size === 0 || [...cc2].some(x => wantCats.has(x));
+            return marketOk && catOk;
+          });
+        }
+        return pool.map((c: any) => ({ id: c.id, label: c.name, sub: c.collection_type, type: 'collection' }));
       }
       if (contentType === 'poi') {
         const { data } = await supabase.from('pois').select('id, name, poi_type').eq('is_active', true).order('name');
