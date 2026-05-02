@@ -29,6 +29,8 @@ interface ItinerarySelectorProps {
     category: string;
     location: string;
     price: string;
+    entityType?: 'product' | 'poi';
+    entityId?: string;
   };
   onAdd?: () => void;
   onRemove?: () => void;
