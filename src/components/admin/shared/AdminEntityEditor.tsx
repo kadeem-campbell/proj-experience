@@ -305,6 +305,11 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
 
   if (isLoading) return <div className="text-center py-10 text-sm text-muted-foreground">Loading {config.entityNamePlural.toLowerCase()}…</div>;
 
+  const sortable = !!config.sortable;
+  // Disable drag while filters/search are active — visual order wouldn't match real order
+  const filtersActive = !!search.trim() || Object.values(filterValues).some(v => v && v !== '__all');
+  const dragEnabled = sortable && !filtersActive;
+
   return (
     <div className="space-y-4">
       {/* Toolbar */}
@@ -313,6 +318,24 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder={`Search ${config.entityNamePlural.toLowerCase()}…`} value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
+        {(config.toolbarFilters || []).map(f => (
+          <Select key={f.key} value={filterValues[f.key] || '__all'} onValueChange={v => setFilterValues(p => ({ ...p, [f.key]: v }))}>
+            <SelectTrigger className="h-9 w-[160px] text-xs">
+              <SelectValue placeholder={f.label} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">All {f.label.toLowerCase()}</SelectItem>
+              {((filterOptionsMap as any)[f.key] || []).map((o: any) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ))}
+        {filtersActive && (
+          <Button size="sm" variant="ghost" className="h-9 text-xs gap-1" onClick={() => { setSearch(''); setFilterValues({}); }}>
+            <X className="w-3 h-3" /> Clear
+          </Button>
+        )}
         <Button size="sm" variant={bulkMode ? 'secondary' : 'outline'} className="gap-1" onClick={() => { setBulkMode(!bulkMode); setSelected(new Set()); }}>
           <CheckSquare className="w-3.5 h-3.5" /> Bulk
         </Button>
@@ -320,6 +343,10 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
           <Plus className="w-3.5 h-3.5" /> New {config.entityName.toLowerCase()}
         </Button>
       </div>
+
+      {sortable && filtersActive && (
+        <p className="text-[11px] text-muted-foreground italic px-1">Drag-to-reorder is paused while filters are active. Clear filters to rearrange.</p>
+      )}
 
       {bulkMode && selected.size > 0 && (
         <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg border">
@@ -349,34 +376,46 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
       )}
 
       {/* Grouped list */}
-      {Object.entries(grouped).map(([groupKey, list]) => (
-        <div key={groupKey}>
-          {config.groupBy && (
-            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 mt-4">
-              {config.groupBy.labels?.[groupKey] || groupKey} <span className="text-muted-foreground/60">({list.length})</span>
-            </h4>
-          )}
-          <div className="space-y-1.5">
-            {list.map((item: any) => (
-              <EntityRow
-                key={item.id}
-                item={item}
-                config={config}
-                expanded={expandedId === item.id}
-                onExpand={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                bulkMode={bulkMode}
-                selected={selected.has(item.id)}
-                onToggleSelect={() => toggleSel(item.id)}
-                onUpdate={(u) => handleUpdate(item.id, u)}
-                onDelete={() => handleDelete([item.id])}
-              />
-            ))}
-            {list.length === 0 && (
-              <p className="text-xs text-muted-foreground italic py-4 text-center">No {config.entityNamePlural.toLowerCase()}.</p>
+      {Object.entries(grouped).map(([groupKey, list]) => {
+        const ids = list.map((it: any) => it.id);
+        const rows = list.map((item: any) => (
+          <EntityRow
+            key={item.id}
+            item={item}
+            config={config}
+            expanded={expandedId === item.id}
+            onExpand={() => setExpandedId(expandedId === item.id ? null : item.id)}
+            bulkMode={bulkMode}
+            selected={selected.has(item.id)}
+            onToggleSelect={() => toggleSel(item.id)}
+            onUpdate={(u) => handleUpdate(item.id, u)}
+            onDelete={() => handleDelete([item.id])}
+            dragEnabled={dragEnabled}
+            orderValue={config.sortable ? item[config.sortable.orderColumn] : null}
+          />
+        ));
+        return (
+          <div key={groupKey}>
+            {config.groupBy && (
+              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 mt-4">
+                {config.groupBy.labels?.[groupKey] || groupKey} <span className="text-muted-foreground/60">({list.length})</span>
+              </h4>
             )}
+            <div className="space-y-1.5">
+              {dragEnabled ? (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(list, e)}>
+                  <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+                    {rows}
+                  </SortableContext>
+                </DndContext>
+              ) : rows}
+              {list.length === 0 && (
+                <p className="text-xs text-muted-foreground italic py-4 text-center">No {config.entityNamePlural.toLowerCase()}.</p>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
