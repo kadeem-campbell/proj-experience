@@ -95,7 +95,6 @@ const initAuth = () => {
 
 export const useAuth = () => {
   const [state, setState] = useState<AuthState>(() => {
-    initAuth();
     return authState;
   });
 
@@ -126,3 +125,5 @@ export const useAuth = () => {
     refreshProfile: () => state.user ? fetchUserProfile(state.user.id) : null,
   };
 };
+
+initAuth();
