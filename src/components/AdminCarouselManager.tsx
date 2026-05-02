@@ -282,6 +282,17 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
             }}>Remove all</Button>
           </div>
         )}
+        {mismatched.length > 0 && (
+          <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-2 text-[11px] text-amber-700 dark:text-amber-400 flex items-center justify-between gap-2">
+            <span>{mismatched.length} linked collection{mismatched.length === 1 ? '' : 's'} no longer match this carousel's city/category scope.</span>
+            <Button size="sm" variant="outline" className="h-6 text-[11px] px-2" onClick={async () => {
+              const { error } = await (supabase as any).from('carousel_items').delete().in('id', mismatched.map((o: any) => o.id));
+              if (error) { toast.error(friendlyError(error)); return; }
+              toast.success(`Removed ${mismatched.length}`);
+              invalidate();
+            }}>Remove all</Button>
+          </div>
+        )}
         <div className="space-y-1 mt-2">
           {linkedItems.map((it: any, idx: number) => {
             const meta = linkedMeta[`${it.item_type}:${it.item_id}`] || searchPool.find((p: any) => p.id === it.item_id);
