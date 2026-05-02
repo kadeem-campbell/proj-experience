@@ -240,6 +240,9 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
   }, [filtered, config.groupBy]);
 
   // ── drag reorder (sortable) ──
+  // Works WITH or WITHOUT filters: when filters are active we only redistribute
+  // the order_column values that the visible rows already occupy, so hidden rows
+  // keep their absolute position.
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const handleDragEnd = async (groupList: any[], e: DragEndEvent) => {
     if (!config.sortable || !e.over || e.active.id === e.over.id) return;
@@ -247,15 +250,29 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
     const newIdx = groupList.findIndex((x: any) => x.id === e.over!.id);
     if (oldIdx < 0 || newIdx < 0) return;
     const reordered = arrayMove(groupList, oldIdx, newIdx);
+    const orderCol = config.sortable.orderColumn;
+
+    // The set of order values currently held by the rows being reshuffled
+    const currentOrderValues = groupList
+      .map((it: any) => it[orderCol])
+      .filter((v: any) => v !== null && v !== undefined)
+      .sort((a: number, b: number) => a - b);
+    // Fallback if some rows had no order value
+    while (currentOrderValues.length < reordered.length) {
+      currentOrderValues.push((currentOrderValues[currentOrderValues.length - 1] ?? 0) + 10);
+    }
+
+    // Map each reordered row to the slot value it should now occupy
+    const idToNewOrder = new Map(reordered.map((it: any, i: number) => [it.id, currentOrderValues[i]]));
+
     // Optimistic local update
-    qc.setQueryData(queryKey, (prev: any[] = []) => {
-      const idMap = new Map(reordered.map((it, i) => [it.id, (i + 1) * 10]));
-      return prev.map((it: any) => idMap.has(it.id) ? { ...it, [config.sortable!.orderColumn]: idMap.get(it.id) } : it)
-        .sort((a: any, b: any) => (a[config.sortable!.orderColumn] ?? 9999) - (b[config.sortable!.orderColumn] ?? 9999));
-    });
-    // Persist new order in batch
-    const updates = reordered.map((it: any, i: number) =>
-      (supabase as any).from(config.table).update({ [config.sortable!.orderColumn]: (i + 1) * 10 }).eq('id', it.id)
+    qc.setQueryData(queryKey, (prev: any[] = []) =>
+      prev.map((it: any) => idToNewOrder.has(it.id) ? { ...it, [orderCol]: idToNewOrder.get(it.id) } : it)
+        .sort((a: any, b: any) => (a[orderCol] ?? 9999) - (b[orderCol] ?? 9999))
+    );
+    // Persist
+    const updates = Array.from(idToNewOrder.entries()).map(([id, ord]) =>
+      (supabase as any).from(config.table).update({ [orderCol]: ord }).eq('id', id)
     );
     const results = await Promise.all(updates);
     const firstErr = results.find((r: any) => r.error);
