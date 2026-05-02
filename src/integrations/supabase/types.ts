@@ -522,14 +522,17 @@ export type Database = {
         Row: {
           activity_type_id: string
           carousel_id: string
+          id: string
         }
         Insert: {
           activity_type_id: string
           carousel_id: string
+          id?: string
         }
         Update: {
           activity_type_id?: string
           carousel_id?: string
+          id?: string
         }
         Relationships: [
           {
@@ -552,14 +555,17 @@ export type Database = {
         Row: {
           carousel_id: string
           destination_id: string
+          id: string
         }
         Insert: {
           carousel_id: string
           destination_id: string
+          id?: string
         }
         Update: {
           carousel_id?: string
           destination_id?: string
+          id?: string
         }
         Relationships: [
           {
