@@ -397,7 +397,7 @@ export const MobileHomeView = () => {
     queryKey: ["collection-items", referencedCollectionIds.sort().join(",")],
     enabled: referencedCollectionIds.length > 0,
     queryFn: async () => {
-      const [itemsRes, destsRes, catsRes] = await Promise.all([
+      const [itemsRes, destsRes, catsRes, slugRes] = await Promise.all([
         (supabase as any)
           .from("collection_items")
           .select("collection_id, item_id, item_type, position")
@@ -411,11 +411,16 @@ export const MobileHomeView = () => {
           .from("collection_categories")
           .select("collection_id, activity_type_id")
           .in("collection_id", referencedCollectionIds),
+        (supabase as any)
+          .from("collections")
+          .select("id, slug")
+          .in("id", referencedCollectionIds),
       ]);
       return {
         items: itemsRes.data || [],
         destinations: destsRes.data || [],
         categories: catsRes.data || [],
+        slugs: slugRes.data || [],
       };
     },
     staleTime: 30 * 1000,
@@ -449,6 +454,14 @@ export const MobileHomeView = () => {
       const arr = m.get(r.collection_id) || [];
       arr.push(r.activity_type_id);
       m.set(r.collection_id, arr);
+    });
+    return m;
+  }, [collectionContentsRaw]);
+
+  const collectionSlugMap = useMemo(() => {
+    const m = new Map<string, string>();
+    ((collectionContentsRaw as any)?.slugs || []).forEach((r: any) => {
+      if (r.slug) m.set(r.id, r.slug);
     });
     return m;
   }, [collectionContentsRaw]);
@@ -602,14 +615,15 @@ export const MobileHomeView = () => {
 
         visibleCarousels.forEach(carousel => {
           const title = carousel.name.replace(/\{city\}/g, selectedCity || 'Explore');
-          const resolvedSlug = carousel.slug.replace('city', destSlug || 'explore');
-          // Only link the title to a real Collection page when the carousel actually
-          // resolves through a single collection. Manual / multi-collection / auto carousels
-          // have no Collection page to point at, so we skip the click handler (avoids
-          // the "Collection not found" dead-end).
-          const titleHref = (carousel.resolutionMode === 'collection' && carousel.collectionIds.length === 1)
-            ? `/collections/${resolvedSlug}`
-            : null;
+          // Carousel titles deep-link to the underlying Collection page when the
+          // carousel resolves through a single collection. We must use the COLLECTION's
+          // own slug (not the carousel slug) because /collections/:slug looks up by
+          // collections.slug. Manual / multi-collection / auto carousels have no
+          // Collection page to point at, so we skip the click handler.
+          const linkedCollectionSlug = (carousel.resolutionMode === 'collection' && carousel.collectionIds.length === 1)
+            ? collectionSlugMap.get(carousel.collectionIds[0])
+            : undefined;
+          const titleHref = linkedCollectionSlug ? `/collections/${linkedCollectionSlug}` : null;
           const onTitleClick = titleHref ? () => navigate(titleHref) : undefined;
 
           // Areas are a special-case: pulled from the active destination's areas.
