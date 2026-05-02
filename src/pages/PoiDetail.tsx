@@ -106,7 +106,7 @@ export default function PoiDetail() {
   const { data: linkedProducts = [] } = usePoiProducts(poi?.id || "");
 
   const typeInfo = typeConfig[poi?.poi_type || ""] || { label: poi?.poi_type || "Place" };
-  const liked = poi ? (isAuthenticated ? isDbLiked(poi.id, "experience") : localLiked) : false;
+  const liked = poi ? (isAuthenticated ? isDbLiked(poi.id, "poi") : localLiked) : false;
 
   // Deterministic like count seeded from POI ID
   const likeCount = useMemo(() => {
@@ -125,7 +125,7 @@ export default function PoiDetail() {
     if (!poi) return;
     if ("vibrate" in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
-      await toggleDbLike(poi.id, "experience", { id: poi.id, title: poi.name, videoThumbnail: poi.cover_image || "" });
+      await toggleDbLike(poi.id, "poi", { id: poi.id, title: poi.name, videoThumbnail: poi.cover_image || "" });
     } else {
       setLocalLiked(!localLiked);
     }

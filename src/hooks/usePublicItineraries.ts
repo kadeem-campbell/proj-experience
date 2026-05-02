@@ -54,7 +54,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       .order("day_number", { ascending: true })
       .order("display_order", { ascending: true });
 
-    // Resolve product/poi metadata for any item lacking a denormalized title/image.
+    // Resolve product/poi metadata for any item lacking denormalized fields.
     const productIds = new Set<string>();
     const poiIds = new Set<string>();
     (snapshotItems || []).forEach((it: any) => {
@@ -68,7 +68,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       for (let i = 0; i < ids.length; i += 100) {
         const { data: prods } = await supabase
           .from("products")
-          .select("id, title, slug, cover_image, video_url, location, category, price")
+          .select("id, title, slug, cover_image, cover_image_url, video_url, average_price_per_person, destinations(name, slug), activity_types(name), areas!products_primary_area_id_fkey(slug)")
           .in("id", ids.slice(i, i + 100));
         (prods || []).forEach((p: any) => (productMeta[p.id] = p));
       }
@@ -99,14 +99,18 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
         id,
         title: meta?.title || meta?.name || it.title || it.custom_title || "",
         creator: "",
-        videoThumbnail: meta?.cover_image || it.image_url || "",
-        category: meta?.category || it.category || "",
-        location: meta?.location || it.location || "",
-        price: meta?.price || it.price || "",
+        videoThumbnail: meta?.cover_image_url || meta?.cover_image || it.image_url || "",
+        category: meta?.activity_types?.name || meta?.category || it.category || "",
+        location: meta?.destinations?.name || meta?.location || it.location || "",
+        price: meta?.average_price_per_person ? `$${Math.round(meta.average_price_per_person)} avg` : (it.price || ""),
         likedAt: new Date().toISOString(),
         notes: it.notes || undefined,
         timeSlot: (it.time_slot as TimeSlot) || undefined,
         slug: meta?.slug || undefined,
+        entityType: it.entity_type === "poi" ? "poi" : "product",
+        entityId: it.entity_id || undefined,
+        destinationSlug: meta?.destinations?.slug || undefined,
+        areaSlug: meta?.areas?.slug || undefined,
       } as LikedExperience;
       if (!itemsByItinerary[it.public_itinerary_id]) {
         itemsByItinerary[it.public_itinerary_id] = [];
@@ -115,53 +119,8 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
     });
   }
 
-  // 2) Legacy fallback: editorial rows that still only have JSONB experiences.
-  const legacyProductIds = new Set<string>();
-  data.forEach((row: any) => {
-    if (itemsByItinerary[row.id]?.length) return;
-    const exps = Array.isArray(row.experiences) ? row.experiences : [];
-    exps.forEach((e: any) => {
-      if (e?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(e.id)) {
-        legacyProductIds.add(e.id);
-      }
-    });
-  });
-
-  const legacyProductMeta: Record<string, any> = {};
-  if (legacyProductIds.size > 0) {
-    const ids = Array.from(legacyProductIds);
-    for (let i = 0; i < ids.length; i += 100) {
-      const { data: prods } = await supabase
-        .from("products")
-        .select("id, title, slug, cover_image, location, category, price")
-        .in("id", ids.slice(i, i + 100));
-      (prods || []).forEach((p: any) => (legacyProductMeta[p.id] = p));
-    }
-  }
-
   return data.map((row: any) => {
-    let experiences = itemsByItinerary[row.id] || [];
-
-    if (experiences.length === 0) {
-      // Legacy editorial JSONB fallback (only products).
-      const rawExps = Array.isArray(row.experiences) ? row.experiences : [];
-      experiences = rawExps
-        .filter((e: any) => e?.id && legacyProductMeta[e.id])
-        .map((e: any) => {
-          const product = legacyProductMeta[e.id];
-          return {
-            id: e.id,
-            title: product?.title || e.title || "",
-            creator: e.creator || "",
-            videoThumbnail: product?.cover_image || e.videoThumbnail || "",
-            category: product?.category || e.category || "",
-            location: product?.location || e.location || "",
-            price: product?.price || e.price || "",
-            likedAt: e.likedAt || new Date().toISOString(),
-            slug: product?.slug || e.slug || "",
-          } as LikedExperience;
-        });
-    }
+    const experiences = itemsByItinerary[row.id] || [];
 
     return {
       id: row.slug || row.id,

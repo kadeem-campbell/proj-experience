@@ -6,7 +6,7 @@ export interface UserLike {
   id: string;
   user_id: string;
   item_id: string;
-  item_type: 'experience' | 'itinerary' | 'poi';
+  item_type: 'product' | 'itinerary' | 'poi';
   // Existing cards read flexible cached metadata from this object.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   item_data: Record<string, any>;
@@ -70,7 +70,7 @@ export const useUserLikes = () => {
       
       const typedLikes = (data || []).map(like => ({
         ...like,
-        item_type: like.item_type as 'experience' | 'itinerary' | 'poi',
+        item_type: like.item_type as 'product' | 'itinerary' | 'poi',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         item_data: like.item_data as Record<string, any>
       }));
@@ -97,7 +97,7 @@ export const useUserLikes = () => {
   // Toggle like with OPTIMISTIC update - instant UI, background DB sync
   const toggleLike = async (
     itemId: string, 
-    itemType: 'experience' | 'itinerary' | 'poi',
+    itemType: 'product' | 'itinerary' | 'poi',
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     itemData: Record<string, any>
   ): Promise<boolean> => {
@@ -163,7 +163,7 @@ export const useUserLikes = () => {
             // Replace temp with real
             setSharedLikes(sharedLikes.map(l => l.id === tempId ? {
               ...data,
-              item_type: data.item_type as 'experience' | 'itinerary' | 'poi',
+              item_type: data.item_type as 'product' | 'itinerary' | 'poi',
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               item_data: data.item_data as Record<string, any>
             } : l));
@@ -174,11 +174,11 @@ export const useUserLikes = () => {
     }
   };
 
-  const isLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' | 'poi' = 'experience'): boolean => {
+  const isLiked = useCallback((itemId: string, itemType: 'product' | 'itinerary' | 'poi' = 'product'): boolean => {
     return likes.some(l => l.item_id === itemId && l.item_type === itemType);
   }, [likes]);
 
-  const getLikesByType = useCallback((itemType: 'experience' | 'itinerary' | 'poi'): UserLike[] => {
+  const getLikesByType = useCallback((itemType: 'product' | 'itinerary' | 'poi'): UserLike[] => {
     return likes.filter(l => l.item_type === itemType);
   }, [likes]);
 
@@ -188,10 +188,10 @@ export const useUserLikes = () => {
     toggleLike,
     isLiked,
     getLikesByType,
-    likedExperiences: getLikesByType('experience'),
+    likedExperiences: getLikesByType('product'),
     likedItineraries: getLikesByType('itinerary'),
     likedPois: getLikesByType('poi'),
-    experienceCount: getLikesByType('experience').length,
+    experienceCount: getLikesByType('product').length,
     itineraryCount: getLikesByType('itinerary').length,
     poiCount: getLikesByType('poi').length,
     totalCount: likes.length,

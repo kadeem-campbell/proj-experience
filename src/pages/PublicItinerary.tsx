@@ -167,12 +167,12 @@ const PublicItinerary = () => {
   const { addUpdate } = useItineraryUpdates();
 
   // Like helpers
-  const isItemLiked = useCallback((itemId: string, itemType: 'experience' | 'itinerary' = 'experience') => {
+  const isItemLiked = useCallback((itemId: string, itemType: 'product' | 'itinerary' = 'product') => {
     if (isAuthenticated) return isDbLiked(itemId, itemType);
     return localLikes.has(`${itemType}:${itemId}`);
   }, [isAuthenticated, isDbLiked, localLikes]);
 
-  const handleToggleLike = useCallback(async (itemId: string, itemType: 'experience' | 'itinerary', itemData: Record<string, any>) => {
+  const handleToggleLike = useCallback(async (itemId: string, itemType: 'product' | 'itinerary', itemData: Record<string, any>) => {
     if (isAuthenticated) {
       const wasLiked = isDbLiked(itemId, itemType);
       if (itemType === 'itinerary') {
@@ -443,6 +443,7 @@ const PublicItinerary = () => {
         id: exp.id, title: exp.title, creator: exp.creator,
         videoThumbnail: exp.videoThumbnail, category: exp.category,
         location: exp.location, price: exp.price, timeSlot: exp.timeSlot,
+        entityType: exp.entityType || 'product', entityId: exp.entityId || exp.id,
       });
       if (result.success) addedCount++;
     }
@@ -587,7 +588,7 @@ const PublicItinerary = () => {
 
   // Clean list row
   const renderListRow = (experience: LikedExperience, _idx?: number, _total?: number) => {
-    const liked = isItemLiked(experience.id, 'experience');
+    const liked = isItemLiked(experience.id, 'product');
     const slotInfo = experience.timeSlot ? timeSlotConfig[experience.timeSlot] : null;
 
     // Resolve from DB — use DB data as primary source for category, price, image, slug
@@ -638,7 +639,7 @@ const PublicItinerary = () => {
                 e.preventDefault(); e.stopPropagation();
                 if ('vibrate' in navigator) navigator.vibrate(10);
                 if (!isAuthenticated) { setShowAuthModal(true); return; }
-                await handleToggleLike(experience.id, 'experience', {
+                await handleToggleLike(experience.id, 'product', {
                   id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail,
                 });
               }}
@@ -655,7 +656,7 @@ const PublicItinerary = () => {
 
   // Icons view card
   const renderIconCard = (experience: LikedExperience) => {
-    const liked = isItemLiked(experience.id, 'experience');
+    const liked = isItemLiked(experience.id, 'product');
     const dbExp = allDbExperiences.find(e => e.id === experience.id);
     const thumbnail = dbExp?.videoThumbnail || experience.videoThumbnail;
     const category = dbExp?.category || experience.category;
@@ -682,7 +683,7 @@ const PublicItinerary = () => {
                 e.preventDefault(); e.stopPropagation();
                 if ('vibrate' in navigator) navigator.vibrate(10);
                 if (!isAuthenticated) { setShowAuthModal(true); return; }
-                await handleToggleLike(experience.id, 'experience', { id: experience.id, title: experience.title });
+                await handleToggleLike(experience.id, 'product', { id: experience.id, title: experience.title });
               }}
               className={cn(
               "absolute top-2 right-2 p-2 rounded-full backdrop-blur-xl shadow-sm transition-colors",
@@ -1233,6 +1234,7 @@ const PublicItinerary = () => {
                               id: exp.id, title: exp.title, creator: exp.creator || '',
                               videoThumbnail: exp.videoThumbnail || '', category: exp.category || '',
                               location: exp.location || '', price: exp.price || '',
+                              entityType: 'product', entityId: exp.id,
                             });
                           }}
                           className="shrink-0 text-xs font-medium text-primary px-3 py-1.5 rounded-full bg-primary/10 active:bg-primary/20 transition-colors"
