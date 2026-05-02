@@ -49,6 +49,8 @@ let sharedItinerariesState: ItinerariesState = {
 };
 
 const itineraryListeners = new Set<(state: ItinerariesState) => void>();
+let loadedForUserKey: string | null = null;
+let loadInFlightForUserKey: string | null = null;
 
 const setSharedItinerariesState = (next: Partial<ItinerariesState>) => {
   sharedItinerariesState = { ...sharedItinerariesState, ...next };
@@ -145,6 +147,19 @@ export const useItineraries = () => {
 
   // Load itineraries from database or localStorage
   const loadItineraries = useCallback(async (uid: string | null) => {
+    const userKey = uid || 'guest';
+    if (
+      loadedForUserKey === userKey &&
+      sharedItinerariesState.userId === uid &&
+      sharedItinerariesState.itineraries.length > 0
+    ) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (loadInFlightForUserKey === userKey) return;
+    loadInFlightForUserKey = userKey;
+
     if (uid) {
       // Show cached data immediately while fetching
       const cacheKey = `itineraries_cache_${uid}`;
@@ -180,7 +195,8 @@ export const useItineraries = () => {
       if (error) {
         console.error('Error loading itineraries:', error);
         setIsLoading(false);
-        return;
+      loadInFlightForUserKey = null;
+      return;
       }
 
       if (data && data.length > 0) {
@@ -245,6 +261,8 @@ export const useItineraries = () => {
       }
     }
     
+    loadedForUserKey = userKey;
+    loadInFlightForUserKey = null;
     setIsLoading(false);
   }, [syncLocalToDatabase]);
 
