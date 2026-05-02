@@ -5746,6 +5746,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_itinerary_collaborator: {
+        Args: { _itinerary_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_itinerary_owner: {
+        Args: { _itinerary_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "creator" | "traveler"
