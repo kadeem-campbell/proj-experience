@@ -338,9 +338,10 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
   if (isLoading) return <div className="text-center py-10 text-sm text-muted-foreground">Loading {config.entityNamePlural.toLowerCase()}…</div>;
 
   const sortable = !!config.sortable;
-  // Disable drag while filters/search are active — visual order wouldn't match real order
   const filtersActive = !!search.trim() || Object.values(filterValues).some(v => v && v !== '__all');
-  const dragEnabled = sortable && !filtersActive;
+  // Drag works with OR without filters — when filtered we only redistribute the
+  // order values among visible rows, so hidden rows stay put.
+  const dragEnabled = sortable;
 
   return (
     <div className="space-y-4">
