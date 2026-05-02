@@ -2,11 +2,20 @@ import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+type UserProfile = {
+  id?: string;
+  username?: string | null;
+  full_name?: string | null;
+  avatar_url?: string | null;
+  role?: string;
+  [key: string]: unknown;
+};
+
 type AuthState = {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  userProfile: (Record<string, unknown> & { role?: string }) | null;
+  userProfile: UserProfile | null;
 };
 
 type RoleClient = {
