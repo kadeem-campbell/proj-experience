@@ -52,7 +52,7 @@ const ItineraryGridCard = ({
 
   return (
     <div className="relative group active:scale-[0.98] transition-transform" onClick={onTap}>
-      <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-muted relative">
+      <div className="aspect-square rounded-3xl overflow-hidden bg-muted relative">
         {coverImage ? (
           <img src={coverImage} alt={itinerary.name} className="w-full h-full object-cover" />
         ) : (
@@ -450,20 +450,19 @@ const MyItinerariesPage = () => {
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-bold text-foreground">My Itineraries</h1>
                 <p className="text-sm text-muted-foreground mt-0.5">{itineraries.length} itinerar{itineraries.length !== 1 ? 'ies' : 'y'}</p>
               </div>
+              {/* Apple-style circular create button */}
+              <button
+                onClick={() => { setNewName(""); setNewDescription(""); setNewVisibility("private"); setNewPeople("2"); setNewCity(""); setShowCreate(true); }}
+                aria-label="Create itinerary"
+                className="shrink-0 w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-sm active:scale-90 transition-transform"
+              >
+                <Plus className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
+              </button>
             </div>
-
-            {/* Create button — own row */}
-            <button
-              onClick={() => { setNewName(""); setNewDescription(""); setNewVisibility("private"); setNewPeople("2"); setNewCity(""); setShowCreate(true); }}
-              className="mt-3 w-full py-2.5 rounded-full bg-primary flex items-center justify-center gap-2 shadow-lg active:scale-[0.97] transition-transform"
-            >
-              <Plus className="w-4 h-4 text-primary-foreground" />
-              <span className="text-sm font-semibold text-primary-foreground">Create Itinerary</span>
-            </button>
           </div>
 
           {/* Scrollable content */}
