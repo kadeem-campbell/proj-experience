@@ -2521,6 +2521,45 @@ export type Database = {
           },
         ]
       }
+      itinerary_collaborators: {
+        Row: {
+          id: string
+          invited_at: string
+          invited_by: string | null
+          itinerary_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          itinerary_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          itinerary_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_collaborators_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itineraries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itinerary_collaborators_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_itineraries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itinerary_days: {
         Row: {
           created_at: string | null
@@ -5651,7 +5690,49 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          full_name: string | null
+          id: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          full_name?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          full_name?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      public_user_itineraries: {
+        Row: {
+          active_trip_id: string | null
+          copied_from: string | null
+          copy_count: number | null
+          cover_image: string | null
+          created_at: string | null
+          creator_avatar_url: string | null
+          creator_display_name: string | null
+          creator_username: string | null
+          experiences: Json | null
+          id: string | null
+          is_public: boolean | null
+          name: string | null
+          start_date: string | null
+          tag: string | null
+          theme: string | null
+          trips: Json | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_role: {
