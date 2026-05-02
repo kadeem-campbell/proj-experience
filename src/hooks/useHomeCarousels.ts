@@ -163,6 +163,10 @@ export const resolveCarouselItems = (
     poiDestMap: Map<string, string | null>;
     /** collection_id → array of {type,id} from collection_items (already typed) */
     collectionContents: Map<string, ResolvedItem[]>;
+    /** collection_id → destination_ids; empty means all markets */
+    collectionDestMap?: Map<string, string[]>;
+    /** collection_id → activity_type_ids; empty means all categories */
+    collectionCatMap?: Map<string, string[]>;
     /** All product ids (for 'auto' mode) */
     allProductIds: string[];
   }
@@ -173,6 +177,10 @@ export const resolveCarouselItems = (
     items = c.manualItems;
   } else if (c.resolutionMode === "collection") {
     c.collectionIds.forEach(cid => {
+      const collectionDests = ctx.collectionDestMap?.get(cid) || [];
+      const collectionCats = ctx.collectionCatMap?.get(cid) || [];
+      if (ctx.selectedDestId && collectionDests.length > 0 && !collectionDests.includes(ctx.selectedDestId)) return;
+      if (ctx.activeCategoryId && collectionCats.length > 0 && !collectionCats.includes(ctx.activeCategoryId)) return;
       const inner = ctx.collectionContents.get(cid);
       if (inner) items.push(...inner);
     });
