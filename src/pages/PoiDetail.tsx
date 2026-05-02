@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { usePoiBySlug, usePoiMedia, usePoiProducts } from "@/hooks/usePoiBySlug";
 import { useDestinationBySlug } from "@/hooks/useProducts";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -141,11 +142,16 @@ export default function PoiDetail() {
 
   const handleAddToExistingItinerary = (targetItinerary: Itinerary) => {
     if (!poi) return;
-    addExperienceToItinerary(targetItinerary.id, {
+    const result = addExperienceToItinerary(targetItinerary.id, {
       id: poi.id, title: poi.name, creator: "",
       videoThumbnail: poi.cover_image || "", category: typeInfo.label,
       location: destination?.name || destParam || "", price: "",
+      entityType: 'poi', entityId: poi.id,
     });
+    if (result.refusalMessage) {
+      toast.error(result.refusalMessage);
+      return;
+    }
     setShowAddToItinerarySheet(false);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);

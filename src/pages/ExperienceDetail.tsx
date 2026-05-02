@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { SEOHead, createExperienceJsonLd } from "@/components/SEOHead";
 import { resolveTimingProfile as resolveTimingProfileFn } from "@/lib/timing";
 import { MobileShell } from "@/components/MobileShell";
@@ -495,7 +496,12 @@ export default function ExperienceDetail() {
       id: experience.id, title: experience.title, creator: experience.creator,
       videoThumbnail: experience.videoThumbnail, category: experience.category,
       location: experience.location, price: experience.price || "",
+      entityType: 'product', entityId: experience.id,
     });
+    if (result.refusalMessage) {
+      toast.error(result.refusalMessage);
+      return;
+    }
     setShowAddToItinerarySheet(false);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);

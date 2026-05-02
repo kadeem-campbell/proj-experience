@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import { Plus, Layers, MapPin, MoreHorizontal, Trash2, Edit2, Loader2, Bell, ChevronRight, ChevronDown, Search, X, Check, Heart, Calendar, Users, Globe, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { slugify, generateProductPageUrl } from "@/utils/slugUtils";
@@ -231,11 +232,13 @@ const MyItinerariesPage = () => {
 
   const handleAddExperience = useCallback((exp: any) => {
     if (!addModeItineraryId) return;
-    addExperienceToItinerary(addModeItineraryId, {
+    const result = addExperienceToItinerary(addModeItineraryId, {
       id: exp.id, title: exp.title, creator: exp.creator || '',
       videoThumbnail: exp.videoThumbnail || '', category: exp.category || '',
       location: exp.location || '', price: exp.price || '',
+      entityType: 'product', entityId: exp.id,
     });
+    if (result.refusalMessage) { toast.error(result.refusalMessage); return; }
     setAddedIds(prev => new Set(prev).add(exp.id));
   }, [addModeItineraryId, addExperienceToItinerary]);
 
