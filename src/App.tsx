@@ -8,7 +8,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { RedirectHandler } from "@/components/RedirectHandler";
 import Search from "./pages/Search";
 import ExperienceDetail from "./pages/ExperienceDetail";
-import CreateExperience from "./pages/CreateExperience";
+
 import Hosts from "./pages/Hosts";
 import Monetise from "./pages/Monetise";
 import Map from "./pages/Map";
