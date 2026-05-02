@@ -101,12 +101,11 @@ export const matchesContext = (
     if (!selectedDestId) return false;
     if (!c.destinationIds.includes(selectedDestId)) return false;
   }
-  // Category gate
-  if (activeCategoryId) {
-    if (c.categoryIds.length === 0) return false;
+  // Category gate:
+  //  - no category active → don't filter by category at all (show every carousel for the city)
+  //  - category active     → carousel must either be global (no category restriction) or include that category
+  if (activeCategoryId && c.categoryIds.length > 0) {
     if (!c.categoryIds.includes(activeCategoryId)) return false;
-  } else if (c.categoryIds.length > 0) {
-    return false;
   }
   return true;
 };
