@@ -275,13 +275,16 @@ export const useIncludedInItineraries = (experienceId: string) => {
   return useQuery({
     queryKey: ['included-in-itineraries', experienceId],
     queryFn: async () => {
+      // Look up which active public itineraries snapshot this product.
       const { data } = await supabase
-        .from('itinerary_experiences')
-        .select('itinerary_id, public_itineraries(id, name, slug, cover_image, like_count)')
-        .eq('experience_id', experienceId);
+        .from('public_itinerary_items')
+        .select('public_itinerary_id, public_itineraries!inner(id, name, slug, cover_image, like_count, is_active)')
+        .eq('entity_type', 'product')
+        .eq('entity_id', experienceId);
+      const seen = new Set<string>();
       return (data || [])
         .map((d: any) => d.public_itineraries)
-        .filter(Boolean);
+        .filter((it: any) => it && it.is_active && !seen.has(it.id) && (seen.add(it.id), true));
     },
     enabled: !!experienceId,
   });

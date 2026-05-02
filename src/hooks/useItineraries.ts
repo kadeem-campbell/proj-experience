@@ -691,12 +691,32 @@ export const useItineraries = () => {
     saveItineraries(updated);
   }, [activeItineraryId, itineraries, saveItineraries]);
 
-  const togglePublic = useCallback((id: string) => {
+  const togglePublic = useCallback(async (id: string) => {
+    const target = itineraries.find(i => i.id === id);
+    if (!target) return;
+    const willBePublic = !target.isPublic;
+
+    // Optimistic local flip
     const updated = itineraries.map(i =>
-      i.id === id ? { ...i, isPublic: !i.isPublic, updatedAt: new Date().toISOString() } : i
+      i.id === id ? { ...i, isPublic: willBePublic, updatedAt: new Date().toISOString() } : i
     );
     saveItineraries(updated);
-  }, [itineraries, saveItineraries]);
+
+    if (!userId) return; // Guests: local flag only.
+
+    // Sync to public_itineraries / public_itinerary_items
+    try {
+      const { publishItineraryToPublic, unpublishItinerary } = await import('@/services/publishItinerary');
+      const updatedTarget = updated.find(i => i.id === id)!;
+      if (willBePublic) {
+        await publishItineraryToPublic(updatedTarget, userId);
+      } else {
+        await unpublishItinerary(updatedTarget, userId);
+      }
+    } catch (err) {
+      console.error('togglePublic sync failed', err);
+    }
+  }, [itineraries, saveItineraries, userId]);
 
   const addCollaborator = useCallback(async (itineraryId: string, email: string): Promise<{ success: boolean; emailSent: boolean; message: string }> => {
     const trimmedEmail = email.trim().toLowerCase();

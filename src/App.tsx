@@ -8,7 +8,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { RedirectHandler } from "@/components/RedirectHandler";
 import Search from "./pages/Search";
 import ExperienceDetail from "./pages/ExperienceDetail";
-import CreateExperience from "./pages/CreateExperience";
+
 import Hosts from "./pages/Hosts";
 import Monetise from "./pages/Monetise";
 import Map from "./pages/Map";
@@ -76,7 +76,7 @@ const App = () => (
             <Route path="/itineraries" element={<Itineraries />} />
             <Route path="/my-trips/:id" element={<Trip />} />
             <Route path="/my-trips" element={<Trip useActiveItinerary={true} />} />
-            <Route path="/create-experience" element={<CreateExperience />} />
+            
             <Route path="/monetise" element={<Monetise />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminPanel />} />
