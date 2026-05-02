@@ -25,8 +25,11 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Trash2, ChevronDown, ChevronUp, CheckSquare, Power, Upload, X } from 'lucide-react';
+import { Plus, Search, Trash2, ChevronDown, ChevronUp, CheckSquare, Power, Upload, X, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { friendlyError } from './friendlyError';
 
 const slugify = (v: string) =>
