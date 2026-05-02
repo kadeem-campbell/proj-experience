@@ -13,18 +13,49 @@ export interface UserLike {
 
 const LOCAL_STORAGE_KEY = 'user_likes_cache';
 
+let sharedLikes: UserLike[] = [];
+let sharedLoading = true;
+let loadedLikesForUserId: string | null = null;
+let likesFetchInFlightForUserId: string | null = null;
+const likeListeners = new Set<() => void>();
+
+const emitLikes = () => likeListeners.forEach((listener) => listener());
+const setSharedLikes = (likes: UserLike[]) => {
+  sharedLikes = likes;
+  emitLikes();
+};
+const setSharedLoading = (loading: boolean) => {
+  sharedLoading = loading;
+  emitLikes();
+};
+
 export const useUserLikes = () => {
-  const { user, isAuthenticated } = useAuth();
-  const [likes, setLikes] = useState<UserLike[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const [snapshot, setSnapshot] = useState(() => ({ likes: sharedLikes, loading: sharedLoading }));
+  const { likes, loading } = snapshot;
+
+  useEffect(() => {
+    const listener = () => setSnapshot({ likes: sharedLikes, loading: sharedLoading });
+    likeListeners.add(listener);
+    return () => { likeListeners.delete(listener); };
+  }, []);
 
   // Fetch likes from database
   const fetchLikes = useCallback(async () => {
     if (!user?.id) {
-      setLikes([]);
-      setLoading(false);
+      setSharedLikes([]);
+      setSharedLoading(false);
+      loadedLikesForUserId = null;
       return;
     }
+
+    if (loadedLikesForUserId === user.id) {
+      setSharedLoading(false);
+      return;
+    }
+
+    if (likesFetchInFlightForUserId === user.id) return;
+    likesFetchInFlightForUserId = user.id;
 
     try {
       const { data, error } = await supabase
@@ -41,16 +72,18 @@ export const useUserLikes = () => {
         item_data: like.item_data as Record<string, any>
       }));
       
-      setLikes(typedLikes);
+      setSharedLikes(typedLikes);
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(typedLikes));
+      loadedLikesForUserId = user.id;
     } catch (error) {
       console.error('Error fetching likes:', error);
       const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (cached) {
-        setLikes(JSON.parse(cached));
+        setSharedLikes(JSON.parse(cached));
       }
     } finally {
-      setLoading(false);
+      likesFetchInFlightForUserId = null;
+      setSharedLoading(false);
     }
   }, [user?.id]);
 
@@ -70,7 +103,7 @@ export const useUserLikes = () => {
 
     if (existingLike) {
       // Optimistically remove
-      setLikes(prev => prev.filter(l => l.id !== existingLike.id));
+      setSharedLikes(sharedLikes.filter(l => l.id !== existingLike.id));
       window.dispatchEvent(new CustomEvent('userLikesChanged', { 
         detail: { action: 'removed', itemId, itemType } 
       }));
@@ -83,7 +116,7 @@ export const useUserLikes = () => {
         .then(({ error }) => {
           if (error) {
             // Rollback on error
-            setLikes(prev => [existingLike, ...prev]);
+            setSharedLikes([existingLike, ...sharedLikes]);
             console.error('Error removing like:', error);
           }
         });
@@ -101,7 +134,7 @@ export const useUserLikes = () => {
         created_at: new Date().toISOString(),
       };
       
-      setLikes(prev => [optimisticLike, ...prev]);
+      setSharedLikes([optimisticLike, ...sharedLikes]);
       window.dispatchEvent(new CustomEvent('userLikesChanged', { 
         detail: { action: 'added', itemId, itemType } 
       }));
@@ -120,11 +153,11 @@ export const useUserLikes = () => {
         .then(({ data, error }) => {
           if (error) {
             // Rollback on error
-            setLikes(prev => prev.filter(l => l.id !== tempId));
+            setSharedLikes(sharedLikes.filter(l => l.id !== tempId));
             console.error('Error adding like:', error);
           } else if (data) {
             // Replace temp with real
-            setLikes(prev => prev.map(l => l.id === tempId ? {
+            setSharedLikes(sharedLikes.map(l => l.id === tempId ? {
               ...data,
               item_type: data.item_type as 'experience' | 'itinerary' | 'poi',
               item_data: data.item_data as Record<string, any>
