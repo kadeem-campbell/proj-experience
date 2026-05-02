@@ -28,22 +28,41 @@ export const AdminCarouselManager = () => {
     searchColumns: ['name', 'slug', 'page_location'],
     orderBy: { column: 'display_order', ascending: true },
     groupBy: { key: 'page_location', labels: { home: 'Home', search: 'Search', destination: 'Destination' } },
-    invalidateKeys: [['home-carousels'], ['admin-carousels']],
+    invalidateKeys: [['home-carousels'], ['admin-carousels'], ['carousels']],
+    sortable: { orderColumn: 'display_order' },
+    toolbarFilters: [
+      {
+        key: 'city',
+        label: 'City',
+        optionsTable: 'destinations',
+        optionsFilter: { column: 'is_active', value: true },
+        joinTable: 'carousel_destinations',
+        selfColumn: 'carousel_id',
+        refColumn: 'destination_id',
+      },
+      {
+        key: 'category',
+        label: 'Category',
+        optionsTable: 'activity_types',
+        joinTable: 'carousel_categories',
+        selfColumn: 'carousel_id',
+        refColumn: 'activity_type_id',
+      },
+    ],
     fields: [
       { key: 'name', label: 'Name', type: 'text', required: true, placeholder: 'e.g. Top in {{city}}', help: 'use {{city}} for dynamic city substitution', width: 0.5 },
       { key: 'slug', label: 'Slug', type: 'slug', deriveFrom: 'name', width: 0.5 },
       { key: 'description', label: 'Description', type: 'textarea', rows: 2 },
-      { key: 'page_location', label: 'Page', type: 'select', defaultValue: 'home', width: 0.25, options: [
+      { key: 'page_location', label: 'Page', type: 'select', defaultValue: 'home', width: 0.33, options: [
         { value: 'home', label: 'Home' }, { value: 'search', label: 'Search' }, { value: 'destination', label: 'Destination' },
       ]},
-      { key: 'content_type', label: 'Content', type: 'select', defaultValue: 'product', width: 0.25, options: [
+      { key: 'content_type', label: 'Content', type: 'select', defaultValue: 'product', width: 0.33, options: [
         { value: 'product', label: 'Products' }, { value: 'itinerary', label: 'Itineraries' },
         { value: 'poi', label: 'Places' }, { value: 'collection', label: 'Collections' }, { value: 'mixed', label: 'Mixed' },
       ]},
-      { key: 'resolution_mode', label: 'Resolution', type: 'select', defaultValue: 'manual', width: 0.25, options: [
+      { key: 'resolution_mode', label: 'Resolution', type: 'select', defaultValue: 'manual', width: 0.33, options: [
         { value: 'manual', label: 'Manual' }, { value: 'collection', label: 'From Collections' }, { value: 'auto', label: 'Auto by context' },
       ]},
-      { key: 'display_order', label: 'Order', type: 'number', defaultValue: 100, width: 0.25 },
       { key: 'max_items', label: 'Max items', type: 'number', defaultValue: 10, width: 0.5 },
       { key: 'cover_image', label: 'Cover image (optional)', type: 'image', storageBucket: 'product-images', width: 0.5 },
       { key: 'is_active', label: 'Active', type: 'switch', defaultValue: true },
