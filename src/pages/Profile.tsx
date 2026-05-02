@@ -149,7 +149,8 @@ const ProfilePage = () => {
       setIsEditing(false);
       toast({ title: "Profile updated" });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error('Profile update error:', error);
+      toast({ title: "Error", description: friendlyError(error, "Could not update profile."), variant: "destructive" });
     } finally {
       setSaving(false);
     }
