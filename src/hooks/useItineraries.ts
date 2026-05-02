@@ -471,35 +471,58 @@ export const useItineraries = () => {
     return true;
   }, [activeItineraryId, itineraries, saveItineraries]);
 
-  const addExperienceToItinerary = useCallback((itineraryId: string, experience: Omit<LikedExperience, 'likedAt'>): { success: boolean; alreadyExists: boolean } => {
+  const addExperienceToItinerary = useCallback((
+    itineraryId: string,
+    experience: Omit<LikedExperience, 'likedAt'>,
+  ): { success: boolean; alreadyExists: boolean; refusalMessage?: string } => {
     const currentItineraries = itinerariesRef.current;
     const targetItinerary = currentItineraries.find(i => i.id === itineraryId);
 
     if (!targetItinerary) {
       return { success: false, alreadyExists: false };
     }
-    
+
+    // Validate the entity is a supported type (product / poi / custom).
+    // Default unspecified callsites to 'product' since every live caller passes
+    // either a product or an explicit POI.
+    const entityType: ItineraryEntityType = experience.entityType ?? 'product';
+    const entityId = experience.entityId ?? experience.id;
+    const refusal = validateEntityForItinerary(entityType, entityId);
+    if (refusal) {
+      return { success: false, alreadyExists: false, refusalMessage: refusal };
+    }
+
     // Check if experience already exists in this itinerary
     if (targetItinerary?.experiences.some(e => e.id === experience.id)) {
       return { success: false, alreadyExists: true };
     }
-    
+
     const updated = currentItineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
         ...i,
-        experiences: [...i.experiences, { ...experience, likedAt: new Date().toISOString() }],
-        updatedAt: new Date().toISOString()
+        experiences: [
+          ...i.experiences,
+          { ...experience, entityType, entityId, likedAt: new Date().toISOString() },
+        ],
+        updatedAt: new Date().toISOString(),
       };
     });
     saveItineraries(updated);
+
+    // Canonical write to itinerary_items (entity-agnostic). Only for authed users
+    // since RLS restricts these tables to the itinerary owner.
+    if (userId) {
+      void writeItineraryItem(itineraryId, { entityType, entityId });
+    }
+
     return { success: true, alreadyExists: false };
-  }, [saveItineraries]);
+  }, [saveItineraries, userId]);
 
   const addExperiencesToItinerary = useCallback((
     itineraryId: string,
     experiences: Omit<LikedExperience, 'likedAt'>[]
-  ): { addedCount: number; alreadyIncludedCount: number } => {
+  ): { addedCount: number; alreadyIncludedCount: number; refusedCount?: number } => {
     const currentItineraries = itinerariesRef.current;
     const targetItinerary = currentItineraries.find(i => i.id === itineraryId);
 
@@ -509,28 +532,38 @@ export const useItineraries = () => {
 
     const existingIds = new Set(targetItinerary.experiences.map((experience) => experience.id));
     const nextExperiences: LikedExperience[] = [];
+    const acceptedItems: { entityType: ItineraryEntityType; entityId: string }[] = [];
     let alreadyIncludedCount = 0;
+    let refusedCount = 0;
 
     for (const experience of experiences) {
       if (!experience?.id || existingIds.has(experience.id)) {
         alreadyIncludedCount += 1;
         continue;
       }
+      const entityType: ItineraryEntityType = experience.entityType ?? 'product';
+      const entityId = experience.entityId ?? experience.id;
+      if (validateEntityForItinerary(entityType, entityId)) {
+        refusedCount += 1;
+        continue;
+      }
 
       existingIds.add(experience.id);
       nextExperiences.push({
         ...experience,
+        entityType,
+        entityId,
         likedAt: new Date().toISOString(),
       });
+      acceptedItems.push({ entityType, entityId });
     }
 
     if (nextExperiences.length === 0) {
-      return { addedCount: 0, alreadyIncludedCount };
+      return { addedCount: 0, alreadyIncludedCount, refusedCount };
     }
 
     const updated = currentItineraries.map((itinerary) => {
       if (itinerary.id !== itineraryId) return itinerary;
-
       return {
         ...itinerary,
         experiences: [...itinerary.experiences, ...nextExperiences],
@@ -540,14 +573,27 @@ export const useItineraries = () => {
 
     saveItineraries(updated);
 
+    if (userId) {
+      void (async () => {
+        // Sequence so display_order is monotonic.
+        for (const item of acceptedItems) {
+          await writeItineraryItem(itineraryId, item);
+        }
+      })();
+    }
+
     return {
       addedCount: nextExperiences.length,
       alreadyIncludedCount,
+      refusedCount,
     };
-  }, [saveItineraries]);
+  }, [saveItineraries, userId]);
 
   const removeExperience = useCallback((experienceId: string) => {
     if (!activeItineraryId) return;
+
+    const target = itineraries.find(i => i.id === activeItineraryId);
+    const removedExp = target?.experiences.find(e => e.id === experienceId);
 
     const updated = itineraries.map(i => {
       if (i.id !== activeItineraryId) return i;
@@ -558,9 +604,18 @@ export const useItineraries = () => {
       };
     });
     saveItineraries(updated);
-  }, [activeItineraryId, itineraries, saveItineraries]);
+
+    if (userId && removedExp) {
+      const entityType: ItineraryEntityType = removedExp.entityType ?? 'product';
+      const entityId = removedExp.entityId ?? removedExp.id;
+      void deleteItineraryItem(activeItineraryId, entityType, entityId);
+    }
+  }, [activeItineraryId, itineraries, saveItineraries, userId]);
 
   const removeExperienceFromItinerary = useCallback((itineraryId: string, experienceId: string) => {
+    const target = itineraries.find(i => i.id === itineraryId);
+    const removedExp = target?.experiences.find(e => e.id === experienceId);
+
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
@@ -570,7 +625,13 @@ export const useItineraries = () => {
       };
     });
     saveItineraries(updated);
-  }, [itineraries, saveItineraries]);
+
+    if (userId && removedExp) {
+      const entityType: ItineraryEntityType = removedExp.entityType ?? 'product';
+      const entityId = removedExp.entityId ?? removedExp.id;
+      void deleteItineraryItem(itineraryId, entityType, entityId);
+    }
+  }, [itineraries, saveItineraries, userId]);
 
   const updateExperienceDetails = useCallback((experienceId: string, updates: Partial<LikedExperience>, targetItineraryId?: string) => {
     const itineraryIdToUpdate = targetItineraryId || activeItineraryId;
