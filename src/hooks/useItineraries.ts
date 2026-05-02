@@ -235,7 +235,36 @@ export const useItineraries = () => {
         } else {
           setActiveItineraryIdState(loaded[0].id);
           localStorage.setItem(ACTIVE_ITINERARY_KEY, loaded[0].id);
-        }
+
+        // One-time backfill: if any itinerary has experiences in the JSONB blob
+        // but zero rows in itinerary_items, mirror them across so the canonical
+        // table catches up without blocking the UI.
+        void (async () => {
+          for (const itin of loaded) {
+            if (!itin.experiences || itin.experiences.length === 0) continue;
+            const { data: dayRows } = await supabase
+              .from('itinerary_days')
+              .select('id')
+              .eq('itinerary_id', itin.id);
+            const dayIds = (dayRows || []).map((d) => d.id);
+            let existingItemCount = 0;
+            if (dayIds.length > 0) {
+              const { count } = await supabase
+                .from('itinerary_items')
+                .select('id', { count: 'exact', head: true })
+                .in('day_id', dayIds);
+              existingItemCount = count ?? 0;
+            }
+            if (existingItemCount > 0) continue;
+            for (const exp of itin.experiences) {
+              const entityType: ItineraryEntityType = exp.entityType ?? 'product';
+              const entityId = exp.entityId ?? exp.id;
+              if (validateEntityForItinerary(entityType, entityId)) continue;
+              await writeItineraryItem(itin.id, { entityType, entityId });
+            }
+          }
+        })();
+      }
       } else {
         // Create default itinerary for new user
         const newId = crypto.randomUUID();
