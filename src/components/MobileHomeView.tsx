@@ -673,7 +673,7 @@ export const MobileHomeView = () => {
                 key={carousel.id + '-prod'}
                 title={title}
                
-                onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
+                onTitleClick={onTitleClick}
               >
                 {productItems.map((experience) => (
                   <MobileExperienceCard key={experience.id} experience={experience} timingMap={timingMap} />
@@ -687,7 +687,7 @@ export const MobileHomeView = () => {
                 key={carousel.id + '-itin'}
                 title={title}
                
-                onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
+                onTitleClick={onTitleClick}
               >
                 {itineraryItems.map((itinerary) => (
                   <MobileItineraryCard key={itinerary.id} itinerary={itinerary} />
@@ -701,7 +701,7 @@ export const MobileHomeView = () => {
                 key={carousel.id + '-poi'}
                 title={title}
                
-                onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
+                onTitleClick={onTitleClick}
               >
                 {poiItems.map((poi: any) => (
                   <MobilePoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
