@@ -95,7 +95,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       const id =
         it.entity_id ||
         `custom-${it.id}`;
-      const exp: LikedExperience = {
+      const exp = {
         id,
         title: meta?.title || meta?.name || it.title || it.custom_title || "",
         creator: "",
@@ -107,7 +107,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
         notes: it.notes || undefined,
         timeSlot: (it.time_slot as TimeSlot) || undefined,
         slug: meta?.slug || undefined,
-      };
+      } as LikedExperience;
       if (!itemsByItinerary[it.public_itinerary_id]) {
         itemsByItinerary[it.public_itinerary_id] = [];
       }
