@@ -147,21 +147,21 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
       const byType: Record<string, string[]> = {};
       linkedItems.forEach((l: any) => { (byType[l.item_type] ||= []).push(l.item_id); });
 
-      const tasks: Promise<void>[] = [];
+      const tasks: Promise<any>[] = [];
       if (byType.collection?.length) {
-        tasks.push((supabase as any).from('collections').select('id, name, collection_type').in('id', byType.collection)
+        tasks.push(Promise.resolve((supabase as any).from('collections').select('id, name, collection_type').in('id', byType.collection))
           .then(({ data }: any) => (data || []).forEach((r: any) => { out[`collection:${r.id}`] = { label: r.name, sub: r.collection_type }; })));
       }
       if (byType.product?.length) {
-        tasks.push(supabase.from('products').select('id, title, slug').in('id', byType.product)
+        tasks.push(Promise.resolve(supabase.from('products').select('id, title, slug').in('id', byType.product))
           .then(({ data }: any) => (data || []).forEach((r: any) => { out[`product:${r.id}`] = { label: r.title, sub: r.slug }; })));
       }
       if (byType.poi?.length) {
-        tasks.push(supabase.from('pois').select('id, name, poi_type').in('id', byType.poi)
+        tasks.push(Promise.resolve(supabase.from('pois').select('id, name, poi_type').in('id', byType.poi))
           .then(({ data }: any) => (data || []).forEach((r: any) => { out[`poi:${r.id}`] = { label: r.name, sub: r.poi_type }; })));
       }
       if (byType.itinerary?.length) {
-        tasks.push((supabase as any).from('public_itineraries').select('id, name, tag').in('id', byType.itinerary)
+        tasks.push(Promise.resolve((supabase as any).from('public_itineraries').select('id, name, tag').in('id', byType.itinerary))
           .then(({ data }: any) => (data || []).forEach((r: any) => { out[`itinerary:${r.id}`] = { label: r.name, sub: r.tag }; })));
       }
       await Promise.all(tasks);
