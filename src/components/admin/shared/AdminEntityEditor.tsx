@@ -12,7 +12,7 @@
  * Every entity admin (carousels, products, collections, itineraries, hosts, pois, …)
  * should be expressed as a config passed into this component. No bespoke CRUD code.
  */
-import { useMemo, useState, ReactNode } from 'react';
+import { useMemo, useState, useEffect, useRef, ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -344,9 +344,16 @@ const FieldGrid = ({ fields, value, onChange, useBlur = false }: any) => (
 
 const Field = ({ field, value, contextValue, onChange, useBlur }: any) => {
   const [local, setLocal] = useState<any>(value ?? '');
+  const focusedRef = useRef(false);
+  // Sync external value into local state when the server returns a fresh value
+  // (e.g. after another field saves and the row re-renders). Don't clobber while user is editing.
+  useEffect(() => {
+    if (!focusedRef.current) setLocal(value ?? '');
+  }, [value]);
   const commit = (v: any) => onChange(v);
   const change = useBlur ? setLocal : (v: any) => { setLocal(v); onChange(v); };
-  const blurCommit = () => { if (useBlur && local !== value) commit(local); };
+  const blurCommit = () => { focusedRef.current = false; if (useBlur && local !== value) commit(local); };
+  const onFocus = () => { focusedRef.current = true; };
 
   const labelEl = (
     <Label className="text-xs font-medium flex items-center gap-1.5 mb-1">
@@ -357,11 +364,11 @@ const Field = ({ field, value, contextValue, onChange, useBlur }: any) => {
 
   switch (field.type) {
     case 'textarea':
-      return <div>{labelEl}<Textarea value={local} rows={field.rows || 3} placeholder={field.placeholder} onChange={e => change(e.target.value)} onBlur={blurCommit} /></div>;
+      return <div>{labelEl}<Textarea value={local} rows={field.rows || 3} placeholder={field.placeholder} onFocus={onFocus} onChange={e => change(e.target.value)} onBlur={blurCommit} /></div>;
     case 'number':
-      return <div>{labelEl}<Input type="number" value={local ?? ''} placeholder={field.placeholder} onChange={e => change(e.target.value === '' ? null : Number(e.target.value))} onBlur={blurCommit} /></div>;
+      return <div>{labelEl}<Input type="number" value={local ?? ''} placeholder={field.placeholder} onFocus={onFocus} onChange={e => change(e.target.value === '' ? null : Number(e.target.value))} onBlur={blurCommit} /></div>;
     case 'slug':
-      return <div>{labelEl}<Input value={local} placeholder={field.placeholder || (field.deriveFrom ? `auto from ${field.deriveFrom}` : '')} className="font-mono text-xs" onChange={e => change(e.target.value)} onBlur={blurCommit} /></div>;
+      return <div>{labelEl}<Input value={local} placeholder={field.placeholder || (field.deriveFrom ? `auto from ${field.deriveFrom}` : '')} className="font-mono text-xs" onFocus={onFocus} onChange={e => change(e.target.value)} onBlur={blurCommit} /></div>;
     case 'switch':
       return <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2"><div><div className="text-xs font-medium">{field.label}</div>{field.help && <div className="text-[10px] text-muted-foreground">{field.help}</div>}</div><Switch checked={!!local} onCheckedChange={v => { setLocal(v); commit(v); }} /></div>;
     case 'select':
@@ -369,10 +376,10 @@ const Field = ({ field, value, contextValue, onChange, useBlur }: any) => {
     case 'image':
       return <div>{labelEl}<ImageField value={local} bucket={field.storageBucket || 'product-images'} onChange={(v: string) => { setLocal(v); commit(v); }} /></div>;
     case 'tags':
-      return <div>{labelEl}<Input value={Array.isArray(local) ? local.join(', ') : (local || '')} placeholder="comma, separated" onChange={e => change(e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} onBlur={blurCommit} /></div>;
+      return <div>{labelEl}<Input value={Array.isArray(local) ? local.join(', ') : (local || '')} placeholder="comma, separated" onFocus={onFocus} onChange={e => change(e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} onBlur={blurCommit} /></div>;
     case 'text':
     default:
-      return <div>{labelEl}<Input value={local ?? ''} placeholder={field.placeholder} onChange={e => change(e.target.value)} onBlur={blurCommit} /></div>;
+      return <div>{labelEl}<Input value={local ?? ''} placeholder={field.placeholder} onFocus={onFocus} onChange={e => change(e.target.value)} onBlur={blurCommit} /></div>;
   }
 };
 
