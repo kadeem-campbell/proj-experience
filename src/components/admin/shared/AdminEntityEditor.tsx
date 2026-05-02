@@ -134,6 +134,7 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
   const [bulkMode, setBulkMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [creatingDraft, setCreatingDraft] = useState<Record<string, any> | null>(null);
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
   const primary = config.primaryLabelColumn || 'name';
   const searchCols = config.searchColumns || [primary, 'slug'];
@@ -150,18 +151,68 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
     },
   });
 
+  // Filter options (loaded once per filter)
+  const { data: filterOptionsMap = {} } = useQuery({
+    queryKey: ['admin-entity-filter-opts', config.table, (config.toolbarFilters || []).map(f => f.optionsTable).join('|')],
+    enabled: (config.toolbarFilters || []).length > 0,
+    queryFn: async () => {
+      const out: Record<string, { value: string; label: string }[]> = {};
+      await Promise.all((config.toolbarFilters || []).map(async (f) => {
+        const valCol = f.optionsValueColumn || 'id';
+        const labCol = f.optionsLabelColumn || 'name';
+        let q: any = (supabase as any).from(f.optionsTable).select(`${valCol}, ${labCol}`);
+        if (f.optionsFilter) q = q.eq(f.optionsFilter.column, f.optionsFilter.value);
+        const { data } = await q.order(labCol);
+        out[f.key] = (data || []).map((r: any) => ({ value: String(r[valCol]), label: String(r[labCol]) }));
+      }));
+      return out;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Join-table memberships for any M2M filter (entityId → Set of refIds)
+  const m2mFilters = (config.toolbarFilters || []).filter(f => f.joinTable);
+  const { data: m2mMembership = {} } = useQuery({
+    queryKey: ['admin-entity-m2m', config.table, m2mFilters.map(f => f.joinTable).join('|')],
+    enabled: m2mFilters.length > 0,
+    queryFn: async () => {
+      const out: Record<string, Record<string, Set<string>>> = {};
+      await Promise.all(m2mFilters.map(async (f) => {
+        const { data } = await (supabase as any).from(f.joinTable!).select(`${f.selfColumn}, ${f.refColumn}`);
+        const map: Record<string, Set<string>> = {};
+        (data || []).forEach((r: any) => {
+          const eid = String(r[f.selfColumn!]);
+          (map[eid] ||= new Set()).add(String(r[f.refColumn!]));
+        });
+        out[f.key] = map;
+      }));
+      return out;
+    },
+  });
+
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey });
     config.invalidateKeys?.forEach(k => qc.invalidateQueries({ queryKey: k }));
   };
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return items;
-    const q = search.toLowerCase();
-    return items.filter((it: any) =>
-      searchCols.some(c => String(it[c] ?? '').toLowerCase().includes(q))
-    );
-  }, [items, search, searchCols]);
+    let list = items;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((it: any) => searchCols.some(c => String(it[c] ?? '').toLowerCase().includes(q)));
+    }
+    for (const f of config.toolbarFilters || []) {
+      const v = filterValues[f.key];
+      if (!v || v === '__all') continue;
+      if (f.column) {
+        list = list.filter((it: any) => String(it[f.column!] ?? '') === v);
+      } else if (f.joinTable) {
+        const map = (m2mMembership as any)[f.key] || {};
+        list = list.filter((it: any) => map[it.id]?.has(v));
+      }
+    }
+    return list;
+  }, [items, search, searchCols, config.toolbarFilters, filterValues, m2mMembership]);
 
   const grouped = useMemo(() => {
     if (!config.groupBy) return { __all: filtered };
@@ -172,6 +223,30 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
     });
     return g;
   }, [filtered, config.groupBy]);
+
+  // ── drag reorder (sortable) ──
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const handleDragEnd = async (groupList: any[], e: DragEndEvent) => {
+    if (!config.sortable || !e.over || e.active.id === e.over.id) return;
+    const oldIdx = groupList.findIndex((x: any) => x.id === e.active.id);
+    const newIdx = groupList.findIndex((x: any) => x.id === e.over!.id);
+    if (oldIdx < 0 || newIdx < 0) return;
+    const reordered = arrayMove(groupList, oldIdx, newIdx);
+    // Optimistic local update
+    qc.setQueryData(queryKey, (prev: any[] = []) => {
+      const idMap = new Map(reordered.map((it, i) => [it.id, (i + 1) * 10]));
+      return prev.map((it: any) => idMap.has(it.id) ? { ...it, [config.sortable!.orderColumn]: idMap.get(it.id) } : it)
+        .sort((a: any, b: any) => (a[config.sortable!.orderColumn] ?? 9999) - (b[config.sortable!.orderColumn] ?? 9999));
+    });
+    // Persist new order in batch
+    const updates = reordered.map((it: any, i: number) =>
+      (supabase as any).from(config.table).update({ [config.sortable!.orderColumn]: (i + 1) * 10 }).eq('id', it.id)
+    );
+    const results = await Promise.all(updates);
+    const firstErr = results.find((r: any) => r.error);
+    if (firstErr) { toast.error(friendlyError(firstErr.error)); }
+    invalidateAll();
+  };
 
   // ── mutations ──
   const handleCreate = async () => {
