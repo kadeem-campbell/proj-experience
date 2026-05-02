@@ -258,6 +258,12 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
 
   const orphans = linkedItems.filter((it: any) => it.item_type !== itemTypeForMode);
 
+  // Linked collections that no longer match carousel's market/category scope.
+  const validCollectionIds = new Set(searchPool.filter((p: any) => p.type === 'collection').map((p: any) => p.id));
+  const mismatched = mode === 'collection' && carouselScope && (carouselScope.markets.size > 0 || carouselScope.categories.size > 0)
+    ? linkedItems.filter((it: any) => it.item_type === 'collection' && !validCollectionIds.has(it.item_id))
+    : [];
+
   return (
     <div className="space-y-3">
       <div>
