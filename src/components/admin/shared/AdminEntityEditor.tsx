@@ -88,8 +88,8 @@ export interface AdminEntityConfig<_T = any> {
   primaryLabelColumn?: string; // default: 'name'
   /** column used in search */
   searchColumns?: string[];     // default: ['name','slug']
-  /** sort column + direction for the list */
-  orderBy?: { column: string; ascending?: boolean };
+  /** sort column + direction for the list. Pass an array for multi-column ordering. */
+  orderBy?: { column: string; ascending?: boolean } | { column: string; ascending?: boolean }[];
   /** all editable fields */
   fields: FieldConfig[];
   /** group fields shown collapsed by default in list row (chips/badges) */
@@ -144,7 +144,10 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
     queryKey,
     queryFn: async () => {
       let q: any = (supabase as any).from(config.table).select('*');
-      if (config.orderBy) q = q.order(config.orderBy.column, { ascending: config.orderBy.ascending ?? true });
+      if (config.orderBy) {
+        const orders = Array.isArray(config.orderBy) ? config.orderBy : [config.orderBy];
+        for (const o of orders) q = q.order(o.column, { ascending: o.ascending ?? true });
+      }
       const { data, error } = await q;
       if (error) throw error;
       return data || [];
