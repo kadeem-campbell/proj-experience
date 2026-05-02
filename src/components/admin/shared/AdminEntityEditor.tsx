@@ -102,6 +102,28 @@ export interface AdminEntityConfig<_T = any> {
   invalidateKeys?: string[][];
   /** group rows by this column (e.g. page_location) */
   groupBy?: { key: string; labels?: Record<string, string> };
+  /** dropdown filters above the list. Each filter loads its options from another table.
+   *  - For a column on this table: set `column`.
+   *  - For a M2M relation (e.g. carousel_destinations): set `joinTable` + `selfColumn` + `refColumn`. */
+  toolbarFilters?: ToolbarFilterConfig[];
+  /** enable drag-to-reorder. The `orderColumn` will be rewritten on drop. */
+  sortable?: { orderColumn: string };
+}
+
+export interface ToolbarFilterConfig {
+  key: string;
+  label: string;
+  /** Source table for filter options (e.g. 'destinations', 'activity_types'). */
+  optionsTable: string;
+  optionsValueColumn?: string;   // default 'id'
+  optionsLabelColumn?: string;   // default 'name'
+  optionsFilter?: { column: string; value: any };
+  /** EITHER: filter by a column on the entity itself */
+  column?: string;
+  /** OR: filter by a M2M join (entityId in joinTable matching refColumn=value) */
+  joinTable?: string;
+  selfColumn?: string;
+  refColumn?: string;
 }
 
 // ─────────────────────────── component ───────────────────────────
