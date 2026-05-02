@@ -20,11 +20,14 @@ export type Database = {
           description: string | null
           display_order: number | null
           emoji: string | null
+          home_display_order: number
           icon_image: string | null
+          icon_url: string | null
           id: string
           is_active: boolean | null
           legacy_category_id: string | null
           name: string
+          show_on_home: boolean
           slug: string
           updated_at: string | null
         }
@@ -33,11 +36,14 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           emoji?: string | null
+          home_display_order?: number
           icon_image?: string | null
+          icon_url?: string | null
           id?: string
           is_active?: boolean | null
           legacy_category_id?: string | null
           name: string
+          show_on_home?: boolean
           slug: string
           updated_at?: string | null
         }
@@ -46,11 +52,14 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           emoji?: string | null
+          home_display_order?: number
           icon_image?: string | null
+          icon_url?: string | null
           id?: string
           is_active?: boolean | null
           legacy_category_id?: string | null
           name?: string
+          show_on_home?: boolean
           slug?: string
           updated_at?: string | null
         }
@@ -509,6 +518,149 @@ export type Database = {
         }
         Relationships: []
       }
+      carousel_categories: {
+        Row: {
+          activity_type_id: string
+          carousel_id: string
+        }
+        Insert: {
+          activity_type_id: string
+          carousel_id: string
+        }
+        Update: {
+          activity_type_id?: string
+          carousel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carousel_categories_activity_type_id_fkey"
+            columns: ["activity_type_id"]
+            isOneToOne: false
+            referencedRelation: "activity_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carousel_categories_carousel_id_fkey"
+            columns: ["carousel_id"]
+            isOneToOne: false
+            referencedRelation: "carousels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carousel_destinations: {
+        Row: {
+          carousel_id: string
+          destination_id: string
+        }
+        Insert: {
+          carousel_id: string
+          destination_id: string
+        }
+        Update: {
+          carousel_id?: string
+          destination_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carousel_destinations_carousel_id_fkey"
+            columns: ["carousel_id"]
+            isOneToOne: false
+            referencedRelation: "carousels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carousel_destinations_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carousel_items: {
+        Row: {
+          carousel_id: string
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          position: number
+        }
+        Insert: {
+          carousel_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          position?: number
+        }
+        Update: {
+          carousel_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carousel_items_carousel_id_fkey"
+            columns: ["carousel_id"]
+            isOneToOne: false
+            referencedRelation: "carousels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carousels: {
+        Row: {
+          content_type: string
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          max_items: number
+          name: string
+          page_location: string
+          resolution_mode: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          content_type?: string
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          max_items?: number
+          name: string
+          page_location?: string
+          resolution_mode?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          content_type?: string
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          max_items?: number
+          name?: string
+          page_location?: string
+          resolution_mode?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null
@@ -541,6 +693,36 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      collection_categories: {
+        Row: {
+          activity_type_id: string
+          collection_id: string
+        }
+        Insert: {
+          activity_type_id: string
+          collection_id: string
+        }
+        Update: {
+          activity_type_id?: string
+          collection_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_categories_activity_type_id_fkey"
+            columns: ["activity_type_id"]
+            isOneToOne: false
+            referencedRelation: "activity_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_categories_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       collection_destinations: {
         Row: {
