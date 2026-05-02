@@ -29,6 +29,22 @@ export interface Itinerary {
   activeTripId?: string;
 }
 
+type DbItineraryRow = {
+  id: string;
+  name: string;
+  experiences: unknown;
+  created_at: string;
+  updated_at: string;
+  is_public: boolean | null;
+  collaborators: string[] | null;
+  cover_image: string | null;
+  tag: string | null;
+  start_date: string | null;
+  theme: string | null;
+  trips: unknown;
+  active_trip_id: string | null;
+};
+
 const STORAGE_KEY = 'itineraries';
 const ACTIVE_ITINERARY_KEY = 'activeItineraryId';
 
@@ -76,7 +92,7 @@ export const useItineraries = () => {
   }, [itineraries]);
 
   // Convert DB row to Itinerary
-  const dbToItinerary = (row: any): Itinerary => ({
+  const dbToItinerary = (row: DbItineraryRow): Itinerary => ({
     id: row.id,
     name: row.name,
     experiences: (row.experiences as LikedExperience[]) || [],
@@ -357,7 +373,7 @@ export const useItineraries = () => {
     } else {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newItineraries));
     }
-  }, [userId]);
+  }, [userId, setItineraries]);
 
   const activeItinerary = itineraries.find(i => i.id === activeItineraryId) || null;
 
@@ -365,7 +381,7 @@ export const useItineraries = () => {
     setActiveItineraryIdState(id);
     localStorage.setItem(ACTIVE_ITINERARY_KEY, id);
     window.dispatchEvent(new CustomEvent('activeItineraryChanged', { detail: id }));
-  }, []);
+  }, [setActiveItineraryIdState]);
 
   const createItinerary = useCallback(async (name: string, initialExperiences?: LikedExperience[]): Promise<Itinerary> => {
     const newId = userId ? crypto.randomUUID() : generateId();
@@ -423,7 +439,7 @@ export const useItineraries = () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       window.dispatchEvent(new CustomEvent('itinerariesChanged', { detail: updated }));
     }
-  }, [userId, itineraries, activeItineraryId, setActiveItinerary]);
+  }, [userId, itineraries, activeItineraryId, setActiveItinerary, setItineraries]);
 
   const renameItinerary = useCallback((id: string, newName: string) => {
     const updated = itineraries.map(i =>
@@ -759,7 +775,7 @@ export const useItineraries = () => {
       setActiveItinerary(newId);
       return newItinerary;
     }
-  }, [userId, itineraries, saveItineraries, setActiveItinerary]);
+  }, [userId, itineraries, saveItineraries, setActiveItinerary, setItineraries]);
 
   const updateItineraryCover = useCallback((id: string, coverImage: string) => {
     const updated = itineraries.map(i =>
