@@ -60,7 +60,7 @@ export const AdminCarouselManager = () => {
         { value: 'product', label: 'Products' }, { value: 'itinerary', label: 'Itineraries' },
         { value: 'poi', label: 'Places' }, { value: 'collection', label: 'Collections' }, { value: 'mixed', label: 'Mixed' },
       ]},
-      { key: 'resolution_mode', label: 'Resolution', type: 'select', defaultValue: 'manual', width: 0.34, options: [
+      { key: 'resolution_mode', label: 'Resolution', type: 'select', defaultValue: 'manual', width: 0.33, options: [
         { value: 'manual', label: 'Manual' }, { value: 'collection', label: 'From Collections' }, { value: 'auto', label: 'Auto by context' },
       ]},
       { key: 'max_items', label: 'Max items', type: 'number', defaultValue: 10, width: 0.5 },
