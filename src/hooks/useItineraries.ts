@@ -553,7 +553,7 @@ export const useItineraries = () => {
       return { success: false, emailSent: false, message: "Already a collaborator" };
     }
     
-    // Update the collaborators list with normalized email
+    // Update the collaborators list with normalized email (kept for UI display)
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
@@ -563,7 +563,30 @@ export const useItineraries = () => {
       };
     });
     saveItineraries(updated);
-    
+
+    // Resolve email -> user_id and insert into itinerary_collaborators so RLS
+    // actually grants the invitee access to the shared itinerary.
+    try {
+      const { data: profileRow } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", trimmedEmail)
+        .maybeSingle();
+
+      if (profileRow?.id) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          await supabase.from("itinerary_collaborators").insert({
+            itinerary_id: itineraryId,
+            user_id: profileRow.id,
+            invited_by: session.user.id,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Could not link collaborator to user account:", err);
+    }
+
     // Try to send email invitation via edge function
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -596,7 +619,8 @@ export const useItineraries = () => {
     }
   }, [itineraries, saveItineraries]);
 
-  const removeCollaborator = useCallback((itineraryId: string, email: string) => {
+  const removeCollaborator = useCallback(async (itineraryId: string, email: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
     const updated = itineraries.map(i => {
       if (i.id !== itineraryId) return i;
       return {
@@ -606,6 +630,24 @@ export const useItineraries = () => {
       };
     });
     saveItineraries(updated);
+
+    // Best-effort cleanup of the junction table row.
+    try {
+      const { data: profileRow } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", trimmedEmail)
+        .maybeSingle();
+      if (profileRow?.id) {
+        await supabase
+          .from("itinerary_collaborators")
+          .delete()
+          .eq("itinerary_id", itineraryId)
+          .eq("user_id", profileRow.id);
+      }
+    } catch (err) {
+      console.error("Could not remove collaborator link:", err);
+    }
   }, [itineraries, saveItineraries]);
 
   const isInItinerary = useCallback((experienceId: string) => {
