@@ -15,7 +15,7 @@ import catSafari from "@/assets/cat-safari.png";
 import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useProductListings } from "@/hooks/useProductListings";
 import { generateProductPageUrl } from "@/utils/slugUtils";
-import { useHomeCarousels } from "@/hooks/useHomeCarousels";
+import { useHomeCarousels, useHomeCategories, matchesContext, resolveCarouselItems, type ResolvedItem } from "@/hooks/useHomeCarousels";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrency } from "@/hooks/useCurrency";
 import { CardActionMenu } from "@/components/CardActionMenu";
@@ -25,6 +25,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 import type { HomeCarousel } from "@/hooks/useHomeCarousels";
+
+// Default icons for the 5 traditional pill categories — used as fallback if
+// the admin hasn't uploaded an icon_url for the activity_type yet.
+const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
+  Nightlife: catNightlife,
+  Nature: catNature,
+  Adventure: catAdventure,
+  Food: catFood,
+  Safari: catSafari,
+};
 
 const rotatingPlaceholders = [
   "Search the best beaches",
