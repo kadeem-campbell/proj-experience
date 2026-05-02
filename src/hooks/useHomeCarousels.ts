@@ -136,3 +136,83 @@ export const useHomeCategories = () => {
     staleTime: 5 * 60 * 1000,
   });
 };
+
+/**
+ * Resolve the final item-id list for a carousel given:
+ *  - the carousel definition
+ *  - product-level activity_type lookup (productCategoryMap: productId → activityTypeId)
+ *  - all collection_items for any referenced collections
+ *  - the current market context (used by 'auto' mode)
+ *
+ * Returns typed items in render order, capped at maxItems.
+ */
+export interface ResolvedItem { type: "product" | "itinerary" | "poi" | "area"; id: string }
+
+export const resolveCarouselItems = (
+  c: HomeCarousel,
+  ctx: {
+    selectedDestId: string | null;
+    activeCategoryId: string | null;
+    /** product_id → destination_id */
+    productDestMap: Map<string, string | null>;
+    /** product_id → activity_type_id */
+    productCatMap: Map<string, string | null>;
+    /** itinerary dbId → destination_id */
+    itinDestMap: Map<string, string | null>;
+    /** poi id → destination_id */
+    poiDestMap: Map<string, string | null>;
+    /** collection_id → array of {type,id} from collection_items (already typed) */
+    collectionContents: Map<string, ResolvedItem[]>;
+    /** All product ids (for 'auto' mode) */
+    allProductIds: string[];
+  }
+): ResolvedItem[] => {
+  let items: ResolvedItem[] = [];
+
+  if (c.resolutionMode === "manual") {
+    items = c.manualItems;
+  } else if (c.resolutionMode === "collection") {
+    c.collectionIds.forEach(cid => {
+      const inner = ctx.collectionContents.get(cid);
+      if (inner) items.push(...inner);
+    });
+  } else if (c.resolutionMode === "auto") {
+    // Auto mode: pull products matching market + category
+    items = ctx.allProductIds
+      .filter(pid => {
+        if (ctx.selectedDestId && ctx.productDestMap.get(pid) !== ctx.selectedDestId) return false;
+        if (ctx.activeCategoryId && ctx.productCatMap.get(pid) !== ctx.activeCategoryId) return false;
+        return true;
+      })
+      .map(id => ({ type: "product" as const, id }));
+  }
+
+  // Filter resolved items by current market context (auto already did this)
+  if (c.resolutionMode !== "auto" && ctx.selectedDestId) {
+    items = items.filter(it => {
+      if (it.type === "product")   return ctx.productDestMap.get(it.id) === ctx.selectedDestId;
+      if (it.type === "itinerary") return ctx.itinDestMap.get(it.id) === ctx.selectedDestId;
+      if (it.type === "poi")       return ctx.poiDestMap.get(it.id) === ctx.selectedDestId;
+      return true;
+    });
+  }
+  // Filter by category (only products carry an activity_type)
+  if (c.resolutionMode !== "auto" && ctx.activeCategoryId) {
+    items = items.filter(it => {
+      if (it.type !== "product") return true;
+      return ctx.productCatMap.get(it.id) === ctx.activeCategoryId;
+    });
+  }
+
+  // Dedupe and cap
+  const seen = new Set<string>();
+  const out: ResolvedItem[] = [];
+  for (const it of items) {
+    const key = `${it.type}:${it.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(it);
+    if (out.length >= c.maxItems) break;
+  }
+  return out;
+};
