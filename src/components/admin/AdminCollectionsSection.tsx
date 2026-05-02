@@ -25,7 +25,7 @@ export const AdminCollectionsSection = () => {
 
   const { data: collections = [], isLoading } = useQuery({
     queryKey: ['admin-collections-full'],
-    queryFn: async () => { const { data } = await (supabase as any).from('collections').select('*').order('home_display_order'); return data || []; },
+    queryFn: async () => { const { data } = await (supabase as any).from('collections').select('*').order('display_order'); return data || []; },
   });
 
   const { data: destinations = [] } = useQuery({
@@ -64,7 +64,6 @@ export const AdminCollectionsSection = () => {
             <div className="flex items-center gap-2">
               <span className="font-medium">{c.name}</span>
               <Badge variant="outline" className="text-[10px]">{c.collection_type}</Badge>
-              {c.show_on_home && <Badge className="text-[10px] bg-primary/10 text-primary border-0">Home</Badge>}
             </div>
           )},
           { key: 'slug', label: 'Slug', width: 'flex-1', render: (c: any) => (
@@ -74,7 +73,7 @@ export const AdminCollectionsSection = () => {
           ) },
           { key: 'is_active', label: 'Status', width: 'w-[80px]', render: (c: any) => <Badge variant={c.is_active ? 'default' : 'secondary'} className="text-[10px]">{c.is_active ? 'Active' : 'Off'}</Badge> },
         ]}
-        defaultItem={{ name: '', slug: '', description: '', collection_type: 'experiences', content_type: 'experience', is_active: true, show_on_home: false, home_display_order: 0 }}
+        defaultItem={{ name: '', slug: '', description: '', collection_type: 'experiences', content_type: 'experience', is_active: true }}
         renderForm={(item: any, onChange) => (
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="h-auto flex-wrap gap-1">
@@ -88,7 +87,7 @@ export const AdminCollectionsSection = () => {
                 <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
               </div>
               <div><Label className="text-xs text-muted-foreground">Description</Label><Textarea value={item.description || ''} onChange={e => onChange('description', e.target.value)} rows={2} /></div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">Type</Label>
                   <Select value={item.collection_type || 'experiences'} onValueChange={v => onChange('collection_type', v)}>
@@ -110,11 +109,10 @@ export const AdminCollectionsSection = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div><Label className="text-xs text-muted-foreground">Home Order</Label><Input type="number" value={item.home_display_order || 0} onChange={e => onChange('home_display_order', parseInt(e.target.value) || 0)} /></div>
               </div>
               <div><Label className="text-xs text-muted-foreground">Cover Image</Label><Input value={item.cover_image || ''} onChange={e => onChange('cover_image', e.target.value)} /></div>
+              <p className="text-[11px] text-muted-foreground italic">Collections are content groupings only. To display this on a page, create a Carousel and attach this collection to it.</p>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2"><Switch checked={item.show_on_home ?? false} onCheckedChange={v => onChange('show_on_home', v)} /><span className="text-xs">Show on Home</span></div>
                 <div className="flex items-center gap-2"><Switch checked={item.is_active ?? true} onCheckedChange={v => onChange('is_active', v)} /><span className="text-xs">{item.is_active ? 'Active' : 'Inactive'}</span></div>
               </div>
             </TabsContent>
@@ -135,13 +133,6 @@ export const AdminCollectionsSection = () => {
           toast({ title: `Archived ${ids.length} collection(s)` });
         }}
         bulkActions={[
-          {
-            label: 'Show on Home', icon: <Eye className="w-3 h-3" />,
-            action: async (ids) => {
-              for (const id of ids) await (supabase as any).from('collections').update({ show_on_home: true }).eq('id', id);
-              invalidate(); toast({ title: `${ids.length} shown on home` });
-            },
-          },
           {
             label: 'Archive', icon: <Archive className="w-3 h-3" />,
             action: async (ids) => {
