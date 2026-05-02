@@ -1,50 +1,34 @@
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
+/**
+ * Resets scroll to top on route (pathname) changes only.
+ * Intentionally lightweight: a single sync scrollTo on the window plus
+ * the explicit scroll roots used by the mobile shell. Avoids querySelectorAll
+ * across the whole document and avoids double-RAF restorations that cause
+ * a visible jitter on tab switches.
+ */
 export const ScrollToTop = () => {
-  const { pathname, search, hash, key } = useLocation();
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    if (!("scrollRestoration" in window.history)) return;
-
-    const previousValue = window.history.scrollRestoration;
-    window.history.scrollRestoration = "manual";
-
-    return () => {
-      window.history.scrollRestoration = previousValue;
-    };
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
   }, []);
 
-  useLayoutEffect(() => {
-    const resetScroll = () => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
+  useEffect(() => {
+    // Window scroll (covers desktop and any page that scrolls the document).
+    window.scrollTo(0, 0);
 
-      const scrollRoots = document.querySelectorAll<HTMLElement>(
-        "main, [data-scroll-root='true'], .overflow-auto, .overflow-y-auto, [data-radix-scroll-area-viewport]"
-      );
-
-      scrollRoots.forEach((element) => {
-        element.scrollTop = 0;
-        element.scrollLeft = 0;
-        element.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
-      });
-    };
-
-    resetScroll();
-
-    let frameTwo = 0;
-    const frameOne = window.requestAnimationFrame(() => {
-      resetScroll();
-      frameTwo = window.requestAnimationFrame(resetScroll);
-    });
-
-    return () => {
-      window.cancelAnimationFrame(frameOne);
-      window.cancelAnimationFrame(frameTwo);
-    };
-  }, [key, pathname, search, hash]);
+    // Known mobile scroll containers used by the shell. Cheap, targeted.
+    const roots = document.querySelectorAll<HTMLElement>(
+      "[data-scroll-root='true']"
+    );
+    for (const el of roots) {
+      el.scrollTop = 0;
+    }
+  }, [pathname]);
 
   return null;
 };

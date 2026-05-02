@@ -299,14 +299,6 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
     }
   }, [urlCity]);
 
-  // On mount, if localStorage has a city but URL doesn't, keep showing it
-  useEffect(() => {
-    const persisted = getPersistedCity();
-    if (persisted && !urlCity) {
-      setSelectedCity(persisted);
-    }
-  }, [location.pathname]);
-
   // Callback when search or map changes the city
   const handleCityChange = useCallback((city: string) => {
     setSelectedCity(city);
@@ -318,11 +310,8 @@ export const MobileShell = ({ children, headerContent, hideTopBar = false, hideA
     navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
   }, [navigate, location.pathname]);
 
-  // Scroll to top on ALL route changes (every tab switch)
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.querySelector('main')?.scrollTo(0, 0);
-  }, [location.pathname]);
+  // Scroll-to-top on route change is handled globally by <ScrollToTop /> in App.tsx.
+  // No per-shell duplicate here — multiple resets caused a visible jitter.
 
   // City selector sheet state
   const [citySelectorOpen, setCitySelectorOpen] = useState(false);
