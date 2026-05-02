@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LikedExperience } from './useLikedExperiences';
 import { validateEmail } from '@/utils/inputValidation';
+import {
+  writeItineraryItem,
+  deleteItineraryItem,
+  validateEntityForItinerary,
+  ensureDefaultDayId,
+  type ItineraryEntityType,
+} from '@/services/itineraryItemsService';
 
 export interface Trip {
   id: string;
