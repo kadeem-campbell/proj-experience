@@ -646,6 +646,8 @@ export const MobileHomeView = () => {
             itinDestMap,
             poiDestMap,
             collectionContents,
+            collectionDestMap,
+            collectionCatMap,
             allProductIds,
           });
           if (resolved.length === 0) return;
@@ -696,46 +698,6 @@ export const MobileHomeView = () => {
             );
           }
         });
-
-        // Fallback: nothing matched the context — show generic auto rows so the
-        // page is never empty (these stay context-aware via market+category filters
-        // already baked into `experiences`/`itineraries`/`filteredPois`).
-        if (elements.length === 0) {
-          const ctxFilteredExperiences = activeCategoryId
-            ? experiences.filter(e => e.activityTypeId === activeCategoryId)
-            : experiences;
-          if (ctxFilteredExperiences.length > 0) {
-            elements.push(
-              <HorizontalScrollRow key="fb-prod" title="Things to do" onTitleClick={() => navigate("/things-to-do")}>
-                {ctxFilteredExperiences.slice(0, 10).map((exp) => (
-                  <MobileExperienceCard key={exp.id} experience={exp} timingMap={timingMap} />
-                ))}
-              </HorizontalScrollRow>
-            );
-          }
-          // Don't surface itinerary/poi fallback when filtering by category —
-          // they don't carry a category and would look unrelated.
-          if (!activeCategoryId) {
-            if (itineraries.length > 0) {
-              elements.push(
-                <HorizontalScrollRow key="fb-itin" title="Top Itineraries" onTitleClick={() => navigate("/itineraries")}>
-                  {itineraries.slice(0, 8).map((it) => (
-                    <MobileItineraryCard key={it.id} itinerary={it} />
-                  ))}
-                </HorizontalScrollRow>
-              );
-            }
-            if (filteredPois.length > 0) {
-              elements.push(
-                <HorizontalScrollRow key="fb-poi" title="Places to Visit" onTitleClick={() => navigate(`/${selectedDestSlug || 'explore'}`)}>
-                  {filteredPois.slice(0, 10).map((poi: any) => (
-                    <MobilePoiCard key={poi.id} poi={poi} destinationSlug={selectedDestSlug} />
-                  ))}
-                </HorizontalScrollRow>
-              );
-            }
-          }
-        }
 
         return <>{elements}</>;
       })()}
