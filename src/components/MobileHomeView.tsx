@@ -397,7 +397,7 @@ export const MobileHomeView = () => {
     queryKey: ["collection-items", referencedCollectionIds.sort().join(",")],
     enabled: referencedCollectionIds.length > 0,
     queryFn: async () => {
-      const [itemsRes, destsRes, catsRes] = await Promise.all([
+      const [itemsRes, destsRes, catsRes, slugRes] = await Promise.all([
         (supabase as any)
           .from("collection_items")
           .select("collection_id, item_id, item_type, position")
@@ -411,11 +411,16 @@ export const MobileHomeView = () => {
           .from("collection_categories")
           .select("collection_id, activity_type_id")
           .in("collection_id", referencedCollectionIds),
+        (supabase as any)
+          .from("collections")
+          .select("id, slug")
+          .in("id", referencedCollectionIds),
       ]);
       return {
         items: itemsRes.data || [],
         destinations: destsRes.data || [],
         categories: catsRes.data || [],
+        slugs: slugRes.data || [],
       };
     },
     staleTime: 30 * 1000,
