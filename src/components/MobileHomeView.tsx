@@ -458,6 +458,14 @@ export const MobileHomeView = () => {
     return m;
   }, [collectionContentsRaw]);
 
+  const collectionSlugMap = useMemo(() => {
+    const m = new Map<string, string>();
+    ((collectionContentsRaw as any)?.slugs || []).forEach((r: any) => {
+      if (r.slug) m.set(r.id, r.slug);
+    });
+    return m;
+  }, [collectionContentsRaw]);
+
   const normalizeText = (text: string) => text.toLowerCase().replace(/[-_&]/g, " ").replace(/\s+/g, " ").trim();
   const stem = (word: string) => word.replace(/(es|s|ing|ed)$/i, "");
   
