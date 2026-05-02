@@ -591,7 +591,7 @@ export default function ExperienceDetail() {
       {hasCreators && creatorNames.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-muted-foreground/60 mb-4">Your hosts</h2>
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x -mr-4">
             {creatorNames.map((creatorName: string, idx: number) => (
               <div key={idx} className="shrink-0 w-[78%] snap-start flex items-center gap-4 p-3 rounded-2xl bg-card border border-border/50 cursor-pointer active:scale-[0.98] transition-all" onClick={() => navigate(getHostUrl(creatorName))}>
                 <Avatar className="w-12 h-12 ring-2 ring-primary/10 ring-offset-2 ring-offset-background">
