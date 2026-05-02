@@ -99,11 +99,12 @@ const SearchExperienceCard = ({ experience, onNavigate }: { experience: any; onN
         <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
             entityId={experience.id}
-            entityType="experience"
+            entityType="product"
             entityData={{
               id: experience.id, title: experience.title, creator: experience.creator || '',
               videoThumbnail: experience.videoThumbnail || '', category: experience.category || '',
               location: experience.location || '', price: experience.price || '',
+              entityType: 'product', entityId: experience.id,
             }}
             title={experience.title}
             slug={experience.slug}
@@ -138,11 +139,12 @@ const SearchPlaceCard = ({ poi, onNavigate }: { poi: any; onNavigate: () => void
         <div className="absolute bottom-2.5 right-2.5 z-10" onClick={(e) => e.stopPropagation()}>
           <CardActionMenu
             entityId={poi.id}
-            entityType="experience"
+            entityType="poi"
             entityData={{
               id: poi.id, title: poi.name, creator: '',
               videoThumbnail: poi.cover_image || '', category: poi.poi_type || '',
               location: poi.destination_name || '', price: '',
+              entityType: 'poi', entityId: poi.id,
             }}
             title={poi.name}
             slug={poi.slug}

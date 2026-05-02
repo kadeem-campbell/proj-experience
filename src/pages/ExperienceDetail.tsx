@@ -435,15 +435,15 @@ export default function ExperienceDetail() {
     if (experience) trackPageView((experience as any).isProduct ? 'product' : 'experience', experience.id, window.location.pathname);
   }, [experience?.id]);
 
-  const liked = experience ? (isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked) : false;
+  const liked = experience ? (isAuthenticated ? isDbLiked(experience.id, 'product') : localLiked) : false;
 
   const handleLikeClick = async () => {
     if (!experience) return;
     if ('vibrate' in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
-      const wasLiked = isDbLiked(experience.id, 'experience');
+      const wasLiked = isDbLiked(experience.id, 'product');
       setLikeCountDelta(prev => prev + (wasLiked ? -1 : 1));
-      await toggleDbLike(experience.id, 'experience', { id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category });
+      await toggleDbLike(experience.id, 'product', { id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category });
     } else { setPendingAction('like'); setShowAuthModal(true); }
   };
 

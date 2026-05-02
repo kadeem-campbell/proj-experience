@@ -69,13 +69,13 @@ const MobileExpCard = ({ experience }: { experience: any }) => {
   const [showTick, setShowTick] = useState(false);
   const { isLiked: isDbLiked, toggleLike: toggleDbLike } = useUserLikes();
   const { isAuthenticated } = useAuth();
-  const liked = isAuthenticated ? isDbLiked(experience.id, 'experience') : localLiked;
+  const liked = isAuthenticated ? isDbLiked(experience.id, 'product') : localLiked;
 
   const handleLikeClick = async (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault(); e.stopPropagation();
     if ('vibrate' in navigator) navigator.vibrate(10);
     if (isAuthenticated) {
-      await toggleDbLike(experience.id, 'experience', { id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category });
+      await toggleDbLike(experience.id, 'product', { id: experience.id, title: experience.title, videoThumbnail: experience.videoThumbnail, location: experience.location, category: experience.category });
     } else { setLocalLiked(!localLiked); }
   };
 
@@ -91,7 +91,7 @@ const MobileExpCard = ({ experience }: { experience: any }) => {
           <Heart className={cn("w-4 h-4", liked ? "fill-primary text-primary" : "text-white/90")} />
         </button>
         <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
-          <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator || '', videoThumbnail: experience.videoThumbnail || '', category: experience.category || '', location: experience.location || '', price: experience.price || '' }} onAdd={() => { setShowTick(true); setTimeout(() => setShowTick(false), 1500); }}>
+          <ItinerarySelector experienceId={experience.id} experienceData={{ id: experience.id, title: experience.title, creator: experience.creator || '', videoThumbnail: experience.videoThumbnail || '', category: experience.category || '', location: experience.location || '', price: experience.price || '', entityType: 'product', entityId: experience.id }} onAdd={() => { setShowTick(true); setTimeout(() => setShowTick(false), 1500); }}>
             <button className={cn("w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl shadow-sm active:scale-90", showTick ? "bg-primary/90" : "bg-white/80")}>
               {showTick ? <Check className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-foreground" />}
             </button>
