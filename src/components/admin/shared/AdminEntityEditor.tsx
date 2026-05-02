@@ -379,7 +379,7 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
       </div>
 
       {sortable && filtersActive && (
-        <p className="text-[11px] text-muted-foreground italic px-1">Drag-to-reorder is paused while filters are active. Clear filters to rearrange.</p>
+        <p className="text-[11px] text-muted-foreground italic px-1">Dragging while filtered: only rearranges visible rows. Hidden rows keep their position.</p>
       )}
 
       {bulkMode && selected.size > 0 && (
