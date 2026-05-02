@@ -29,24 +29,70 @@ export interface Itinerary {
   activeTripId?: string;
 }
 
+type DbItineraryRow = {
+  id: string;
+  name: string;
+  experiences: unknown;
+  created_at: string;
+  updated_at: string;
+  is_public: boolean | null;
+  collaborators: string[] | null;
+  cover_image: string | null;
+  tag: string | null;
+  start_date: string | null;
+  theme: string | null;
+  trips: unknown;
+  active_trip_id: string | null;
+};
+
 const STORAGE_KEY = 'itineraries';
 const ACTIVE_ITINERARY_KEY = 'activeItineraryId';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
+type ItinerariesState = {
+  itineraries: Itinerary[];
+  activeItineraryId: string | null;
+  userId: string | null;
+  isLoading: boolean;
+};
+
+let sharedItinerariesState: ItinerariesState = {
+  itineraries: [],
+  activeItineraryId: null,
+  userId: null,
+  isLoading: true,
+};
+
+const itineraryListeners = new Set<(state: ItinerariesState) => void>();
+let loadedForUserKey: string | null = null;
+let loadInFlightForUserKey: string | null = null;
+
+const setSharedItinerariesState = (next: Partial<ItinerariesState>) => {
+  sharedItinerariesState = { ...sharedItinerariesState, ...next };
+  itineraryListeners.forEach((listener) => listener(sharedItinerariesState));
+};
+
 export const useItineraries = () => {
-  const [itineraries, setItineraries] = useState<Itinerary[]>([]);
-  const [activeItineraryId, setActiveItineraryIdState] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [state, setState] = useState<ItinerariesState>(sharedItinerariesState);
+  const { itineraries, activeItineraryId, userId, isLoading } = state;
+  const setItineraries = useCallback((itineraries: Itinerary[]) => setSharedItinerariesState({ itineraries }), []);
+  const setActiveItineraryIdState = useCallback((activeItineraryId: string | null) => setSharedItinerariesState({ activeItineraryId }), []);
+  const setUserId = useCallback((userId: string | null) => setSharedItinerariesState({ userId }), []);
+  const setIsLoading = useCallback((isLoading: boolean) => setSharedItinerariesState({ isLoading }), []);
   const itinerariesRef = useRef<Itinerary[]>([]);
+
+  useEffect(() => {
+    itineraryListeners.add(setState);
+    return () => { itineraryListeners.delete(setState); };
+  }, []);
 
   useEffect(() => {
     itinerariesRef.current = itineraries;
   }, [itineraries]);
 
   // Convert DB row to Itinerary
-  const dbToItinerary = (row: any): Itinerary => ({
+  const dbToItinerary = (row: DbItineraryRow): Itinerary => ({
     id: row.id,
     name: row.name,
     experiences: (row.experiences as LikedExperience[]) || [],
@@ -117,6 +163,19 @@ export const useItineraries = () => {
 
   // Load itineraries from database or localStorage
   const loadItineraries = useCallback(async (uid: string | null) => {
+    const userKey = uid || 'guest';
+    if (
+      loadedForUserKey === userKey &&
+      sharedItinerariesState.userId === uid &&
+      sharedItinerariesState.itineraries.length > 0
+    ) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (loadInFlightForUserKey === userKey) return;
+    loadInFlightForUserKey = userKey;
+
     if (uid) {
       // Show cached data immediately while fetching
       const cacheKey = `itineraries_cache_${uid}`;
@@ -134,7 +193,9 @@ export const useItineraries = () => {
               setActiveItineraryIdState(parsed[0].id);
             }
           }
-        } catch {}
+        } catch {
+          localStorage.removeItem(cacheKey);
+        }
       } else {
         setIsLoading(true);
       }
@@ -152,6 +213,7 @@ export const useItineraries = () => {
       if (error) {
         console.error('Error loading itineraries:', error);
         setIsLoading(false);
+        loadInFlightForUserKey = null;
         return;
       }
 
@@ -217,8 +279,10 @@ export const useItineraries = () => {
       }
     }
     
+    loadedForUserKey = userKey;
+    loadInFlightForUserKey = null;
     setIsLoading(false);
-  }, [syncLocalToDatabase]);
+  }, [syncLocalToDatabase, setActiveItineraryIdState, setIsLoading, setItineraries]);
 
   // Listen for auth state changes - use ref to prevent double loading
   useEffect(() => {
@@ -254,7 +318,7 @@ export const useItineraries = () => {
       clearTimeout(timeout);
       subscription.unsubscribe();
     };
-  }, [loadItineraries]);
+  }, [loadItineraries, setUserId]);
 
   // Listen for cross-component updates (for BOTH authenticated and unauthenticated users)
   useEffect(() => {
@@ -281,7 +345,7 @@ export const useItineraries = () => {
       window.removeEventListener('itinerariesChanged', handleItinerariesChanged as EventListener);
       window.removeEventListener('activeItineraryChanged', handleActiveItineraryChanged as EventListener);
     };
-  }, [userId]);
+  }, [userId, setActiveItineraryIdState, setItineraries]);
 
   // Save itineraries (to DB or localStorage) - fire and forget for optimistic UI
   const saveItineraries = useCallback((newItineraries: Itinerary[]) => {
@@ -309,7 +373,7 @@ export const useItineraries = () => {
     } else {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newItineraries));
     }
-  }, [userId]);
+  }, [userId, setItineraries]);
 
   const activeItinerary = itineraries.find(i => i.id === activeItineraryId) || null;
 
@@ -317,7 +381,7 @@ export const useItineraries = () => {
     setActiveItineraryIdState(id);
     localStorage.setItem(ACTIVE_ITINERARY_KEY, id);
     window.dispatchEvent(new CustomEvent('activeItineraryChanged', { detail: id }));
-  }, []);
+  }, [setActiveItineraryIdState]);
 
   const createItinerary = useCallback(async (name: string, initialExperiences?: LikedExperience[]): Promise<Itinerary> => {
     const newId = userId ? crypto.randomUUID() : generateId();
@@ -375,7 +439,7 @@ export const useItineraries = () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       window.dispatchEvent(new CustomEvent('itinerariesChanged', { detail: updated }));
     }
-  }, [userId, itineraries, activeItineraryId, setActiveItinerary]);
+  }, [userId, itineraries, activeItineraryId, setActiveItinerary, setItineraries]);
 
   const renameItinerary = useCallback((id: string, newName: string) => {
     const updated = itineraries.map(i =>
@@ -711,7 +775,7 @@ export const useItineraries = () => {
       setActiveItinerary(newId);
       return newItinerary;
     }
-  }, [userId, itineraries, saveItineraries, setActiveItinerary]);
+  }, [userId, itineraries, saveItineraries, setActiveItinerary, setItineraries]);
 
   const updateItineraryCover = useCallback((id: string, coverImage: string) => {
     const updated = itineraries.map(i =>
