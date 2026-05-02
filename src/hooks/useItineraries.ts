@@ -235,6 +235,7 @@ export const useItineraries = () => {
         } else {
           setActiveItineraryIdState(loaded[0].id);
           localStorage.setItem(ACTIVE_ITINERARY_KEY, loaded[0].id);
+        }
 
         // One-time backfill: if any itinerary has experiences in the JSONB blob
         // but zero rows in itinerary_items, mirror them across so the canonical
@@ -264,7 +265,6 @@ export const useItineraries = () => {
             }
           }
         })();
-      }
       } else {
         // Create default itinerary for new user
         const newId = crypto.randomUUID();
