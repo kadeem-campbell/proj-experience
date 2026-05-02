@@ -204,6 +204,15 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
     for (const f of config.toolbarFilters || []) {
       const v = filterValues[f.key];
       if (!v || v === '__all') continue;
+      if (v === '__none') {
+        if (f.column) {
+          list = list.filter((it: any) => it[f.column!] === null || it[f.column!] === undefined || it[f.column!] === '');
+        } else if (f.joinTable) {
+          const map = (m2mMembership as any)[f.key] || {};
+          list = list.filter((it: any) => !map[it.id] || map[it.id].size === 0);
+        }
+        continue;
+      }
       if (f.column) {
         list = list.filter((it: any) => String(it[f.column!] ?? '') === v);
       } else if (f.joinTable) {
