@@ -217,7 +217,13 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
         list = list.filter((it: any) => String(it[f.column!] ?? '') === v);
       } else if (f.joinTable) {
         const map = (m2mMembership as any)[f.key] || {};
-        list = list.filter((it: any) => map[it.id]?.has(v));
+        // Match the public app's semantics: a carousel matches a city/category if it
+        // explicitly includes that value OR has no restrictions at all (global).
+        list = list.filter((it: any) => {
+          const memberships = map[it.id];
+          if (!memberships || memberships.size === 0) return true; // global
+          return memberships.has(v);
+        });
       }
     }
     return list;
