@@ -7,7 +7,6 @@ import { resolveTimingProfile as resolveTimingProfileFn } from "@/lib/timing";
 import { MobileShell } from "@/components/MobileShell";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProductBySlug, useProductOptions, useProductHosts, useDestinationBySlug, useDestinationById, useAreaById } from "@/hooks/useProducts";
-import { useExperienceBySlug } from "@/hooks/useExperienceBySlug";
 import { useInteractions } from "@/hooks/useInteractions";
 import { generateProductSchema } from "@/services/schemaGenerator";
 import { usePoiBySlug } from "@/hooks/usePoiBySlug";
@@ -349,7 +348,7 @@ export default function ExperienceDetail() {
   const { data: productDestination } = useDestinationBySlug(destParam || '');
   const { data: productDestinationById } = useDestinationById(product?.destination_id || '');
   const { data: productArea } = useAreaById(product?.primary_area_id || '');
-  const { data: legacyExperience, isLoading: legacyLoading } = useExperienceBySlug((!product && !productLoading) ? resolvedSlug : '');
+  // Products are the only canonical entity for Things to do — no experience fallback.
   const bestTimeDisplay = useBestTimeDisplay(product?.id || '');
 
   // Fetch linked POI for breadcrumb
@@ -380,15 +379,15 @@ export default function ExperienceDetail() {
 
   // Deterministic fake like count seeded from product ID
   const seededLikeCount = useMemo(() => {
-    if (!product && !legacyExperience) return 0;
-    const id = product?.id || legacyExperience?.id || '';
+    if (!product) return 0;
+    const id = product?.id || '';
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
       hash = ((hash << 5) - hash) + id.charCodeAt(i);
       hash |= 0;
     }
     return 47 + Math.abs(hash % 400); // range 47–446
-  }, [product?.id, legacyExperience?.id]);
+  }, [product?.id]);
 
   const experience = useMemo(() => {
     if (product) {
@@ -428,33 +427,8 @@ export default function ExperienceDetail() {
         placeName: (product as any).place_name || '',
       };
     }
-    if (legacyExperience) {
-      return {
-        id: legacyExperience.id, title: legacyExperience.title,
-        creator: legacyExperience.creator || '',
-        videoThumbnail: legacyExperience.video_thumbnail || '',
-        videoUrl: legacyExperience.video_url || '',
-        category: legacyExperience.category || '',
-        location: legacyExperience.location || '',
-        description: legacyExperience.description || '',
-        duration: legacyExperience.duration || '',
-        groupSize: legacyExperience.group_size || '',
-        averagePrice: null,
-        price: legacyExperience.price || '',
-        highlights: (legacyExperience.highlights as any[]) || [],
-        gallery: (legacyExperience.gallery as any[]) || (legacyExperience.video_thumbnail ? [legacyExperience.video_thumbnail] : []),
-        bestTime: legacyExperience.best_time || '', weather: legacyExperience.weather || '',
-        meetingPoints: (legacyExperience.meeting_points as any[]) || [],
-        faqs: (legacyExperience.faqs as any[]) || [],
-        tiktokVideos: (legacyExperience.tiktok_videos as any[]) || [],
-        instagramEmbed: legacyExperience.instagram_embed || '',
-        socialLinks: (legacyExperience.social_links as Record<string, string>) || {},
-        likeCount: seededLikeCount, slug: legacyExperience.slug || '', isProduct: false,
-        localTips: [] as string[], gettingThereDescription: '',
-      };
-    }
     return null;
-  }, [product, productOptions, productDestination, productDestinationById, productArea, productHosts, legacyExperience, productActivityType, seededLikeCount]);
+  }, [product, productOptions, productDestination, productDestinationById, productArea, productHosts, productActivityType, seededLikeCount]);
 
   useEffect(() => {
     if (experience) trackPageView((experience as any).isProduct ? 'product' : 'experience', experience.id, window.location.pathname);
@@ -532,7 +506,7 @@ export default function ExperienceDetail() {
   const { data: poiMatch, isLoading: poiLoading } = usePoiBySlug((!experience && !productLoading) ? resolvedSlug : "");
 
   // Loading states
-  if (!experience && (productLoading || legacyLoading)) {
+  if (!experience && productLoading) {
     return isMobile ? (
       <MobileShell hideTopBar><div className="flex justify-center items-center min-h-[60vh]"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div></MobileShell>
     ) : (
