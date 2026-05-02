@@ -618,6 +618,7 @@ export const MobileHomeView = () => {
               <HorizontalScrollRow
                 key={carousel.id}
                 title={title}
+                description={carousel.description}
                 onTitleClick={() => navigate(`/${destSlug}`)}
               >
                 {destAreas.map((area: any) => (
@@ -670,6 +671,7 @@ export const MobileHomeView = () => {
               <HorizontalScrollRow
                 key={carousel.id + '-prod'}
                 title={title}
+                description={carousel.description}
                 onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
               >
                 {productItems.map((experience) => (
@@ -683,6 +685,7 @@ export const MobileHomeView = () => {
               <HorizontalScrollRow
                 key={carousel.id + '-itin'}
                 title={title}
+                description={carousel.description}
                 onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
               >
                 {itineraryItems.map((itinerary) => (
@@ -696,6 +699,7 @@ export const MobileHomeView = () => {
               <HorizontalScrollRow
                 key={carousel.id + '-poi'}
                 title={title}
+                description={carousel.description}
                 onTitleClick={() => navigate(`/collections/${resolvedSlug}`)}
               >
                 {poiItems.map((poi: any) => (
