@@ -680,7 +680,7 @@ export default function ExperienceDetail() {
     return (
       <MobileShell hideTopBar>
         {experienceJsonLd && (
-          <SEOHead title={`${experience.title} in ${experience.location}`} description={`${experience.title} — ${experience.category} activity in ${experience.location}. ${experience.description?.slice(0, 120) || 'Discover and add to your itinerary.'}`} canonicalPath={shareUrl.replace('https://swam.app', '')} indexability="public_indexed" image={experience.videoThumbnail} jsonLd={experienceJsonLd} />
+          <SEOHead title={(product as any)?.seo_title || `${experience.title} in ${experience.location}`} description={(product as any)?.seo_description || `${experience.title} — ${experience.category} activity in ${experience.location}. ${experience.description?.slice(0, 120) || 'Discover and add to your itinerary.'}`} canonicalPath={shareUrl.replace('https://swam.app', '')} indexability={((product as any)?.indexability_state as any) || 'public_noindex'} image={experience.videoThumbnail} jsonLd={experienceJsonLd} />
         )}
         <div className="bg-background overflow-y-auto">
           {/* ========== CINEMATIC HERO ========== */}
