@@ -17,6 +17,7 @@ export interface HomeCarousel {
   id: string;
   name: string;
   slug: string;
+  description: string | null;
   contentType: "product" | "itinerary" | "poi" | "area" | "collection" | "mixed";
   pageLocation: string;
   displayOrder: number;
@@ -74,6 +75,7 @@ export const useHomeCarousels = (pageLocation: string = "home") => {
         id: c.id,
         name: c.name,
         slug: c.slug,
+        description: c.description ?? null,
         contentType: c.content_type,
         pageLocation: c.page_location,
         displayOrder: c.display_order,
