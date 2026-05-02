@@ -6026,6 +6026,10 @@ export type Database = {
         Args: { _itinerary_id: string; _user_id: string }
         Returns: boolean
       }
+      prune_carousel_scope: {
+        Args: { _carousel_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "creator" | "traveler"
