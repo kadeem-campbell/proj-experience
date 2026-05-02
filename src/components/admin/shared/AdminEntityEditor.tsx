@@ -88,8 +88,8 @@ export interface AdminEntityConfig<_T = any> {
   primaryLabelColumn?: string; // default: 'name'
   /** column used in search */
   searchColumns?: string[];     // default: ['name','slug']
-  /** sort column + direction for the list */
-  orderBy?: { column: string; ascending?: boolean };
+  /** sort column + direction for the list. Pass an array for multi-column ordering. */
+  orderBy?: { column: string; ascending?: boolean } | { column: string; ascending?: boolean }[];
   /** all editable fields */
   fields: FieldConfig[];
   /** group fields shown collapsed by default in list row (chips/badges) */
