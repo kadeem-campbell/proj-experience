@@ -112,28 +112,61 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
     contentType === 'poi' ? 'poi' : contentType === 'itinerary' ? 'itinerary' : 'product'
   );
 
+  // Search pool = items the admin can ADD (matches current mode + contentType).
   const { data: searchPool = [] } = useQuery({
     queryKey: ['carousel-search-pool', mode, contentType],
     queryFn: async () => {
       if (mode === 'collection') {
         const { data } = await (supabase as any).from('collections').select('id, name, slug, collection_type').eq('is_active', true).order('name');
-        return (data || []).map((c: any) => ({ id: c.id, label: c.name, sub: c.collection_type }));
+        return (data || []).map((c: any) => ({ id: c.id, label: c.name, sub: c.collection_type, type: 'collection' }));
       }
       if (contentType === 'poi') {
         const { data } = await supabase.from('pois').select('id, name, poi_type').eq('is_active', true).order('name');
-        return (data || []).map((p: any) => ({ id: p.id, label: p.name, sub: p.poi_type }));
+        return (data || []).map((p: any) => ({ id: p.id, label: p.name, sub: p.poi_type, type: 'poi' }));
       }
       if (contentType === 'product') {
         const { data } = await supabase.from('products').select('id, title, slug, publish_state, visibility_output_state')
           .eq('publish_state', 'published')
           .in('visibility_output_state', ['public', 'public_indexed', 'marketplace_active'])
           .order('title');
-        return (data || []).map((p: any) => ({ id: p.id, label: p.title, sub: p.slug }));
+        return (data || []).map((p: any) => ({ id: p.id, label: p.title, sub: p.slug, type: 'product' }));
       }
       const { data } = await (supabase as any).from('public_itineraries').select('id, name, tag').eq('is_active', true).order('name');
-      return (data || []).map((i: any) => ({ id: i.id, label: i.name, sub: i.tag }));
+      return (data || []).map((i: any) => ({ id: i.id, label: i.name, sub: i.tag, type: 'itinerary' }));
     },
     staleTime: 5 * 60 * 1000,
+  });
+
+  // Label lookup for ALREADY-LINKED items (could be a different type than current mode after switching).
+  // We always fetch labels per-type from the right source so nothing renders as a raw UUID.
+  const { data: linkedMeta = {} } = useQuery({
+    queryKey: ['carousel-linked-meta', linkedItems.map((l: any) => `${l.item_type}:${l.item_id}`).sort().join('|')],
+    enabled: linkedItems.length > 0,
+    queryFn: async () => {
+      const out: Record<string, { label: string; sub?: string }> = {};
+      const byType: Record<string, string[]> = {};
+      linkedItems.forEach((l: any) => { (byType[l.item_type] ||= []).push(l.item_id); });
+
+      const tasks: Promise<void>[] = [];
+      if (byType.collection?.length) {
+        tasks.push((supabase as any).from('collections').select('id, name, collection_type').in('id', byType.collection)
+          .then(({ data }: any) => (data || []).forEach((r: any) => { out[`collection:${r.id}`] = { label: r.name, sub: r.collection_type }; })));
+      }
+      if (byType.product?.length) {
+        tasks.push(supabase.from('products').select('id, title, slug').in('id', byType.product)
+          .then(({ data }: any) => (data || []).forEach((r: any) => { out[`product:${r.id}`] = { label: r.title, sub: r.slug }; })));
+      }
+      if (byType.poi?.length) {
+        tasks.push(supabase.from('pois').select('id, name, poi_type').in('id', byType.poi)
+          .then(({ data }: any) => (data || []).forEach((r: any) => { out[`poi:${r.id}`] = { label: r.name, sub: r.poi_type }; })));
+      }
+      if (byType.itinerary?.length) {
+        tasks.push((supabase as any).from('public_itineraries').select('id, name, tag').in('id', byType.itinerary)
+          .then(({ data }: any) => (data || []).forEach((r: any) => { out[`itinerary:${r.id}`] = { label: r.name, sub: r.tag }; })));
+      }
+      await Promise.all(tasks);
+      return out;
+    },
   });
 
   const linkedIds = new Set(linkedItems.map((x: any) => x.item_id));
@@ -147,6 +180,7 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['carousel-items-admin', carouselId] });
     qc.invalidateQueries({ queryKey: ['home-carousels'] });
+    qc.invalidateQueries({ queryKey: ['carousels'] });
   };
 
   const add = async (itemId: string) => {
@@ -164,6 +198,8 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
     invalidate();
   };
 
+  const orphans = linkedItems.filter((it: any) => it.item_type !== itemTypeForMode);
+
   return (
     <div className="space-y-3">
       <div>
@@ -171,14 +207,27 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
           {mode === 'collection' ? <><Folder className="w-3 h-3" /> Linked collections</> : <>Linked items</>}
           <span className="text-muted-foreground font-normal">({linkedItems.length})</span>
         </Label>
+        {orphans.length > 0 && (
+          <div className="mt-2 rounded-md border border-destructive/40 bg-destructive/5 p-2 text-[11px] text-destructive flex items-center justify-between gap-2">
+            <span>{orphans.length} legacy item{orphans.length === 1 ? '' : 's'} from a previous mode. They won't render — clean up?</span>
+            <Button size="sm" variant="destructive" className="h-6 text-[11px] px-2" onClick={async () => {
+              const { error } = await (supabase as any).from('carousel_items').delete().in('id', orphans.map((o: any) => o.id));
+              if (error) { toast.error(friendlyError(error)); return; }
+              toast.success(`Removed ${orphans.length}`);
+              invalidate();
+            }}>Remove all</Button>
+          </div>
+        )}
         <div className="space-y-1 mt-2">
           {linkedItems.map((it: any, idx: number) => {
-            const meta = searchPool.find((p: any) => p.id === it.item_id);
+            const meta = linkedMeta[`${it.item_type}:${it.item_id}`] || searchPool.find((p: any) => p.id === it.item_id);
+            const isOrphan = it.item_type !== itemTypeForMode;
             return (
-              <div key={it.id} className="flex items-center gap-2 text-sm border rounded px-3 py-1.5 bg-background">
+              <div key={it.id} className={`flex items-center gap-2 text-sm border rounded px-3 py-1.5 bg-background ${isOrphan ? 'border-destructive/30' : ''}`}>
                 <span className="text-xs text-muted-foreground w-5">{idx + 1}</span>
-                <Badge variant="outline" className="text-[10px] shrink-0">{it.item_type}</Badge>
-                <span className="flex-1 truncate">{meta?.label || it.item_id.slice(0, 8)}</span>
+                <Badge variant={isOrphan ? 'destructive' : 'outline'} className="text-[10px] shrink-0">{it.item_type}</Badge>
+                <span className="flex-1 truncate">{meta?.label || <em className="text-muted-foreground">missing ({it.item_id.slice(0, 8)})</em>}</span>
+                {meta?.sub && <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">{meta.sub}</span>}
                 <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => remove(it.id)}>
                   <X className="w-3 h-3" />
                 </Button>
@@ -190,10 +239,10 @@ const CarouselItemsEditor = ({ carouselId, mode, contentType }: { carouselId: st
       </div>
 
       <div>
-        <Label className="text-xs font-semibold">Add {mode === 'collection' ? 'collection' : 'item'}</Label>
+        <Label className="text-xs font-semibold">Add {mode === 'collection' ? 'collection' : itemTypeForMode}</Label>
         <div className="relative mt-1">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder={`Search ${mode === 'collection' ? 'collections' : 'items'}…`} className="pl-7" />
+          <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder={`Search ${mode === 'collection' ? 'collections' : itemTypeForMode + 's'}…`} className="pl-7" />
         </div>
         <div className="mt-2 max-h-56 overflow-y-auto space-y-1">
           {filteredPool.map((p: any) => (
