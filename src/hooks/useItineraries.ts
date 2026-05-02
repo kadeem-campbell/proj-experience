@@ -177,7 +177,9 @@ export const useItineraries = () => {
               setActiveItineraryIdState(parsed[0].id);
             }
           }
-        } catch {}
+        } catch {
+          localStorage.removeItem(cacheKey);
+        }
       } else {
         setIsLoading(true);
       }
@@ -195,8 +197,8 @@ export const useItineraries = () => {
       if (error) {
         console.error('Error loading itineraries:', error);
         setIsLoading(false);
-      loadInFlightForUserKey = null;
-      return;
+        loadInFlightForUserKey = null;
+        return;
       }
 
       if (data && data.length > 0) {
@@ -264,7 +266,7 @@ export const useItineraries = () => {
     loadedForUserKey = userKey;
     loadInFlightForUserKey = null;
     setIsLoading(false);
-  }, [syncLocalToDatabase]);
+  }, [syncLocalToDatabase, setActiveItineraryIdState, setIsLoading, setItineraries]);
 
   // Listen for auth state changes - use ref to prevent double loading
   useEffect(() => {
@@ -300,7 +302,7 @@ export const useItineraries = () => {
       clearTimeout(timeout);
       subscription.unsubscribe();
     };
-  }, [loadItineraries]);
+  }, [loadItineraries, setUserId]);
 
   // Listen for cross-component updates (for BOTH authenticated and unauthenticated users)
   useEffect(() => {
@@ -327,7 +329,7 @@ export const useItineraries = () => {
       window.removeEventListener('itinerariesChanged', handleItinerariesChanged as EventListener);
       window.removeEventListener('activeItineraryChanged', handleActiveItineraryChanged as EventListener);
     };
-  }, [userId]);
+  }, [userId, setActiveItineraryIdState, setItineraries]);
 
   // Save itineraries (to DB or localStorage) - fire and forget for optimistic UI
   const saveItineraries = useCallback((newItineraries: Itinerary[]) => {
