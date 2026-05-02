@@ -3,7 +3,7 @@
  * best-for persona, save-for-later, follow host, similar.
  */
 import { Link, useNavigate } from 'react-router-dom';
-import { useIncludedInItineraries, useExperienceRelationships, useFollows, useSaves } from '@/hooks/useSocialGraph';
+import { useIncludedInItineraries, useExperienceRelationships } from '@/hooks/useSocialGraph';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -149,45 +149,7 @@ export const BestForBlock = ({ bestFor }: BestForBlockProps) => {
   );
 };
 
-interface SaveFollowBarProps {
-  experienceId: string;
-  hostId?: string;
-  hostName?: string;
-}
-
-export const SaveFollowBar = ({ experienceId, hostId, hostName }: SaveFollowBarProps) => {
-  const { isAuthenticated } = useAuth();
-  const { isSaved, toggleSave } = useSaves();
-  const { isFollowing, toggleFollow } = useFollows();
-
-  const saved = isSaved(experienceId, 'experience');
-  const following = hostId ? isFollowing(hostId, 'host') : false;
-
-  return (
-    <div className="flex gap-2 mb-6">
-      <Button
-        variant={saved ? 'default' : 'outline'}
-        size="sm"
-        className="flex-1 gap-1.5"
-        onClick={() => isAuthenticated && toggleSave(experienceId, 'experience')}
-      >
-        <Bookmark className={cn("w-4 h-4", saved && "fill-current")} />
-        {saved ? 'Saved' : 'Save for later'}
-      </Button>
-      {hostId && (
-        <Button
-          variant={following ? 'default' : 'outline'}
-          size="sm"
-          className="flex-1 gap-1.5"
-          onClick={() => isAuthenticated && toggleFollow(hostId, 'host')}
-        >
-          {following ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-          {following ? 'Following' : `Follow${hostName ? ` @${hostName}` : ''}`}
-        </Button>
-      )}
-    </div>
-  );
-};
+// SaveFollowBar removed: products use Likes + Add to Itinerary, never Save/Follow.
 
 interface CopyRemixActionsProps {
   itineraryId?: string;
