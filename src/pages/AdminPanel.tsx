@@ -27,7 +27,7 @@ import { AdminMediaSection } from '@/components/admin/AdminMediaSection';
 import { AdminValidationCenter, AdminSlugCenter } from '@/components/admin/AdminValidationCenter';
 import { AdminBulkOps } from '@/components/admin/AdminBulkOps';
 import { AdminJsonTools } from '@/components/admin/AdminJsonTools';
-import { AdminLegacySection } from '@/components/admin/AdminLegacySection';
+
 import { AdminRedirectsSection } from '@/components/admin/AdminRedirectsSection';
 import { AdminQualitySection } from '@/components/admin/AdminQualitySection';
 import { AdminQuestionsSection } from '@/components/admin/AdminQuestionsSection';
@@ -69,7 +69,7 @@ const SECTIONS = [
   { id: 'search_trends', label: 'Search Trends', icon: Search, group: 'Operations' },
   { id: 'system', label: 'System Config', icon: Settings, group: 'System' },
   { id: 'world_graph', label: 'World Graph', icon: Globe, group: 'System' },
-  { id: 'legacy', label: 'Legacy Data', icon: Database, group: 'System' },
+  
 ];
 
 const AdminPanel = () => {
@@ -105,7 +105,7 @@ const AdminPanel = () => {
       case 'search_trends': return <AdminSearchTrends />;
       case 'system': return <AdminSystemSection />;
       case 'world_graph': return <AdminWorldGraph />;
-      case 'legacy': return <AdminLegacySection />;
+      
       default: return <AdminOverview onNavigate={setActiveSection} />;
     }
   };
