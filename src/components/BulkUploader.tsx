@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { friendlyError } from '@/utils/friendlyError';
 import { getShareBaseUrl } from '@/utils/shareUrl';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
