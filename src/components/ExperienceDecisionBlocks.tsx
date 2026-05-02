@@ -23,29 +23,35 @@ export const IncludedInItineraries = ({ experienceId }: IncludedInItinerariesPro
   if (itineraries.length === 0) return null;
 
   return (
-    <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-3">Included in itineraries</h2>
-      <div className="space-y-2">
-        {itineraries.slice(0, 5).map((itin: any) => (
+    <div className="mb-6 -mx-4">
+      <h2 className="text-lg font-semibold mb-3 px-4">Included in itineraries</h2>
+      <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x snap-mandatory">
+        {itineraries.slice(0, 12).map((itin: any) => (
           <Link
             key={itin.id}
             to={`/itineraries/${itin.slug}`}
-            className="flex items-center gap-3 p-3.5 rounded-xl bg-card border border-border hover:bg-muted/40 transition-colors group"
+            className="shrink-0 w-40 snap-start group"
           >
-            {itin.cover_image && (
-              <img src={itin.cover_image} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{itin.name}</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {itin.like_count > 0 && (
-                  <span className="flex items-center gap-0.5">
-                    <Heart className="w-3 h-3" /> {itin.like_count}
-                  </span>
-                )}
-              </div>
+            <div className="aspect-square rounded-xl overflow-hidden bg-muted mb-2">
+              {itin.cover_image ? (
+                <img
+                  src={itin.cover_image}
+                  alt={itin.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+              )}
             </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <p className="text-sm font-semibold line-clamp-2 leading-snug text-foreground">
+              {itin.name}
+            </p>
+            {itin.like_count > 0 && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                <Heart className="w-3 h-3" /> {itin.like_count}
+              </p>
+            )}
           </Link>
         ))}
       </div>
