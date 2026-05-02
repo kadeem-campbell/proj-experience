@@ -23,9 +23,9 @@ export const IncludedInItineraries = ({ experienceId }: IncludedInItinerariesPro
   if (itineraries.length === 0) return null;
 
   return (
-    <div className="mb-6 -mx-4">
-      <h2 className="text-lg font-semibold mb-3 px-4">Included in itineraries</h2>
-      <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x snap-mandatory">
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold mb-3">Included in itineraries</h2>
+      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x">
         {itineraries.slice(0, 12).map((itin: any) => (
           <Link
             key={itin.id}
