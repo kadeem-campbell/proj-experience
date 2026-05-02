@@ -495,7 +495,12 @@ export default function ExperienceDetail() {
       id: experience.id, title: experience.title, creator: experience.creator,
       videoThumbnail: experience.videoThumbnail, category: experience.category,
       location: experience.location, price: experience.price || "",
+      entityType: 'product', entityId: experience.id,
     });
+    if (result.refusalMessage) {
+      toast.error(result.refusalMessage);
+      return;
+    }
     setShowAddToItinerarySheet(false);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);
