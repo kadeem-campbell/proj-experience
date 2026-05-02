@@ -144,7 +144,10 @@ export const AdminEntityEditor = ({ config }: { config: AdminEntityConfig }) => 
     queryKey,
     queryFn: async () => {
       let q: any = (supabase as any).from(config.table).select('*');
-      if (config.orderBy) q = q.order(config.orderBy.column, { ascending: config.orderBy.ascending ?? true });
+      if (config.orderBy) {
+        const orders = Array.isArray(config.orderBy) ? config.orderBy : [config.orderBy];
+        for (const o of orders) q = q.order(o.column, { ascending: o.ascending ?? true });
+      }
       const { data, error } = await q;
       if (error) throw error;
       return data || [];
