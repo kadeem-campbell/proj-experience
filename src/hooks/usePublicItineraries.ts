@@ -130,33 +130,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
   }
 
   return data.map((row: any) => {
-    let experiences = itemsByItinerary[row.id] || [];
-    // Fallback: hydrate from row.experiences JSONB if snapshot table is empty
-    if (experiences.length === 0 && Array.isArray(row.experiences) && row.experiences.length > 0) {
-      experiences = row.experiences
-        .map((e: any) => {
-          const meta = e?.id ? (productMeta as any)[e.id] : null;
-          if (!meta && !e?.title) return null;
-          return {
-            id: e.id,
-            title: meta?.title || e.title || "",
-            creator: e.creator || "",
-            videoThumbnail: meta?.cover_image_url || meta?.cover_image || e.videoThumbnail || e.image_url || "",
-            category: meta?.activity_types?.name || e.category || "",
-            location: meta?.destinations?.name || e.location || "",
-            price: meta?.average_price_per_person ? `$${Math.round(meta.average_price_per_person)} avg` : (e.price || ""),
-            likedAt: e.likedAt || new Date().toISOString(),
-            notes: e.notes,
-            timeSlot: e.timeSlot,
-            slug: meta?.slug || e.slug,
-            entityType: "product",
-            entityId: e.id,
-            destinationSlug: meta?.destinations?.slug,
-            areaSlug: meta?.areas?.slug,
-          } as LikedExperience;
-        })
-        .filter(Boolean) as LikedExperience[];
-    }
+    const experiences = itemsByItinerary[row.id] || [];
 
     return {
       id: row.slug || row.id,
