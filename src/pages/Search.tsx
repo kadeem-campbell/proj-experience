@@ -40,18 +40,18 @@ const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
   Safari: catSafari,
 };
 
-// ─── Spotify-style Desktop Single-Row (no horizontal drag, clipped) ────────
+// ─── Spotify-style Desktop Single-Row (clipped, no horizontal drag) ────
 const DesktopGridRow = ({
   title,
   onViewAll,
   children,
-  cols = "grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7",
+  itemBasis = "basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 2xl:basis-[14.2857%]",
   gap = "gap-6",
 }: {
   title: string;
   onViewAll?: () => void;
   children: React.ReactNode;
-  cols?: string;
+  itemBasis?: string;
   gap?: string;
 }) => {
   return (
@@ -70,9 +70,13 @@ const DesktopGridRow = ({
           </button>
         )}
       </div>
-      {/* Single-row grid: clipped so only the first row of cards is shown */}
-      <div className={cn("grid grid-rows-1 grid-flow-col auto-cols-fr overflow-hidden", cols, gap)}>
-        {children}
+      {/* Single row, clipped — items past the visible column are hidden */}
+      <div className={cn("flex overflow-hidden", gap)}>
+        {(Array.isArray(children) ? children : [children]).map((child, i) => (
+          <div key={i} className={cn("shrink-0 min-w-0", itemBasis)}>
+            {child}
+          </div>
+        ))}
       </div>
     </div>
   );
