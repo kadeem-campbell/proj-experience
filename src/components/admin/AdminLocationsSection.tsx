@@ -493,9 +493,11 @@ export const AdminLocationsSection = () => {
               { key: 'launch_status', label: 'Launch', width: 'w-[80px]', render: (d: any) => <Badge variant={d.launch_status === 'live' ? 'default' : 'secondary'} className="text-[10px]">{d.launch_status || 'planned'}</Badge> },
               { key: 'products', label: 'Products', width: 'w-[70px]', render: (d: any) => <span className="text-xs">{(productsByDest as any)[d.id] || 0}</span> },
             ]}
-            defaultItem={{ name: '', slug: '', description: '', short_description: '', cover_image: '', is_active: true, display_order: 0, country_id: '', destination_type: 'city', launch_status: 'planned' }}
+            defaultItem={{ name: '', slug: '', description: '', short_description: '', cover_image: '', is_active: true, display_order: 0, country_id: '', destination_type: 'city', launch_status: 'planned', publish_state: 'draft', visibility_output_state: 'internal_only', indexability_state: 'public_noindex' }}
             renderForm={(item: any, onChange) => (
               <div className="space-y-3">
+                <EntityVisibilityControls item={item} onChange={onChange} entityType="destination" pathHint={item.slug ? `/${item.slug}` : undefined} />
+                <SeoBlock item={item} onChange={onChange} />
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
                   <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
