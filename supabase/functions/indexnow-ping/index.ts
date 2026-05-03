@@ -18,7 +18,8 @@ const corsHeaders = {
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const HOST = 'swam.app';
-const KEY = Deno.env.get('INDEXNOW_KEY') || '';
+// IndexNow key is public-by-design (verified by /<key>.txt). Safe to commit.
+const KEY = Deno.env.get('INDEXNOW_KEY') || '6dba6e31aad1e950d130d8e889ee1f65';
 const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 
 async function resolveEntityUrl(supabase: any, entityType: string, entityId: string): Promise<string | null> {
