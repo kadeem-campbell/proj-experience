@@ -145,9 +145,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
             <div className="px-2 pt-2">
               <Button
                 onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-                className="w-full h-9 rounded-lg text-[13px] font-semibold justify-start px-2"
+                className="w-full h-9 rounded-lg text-[13px] font-semibold"
               >
-                <Plus className="w-4 h-4 mr-2" />
                 New itinerary
               </Button>
             </div>
