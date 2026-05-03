@@ -189,10 +189,16 @@ const DesktopTopBar = ({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <button className="shrink-0 flex items-center gap-2.5 h-11 px-5 rounded-full bg-muted hover:bg-muted/80 text-[14px] font-bold text-foreground">
-              {selectedCity?.flag_svg_url ? (
-                <img src={selectedCity.flag_svg_url} className="w-5 h-5 rounded-full object-cover" alt="" />
-              ) : null}
-              <span className="max-w-[160px] truncate">{selectedCity?.name || 'All destinations'}</span>
+              {selectedCity ? (
+                <>
+                  {selectedCity.flag_svg_url && (
+                    <img src={selectedCity.flag_svg_url} className="w-5 h-5 rounded-full object-cover" alt="" />
+                  )}
+                  <span className="max-w-[160px] truncate">{selectedCity.name}</span>
+                </>
+              ) : (
+                <MapPin className="w-5 h-5" />
+              )}
               <ChevronDown className="w-4 h-4 opacity-60" />
             </button>
           </PopoverTrigger>
