@@ -58,44 +58,50 @@ const DesktopScrollRow = ({
   };
 
   return (
-    <div className="mb-8 group/row relative">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold text-foreground tracking-tight">{title}</h2>
-        {onViewAll && (
-          <button onClick={onViewAll} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-            Show all
-          </button>
-        )}
-      </div>
-      
-      <div className="relative">
-        {canScrollLeft && (
-          <button
-            onClick={() => scroll('left')}
-            className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity hover:bg-muted"
-          >
-            <ChevronLeft className="w-4 h-4 text-foreground" />
-          </button>
-        )}
-
-        <div 
-          ref={scrollRef}
-          className="overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          <div className="inline-flex gap-4" style={{ minWidth: '100%' }}>
-            {children}
+    <div className="mb-10 relative">
+      <div className="flex items-end justify-between mb-4">
+        <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
+        <div className="flex items-center gap-3">
+          {onViewAll && (
+            <button onClick={onViewAll} className="text-[13px] font-semibold text-foreground hover:underline underline-offset-4">
+              See all
+            </button>
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className={cn(
+                "w-9 h-9 rounded-full border border-border flex items-center justify-center transition-all",
+                canScrollLeft ? "bg-background hover:bg-muted text-foreground" : "bg-background/50 text-muted-foreground/40 cursor-not-allowed"
+              )}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className={cn(
+                "w-9 h-9 rounded-full border border-border flex items-center justify-center transition-all",
+                canScrollRight ? "bg-background hover:bg-muted text-foreground" : "bg-background/50 text-muted-foreground/40 cursor-not-allowed"
+              )}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
+      </div>
 
-        {canScrollRight && (
-          <button
-            onClick={() => scroll('right')}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity hover:bg-muted"
-          >
-            <ChevronRight className="w-4 h-4 text-foreground" />
-          </button>
-        )}
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        <div className="inline-flex gap-5" style={{ minWidth: '100%' }}>
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -163,6 +169,51 @@ const CityPillRow = ({
   </div>
 );
 
+// ─── Desktop category icon row (Uber Eats style) ───────────────────
+const DesktopCategoryRow = ({
+  categories,
+  activeCategoryId,
+  onSelect,
+}: {
+  categories: { id: string; name: string; iconUrl: string | null }[];
+  activeCategoryId: string | null;
+  onSelect: (id: string | null) => void;
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  if (categories.length === 0) return null;
+  return (
+    <div className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pb-3">
+      <div ref={scrollRef} className="flex items-start gap-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        {categories.map((cat) => {
+          const isActive = activeCategoryId === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onSelect(isActive ? null : cat.id)}
+              className={cn(
+                "shrink-0 flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-[84px]",
+                isActive ? "bg-muted" : "hover:bg-muted/60"
+              )}
+            >
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                {cat.iconUrl ? (
+                  <img src={cat.iconUrl} alt={cat.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Compass className="w-5 h-5 text-muted-foreground" />
+                )}
+              </div>
+              <span className={cn(
+                "text-[12px] font-semibold tracking-tight",
+                isActive ? "text-foreground" : "text-foreground/80"
+              )}>{cat.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // ─── POI Card for desktop ────────────────────────────────────────
 const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
   const navigate = useNavigate();
@@ -218,7 +269,8 @@ const SearchPage = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [activeCategoryId] = useState<string | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const { data: homeCategories = [] } = useHomeCategories();
 
   // Fetch POIs
   const { data: pois = [] } = useQuery({
@@ -439,6 +491,12 @@ const SearchPage = () => {
 
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
         <DesktopSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+
+        <DesktopCategoryRow
+          categories={homeCategories}
+          activeCategoryId={activeCategoryId}
+          onSelect={setActiveCategoryId}
+        />
 
         <CityPillRow
           selectedCity={selectedCity}
