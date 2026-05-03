@@ -5,7 +5,7 @@ import { ItineraryPanel } from "@/components/ItineraryPanel";
 import { BrowseDestination } from "@/hooks/useDestinations";
 import { Button } from "@/components/ui/button";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsBelowDesktop } from "@/hooks/use-mobile";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -51,7 +51,10 @@ export const MainLayout = ({
   onCitySelect,
   onMobileSearchClick,
 }: MainLayoutProps) => {
-  if (!showSidebar) {
+  const belowDesktop = useIsBelowDesktop();
+
+  // Hide the sidebar on tablet (and below): give the page the full width like mobile.
+  if (!showSidebar || belowDesktop) {
     return (
       <div className="h-screen flex flex-col w-full bg-background overflow-hidden">
         <main data-scroll-root="true" className="flex-1 overflow-auto min-w-0">
