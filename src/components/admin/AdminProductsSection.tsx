@@ -367,6 +367,35 @@ export const AdminProductsSection = () => {
         </div>
         <div><Label className="text-xs text-muted-foreground">SEO Description</Label><Textarea value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} rows={2} /></div>
 
+        {item.id && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              const t = (window as any).__improve_toast;
+              try {
+                const { data, error } = await supabase.functions.invoke('improve-product-seo', {
+                  body: { product_id: item.id, apply: true },
+                });
+                if (error) throw error;
+                if (data?.suggestion) {
+                  onChange('seo_title', data.suggestion.seo_title);
+                  onChange('seo_description', data.suggestion.seo_description);
+                  onChange('description', data.suggestion.description);
+                  onChange('highlights_json', data.suggestion.highlights);
+                }
+              } catch (e: any) {
+                console.error(e);
+                alert('AI improve failed: ' + (e.message || e));
+              }
+            }}
+          >
+            ✨ Improve SEO + description with AI
+          </Button>
+        )}
+
         <Separator />
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Highlights</h4>
         <p className="text-[10px] text-muted-foreground">Key selling points shown on the product page. Aim for 3–6 items.</p>
