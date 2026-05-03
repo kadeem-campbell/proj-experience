@@ -72,7 +72,6 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       if (it.entity_type === "poi" && it.entity_id) poiIds.add(it.entity_id);
     });
 
-    const productMeta: Record<string, any> = {};
     const allProductIds = new Set<string>([...productIds, ...jsonbProductIds]);
     if (allProductIds.size > 0) {
       const ids = Array.from(allProductIds);
