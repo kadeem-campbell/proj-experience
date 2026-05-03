@@ -950,7 +950,7 @@ export default function ExperienceDetail() {
                 <button onClick={handleLikeClick} className={cn("w-full mt-3 h-11 rounded-xl font-medium text-sm flex items-center justify-center gap-2 border transition-all", liked ? "bg-primary/5 border-primary/20 text-primary" : "bg-card border-border text-muted-foreground hover:text-foreground")}>
                   <Heart className={cn("w-4 h-4", liked && "fill-primary")} />{liked ? "Liked" : "Like"}
                 </button>
-                <p className="text-center text-xs text-muted-foreground mt-2.5">Liked by <span className="text-primary font-medium">{likedByCount}</span></p>
+                {likedByCount > 0 && <p className="text-center text-xs text-muted-foreground mt-2.5">Liked by <span className="text-primary font-medium">{likedByCount}</span></p>}
               </div>
 
               {/* In Your Itineraries */}
