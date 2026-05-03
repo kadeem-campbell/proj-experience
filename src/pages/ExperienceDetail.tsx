@@ -364,7 +364,12 @@ export default function ExperienceDetail() {
   });
 
   const handleGoBack = () => {
-    if (window.history.state && window.history.state.idx > 0) navigate(-1);
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+      return;
+    }
+    const lastSearch = sessionStorage.getItem('lastSearchUrl');
+    if (lastSearch) navigate(lastSearch);
     else navigate('/things-to-do');
   };
 

@@ -324,7 +324,14 @@ const SearchPage = () => {
   useEffect(() => {
     if (isMobile && isSearchRoute) setSearchQuery("");
   }, [isSearchRoute, isMobile]);
-  
+
+  // Remember search referrer so detail pages can return here
+  useEffect(() => {
+    if (isSearchRoute) {
+      sessionStorage.setItem('lastSearchUrl', window.location.pathname + window.location.search);
+    }
+  }, [isSearchRoute, searchParams]);
+
   if (isMobile && isSearchRoute) return (
     <MobileSearchOverlay
       isOpen={true}
