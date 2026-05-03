@@ -335,13 +335,15 @@ const SearchPage = () => {
   }, [isSearchRoute, searchParams]);
 
   if (isMobile && isSearchRoute) return (
-    <MobileSearchOverlay
-      isOpen={true}
-      onClose={() => navigate(-1)}
-      searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
-      onSearch={(q) => setSearchQuery(q)}
-    />
+    <MobileShell hideTopBar className="bg-background">
+      <MobileSearchOverlay
+        isOpen={true}
+        onClose={() => navigate(-1)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={(q) => setSearchQuery(q)}
+      />
+    </MobileShell>
   );
 
   if (isMobile) return (
