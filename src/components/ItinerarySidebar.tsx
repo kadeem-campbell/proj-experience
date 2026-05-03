@@ -184,29 +184,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
               </div>
               <SidebarGroupContent>
                 <SidebarMenu className="gap-0">
-                  {isCreating && (
-                    <div className="px-2 py-1">
-                      <div className="flex items-center gap-1.5">
-                        <Input
-                          value={newItineraryName}
-                          onChange={(e) => setNewItineraryName(e.target.value)}
-                          placeholder="Trip name…"
-                          className="h-8 text-[13px] bg-muted border-0"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleCreate();
-                            if (e.key === "Escape") { setIsCreating(false); setNewItineraryName(""); }
-                          }}
-                          autoFocus
-                        />
-                        <Button size="icon" className="h-7 w-7 shrink-0" onClick={handleCreate}>
-                          <Check className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { setIsCreating(false); setNewItineraryName(""); }}>
-                          <X className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  {/* Inline create removed — uses modal dialog */}
 
                   {sortedItineraries.map((itinerary) => {
                     const isPinned = pinnedIds.includes(itinerary.id);
