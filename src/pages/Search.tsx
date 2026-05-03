@@ -306,88 +306,74 @@ const VibeFilterRow = ({
   const hasAny = !!(vibes.time || vibes.season || vibes.mood || activeCategoryId);
   return (
     <div className="flex items-center gap-2 flex-wrap mb-2">
-      {groups.map((g) => (
-        <Popover key={g.key}>
-          <PopoverTrigger asChild>
-            <button
-              className={cn(
-                "h-9 px-4 rounded-full text-[13px] font-bold flex items-center gap-1.5 transition-all",
-                vibes[g.key]
-                  ? "bg-foreground text-background shadow-sm"
-                  : "bg-muted/60 text-foreground hover:bg-muted"
-              )}
-            >
-              {vibes[g.key] || g.label}
-              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", vibes[g.key] ? "opacity-80" : "opacity-50")} />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="start"
-            sideOffset={8}
-            className="w-56 p-1.5 rounded-2xl border-border/60 shadow-xl bg-popover/95 backdrop-blur-xl"
+      {groups.map((g) => {
+        const current = vibes[g.key];
+        return (
+          <FilterModal
+            key={g.key}
+            label={g.label}
+            value={current}
+            onClear={() => onChange({ ...vibes, [g.key]: null })}
           >
-            {g.opts.map((opt) => {
-              const selected = vibes[g.key] === opt;
-              return (
-                <button
-                  key={opt}
-                  onClick={() => onChange({ ...vibes, [g.key]: selected ? null : opt })}
-                  className={cn(
-                    "w-full flex items-center justify-between gap-2 text-left px-3 py-2.5 rounded-xl text-[13.5px] font-semibold transition-colors",
-                    selected ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
-                  )}
-                >
-                  <span>{opt}</span>
-                  {selected && <Check className="w-4 h-4 text-foreground shrink-0" />}
-                </button>
-              );
-            })}
-          </PopoverContent>
-        </Popover>
-      ))}
+            {(close) => (
+              <div className="flex flex-wrap gap-2">
+                {g.opts.map((opt) => {
+                  const selected = current === opt;
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => {
+                        onChange({ ...vibes, [g.key]: selected ? null : opt });
+                      }}
+                      className={cn(
+                        "h-10 px-4 rounded-full text-[14px] font-semibold transition-all border",
+                        selected
+                          ? "bg-foreground text-background border-foreground"
+                          : "bg-background text-foreground border-border hover:border-foreground/40"
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </FilterModal>
+        );
+      })}
 
-      {/* Categories pill — same style as Time/Season/Vibe */}
+      {/* Categories pill — same modal style */}
       {categories.length > 0 && onCategoryChange && (
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              className={cn(
-                "h-9 px-4 rounded-full text-[13px] font-bold flex items-center gap-1.5 transition-all",
-                activeCat
-                  ? "bg-foreground text-background shadow-sm"
-                  : "bg-muted/60 text-foreground hover:bg-muted"
-              )}
-            >
-              {activeCat?.name || 'Category'}
-              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", activeCat ? "opacity-80" : "opacity-50")} />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="start"
-            sideOffset={8}
-            className="w-64 p-1.5 max-h-[340px] overflow-y-auto rounded-2xl border-border/60 shadow-xl bg-popover/95 backdrop-blur-xl"
-          >
-            {categories.map((cat) => {
-              const selected = activeCategoryId === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => onCategoryChange(selected ? null : cat.id)}
-                  className={cn(
-                    "w-full flex items-center gap-2.5 text-left px-2.5 py-2 rounded-xl text-[13.5px] font-semibold transition-colors",
-                    selected ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
-                  )}
-                >
-                  {cat.iconUrl && (
-                    <img src={cat.iconUrl} alt="" className="w-6 h-6 rounded-lg object-cover" />
-                  )}
-                  <span className="flex-1 truncate">{cat.name}</span>
-                  {selected && <Check className="w-4 h-4 text-foreground shrink-0" />}
-                </button>
-              );
-            })}
-          </PopoverContent>
-        </Popover>
+        <FilterModal
+          label="Category"
+          value={activeCat?.name ?? null}
+          onClear={() => onCategoryChange(null)}
+        >
+          {() => (
+            <div className="grid grid-cols-2 gap-2">
+              {categories.map((cat) => {
+                const selected = activeCategoryId === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => onCategoryChange(selected ? null : cat.id)}
+                    className={cn(
+                      "h-12 px-3 rounded-2xl flex items-center gap-2.5 text-[14px] font-semibold transition-all border text-left",
+                      selected
+                        ? "bg-foreground text-background border-foreground"
+                        : "bg-background text-foreground border-border hover:border-foreground/40"
+                    )}
+                  >
+                    {cat.iconUrl && (
+                      <img src={cat.iconUrl} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                    )}
+                    <span className="flex-1 truncate">{cat.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </FilterModal>
       )}
 
       {hasAny && (
