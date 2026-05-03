@@ -2,7 +2,8 @@
  * Unified Admin Panel — central operating system for SWAM.
  * Replaces all legacy admin workflows with one integrated system.
  */
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { AdminCarouselManager } from '@/components/AdminCarouselManager';
 import { Button } from '@/components/ui/button';
@@ -73,9 +74,14 @@ const SECTIONS = [
 ];
 
 const AdminPanel = () => {
-  const [activeSection, setActiveSection] = useState('overview');
+  const { section } = useParams<{ section?: string }>();
+  const navigate = useNavigate();
+  const validIds = SECTIONS.map(s => s.id);
+  const activeSection = section && validIds.includes(section) ? section : 'overview';
+  const setActiveSection = (id: string) => navigate(id === 'overview' ? '/admin' : `/admin/${id}`);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebar, setMobileSidebar] = useState(false);
+  const [navFilter, setNavFilter] = useState('');
 
   const renderSection = () => {
     switch (activeSection) {
@@ -110,7 +116,17 @@ const AdminPanel = () => {
     }
   };
 
-  const groups = SECTIONS.reduce((acc, s) => {
+  const filteredSections = useMemo(() => {
+    const q = navFilter.trim().toLowerCase();
+    if (!q) return SECTIONS;
+    return SECTIONS.filter(s =>
+      s.label.toLowerCase().includes(q) ||
+      s.id.toLowerCase().includes(q) ||
+      s.group.toLowerCase().includes(q)
+    );
+  }, [navFilter]);
+
+  const groups = filteredSections.reduce((acc, s) => {
     if (!acc[s.group]) acc[s.group] = [];
     acc[s.group].push(s);
     return acc;
@@ -133,8 +149,26 @@ const AdminPanel = () => {
         </div>
       </div>
 
+      {/* Filter */}
+      {!sidebarCollapsed && (
+        <div className="p-2 border-b border-border/50">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Input
+              value={navFilter}
+              onChange={(e) => setNavFilter(e.target.value)}
+              placeholder="Filter sections…"
+              className="h-8 pl-7 text-xs"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Nav */}
       <div className="flex-1 overflow-y-auto py-2">
+        {Object.keys(groups).length === 0 && !sidebarCollapsed && (
+          <p className="px-4 py-3 text-xs text-muted-foreground">No sections match "{navFilter}"</p>
+        )}
         {Object.entries(groups).map(([group, items]) => (
           <div key={group} className="mb-2">
             {!sidebarCollapsed && (
@@ -190,10 +224,11 @@ const AdminPanel = () => {
           </Button>
 
           {/* Breadcrumb */}
-          <div className="flex items-center gap-1.5 text-sm">
-            <span className="text-muted-foreground">Admin</span>
-            <span className="text-muted-foreground">/</span>
-            <span className="font-medium">{SECTIONS.find(s => s.id === activeSection)?.label}</span>
+          <div className="flex items-center gap-1.5 text-sm min-w-0">
+            <button onClick={() => setActiveSection('overview')} className="text-muted-foreground hover:text-foreground shrink-0">Admin</button>
+            <span className="text-muted-foreground shrink-0">/</span>
+            <span className="font-medium truncate">{SECTIONS.find(s => s.id === activeSection)?.label}</span>
+            <code className="hidden md:inline-block ml-2 px-1.5 py-0.5 rounded bg-muted text-[10px] text-muted-foreground font-mono">/admin/{activeSection === 'overview' ? '' : activeSection}</code>
           </div>
 
           {/* Quick actions */}
