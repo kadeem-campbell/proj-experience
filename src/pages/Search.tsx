@@ -20,7 +20,7 @@ import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/utils/slugUtils";
-import { Compass, Map, MapPinned, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin } from "lucide-react";
+import { Compass, Map as MapIcon, MapPinned, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ─── Spotify-style Desktop Scroll Row ────────────────────────────
