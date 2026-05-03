@@ -250,8 +250,7 @@ const PublicItinerary = () => {
   const socialProof = useMemo(() => {
     if (!itinerary) return null;
     const baseLikes = (itinerary as any).likeCount || 0;
-    const seed = itinerary.id.charCodeAt(0) + itinerary.experiences.length;
-    const savedBy = baseLikes + (80 + (seed % 200)) + likeCountDelta;
+    const savedBy = baseLikes + likeCountDelta;
     return { savedBy };
   }, [itinerary, likeCountDelta]);
 
