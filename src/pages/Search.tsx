@@ -59,27 +59,19 @@ const DesktopGridRow = ({
 }) => {
   return (
     <div className="mb-10">
-      <div className="mb-5 flex items-end justify-between gap-4">
+      <div className="mb-5">
         {onViewAll ? (
           <button
             onClick={onViewAll}
-            className="group flex items-baseline gap-2 text-left cursor-pointer"
+            className="group inline-flex items-center gap-1.5 text-left cursor-pointer"
           >
             <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none group-hover:opacity-70 transition-opacity">
               {title}
             </h2>
-            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
+            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all relative top-[1px]" />
           </button>
         ) : (
           <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
-        )}
-        {onViewAll && (
-          <button
-            onClick={onViewAll}
-            className="text-[11px] font-bold text-muted-foreground hover:text-foreground tracking-[0.12em] uppercase transition-colors shrink-0"
-          >
-            Show all
-          </button>
         )}
       </div>
       {/* 4 cards per row, single row only — extras hidden */}
