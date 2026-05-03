@@ -101,72 +101,114 @@ const DesktopScrollRow = ({
   );
 };
 
-// ─── Desktop Search Bar (inline, Spotify-style) ──────────────────
+// ─── Top search bar (full width, Spotify-style) ───────────────────
 const DesktopSearchBar = ({
   searchQuery,
   onSearchChange,
+}: {
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+}) => (
+  <div className="sticky top-0 z-20 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-background/85 backdrop-blur-md border-b border-border/40 mb-6">
+    <div className="relative max-w-xl">
+      <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <Input
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="What do you want to explore?"
+        className="pl-10 pr-10 h-11 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
+      />
+      {searchQuery && (
+        <button onClick={() => onSearchChange("")} className="absolute right-4 top-1/2 -translate-y-1/2">
+          <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+        </button>
+      )}
+    </div>
+  </div>
+);
+
+// ─── Right-rail city filter ───────────────────────────────────────
+const CityRail = ({
   selectedCity,
   onCitySelect,
   destinations,
 }: {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
   selectedCity: BrowseDestination | null;
   onCitySelect: (city: BrowseDestination | null) => void;
   destinations: BrowseDestination[];
-}) => {
-  const [cityOpen, setCityOpen] = useState(false);
-
-  return (
-    <div className="flex items-center gap-3 mb-8">
-      {/* City filter pills */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-        <button
-          onClick={() => onCitySelect(null)}
-          className={cn(
-            "shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all",
-            !selectedCity 
-              ? "bg-foreground text-background" 
-              : "bg-muted text-foreground hover:bg-muted/80"
-          )}
-        >
-          All
-        </button>
-        {destinations.map((d) => (
+}) => (
+  <aside className="hidden lg:block w-[240px] shrink-0 sticky top-[80px] self-start max-h-[calc(100vh-100px)] overflow-y-auto pl-6 border-l border-border/40 scrollbar-hide">
+    <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Filter by city</p>
+    <div className="space-y-1">
+      <button
+        onClick={() => onCitySelect(null)}
+        className={cn(
+          "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+          !selectedCity ? "bg-foreground text-background" : "text-foreground hover:bg-muted"
+        )}
+      >
+        <span className="w-5 h-5 rounded-full bg-muted-foreground/10 flex items-center justify-center text-[10px] font-bold">★</span>
+        All cities
+      </button>
+      {destinations.map((d) => {
+        const active = selectedCity?.id === d.id;
+        return (
           <button
             key={d.id}
-            onClick={() => onCitySelect(selectedCity?.id === d.id ? null : d)}
+            onClick={() => onCitySelect(active ? null : d)}
             className={cn(
-              "shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all",
-              selectedCity?.id === d.id 
-                ? "bg-foreground text-background" 
-                : "bg-muted text-foreground hover:bg-muted/80"
+              "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+              active ? "bg-foreground text-background" : "text-foreground hover:bg-muted"
             )}
           >
-            {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full" alt="" />}
-            {d.name}
+            {d.flag_svg_url ? (
+              <img src={d.flag_svg_url} className="w-5 h-5 rounded-full object-cover shrink-0" alt="" />
+            ) : (
+              <span className="w-5 h-5 rounded-full bg-muted shrink-0" />
+            )}
+            <span className="truncate">{d.name}</span>
           </button>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="relative ml-auto min-w-[240px]">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="What do you want to explore?"
-          className="pl-9 pr-9 h-10 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
-        />
-        {searchQuery && (
-          <button onClick={() => onSearchChange("")} className="absolute right-3 top-1/2 -translate-y-1/2">
-            <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-          </button>
-        )}
-      </div>
+        );
+      })}
     </div>
-  );
-};
+  </aside>
+);
+
+// ─── Tablet horizontal city pills (no right rail on tablet) ───────
+const TabletCityPills = ({
+  selectedCity,
+  onCitySelect,
+  destinations,
+}: {
+  selectedCity: BrowseDestination | null;
+  onCitySelect: (city: BrowseDestination | null) => void;
+  destinations: BrowseDestination[];
+}) => (
+  <div className="lg:hidden flex items-center gap-2 overflow-x-auto scrollbar-hide mb-6 -mx-6 px-6">
+    <button
+      onClick={() => onCitySelect(null)}
+      className={cn(
+        "shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
+        !selectedCity ? "bg-foreground text-background" : "bg-muted text-foreground"
+      )}
+    >
+      All
+    </button>
+    {destinations.map((d) => (
+      <button
+        key={d.id}
+        onClick={() => onCitySelect(selectedCity?.id === d.id ? null : d)}
+        className={cn(
+          "shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
+          selectedCity?.id === d.id ? "bg-foreground text-background" : "bg-muted text-foreground"
+        )}
+      >
+        {d.flag_svg_url && <img src={d.flag_svg_url} className="w-3.5 h-3.5 rounded-full" alt="" />}
+        {d.name}
+      </button>
+    ))}
+  </div>
+);
 
 // ─── POI Card for desktop ────────────────────────────────────────
 const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
@@ -370,136 +412,139 @@ const SearchPage = () => {
         jsonLd={createWebsiteJsonLd()}
       />
 
-      <div className="px-6 lg:px-10 py-6 max-w-[1600px]">
-        {/* Spotify-style filter bar */}
-        <DesktopSearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+      <div className="px-6 lg:px-10 py-0 max-w-[1600px] mx-auto">
+        <DesktopSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+
+        <TabletCityPills
           selectedCity={selectedCity}
           onCitySelect={handleCitySelect}
           destinations={allDestinations}
         />
 
-        {hasSearchResults ? (
-          /* ─── Search Results ─────────────────────────────── */
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-foreground">
-                Results for "{searchQuery}"
-              </h2>
-              <button onClick={() => setSearchQuery("")} className="text-sm font-medium text-primary">Clear</button>
-            </div>
-
-            {filteredItineraries.length > 0 && (
-              <DesktopScrollRow title="Itineraries">
-                {filteredItineraries.slice(0, 8).map((it) => (
-                  <div key={it.id} className="flex-shrink-0 w-[280px]">
-                    <PublicItineraryCard itinerary={it} />
-                  </div>
-                ))}
-              </DesktopScrollRow>
-            )}
-
-            {filteredExperiences.length > 0 && (
+        <div className="flex gap-8">
+          <div className="flex-1 min-w-0 pb-12">
+            {hasSearchResults ? (
               <div>
-                <h3 className="text-lg font-bold mb-4">Experiences</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-                  {filteredExperiences.slice(0, 20).map((exp) => (
-                    <ProductCard key={exp.id} {...exp} compact />
-                  ))}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-foreground">Results for "{searchQuery}"</h2>
+                  <button onClick={() => setSearchQuery("")} className="text-sm font-medium text-primary">Clear</button>
                 </div>
-              </div>
-            )}
 
-            {filteredExperiences.length === 0 && filteredItineraries.length === 0 && (
-              <div className="text-center py-20">
-                <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-muted-foreground">No results found</p>
+                {filteredItineraries.length > 0 && (
+                  <DesktopScrollRow title="Itineraries">
+                    {filteredItineraries.slice(0, 8).map((it) => (
+                      <div key={it.id} className="flex-shrink-0 w-[220px] lg:w-[240px]">
+                        <PublicItineraryCard itinerary={it} />
+                      </div>
+                    ))}
+                  </DesktopScrollRow>
+                )}
+
+                {filteredExperiences.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-bold mb-4">Experiences</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5">
+                      {filteredExperiences.slice(0, 20).map((exp) => (
+                        <ProductCard key={exp.id} {...exp} compact />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {filteredExperiences.length === 0 && filteredItineraries.length === 0 && (
+                  <div className="text-center py-20">
+                    <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-muted-foreground">No results found</p>
+                  </div>
+                )}
               </div>
+            ) : (
+              <>
+                {carouselRows.length > 0 ? (
+                  (() => {
+                    const elements: React.ReactNode[] = [];
+
+                    const poiRow = selectedDestId ? (() => {
+                      const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
+                      if (cityPois.length === 0) return null;
+                      return (
+                        <DesktopScrollRow key="pois" title={`Places to explore in ${selectedCityName}`} onViewAll={() => navigate(`/${destSlug}`)}>
+                          {cityPois.slice(0, 12).map((poi: any) => (
+                            <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
+                          ))}
+                        </DesktopScrollRow>
+                      );
+                    })() : null;
+
+                    carouselRows.forEach((carousel, idx) => {
+                      if (idx === 2 && poiRow) elements.push(poiRow);
+
+                      const title = carousel.name.replace('{city}', selectedCityName || 'your city');
+                      const resolvedSlug = carousel.slug.replace('city', selectedCityName ? slugify(selectedCityName) : 'city');
+
+                      const manualProductIds   = carousel.manualItems.filter(i => i.type === 'product').map(i => i.id);
+                      const manualItineraryIds = carousel.manualItems.filter(i => i.type === 'itinerary').map(i => i.id);
+                      const manualPoiIds       = carousel.manualItems.filter(i => i.type === 'poi').map(i => i.id);
+
+                      if (carousel.contentType === 'itinerary') {
+                        const items = manualItineraryIds.length > 0
+                          ? cityFilteredItineraries.filter(it => manualItineraryIds.includes((it as any).dbId || it.id))
+                          : cityFilteredItineraries.slice(0, 8);
+                        if (items.length === 0) return;
+                        elements.push(
+                          <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
+                            {items.slice(0, 10).map((it) => (
+                              <div key={it.id} className="flex-shrink-0 w-[200px] lg:w-[220px]">
+                                <PublicItineraryCard itinerary={it} />
+                              </div>
+                            ))}
+                          </DesktopScrollRow>
+                        );
+                      } else if (carousel.contentType === 'product') {
+                        const items = manualProductIds.length > 0
+                          ? experiences.filter(exp => manualProductIds.includes(exp.id))
+                          : cityFilteredExperiences.slice(0, 10);
+                        if (items.length === 0) return;
+                        elements.push(
+                          <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
+                            {items.slice(0, 12).map((exp) => (
+                              <div key={exp.id} className="flex-shrink-0 w-[180px] lg:w-[200px]">
+                                <ProductCard {...exp} compact />
+                              </div>
+                            ))}
+                          </DesktopScrollRow>
+                        );
+                      } else if (carousel.contentType === 'poi') {
+                        const allPoisForCarousel = manualPoiIds.length > 0
+                          ? pois.filter((p: any) => manualPoiIds.includes(p.id))
+                          : selectedDestId
+                            ? pois.filter((p: any) => p.destination_id === selectedDestId)
+                            : pois;
+                        if (allPoisForCarousel.length === 0) return;
+                        elements.push(
+                          <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
+                            {allPoisForCarousel.slice(0, 12).map((poi: any) => (
+                              <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
+                            ))}
+                          </DesktopScrollRow>
+                        );
+                      }
+                    });
+
+                    if (carouselRows.length < 3 && poiRow) elements.push(poiRow);
+                    return <>{elements}</>;
+                  })()
+                ) : null}
+              </>
             )}
           </div>
-        ) : (
-          /* ─── Collection-Driven Carousels ────────────────── */
-          <>
-            {carouselRows.length > 0 ? (
-              (() => {
-                const elements: React.ReactNode[] = [];
 
-                // POI row for selected city at position 2
-                const poiRow = selectedDestId ? (() => {
-                  const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
-                  if (cityPois.length === 0) return null;
-                  return (
-                    <DesktopScrollRow key="pois" title={`Places to explore in ${selectedCityName}`} onViewAll={() => navigate(`/${destSlug}`)}>
-                      {cityPois.slice(0, 12).map((poi: any) => (
-                        <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
-                      ))}
-                    </DesktopScrollRow>
-                  );
-                })() : null;
-
-                carouselRows.forEach((carousel, idx) => {
-                  if (idx === 2 && poiRow) elements.push(poiRow);
-
-                  const title = carousel.name.replace('{city}', selectedCityName || 'your city');
-                  const resolvedSlug = carousel.slug.replace('city', selectedCityName ? slugify(selectedCityName) : 'city');
-
-                  // Map new manualItems → flat id list per type for legacy rendering below
-                  const manualProductIds   = carousel.manualItems.filter(i => i.type === 'product').map(i => i.id);
-                  const manualItineraryIds = carousel.manualItems.filter(i => i.type === 'itinerary').map(i => i.id);
-                  const manualPoiIds       = carousel.manualItems.filter(i => i.type === 'poi').map(i => i.id);
-
-                  if (carousel.contentType === 'itinerary') {
-                    const items = manualItineraryIds.length > 0
-                      ? cityFilteredItineraries.filter(it => manualItineraryIds.includes((it as any).dbId || it.id))
-                      : cityFilteredItineraries.slice(0, 8);
-                    if (items.length === 0) return;
-                    elements.push(
-                      <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
-                        {items.slice(0, 10).map((it) => (
-                          <div key={it.id} className="flex-shrink-0 w-[260px] lg:w-[280px]">
-                            <PublicItineraryCard itinerary={it} />
-                          </div>
-                        ))}
-                      </DesktopScrollRow>
-                    );
-                  } else if (carousel.contentType === 'product') {
-                    const items = manualProductIds.length > 0
-                      ? experiences.filter(exp => manualProductIds.includes(exp.id))
-                      : cityFilteredExperiences.slice(0, 10);
-                    if (items.length === 0) return;
-                    elements.push(
-                      <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
-                        {items.slice(0, 12).map((exp) => (
-                          <div key={exp.id} className="flex-shrink-0 w-[220px] lg:w-[240px]">
-                            <ProductCard {...exp} compact />
-                          </div>
-                        ))}
-                      </DesktopScrollRow>
-                    );
-                  } else if (carousel.contentType === 'poi') {
-                    const allPoisForCarousel = manualPoiIds.length > 0
-                      ? pois.filter((p: any) => manualPoiIds.includes(p.id))
-                      : selectedDestId
-                        ? pois.filter((p: any) => p.destination_id === selectedDestId)
-                        : pois;
-                    if (allPoisForCarousel.length === 0) return;
-                    elements.push(
-                      <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
-                        {allPoisForCarousel.slice(0, 12).map((poi: any) => (
-                          <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
-                        ))}
-                      </DesktopScrollRow>
-                    );
-                  }
-                });
-
-                if (carouselRows.length < 3 && poiRow) elements.push(poiRow);
-                return <>{elements}</>;
-              })()
-            ) : null}
-          </>
-        )}
+          <CityRail
+            selectedCity={selectedCity}
+            onCitySelect={handleCitySelect}
+            destinations={allDestinations}
+          />
+        </div>
       </div>
     </MainLayout>
   );
