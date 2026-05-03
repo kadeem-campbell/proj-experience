@@ -169,6 +169,51 @@ const CityPillRow = ({
   </div>
 );
 
+// ─── Desktop category icon row (Uber Eats style) ───────────────────
+const DesktopCategoryRow = ({
+  categories,
+  activeCategoryId,
+  onSelect,
+}: {
+  categories: { id: string; name: string; iconUrl: string | null }[];
+  activeCategoryId: string | null;
+  onSelect: (id: string | null) => void;
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  if (categories.length === 0) return null;
+  return (
+    <div className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pb-3">
+      <div ref={scrollRef} className="flex items-start gap-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        {categories.map((cat) => {
+          const isActive = activeCategoryId === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onSelect(isActive ? null : cat.id)}
+              className={cn(
+                "shrink-0 flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-[84px]",
+                isActive ? "bg-muted" : "hover:bg-muted/60"
+              )}
+            >
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                {cat.iconUrl ? (
+                  <img src={cat.iconUrl} alt={cat.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Compass className="w-5 h-5 text-muted-foreground" />
+                )}
+              </div>
+              <span className={cn(
+                "text-[12px] font-semibold tracking-tight",
+                isActive ? "text-foreground" : "text-foreground/80"
+              )}>{cat.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // ─── POI Card for desktop ────────────────────────────────────────
 const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
   const navigate = useNavigate();
