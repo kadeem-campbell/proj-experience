@@ -77,9 +77,9 @@ const DesktopGridRow = ({
           </button>
         )}
       </div>
-      {/* Always 5 cols on desktop, fewer on smaller screens — extras hidden */}
-      <div className={cn("grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 grid-rows-1 overflow-hidden", gap)}>
-        {(Array.isArray(children) ? children : [children]).slice(0, 5).map((child, i) => (
+      {/* 4 cards per row, single row only — extras hidden */}
+      <div className={cn("grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-rows-1 overflow-hidden", gap)}>
+        {(Array.isArray(children) ? children : [children]).slice(0, 4).map((child, i) => (
           <div key={i} className="min-w-0">
             {child}
           </div>
