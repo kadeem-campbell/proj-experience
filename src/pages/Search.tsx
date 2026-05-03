@@ -203,16 +203,7 @@ const DesktopTopBar = ({
             </button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-64 p-1.5">
-            <button
-              onClick={() => { onCitySelect(null); setOpen(false); }}
-              className={cn(
-                "w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-semibold text-left",
-                !selectedCity ? "bg-muted" : "hover:bg-muted/60"
-              )}
-            >
-              <Compass className="w-4 h-4" />
-              All destinations
-            </button>
+            {destinations.map((d) => null) /* spacer for diff context */}
             {destinations.map((d) => (
               <button
                 key={d.id}
