@@ -646,7 +646,7 @@ const SearchPage = () => {
                       <DesktopGridRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
                         {c.items.map((it: any) => {
                           if (it.type === 'product') {
-                            return <ProductCard key={`prod-${it.data.id}`} {...it.data} compact />;
+                            return <ProductCard key={`prod-${it.data.id}`} {...it.data} compact square />;
                           }
                           if (it.type === 'itinerary') {
                             return <PublicItineraryCard key={`itin-${it.data.id}`} itinerary={it.data} />;
