@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>https://cyhdcavibrypqlybkact.supabase.co/functions/v1/generate-sitemap?type=static</loc></sitemap>
+  <sitemap><loc>https://cyhdcavibrypqlybkact.supabase.co/functions/v1/generate-sitemap?type=destinations</loc></sitemap>
+  <sitemap><loc>https://cyhdcavibrypqlybkact.supabase.co/functions/v1/generate-sitemap?type=areas</loc></sitemap>
+  <sitemap><loc>https://cyhdcavibrypqlybkact.supabase.co/functions/v1/generate-sitemap?type=products</loc></sitemap>
+  <sitemap><loc>https://cyhdcavibrypqlybkact.supabase.co/functions/v1/generate-sitemap?type=itineraries</loc></sitemap>
+  <sitemap><loc>https://cyhdcavibrypqlybkact.supabase.co/functions/v1/generate-sitemap?type=hosts</loc></sitemap>
+  <sitemap><loc>https://cyhdcavibrypqlybkact.supabase.co/functions/v1/generate-sitemap?type=collections</loc></sitemap>
+  <sitemap><loc>https://cyhdcavibrypqlybkact.supabase.co/functions/v1/generate-sitemap?type=pois</loc></sitemap>
+</sitemapindex>
