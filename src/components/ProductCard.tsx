@@ -132,7 +132,7 @@ export const ProductCard = ({
           </p>
           {price && (
             <p className="text-[13px] text-muted-foreground/70">
-              <span className="font-medium text-foreground">{price}</span> typical
+              <span className="font-medium text-foreground">{price}</span> avg
             </p>
           )}
         </div>
