@@ -218,40 +218,83 @@ export const AdminItinerariesSection = () => {
 
 // ============ ITINERARY ITEMS EDITOR ============
 
-const ItineraryItemsEditor = ({ itinerary, onChange }: { itinerary: any; onChange: (f: string, v: any) => void }) => {
+const ItineraryItemsEditor = ({ itinerary }: { itinerary: any; onChange: (f: string, v: any) => void }) => {
   const { toast } = useToast();
-  const experiences: any[] = Array.isArray(itinerary.experiences) ? itinerary.experiences : [];
+  const qc = useQueryClient();
 
-  const { data: allProducts = [] } = useQuery({
-    queryKey: ['admin-products-picker'],
+  const { data: items = [], refetch } = useQuery({
+    queryKey: ['admin-itinerary-items', itinerary.id],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('id, title, slug, destination_id').order('title') as any;
+      const { data } = await (supabase as any)
+        .from('public_itinerary_items')
+        .select('id, entity_type, entity_id, display_order, day_number, title, custom_title')
+        .eq('public_itinerary_id', itinerary.id)
+        .order('day_number', { ascending: true })
+        .order('display_order', { ascending: true });
       return data || [];
     },
   });
 
-  const addProduct = (productId: string) => {
-    const product = allProducts.find((p: any) => p.id === productId);
-    if (!product || experiences.some((e: any) => e.id === productId)) return;
-    const updated = [...experiences, { id: product.id, title: product.title }];
-    onChange('experiences', updated);
-    toast({ title: `Added ${product.title}` });
+  const productIds = items.filter((i: any) => i.entity_type === 'product').map((i: any) => i.entity_id);
+  const { data: productMeta = [] } = useQuery({
+    queryKey: ['admin-itinerary-items-product-meta', productIds.sort().join(',')],
+    enabled: productIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, title').in('id', productIds);
+      return data || [];
+    },
+  });
+  const titleFor = (it: any) => {
+    if (it.title || it.custom_title) return it.title || it.custom_title;
+    return productMeta.find((p: any) => p.id === it.entity_id)?.title || '(unknown)';
   };
 
-  const removeProduct = (productId: string) => {
-    const updated = experiences.filter((e: any) => e.id !== productId);
-    onChange('experiences', updated);
+  const { data: allProducts = [] } = useQuery({
+    queryKey: ['admin-products-picker'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, title, slug').order('title') as any;
+      return data || [];
+    },
+  });
+
+  const invalidate = () => {
+    refetch();
+    qc.invalidateQueries({ queryKey: ['public-itineraries'] });
+    qc.invalidateQueries({ queryKey: ['admin-itineraries-full'] });
+  };
+
+  const addProduct = async (productId: string) => {
+    if (items.some((i: any) => i.entity_id === productId)) return;
+    const product = allProducts.find((p: any) => p.id === productId);
+    const nextOrder = items.length;
+    const { error } = await (supabase as any).from('public_itinerary_items').insert({
+      public_itinerary_id: itinerary.id,
+      entity_type: 'product',
+      entity_id: productId,
+      day_number: 1,
+      display_order: nextOrder,
+      title: product?.title || null,
+    });
+    if (error) { toast({ title: 'Failed to add', description: error.message, variant: 'destructive' }); return; }
+    invalidate();
+    toast({ title: `Added ${product?.title || 'product'}` });
+  };
+
+  const removeItem = async (itemId: string) => {
+    const { error } = await (supabase as any).from('public_itinerary_items').delete().eq('id', itemId);
+    if (error) { toast({ title: 'Failed to remove', description: error.message, variant: 'destructive' }); return; }
+    invalidate();
   };
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">{experiences.length} products in this itinerary. Changes save when you click Save.</p>
-      {experiences.map((exp: any, idx: number) => (
-        <div key={exp.id} className="flex items-center gap-2 text-sm border border-border rounded px-3 py-2">
+      <p className="text-xs text-muted-foreground">{items.length} products in this itinerary. Changes save instantly.</p>
+      {items.map((it: any, idx: number) => (
+        <div key={it.id} className="flex items-center gap-2 text-sm border border-border rounded px-3 py-2">
           <GripVertical className="w-3 h-3 text-muted-foreground shrink-0" />
           <span className="text-xs text-muted-foreground w-5">{idx + 1}</span>
-          <span className="flex-1 truncate">{exp.title}</span>
-          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => removeProduct(exp.id)}>
+          <span className="flex-1 truncate">{titleFor(it)}</span>
+          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => removeItem(it.id)}>
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
@@ -259,7 +302,7 @@ const ItineraryItemsEditor = ({ itinerary, onChange }: { itinerary: any; onChang
       <Select onValueChange={addProduct}>
         <SelectTrigger className="w-64"><SelectValue placeholder="Add product…" /></SelectTrigger>
         <SelectContent>
-          {allProducts.filter((p: any) => !experiences.some((e: any) => e.id === p.id))
+          {allProducts.filter((p: any) => !items.some((i: any) => i.entity_id === p.id))
             .map((p: any) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
         </SelectContent>
       </Select>
