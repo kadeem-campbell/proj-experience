@@ -227,7 +227,7 @@ const DesktopTopBar = ({
   );
 };
 
-// ─── Desktop category icon row (Uber Eats style) ───────────────────
+// ─── Desktop category icon row (uses same images as mobile) ────────
 const DesktopCategoryRow = ({
   categories,
   activeCategoryId,
@@ -237,33 +237,29 @@ const DesktopCategoryRow = ({
   activeCategoryId: string | null;
   onSelect: (id: string | null) => void;
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   if (categories.length === 0) return null;
   return (
-    <div className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pb-3">
-      <div ref={scrollRef} className="flex items-start gap-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 py-4 border-b border-border/50">
+      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {categories.map((cat) => {
           const isActive = activeCategoryId === cat.id;
+          const icon = cat.iconUrl || DEFAULT_CATEGORY_ICONS[cat.name] || catNature;
           return (
             <button
               key={cat.id}
               onClick={() => onSelect(isActive ? null : cat.id)}
               className={cn(
-                "shrink-0 flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-[84px]",
-                isActive ? "bg-muted" : "hover:bg-muted/60"
+                "shrink-0 flex flex-col items-center gap-1.5 px-4 py-2 transition-all min-w-[88px] relative",
+                isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <div className="w-14 h-14 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                {cat.iconUrl ? (
-                  <img src={cat.iconUrl} alt={cat.name} className="w-full h-full object-cover" />
-                ) : (
-                  <Compass className="w-5 h-5 text-muted-foreground" />
-                )}
+              <div className={cn(
+                "w-16 h-16 rounded-full overflow-hidden flex items-center justify-center transition-all",
+                isActive ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : "bg-muted"
+              )}>
+                <img src={icon} alt={cat.name} className="w-full h-full object-cover" />
               </div>
-              <span className={cn(
-                "text-[12px] font-semibold tracking-tight",
-                isActive ? "text-foreground" : "text-foreground/80"
-              )}>{cat.name}</span>
+              <span className="text-[12px] font-semibold tracking-tight">{cat.name}</span>
             </button>
           );
         })}
