@@ -229,6 +229,174 @@ const DesktopCategoryRow = ({
   );
 };
 
+// ─── Ctrip-style city quick-pick pills (compact, primary-tinted) ──
+const CityQuickPicks = ({
+  destinations,
+  selectedCity,
+  onSelect,
+  max = 6,
+}: {
+  destinations: BrowseDestination[];
+  selectedCity: BrowseDestination | null;
+  onSelect: (c: BrowseDestination | null) => void;
+  max?: number;
+}) => {
+  if (destinations.length === 0) return null;
+  const top = destinations.slice(0, max);
+  return (
+    <div className="flex items-center gap-2 flex-wrap mb-3">
+      <span className="text-[13px] font-bold text-foreground mr-1">Popular</span>
+      {top.map((d) => {
+        const isActive = selectedCity?.id === d.id;
+        return (
+          <button
+            key={d.id}
+            onClick={() => onSelect(isActive ? null : d)}
+            className={cn(
+              "h-8 px-3.5 rounded-full text-[12.5px] font-bold transition-colors flex items-center gap-1.5 border",
+              isActive
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background text-foreground/80 border-border hover:border-primary/60 hover:text-primary"
+            )}
+          >
+            {d.flag_svg_url && <img src={d.flag_svg_url} alt="" className="w-4 h-4 rounded-full object-cover" />}
+            {d.name}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+// ─── Vibe filters: time of day, season, mood ─────────────────────
+type VibeFilters = { time: string | null; season: string | null; mood: string | null };
+const TIME_OPTIONS = ["Morning", "Afternoon", "Evening", "Late night"];
+const SEASON_OPTIONS = ["Dry season", "Green season", "Festivals", "Migration"];
+const MOOD_OPTIONS = ["Romantic", "Family", "Adrenaline", "Slow & chilled", "Foodie", "Off the beaten path"];
+
+const VibeFilterRow = ({
+  vibes,
+  onChange,
+}: {
+  vibes: VibeFilters;
+  onChange: (v: VibeFilters) => void;
+}) => {
+  const groups: Array<{ key: keyof VibeFilters; label: string; opts: string[] }> = [
+    { key: 'time', label: 'Time', opts: TIME_OPTIONS },
+    { key: 'season', label: 'Season', opts: SEASON_OPTIONS },
+    { key: 'mood', label: 'Vibe', opts: MOOD_OPTIONS },
+  ];
+  const hasAny = !!(vibes.time || vibes.season || vibes.mood);
+  return (
+    <div className="flex items-center gap-2 flex-wrap mb-2">
+      {groups.map((g) => (
+        <Popover key={g.key}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "h-8 px-3.5 rounded-full text-[12.5px] font-bold border flex items-center gap-1.5 transition-colors",
+                vibes[g.key]
+                  ? "bg-primary/10 text-primary border-primary/40"
+                  : "bg-background text-foreground/80 border-border hover:border-primary/60"
+              )}
+            >
+              {vibes[g.key] || g.label}
+              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-48 p-1.5">
+            {g.opts.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => onChange({ ...vibes, [g.key]: vibes[g.key] === opt ? null : opt })}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md text-[13px] font-semibold",
+                  vibes[g.key] === opt ? "bg-muted text-foreground" : "hover:bg-muted/60 text-foreground/80"
+                )}
+              >
+                {opt}
+              </button>
+            ))}
+          </PopoverContent>
+        </Popover>
+      ))}
+      {hasAny && (
+        <button
+          onClick={() => onChange({ time: null, season: null, mood: null })}
+          className="h-8 px-2.5 text-[12px] font-bold text-muted-foreground hover:text-foreground"
+        >
+          Clear
+        </button>
+      )}
+    </div>
+  );
+};
+
+// ─── Ranked Top-2 list (Ctrip-style two-column ranked table) ─────
+const RankedTopList = ({
+  title,
+  badgeLabel,
+  items,
+  destinationSlug,
+  onTitleClick,
+}: {
+  title: string;
+  badgeLabel?: string;
+  items: any[];
+  destinationSlug?: string;
+  onTitleClick?: () => void;
+}) => {
+  const navigate = useNavigate();
+  if (items.length === 0) return null;
+  return (
+    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+        <button
+          onClick={onTitleClick}
+          className={cn("flex items-center gap-2 text-[15px] font-extrabold text-foreground tracking-tight", onTitleClick && "hover:text-primary")}
+        >
+          {title}
+          {onTitleClick && <ChevronRight className="w-4 h-4" />}
+        </button>
+        {badgeLabel && (
+          <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">{badgeLabel}</span>
+        )}
+      </div>
+      <div className="divide-y divide-border">
+        {items.slice(0, 5).map((it, idx) => (
+          <button
+            key={it.id}
+            onClick={() => {
+              if (it.poi_type !== undefined) navigate(`/things-to-do/${destinationSlug || 'explore'}/${it.slug}`);
+              else navigate(`/things-to-do/${destinationSlug || slugify(it.location || 'explore')}/${it.slug || it.id}`);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/40 transition-colors text-left"
+          >
+            <span className={cn(
+              "w-6 h-6 rounded-md flex items-center justify-center text-[12px] font-extrabold shrink-0",
+              idx === 0 ? "bg-primary text-primary-foreground" :
+              idx === 1 ? "bg-primary/70 text-primary-foreground" :
+              idx === 2 ? "bg-primary/50 text-primary-foreground" :
+                          "bg-muted text-muted-foreground"
+            )}>{idx + 1}</span>
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
+              {(it.cover_image || it.image || it.videoThumbnail) && (
+                <img src={it.cover_image || it.image || it.videoThumbnail} alt={it.name || it.title} className="w-full h-full object-cover" loading="lazy" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13.5px] font-bold text-foreground line-clamp-1">{it.name || it.title}</p>
+              <p className="text-[11.5px] text-muted-foreground line-clamp-1 mt-0.5">{it.poi_type || it.location || it.category}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
 // ─── POI Card for desktop ────────────────────────────────────────
 const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
   const navigate = useNavigate();
@@ -287,6 +455,7 @@ const SearchPage = () => {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [mode, setMode] = useState<'things' | 'itineraries'>('things');
   const { data: homeCategories = [] } = useHomeCategories();
+  const [vibes, setVibes] = useState<VibeFilters>({ time: null, season: null, mood: null });
 
   // Fetch POIs
   const { data: pois = [] } = useQuery({
@@ -522,7 +691,17 @@ const SearchPage = () => {
           onSelect={setActiveCategoryId}
         />
 
-        <div className="pb-12 pt-6">
+        {/* Ctrip-style city quick-picks + customisable vibe filters */}
+        <div className="pt-4">
+          <CityQuickPicks
+            destinations={allDestinations}
+            selectedCity={selectedCity}
+            onSelect={handleCitySelect}
+          />
+          <VibeFilterRow vibes={vibes} onChange={setVibes} />
+        </div>
+
+        <div className="pb-12 pt-4">
           {hasSearchResults ? (
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -640,6 +819,46 @@ const SearchPage = () => {
                         </div>
                       ))}
                     </DesktopGridRow>
+
+                    {/* Ctrip-style ranked Top Lists — 2 columns */}
+                    {(() => {
+                      const cityPois = selectedDestId
+                        ? pois.filter((p: any) => p.destination_id === selectedDestId)
+                        : pois;
+                      const topPlaces = cityPois.slice(0, 5);
+                      const topProducts = (selectedDestId
+                        ? experiences.filter(e => e.destinationId === selectedDestId)
+                        : experiences
+                      ).slice(0, 5);
+                      if (topPlaces.length === 0 && topProducts.length === 0) return null;
+                      const placeTitle = selectedCityName
+                        ? `Best places in ${selectedCityName}`
+                        : 'Best places to explore';
+                      const productTitle = selectedCityName
+                        ? `Top things to do in ${selectedCityName}`
+                        : 'Top things to do by travellers';
+                      return (
+                        <div className="mb-10 grid grid-cols-1 lg:grid-cols-2 gap-5">
+                          {topPlaces.length > 0 && (
+                            <RankedTopList
+                              title={placeTitle}
+                              badgeLabel="Editor's pick"
+                              items={topPlaces}
+                              destinationSlug={destSlug}
+                              onTitleClick={destSlug ? () => navigate(`/${destSlug}`) : undefined}
+                            />
+                          )}
+                          {topProducts.length > 0 && (
+                            <RankedTopList
+                              title={productTitle}
+                              badgeLabel="Top rated"
+                              items={topProducts}
+                              destinationSlug={destSlug}
+                            />
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Remaining carousels */}
                     {rest.map((c) => (
