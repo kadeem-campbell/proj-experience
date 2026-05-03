@@ -726,7 +726,7 @@ export default function ExperienceDetail() {
                   {likedByCount > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
                       <Heart className="w-3 h-3 fill-white/50 text-white/50" />
-                      {likedByCount} {likedByCount === 1 ? 'save' : 'saves'}
+                      {likedByCount} {likedByCount === 1 ? 'Like' : 'Likes'}
                     </span>
                   )}
                   {experience.price && (
@@ -924,7 +924,7 @@ export default function ExperienceDetail() {
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 {likedByCount > 0 && (
-                  <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />Saved by <strong className="text-foreground">{likedByCount}</strong> {likedByCount === 1 ? 'traveller' : 'travellers'}</span>
+                  <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" /><strong className="text-foreground">{likedByCount}</strong> {likedByCount === 1 ? 'Like' : 'Likes'}</span>
                 )}
                 {likedByCount > 0 && experience.price && <span className="text-muted-foreground/40">·</span>}
                 {experience.price && <span className="font-medium text-foreground">{experience.price}</span>}
