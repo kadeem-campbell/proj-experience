@@ -17,6 +17,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CountryFlagPicker } from './CountryFlagPicker';
 import { Slider } from '@/components/ui/slider';
+import { EntityVisibilityControls } from './shared/EntityVisibilityControls';
+
+const SeoBlock = ({ item, onChange }: { item: any; onChange: (k: string, v: any) => void }) => (
+  <div className="grid grid-cols-1 gap-3 rounded-md border border-border/60 p-3">
+    <div className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">SEO / LLM metadata</div>
+    <div className="grid grid-cols-2 gap-3">
+      <div><Label className="text-xs text-muted-foreground">SEO Title (≤60)</Label><Input value={item.seo_title || ''} onChange={e => onChange('seo_title', e.target.value)} maxLength={60} /></div>
+      <div><Label className="text-xs text-muted-foreground">SEO Description (≤155)</Label><Input value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} maxLength={155} /></div>
+    </div>
+  </div>
+);
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
