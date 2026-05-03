@@ -126,6 +126,11 @@ export default function PoiDetail() {
   });
 
   const handleGoBack = () => {
+    const lastSearch = sessionStorage.getItem('lastSearchUrl');
+    if (lastSearch && document.referrer.includes(window.location.host) && /\/(search|discover)/.test(document.referrer)) {
+      navigate(lastSearch);
+      return;
+    }
     if (window.history.state?.idx > 0) navigate(-1);
     else navigate("/things-to-do");
   };
