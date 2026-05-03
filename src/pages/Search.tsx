@@ -455,6 +455,7 @@ const SearchPage = () => {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [mode, setMode] = useState<'things' | 'itineraries'>('things');
   const { data: homeCategories = [] } = useHomeCategories();
+  const [vibes, setVibes] = useState<VibeFilters>({ time: null, season: null, mood: null });
 
   // Fetch POIs
   const { data: pois = [] } = useQuery({
