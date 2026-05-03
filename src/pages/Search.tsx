@@ -589,16 +589,20 @@ const SearchPage = () => {
 
                 return (
                   <>
-                    {/* Featured hero carousel */}
-                    <DesktopGridRow title={featured.title} onViewAll={featured.onTitleClick}>
+                    {/* Featured hero — larger cards in fewer columns */}
+                    <DesktopGridRow
+                      title={featured.title}
+                      onViewAll={featured.onTitleClick}
+                      cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    >
                       {featured.items.slice(0, 8).map((it: any) => (
-                        <div key={`${it.type}-${it.data.id}`} className="flex-shrink-0 w-[420px]">
+                        <div key={`${it.type}-${it.data.id}`}>
                           {it.type === 'product' && (
                             <button
                               onClick={() => navigate(`/things-to-do/${destSlug || slugify(it.data.location || 'explore')}/${it.data.slug || it.data.id}`)}
                               className="w-full text-left group"
                             >
-                              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-muted">
+                              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-muted">
                                 {it.data.image ? (
                                   <img src={it.data.image} alt={it.data.title} loading="lazy" className="w-full h-full object-cover" />
                                 ) : (
@@ -624,18 +628,10 @@ const SearchPage = () => {
                       <DesktopGridRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
                         {c.items.map((it: any) => {
                           if (it.type === 'product') {
-                            return (
-                              <div key={`prod-${it.data.id}`} className="flex-shrink-0 w-[210px]">
-                                <ProductCard {...it.data} compact />
-                              </div>
-                            );
+                            return <ProductCard key={`prod-${it.data.id}`} {...it.data} compact />;
                           }
                           if (it.type === 'itinerary') {
-                            return (
-                              <div key={`itin-${it.data.id}`} className="flex-shrink-0 w-[240px]">
-                                <PublicItineraryCard itinerary={it.data} />
-                              </div>
-                            );
+                            return <PublicItineraryCard key={`itin-${it.data.id}`} itinerary={it.data} />;
                           }
                           return <DesktopPoiCard key={`poi-${it.data.id}`} poi={it.data} destinationSlug={destSlug} />;
                         })}
