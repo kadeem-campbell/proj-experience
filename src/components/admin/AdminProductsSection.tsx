@@ -261,6 +261,14 @@ export const AdminProductsSection = () => {
       ),
     },
     {
+      key: 'indexability_state', label: 'Index', width: 'w-[90px]',
+      render: (p: any) => (
+        <Badge variant={p.indexability_state === 'public_indexed' ? 'default' : 'outline'} className="text-[10px]">
+          {p.indexability_state === 'public_indexed' ? 'indexed' : 'noindex'}
+        </Badge>
+      ),
+    },
+    {
       key: 'publish_score', label: 'Score', width: 'w-[60px]',
       render: (p: any) => <span className="text-xs">{p.publish_score ?? '—'}%</span>,
     },
