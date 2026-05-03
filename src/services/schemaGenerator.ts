@@ -32,31 +32,66 @@ export const generateProductSchema = (
     }))
   );
 
+  const url = product.canonical_url || `${BASE}/things-to-do/${destination?.slug || 'explore'}/${product.slug}`;
+  const images = [product.cover_image_url, ...(product.gallery_json || [])].filter(Boolean) as string[];
+  const prices = options.flatMap(o => o.price_options.map(p => Number(p.amount))).filter(n => !isNaN(n) && n > 0);
+  const lowPrice = prices.length ? Math.min(...prices) : undefined;
+  const highPrice = prices.length ? Math.max(...prices) : undefined;
+  const currency = options[0]?.price_options?.[0]?.currency_code || 'USD';
+  const highlights = (product as any).highlights_json || (product as any).highlights || [];
+
   return {
     "@context": "https://schema.org",
-    "@type": "TouristAttraction",
+    "@type": ["TouristAttraction", "Product"],
     name: product.title,
-    description: product.description,
-    url: product.canonical_url || `${BASE}/things-to-do/${destination?.slug || 'explore'}/${product.slug}`,
-    image: product.cover_image_url || product.gallery_json?.[0],
+    description: product.description || (product as any).seo_description,
+    url,
+    identifier: product.id,
+    image: images.length ? images : undefined,
     ...(destination?.latitude && destination?.longitude ? {
       geo: { "@type": "GeoCoordinates", latitude: destination.latitude, longitude: destination.longitude },
     } : {}),
     ...(location ? {
-      address: { "@type": "PostalAddress", addressLocality: area?.name || destination?.name || "", addressRegion: destination?.name || "" },
+      address: { "@type": "PostalAddress", addressLocality: area?.name || destination?.name || "", addressRegion: destination?.name || "", addressCountry: (destination as any)?.country_code || undefined },
     } : {}),
-    ...(offers.length > 0 ? { offers } : {}),
+    ...(offers.length > 0 ? {
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: currency,
+        lowPrice: lowPrice?.toString(),
+        highPrice: highPrice?.toString(),
+        offerCount: offers.length,
+        availability: "https://schema.org/InStock",
+        url,
+      },
+      makesOffer: offers,
+    } : {}),
     ...(hosts.length > 0 ? {
       provider: hosts.map(h => ({
         "@type": "LocalBusiness",
+        "@id": `${BASE}/hosts/${h.slug}#org`,
         name: h.display_name || h.username,
         ...(h.avatar_url ? { image: h.avatar_url } : {}),
         ...(h.slug ? { url: `${BASE}/hosts/${h.slug}` } : {}),
       })),
     } : {}),
     ...(product.duration_minutes ? { duration: `PT${product.duration_minutes}M` } : {}),
-    touristType: "Adventure",
+    ...(Array.isArray(highlights) && highlights.length ? {
+      hasFeature: highlights.slice(0, 12).map((h: any) => ({
+        "@type": "PropertyValue",
+        name: typeof h === 'string' ? h : (h.title || h.name || ''),
+      })),
+    } : {}),
+    ...((product as any).like_count ? {
+      interactionStatistic: {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/LikeAction",
+        userInteractionCount: (product as any).like_count,
+      },
+    } : {}),
+    touristType: ["Adventure", "Cultural", "Nature"],
     isAccessibleForFree: false,
+    inLanguage: "en",
   };
 };
 
