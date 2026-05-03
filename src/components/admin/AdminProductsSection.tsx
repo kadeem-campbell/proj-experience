@@ -290,36 +290,60 @@ export const AdminProductsSection = () => {
       <TabsContent value="basics" className="space-y-3 mt-3">
         {/* MASTER INDEX GATE — defaults OFF. Only when ON does this product go live + into sitemap + indexed by search/LLMs */}
         {(() => {
-          const isLive = item.indexability_state === 'public_indexed' && item.publish_state === 'published';
+          const ps = item.publish_state || 'draft';
+          const vis = item.visibility_output_state || 'internal_only';
+          const idx = item.indexability_state || 'public_noindex';
+          const isPublished = ps === 'published';
+          const isPublic = vis === 'public' || vis === 'public_indexed' || vis === 'marketplace_active';
+          const isIndexed = idx === 'public_indexed';
+
+          const Pill = ({ active, label, onClick, color }: any) => (
+            <button type="button" onClick={onClick}
+              className={`flex-1 rounded-md px-2 py-2 text-[11px] font-bold uppercase tracking-wider transition-colors ${active ? color : 'bg-muted text-muted-foreground'}`}>
+              {label}
+            </button>
+          );
+
           return (
-            <div className={`rounded-lg border-2 p-4 ${isLive ? 'border-green-500/60 bg-green-500/5' : 'border-amber-500/40 bg-amber-500/5'}`}>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1">
-                  <span className="text-xs font-bold uppercase tracking-wider">{isLive ? '🟢 INDEX: ON' : '🔒 INDEX: OFF'}</span>
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    {isLive
-                      ? 'LIVE: published, public, indexed by Google + LLMs, in sitemap.xml.'
-                      : 'HIDDEN: noindex, draft, excluded from sitemap. Flip ON only when ready to publish.'}
-                  </p>
+            <div className="rounded-lg border-2 border-border p-3 space-y-3">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">Publish state</Label>
+                <div className="flex gap-1.5">
+                  <Pill active={!isPublished} color="bg-muted-foreground/20 text-foreground" label="Draft"
+                    onClick={() => onChange('publish_state', 'draft')} />
+                  <Pill active={isPublished} color="bg-blue-500 text-white" label="Published"
+                    onClick={() => onChange('publish_state', 'published')} />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isLive) {
-                      onChange('indexability_state', 'public_noindex');
-                      onChange('publish_state', 'draft');
-                      onChange('visibility_output_state', 'internal_only');
-                    } else {
-                      onChange('indexability_state', 'public_indexed');
-                      onChange('publish_state', 'published');
-                      onChange('visibility_output_state', 'public');
-                    }
-                  }}
-                  className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${isLive ? 'bg-green-500' : 'bg-muted-foreground/30'}`}
-                >
-                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${isLive ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
+                <p className="text-[10px] text-muted-foreground mt-1">Draft hides everywhere. Published makes it eligible.</p>
               </div>
+
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">In-app visibility</Label>
+                <div className="flex gap-1.5">
+                  <Pill active={!isPublic} color="bg-amber-500 text-white" label="Internal only"
+                    onClick={() => onChange('visibility_output_state', 'internal_only')} />
+                  <Pill active={isPublic} color="bg-green-500 text-white" label="Public in app"
+                    onClick={() => onChange('visibility_output_state', 'public')} />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">Public = appears in app search, listings & carousels (requires Published).</p>
+              </div>
+
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">Search engine + LLM indexing</Label>
+                <div className="flex gap-1.5">
+                  <Pill active={!isIndexed} color="bg-muted-foreground/30 text-foreground" label="Noindex"
+                    onClick={() => onChange('indexability_state', 'public_noindex')} />
+                  <Pill active={isIndexed} color="bg-purple-500 text-white" label="Indexed"
+                    onClick={() => onChange('indexability_state', 'public_indexed')} />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">Indexed = in sitemap.xml, served to Google + GPTBot/Claude/Google-Extended (requires Published + Public).</p>
+              </div>
+
+              {isIndexed && (!isPublished || !isPublic) && (
+                <div className="rounded-md bg-amber-500/10 border border-amber-500/40 p-2 text-[11px] text-amber-700 dark:text-amber-300">
+                  Indexed is set but product is not Published + Public — it will NOT appear in the sitemap until both are on.
+                </div>
+              )}
             </div>
           );
         })()}
