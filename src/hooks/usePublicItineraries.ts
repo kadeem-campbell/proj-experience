@@ -46,6 +46,16 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
 
   // 1) Read snapshots from the canonical public_itinerary_items table.
   const itemsByItinerary: Record<string, LikedExperience[]> = {};
+  const productMeta: Record<string, any> = {};
+  // Collect product ids referenced by JSONB experiences fallback so we can enrich them
+  const jsonbProductIds = new Set<string>();
+  data.forEach((row: any) => {
+    if (Array.isArray(row.experiences)) {
+      row.experiences.forEach((e: any) => {
+        if (e?.id && /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(e.id)) jsonbProductIds.add(e.id);
+      });
+    }
+  });
   if (itineraryIds.length > 0) {
     const { data: snapshotItems } = await supabase
       .from("public_itinerary_items")
@@ -62,9 +72,9 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       if (it.entity_type === "poi" && it.entity_id) poiIds.add(it.entity_id);
     });
 
-    const productMeta: Record<string, any> = {};
-    if (productIds.size > 0) {
-      const ids = Array.from(productIds);
+    const allProductIds = new Set<string>([...productIds, ...jsonbProductIds]);
+    if (allProductIds.size > 0) {
+      const ids = Array.from(allProductIds);
       for (let i = 0; i < ids.length; i += 100) {
         const { data: prods } = await supabase
           .from("products")
@@ -120,7 +130,33 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
   }
 
   return data.map((row: any) => {
-    const experiences = itemsByItinerary[row.id] || [];
+    let experiences = itemsByItinerary[row.id] || [];
+    // Fallback: hydrate from row.experiences JSONB if snapshot table is empty
+    if (experiences.length === 0 && Array.isArray(row.experiences) && row.experiences.length > 0) {
+      experiences = row.experiences
+        .map((e: any) => {
+          const meta = e?.id ? (productMeta as any)[e.id] : null;
+          if (!meta && !e?.title) return null;
+          return {
+            id: e.id,
+            title: meta?.title || e.title || "",
+            creator: e.creator || "",
+            videoThumbnail: meta?.cover_image_url || meta?.cover_image || e.videoThumbnail || e.image_url || "",
+            category: meta?.activity_types?.name || e.category || "",
+            location: meta?.destinations?.name || e.location || "",
+            price: meta?.average_price_per_person ? `$${Math.round(meta.average_price_per_person)} avg` : (e.price || ""),
+            likedAt: e.likedAt || new Date().toISOString(),
+            notes: e.notes,
+            timeSlot: e.timeSlot,
+            slug: meta?.slug || e.slug,
+            entityType: "product",
+            entityId: e.id,
+            destinationSlug: meta?.destinations?.slug,
+            areaSlug: meta?.areas?.slug,
+          } as LikedExperience;
+        })
+        .filter(Boolean) as LikedExperience[];
+    }
 
     return {
       id: row.slug || row.id,
