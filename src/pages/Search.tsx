@@ -79,11 +79,6 @@ const DesktopScrollRow = ({
       <div className="flex items-end justify-between mb-4">
         <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
         <div className="flex items-center gap-3">
-          {onViewAll && (
-            <button onClick={onViewAll} className="text-[13px] font-semibold text-foreground hover:underline underline-offset-4">
-              See all
-            </button>
-          )}
           <div className="flex items-center gap-2">
             <button
               onClick={() => scroll('left')}
