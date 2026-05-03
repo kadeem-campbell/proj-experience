@@ -122,7 +122,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           </button>
         </div>
 
-        {!isCollapsedView && searchOpen && (
+        {searchOpen && (
           <div className="px-2 pb-2">
             <Input
               value={filter}
@@ -151,7 +151,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                     >
                       <Link to={item.to}>
                         <item.icon className="w-4 h-4 shrink-0" />
-                        {!isCollapsedView && <span>{item.label}</span>}
+                        {<span>{item.label}</span>}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -161,7 +161,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           </SidebarGroup>
 
           {/* Itineraries list — "Chats" style */}
-          {!isCollapsedView && (
+          {(
             <SidebarGroup className="pt-3 pb-1">
               <div className="px-3 pb-1">
                 <p className="text-[11px] font-semibold text-muted-foreground/80">
