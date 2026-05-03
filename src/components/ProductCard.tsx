@@ -32,6 +32,7 @@ export const ProductCard = ({
   price,
   slug,
   compact = false,
+  square = false,
 }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
