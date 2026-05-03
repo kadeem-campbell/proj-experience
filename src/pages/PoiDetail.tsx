@@ -108,13 +108,20 @@ export default function PoiDetail() {
   const typeInfo = typeConfig[poi?.poi_type || ""] || { label: poi?.poi_type || "Place" };
   const liked = poi ? (isAuthenticated ? isDbLiked(poi.id, "poi") : localLiked) : false;
 
-  // Deterministic like count seeded from POI ID
-  const likeCount = useMemo(() => {
-    if (!poi) return 0;
-    let hash = 0;
-    for (let i = 0; i < poi.id.length; i++) { hash = ((hash << 5) - hash) + poi.id.charCodeAt(i); hash |= 0; }
-    return Math.abs(hash % 180) + 20 + (liked ? 1 : 0);
-  }, [poi, liked]);
+  // Real like count from user_likes
+  const { data: likeCount = 0 } = useQuery({
+    queryKey: ["poi-like-count", poi?.id, liked],
+    queryFn: async () => {
+      if (!poi) return 0;
+      const { count } = await supabase
+        .from("user_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("item_id", poi.id)
+        .eq("item_type", "poi");
+      return count || 0;
+    },
+    enabled: !!poi?.id,
+  });
 
   const handleGoBack = () => {
     if (window.history.state?.idx > 0) navigate(-1);
