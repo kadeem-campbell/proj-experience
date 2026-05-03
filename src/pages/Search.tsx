@@ -207,7 +207,7 @@ const DesktopTopBar = ({
             {destinations.map((d) => (
               <button
                 key={d.id}
-                onClick={() => { onCitySelect(d); setOpen(false); }}
+                onClick={() => { onCitySelect(selectedCity?.id === d.id ? null : d); setOpen(false); }}
                 className={cn(
                   "w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-semibold text-left",
                   selectedCity?.id === d.id ? "bg-muted" : "hover:bg-muted/60"
