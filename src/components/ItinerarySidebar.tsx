@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus, Trash2, Check, X, Compass, Heart,
-  Pin, User, Home, Globe, Search, SquarePen, MoreHorizontal,
+  Pin, User, Home, Globe, Search, SquarePen, MoreHorizontal, PanelLeft, PanelLeftClose,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ const setPinnedIds = (ids: string[]) => localStorage.setItem(PINNED_KEY, JSON.st
 export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
 
@@ -103,23 +103,27 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       className="border-r border-border/40 bg-background"
     >
       <SidebarContent className="bg-background">
-        {/* Spacer for the floating sidebar trigger */}
-        <div className="h-12" aria-hidden="true" />
-
         {collapsed ? (
           <>
-            {/* Brand mark only */}
-            <div className="px-0 flex flex-col items-center gap-2">
+            {/* Collapsed: stacked icon column with toggle on top */}
+            <div className="pt-3 px-0 flex flex-col items-center gap-2">
+              <button
+                onClick={toggleSidebar}
+                title="Expand sidebar"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <PanelLeft className="w-4 h-4" />
+              </button>
               <Link
                 to="/"
                 title="Swam"
-                className="w-9 h-9 rounded-md bg-foreground text-background flex items-center justify-center"
+                className="w-9 h-9 rounded-lg bg-foreground text-background flex items-center justify-center"
               >
                 <Compass className="w-4 h-4" strokeWidth={2.5} />
               </Link>
               <button
                 onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-                className="w-9 h-9 rounded-md bg-muted hover:bg-muted/80 flex items-center justify-center text-foreground"
+                className="w-9 h-9 rounded-lg bg-muted hover:bg-muted/80 flex items-center justify-center text-foreground"
                 title="New itinerary"
               >
                 <Plus className="w-4 h-4" />
@@ -128,17 +132,28 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           </>
         ) : (
           <>
-            {/* Brand row — Swam logo + name */}
-            <div className="px-2">
-              <Link
-                to="/"
-                className="flex items-center gap-2.5 px-2 h-9 rounded-lg hover:bg-muted text-foreground transition-colors"
-              >
-                <div className="w-5 h-5 rounded-md bg-foreground text-background flex items-center justify-center shrink-0">
-                  <Compass className="w-3 h-3" strokeWidth={2.5} />
-                </div>
-                <span className="text-[14px] font-bold tracking-tight">Swam</span>
-              </Link>
+            {/* Brand row — logo + name + integrated collapse button */}
+            <div className="pt-3 px-2">
+              <div className="flex items-center gap-1">
+                <Link
+                  to="/"
+                  className="flex-1 flex items-center gap-2 px-2 h-9 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center shrink-0 shadow-sm">
+                    <Compass className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  </div>
+                  <span className="text-[15px] font-extrabold tracking-[-0.02em] bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    Swam
+                  </span>
+                </Link>
+                <button
+                  onClick={toggleSidebar}
+                  title="Collapse sidebar"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
+                >
+                  <PanelLeftClose className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* New itinerary button */}
