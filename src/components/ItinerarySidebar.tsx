@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus, Trash2, Check, X, Compass, Heart,
-  Pin, Gift, User, Home, Search, Globe,
+  Pin, User, Home, Globe, Search, SquarePen, MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,10 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
@@ -30,13 +34,7 @@ const PINNED_KEY = "pinned_itineraries";
 const getPinnedIds = (): string[] => { try { return JSON.parse(localStorage.getItem(PINNED_KEY) || '[]'); } catch { return []; } };
 const setPinnedIds = (ids: string[]) => localStorage.setItem(PINNED_KEY, JSON.stringify(ids));
 
-export const ItinerarySidebar = ({
-  searchQuery = "",
-  onSearchChange,
-  selectedCity,
-  onCitySelect,
-  onMobileSearchClick,
-}: ItinerarySidebarProps) => {
+export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useSidebar();
@@ -55,13 +53,14 @@ export const ItinerarySidebar = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [pinnedIds, setPinnedIdsState] = useState<string[]>(getPinnedIds());
+  const [filter, setFilter] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleCreate = () => {
-    if (newItineraryName.trim()) {
-      createItinerary(newItineraryName.trim());
-      setNewItineraryName("");
-      setIsCreating(false);
-    }
+    const name = newItineraryName.trim() || "New trip";
+    createItinerary(name);
+    setNewItineraryName("");
+    setIsCreating(false);
   };
 
   const handleRename = (id: string) => {
@@ -76,233 +75,274 @@ export const ItinerarySidebar = ({
 
   const isCollapsedView = collapsed || isMobile;
 
-  const sortedItineraries = [...itineraries].sort((a, b) => {
-    const aPinned = pinnedIds.includes(a.id);
-    const bPinned = pinnedIds.includes(b.id);
-    if (aPinned && !bPinned) return -1;
-    if (!aPinned && bPinned) return 1;
-    const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    return bDate - aDate;
-  });
+  const sortedItineraries = [...itineraries]
+    .filter(it => !filter.trim() || it.name.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a, b) => {
+      const aPinned = pinnedIds.includes(a.id);
+      const bPinned = pinnedIds.includes(b.id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bDate - aDate;
+    });
+
+  // Primary nav (ChatGPT-style: condensed, 32px rows, icon + label)
+  const navItems = [
+    { to: "/", icon: Home, label: "Home", active: location.pathname === "/" || location.pathname === "/search" },
+    { to: "/things-to-do", icon: Compass, label: "Explore", active: location.pathname.startsWith("/things-to-do") },
+    { to: "/itineraries", icon: Globe, label: "Itineraries", active: location.pathname === "/itineraries" },
+    { to: "/liked", icon: Heart, label: "Liked", active: location.pathname === "/liked" },
+  ];
 
   return (
     <Sidebar
       collapsible="icon"
       className={cn(
         "border-r border-border/40 bg-background transition-all duration-200",
-        !collapsed && "w-[240px]"
+        !collapsed && "w-[260px]"
       )}
     >
-      <SidebarContent>
+      <SidebarContent className="bg-background">
+        {/* Top toolbar — matches ChatGPT's "new chat" + search row */}
+        <div className="h-12" aria-hidden="true" />
+
+        {!isCollapsedView && (
+          <div className="px-2 pt-1 pb-2 flex items-center gap-1">
+            <button
+              onClick={() => { setIsCreating(true); }}
+              className="flex-1 flex items-center gap-2.5 px-2.5 h-9 rounded-lg hover:bg-muted text-[13.5px] font-medium text-foreground transition-colors"
+              title="New itinerary"
+            >
+              <SquarePen className="w-4 h-4 shrink-0" />
+              <span>New itinerary</span>
+            </button>
+            <button
+              onClick={() => setSearchOpen(o => !o)}
+              className="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-foreground transition-colors"
+              title="Search itineraries"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {isCollapsedView && (
+          <div className="px-2 pt-1 pb-2 flex flex-col items-center gap-1">
+            <button
+              onClick={() => setIsCreating(true)}
+              className="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-foreground"
+              title="New itinerary"
+            >
+              <SquarePen className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {!isCollapsedView && searchOpen && (
+          <div className="px-2 pb-2">
+            <Input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Search itineraries"
+              className="h-8 text-[13px] bg-muted border-0"
+              autoFocus
+            />
+          </div>
+        )}
+
         <ScrollArea className="flex-1">
-          <div className="h-12" aria-hidden="true" />
-
-          {/* Main nav */}
-          <SidebarGroup className="py-1">
+          {/* Primary nav */}
+          <SidebarGroup className="py-0">
             <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === "/" || location.pathname === "/search"}
-                    tooltip="Home"
-                    className={cn(
-                      "h-10 gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      (location.pathname === "/" || location.pathname === "/search") && "text-foreground"
-                    )}
-                  >
-                    <Link to="/">
-                      <Home className="w-5 h-5 shrink-0" />
-                      {!isCollapsedView && <span>Home</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname.startsWith("/things-to-do")}
-                    tooltip="Explore"
-                    className={cn(
-                      "h-10 gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname.startsWith("/things-to-do") && "text-foreground"
-                    )}
-                  >
-                    <Link to="/things-to-do">
-                      <Compass className="w-5 h-5 shrink-0" />
-                      {!isCollapsedView && <span>Explore</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === "/itineraries"}
-                    tooltip="Itineraries"
-                    className={cn(
-                      "h-10 gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname === "/itineraries" && "text-foreground"
-                    )}
-                  >
-                    <Link to="/itineraries">
-                      <Globe className="w-5 h-5 shrink-0" />
-                      {!isCollapsedView && <span>Itineraries</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === "/liked"}
-                    tooltip="Liked"
-                    className={cn(
-                      "h-10 gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors",
-                      location.pathname === "/liked" && "text-foreground"
-                    )}
-                  >
-                    <Link to="/liked">
-                      <Heart className="w-5 h-5 shrink-0" />
-                      {!isCollapsedView && <span>Liked</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {!isCollapsedView && <div className="mx-3 my-1 h-px bg-border/30" />}
-
-          {/* Your Library (itineraries) */}
-          <SidebarGroup className="py-1">
-            {!isCollapsedView && (
-              <div className="flex items-center justify-between px-3 py-2">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
-                  Your Library
-                </p>
-                <button
-                  onClick={() => setIsCreating(true)}
-                  className="w-6 h-6 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
-                >
-                  <Plus className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
-            )}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {isCollapsedView ? (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton tooltip="Create Itinerary" onClick={() => setIsCreating(true)} className="justify-center">
-                      <Plus className="w-5 h-5" />
+              <SidebarMenu className="gap-0">
+                {navItems.map(item => (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={item.active}
+                      tooltip={item.label}
+                      className={cn(
+                        "h-9 gap-2.5 rounded-lg text-[13.5px] font-medium text-foreground/85 hover:bg-muted hover:text-foreground data-[active=true]:bg-muted data-[active=true]:text-foreground",
+                      )}
+                    >
+                      <Link to={item.to}>
+                        <item.icon className="w-4 h-4 shrink-0" />
+                        {!isCollapsedView && <span>{item.label}</span>}
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ) : (
-                  <>
-                    {/* New itinerary input */}
-                    {isCreating && (
-                      <div className="px-2 py-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <Input
-                            value={newItineraryName}
-                            onChange={(e) => setNewItineraryName(e.target.value)}
-                            placeholder="Trip name..."
-                            className="h-8 text-xs border-border/50"
-                            style={{ fontSize: "13px" }}
-                            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                            autoFocus
-                          />
-                          <Button size="icon" className="h-7 w-7 shrink-0" onClick={handleCreate}>
-                            <Check className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => setIsCreating(false)}>
-                            <X className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {sortedItineraries.map((itinerary) => {
-                      const isPinned = pinnedIds.includes(itinerary.id);
-                      return (
-                        <SidebarMenuItem key={itinerary.id}>
-                          {editingId === itinerary.id ? (
-                            <div className="flex items-center gap-1.5 px-2 py-1">
-                              <Input
-                                value={editName}
-                                onChange={(e) => setEditName(e.target.value)}
-                                className="h-7 text-xs"
-                                style={{ fontSize: "13px" }}
-                                onKeyDown={(e) => e.key === "Enter" && handleRename(itinerary.id)}
-                                autoFocus
-                              />
-                              <Button size="icon" className="h-6 w-6 shrink-0" onClick={() => handleRename(itinerary.id)}>
-                                <Check className="w-3 h-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => setEditingId(null)}>
-                                <X className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <SidebarMenuButton
-                              isActive={activeItineraryId === itinerary.id}
-                              onClick={() => { setActiveItinerary(itinerary.id); navigate(`/trip/${itinerary.id}`); }}
-                              className="group/item text-xs text-muted-foreground hover:text-foreground h-8"
-                            >
-                              {isPinned && <Pin className="w-3 h-3 shrink-0 text-primary rotate-45" />}
-                              <span className="truncate">{itinerary.name}</span>
-                              <div className="opacity-0 group-hover/item:opacity-100 flex items-center gap-0.5 ml-auto shrink-0">
-                                <span
-                                  role="button"
-                                  title={isPinned ? "Unpin" : "Pin"}
-                                  className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent text-muted-foreground cursor-pointer"
-                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); togglePin(itinerary.id); }}
-                                >
-                                  <Pin className={cn("w-3 h-3", isPinned && "text-primary rotate-45")} />
-                                </span>
-                                {itineraries.length > 1 && (
-                                  <span
-                                    role="button"
-                                    title="Delete"
-                                    className="h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent text-destructive cursor-pointer"
-                                    onClick={(e) => { e.stopPropagation(); deleteItinerary(itinerary.id); }}
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </span>
-                                )}
-                              </div>
-                            </SidebarMenuButton>
-                          )}
-                        </SidebarMenuItem>
-                      );
-                    })}
-                    {itineraries.length === 0 && (
-                      <p className="text-[11px] text-muted-foreground px-3 py-2">No itineraries yet</p>
-                    )}
-                  </>
-                )}
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          {/* Itineraries list — "Chats" style */}
+          {!isCollapsedView && (
+            <SidebarGroup className="pt-3 pb-1">
+              <div className="px-3 pb-1">
+                <p className="text-[11px] font-semibold text-muted-foreground/80">
+                  Itineraries
+                </p>
+              </div>
+              <SidebarGroupContent>
+                <SidebarMenu className="gap-0">
+                  {isCreating && (
+                    <div className="px-2 py-1">
+                      <div className="flex items-center gap-1.5">
+                        <Input
+                          value={newItineraryName}
+                          onChange={(e) => setNewItineraryName(e.target.value)}
+                          placeholder="Trip name…"
+                          className="h-8 text-[13px] bg-muted border-0"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleCreate();
+                            if (e.key === "Escape") { setIsCreating(false); setNewItineraryName(""); }
+                          }}
+                          autoFocus
+                        />
+                        <Button size="icon" className="h-7 w-7 shrink-0" onClick={handleCreate}>
+                          <Check className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { setIsCreating(false); setNewItineraryName(""); }}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {sortedItineraries.map((itinerary) => {
+                    const isPinned = pinnedIds.includes(itinerary.id);
+                    const isActive = activeItineraryId === itinerary.id;
+                    return (
+                      <SidebarMenuItem key={itinerary.id}>
+                        {editingId === itinerary.id ? (
+                          <div className="flex items-center gap-1.5 px-2 py-1">
+                            <Input
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="h-7 text-[13px] bg-muted border-0"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleRename(itinerary.id);
+                                if (e.key === "Escape") setEditingId(null);
+                              }}
+                              autoFocus
+                            />
+                            <Button size="icon" className="h-6 w-6 shrink-0" onClick={() => handleRename(itinerary.id)}>
+                              <Check className="w-3 h-3" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => setEditingId(null)}>
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <SidebarMenuButton
+                            isActive={isActive}
+                            onClick={() => { setActiveItinerary(itinerary.id); navigate(`/trip/${itinerary.id}`); }}
+                            className={cn(
+                              "group/item h-8 rounded-lg text-[13px] font-normal text-foreground/80 hover:bg-muted hover:text-foreground data-[active=true]:bg-muted data-[active=true]:text-foreground",
+                            )}
+                          >
+                            {isPinned && <Pin className="w-3 h-3 shrink-0 text-foreground/60 rotate-45" />}
+                            <span className="truncate flex-1">{itinerary.name}</span>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <span
+                                  role="button"
+                                  className="opacity-0 group-hover/item:opacity-100 data-[state=open]:opacity-100 h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-accent text-foreground/60 cursor-pointer ml-auto shrink-0"
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                >
+                                  <MoreHorizontal className="w-3.5 h-3.5" />
+                                </span>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" side="right" className="w-44">
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); togglePin(itinerary.id); }}>
+                                  <Pin className={cn("w-4 h-4 mr-2", isPinned && "rotate-45")} />
+                                  {isPinned ? "Unpin" : "Pin"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingId(itinerary.id); setEditName(itinerary.name); }}>
+                                  <SquarePen className="w-4 h-4 mr-2" />
+                                  Rename
+                                </DropdownMenuItem>
+                                {itineraries.length > 1 && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={(e) => { e.stopPropagation(); deleteItinerary(itinerary.id); }}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="w-4 h-4 mr-2" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </SidebarMenuButton>
+                        )}
+                      </SidebarMenuItem>
+                    );
+                  })}
+
+                  {sortedItineraries.length === 0 && !isCreating && (
+                    <p className="text-[12px] text-muted-foreground px-3 py-2">
+                      {filter ? "No matches" : "No itineraries yet"}
+                    </p>
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
         </ScrollArea>
       </SidebarContent>
 
-      {/* Bottom — profile */}
+      {/* Bottom — profile (ChatGPT-style row with name + 3-dot menu) */}
       {!collapsed && (
-        <div className="mt-auto border-t border-border/30 px-3 py-3">
-          <button 
-            onClick={() => isAuthenticated ? navigate("/profile") : setAuthModalOpen(true)}
-            className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-muted/50 transition-colors"
-          >
-            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-              {userProfile?.avatar_url ? (
-                <img src={userProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+        <div className="mt-auto border-t border-border/40 p-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="w-full flex items-center gap-2.5 px-2 h-11 rounded-lg hover:bg-muted transition-colors text-left"
+              >
+                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                  {userProfile?.avatar_url ? (
+                    <img src={userProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-foreground truncate leading-tight">
+                    {userProfile?.full_name || userProfile?.username || user?.email?.split("@")[0] || "Sign in"}
+                  </p>
+                  {isAuthenticated && (
+                    <p className="text-[11px] text-muted-foreground truncate leading-tight">Free plan</p>
+                  )}
+                </div>
+                {isAuthenticated && <MoreHorizontal className="w-4 h-4 text-muted-foreground shrink-0" />}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-56">
+              {isAuthenticated ? (
+                <>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <X className="w-4 h-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </>
               ) : (
-                <User className="w-4 h-4 text-muted-foreground" />
+                <DropdownMenuItem onClick={() => setAuthModalOpen(true)}>
+                  <User className="w-4 h-4 mr-2" />
+                  Sign in
+                </DropdownMenuItem>
               )}
-            </div>
-            <span className="text-sm font-medium text-foreground truncate">
-              {userProfile?.full_name || userProfile?.username || user?.email || "Sign in"}
-            </span>
-          </button>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 
