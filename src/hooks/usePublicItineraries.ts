@@ -47,15 +47,6 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
   // 1) Read snapshots from the canonical public_itinerary_items table.
   const itemsByItinerary: Record<string, LikedExperience[]> = {};
   const productMeta: Record<string, any> = {};
-  // Collect product ids referenced by JSONB experiences fallback so we can enrich them
-  const jsonbProductIds = new Set<string>();
-  data.forEach((row: any) => {
-    if (Array.isArray(row.experiences)) {
-      row.experiences.forEach((e: any) => {
-        if (e?.id && /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(e.id)) jsonbProductIds.add(e.id);
-      });
-    }
-  });
   if (itineraryIds.length > 0) {
     const { data: snapshotItems } = await supabase
       .from("public_itinerary_items")
@@ -72,7 +63,7 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
       if (it.entity_type === "poi" && it.entity_id) poiIds.add(it.entity_id);
     });
 
-    const allProductIds = new Set<string>([...productIds, ...jsonbProductIds]);
+    const allProductIds = productIds;
     if (allProductIds.size > 0) {
       const ids = Array.from(allProductIds);
       for (let i = 0; i < ids.length; i += 100) {
