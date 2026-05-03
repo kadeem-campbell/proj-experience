@@ -58,22 +58,25 @@ const DesktopGridRow = ({
   gap?: string;
 }) => {
   return (
-    <div className="mb-8">
-      <div className="mb-4 flex items-end justify-between">
+    <div className="mb-10">
+      <div className="mb-5 flex items-end justify-between gap-4">
         {onViewAll ? (
           <button
             onClick={onViewAll}
-            className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left cursor-pointer"
+            className="group flex items-baseline gap-2 text-left cursor-pointer"
           >
-            {title}
+            <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none group-hover:opacity-70 transition-opacity">
+              {title}
+            </h2>
+            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
           </button>
         ) : (
-          <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
+          <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
         )}
         {onViewAll && (
           <button
             onClick={onViewAll}
-            className="text-[12px] font-bold text-muted-foreground hover:text-foreground tracking-wide uppercase"
+            className="text-[11px] font-bold text-muted-foreground hover:text-foreground tracking-[0.12em] uppercase transition-colors shrink-0"
           >
             Show all
           </button>
