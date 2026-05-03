@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { MobileHomeView } from "@/components/MobileHomeView";
+import { MobileShell } from "@/components/MobileShell";
 import { useItineraries } from "@/hooks/useItineraries";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 
