@@ -77,7 +77,13 @@ const DesktopScrollRow = ({
   return (
     <div className="mb-10 relative">
       <div className="flex items-end justify-between mb-4">
-        <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
+        {onViewAll ? (
+          <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left">
+            {title}
+          </button>
+        ) : (
+          <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
+        )}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <button
