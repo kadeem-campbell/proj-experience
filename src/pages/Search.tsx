@@ -101,7 +101,7 @@ const DesktopScrollRow = ({
   );
 };
 
-// ─── Top search bar (full width, Spotify-style) ───────────────────
+// ─── Top search bar (sticky) ───────────────────────────────────────
 const DesktopSearchBar = ({
   searchQuery,
   onSearchChange,
@@ -109,7 +109,7 @@ const DesktopSearchBar = ({
   searchQuery: string;
   onSearchChange: (q: string) => void;
 }) => (
-  <div className="sticky top-0 z-20 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-background/85 backdrop-blur-md border-b border-border/40 mb-6">
+  <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/85 backdrop-blur-md">
     <div className="relative max-w-xl">
       <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
       <Input
@@ -127,8 +127,8 @@ const DesktopSearchBar = ({
   </div>
 );
 
-// ─── Right-rail city filter ───────────────────────────────────────
-const CityRail = ({
+// ─── Horizontal city pill row (same style as mobile) ───────────────
+const CityPillRow = ({
   selectedCity,
   onCitySelect,
   destinations,
@@ -137,59 +137,12 @@ const CityRail = ({
   onCitySelect: (city: BrowseDestination | null) => void;
   destinations: BrowseDestination[];
 }) => (
-  <aside className="hidden lg:block w-[240px] shrink-0 sticky top-[80px] self-start max-h-[calc(100vh-100px)] overflow-y-auto pl-6 border-l border-border/40 scrollbar-hide">
-    <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Filter by city</p>
-    <div className="space-y-1">
-      <button
-        onClick={() => onCitySelect(null)}
-        className={cn(
-          "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
-          !selectedCity ? "bg-foreground text-background" : "text-foreground hover:bg-muted"
-        )}
-      >
-        <span className="w-5 h-5 rounded-full bg-muted-foreground/10 flex items-center justify-center text-[10px] font-bold">★</span>
-        All cities
-      </button>
-      {destinations.map((d) => {
-        const active = selectedCity?.id === d.id;
-        return (
-          <button
-            key={d.id}
-            onClick={() => onCitySelect(active ? null : d)}
-            className={cn(
-              "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
-              active ? "bg-foreground text-background" : "text-foreground hover:bg-muted"
-            )}
-          >
-            {d.flag_svg_url ? (
-              <img src={d.flag_svg_url} className="w-5 h-5 rounded-full object-cover shrink-0" alt="" />
-            ) : (
-              <span className="w-5 h-5 rounded-full bg-muted shrink-0" />
-            )}
-            <span className="truncate">{d.name}</span>
-          </button>
-        );
-      })}
-    </div>
-  </aside>
-);
-
-// ─── Tablet horizontal city pills (no right rail on tablet) ───────
-const TabletCityPills = ({
-  selectedCity,
-  onCitySelect,
-  destinations,
-}: {
-  selectedCity: BrowseDestination | null;
-  onCitySelect: (city: BrowseDestination | null) => void;
-  destinations: BrowseDestination[];
-}) => (
-  <div className="lg:hidden flex items-center gap-2 overflow-x-auto scrollbar-hide mb-6 -mx-6 px-6">
+  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-3 -mx-5 lg:-mx-8 px-5 lg:px-8">
     <button
       onClick={() => onCitySelect(null)}
       className={cn(
-        "shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
-        !selectedCity ? "bg-foreground text-background" : "bg-muted text-foreground"
+        "shrink-0 px-4 py-2 rounded-full text-[13px] font-semibold transition-all",
+        !selectedCity ? "bg-foreground text-background shadow-sm" : "bg-muted text-foreground hover:bg-muted/80"
       )}
     >
       All
@@ -199,11 +152,11 @@ const TabletCityPills = ({
         key={d.id}
         onClick={() => onCitySelect(selectedCity?.id === d.id ? null : d)}
         className={cn(
-          "shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
-          selectedCity?.id === d.id ? "bg-foreground text-background" : "bg-muted text-foreground"
+          "shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all",
+          selectedCity?.id === d.id ? "bg-foreground text-background shadow-sm" : "bg-muted text-foreground hover:bg-muted/80"
         )}
       >
-        {d.flag_svg_url && <img src={d.flag_svg_url} className="w-3.5 h-3.5 rounded-full" alt="" />}
+        {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />}
         {d.name}
       </button>
     ))}
