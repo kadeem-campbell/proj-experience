@@ -923,8 +923,11 @@ export default function ExperienceDetail() {
                 {linkedPoi && experience.location && <span className="text-base">{experience.location}</span>}
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />Saved by <strong className="text-foreground">{likedByCount}</strong> travellers this month</span>
-                {experience.price && <><span className="text-muted-foreground/40">·</span><span className="font-medium text-foreground">{experience.price}</span></>}
+                {likedByCount > 0 && (
+                  <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />Saved by <strong className="text-foreground">{likedByCount}</strong> {likedByCount === 1 ? 'traveller' : 'travellers'}</span>
+                )}
+                {likedByCount > 0 && experience.price && <span className="text-muted-foreground/40">·</span>}
+                {experience.price && <span className="font-medium text-foreground">{experience.price}</span>}
               </div>
             </div>
 
