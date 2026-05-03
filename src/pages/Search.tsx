@@ -111,13 +111,21 @@ const DesktopTopBar = ({
   return (
     <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/90 backdrop-blur-md">
       <div className="flex items-center gap-3">
-        {/* Mode toggle (Delivery/Pickup style) */}
-        <div className="flex items-center bg-muted rounded-full p-1 shrink-0">
+        {/* iOS-style segmented toggle (sliding knob) */}
+        <div className="relative inline-flex items-center bg-muted rounded-full p-1 shrink-0 h-11 w-[260px]">
+          <span
+            aria-hidden
+            className={cn(
+              "absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-background shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+              mode === 'things' ? "translate-x-0" : "translate-x-[calc(100%+4px)]"
+            )}
+            style={{ left: 4 }}
+          />
           <button
             onClick={() => onModeChange('things')}
             className={cn(
-              "px-4 h-9 rounded-full text-[13px] font-bold transition-all",
-              mode === 'things' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold transition-colors",
+              mode === 'things' ? "text-foreground" : "text-muted-foreground"
             )}
           >
             Things to do
@@ -125,8 +133,8 @@ const DesktopTopBar = ({
           <button
             onClick={() => onModeChange('itineraries')}
             className={cn(
-              "px-4 h-9 rounded-full text-[13px] font-bold transition-all",
-              mode === 'itineraries' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold transition-colors",
+              mode === 'itineraries' ? "text-foreground" : "text-muted-foreground"
             )}
           >
             Itineraries
