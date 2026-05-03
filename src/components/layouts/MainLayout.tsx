@@ -18,28 +18,7 @@ interface MainLayoutProps {
   onMobileSearchClick?: () => void;
 }
 
-const SidebarToggleButton = () => {
-  const { state, toggleSidebar } = useSidebar();
-  const collapsed = state === "collapsed";
-  const isMobile = useIsMobile();
-
-  if (isMobile) return null;
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggleSidebar}
-      className="fixed top-3 left-3 z-50 h-8 w-8 shrink-0 hover:bg-muted"
-    >
-      {collapsed ? (
-        <PanelLeft className="w-4 h-4" />
-      ) : (
-        <PanelLeftClose className="w-4 h-4" />
-      )}
-    </Button>
-  );
-};
+// Sidebar toggle is now integrated inside the sidebar header itself.
 
 export const MainLayout = ({ 
   children, 
