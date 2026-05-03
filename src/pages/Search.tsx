@@ -365,138 +365,130 @@ const SearchPage = () => {
         jsonLd={createWebsiteJsonLd()}
       />
 
-      <div className="px-6 lg:px-10 py-0 max-w-[1600px] mx-auto">
+      <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
         <DesktopSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-        <TabletCityPills
+        <CityPillRow
           selectedCity={selectedCity}
           onCitySelect={handleCitySelect}
           destinations={allDestinations}
         />
 
-        <div className="flex gap-8">
-          <div className="flex-1 min-w-0 pb-12">
-            {hasSearchResults ? (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-foreground">Results for "{searchQuery}"</h2>
-                  <button onClick={() => setSearchQuery("")} className="text-sm font-medium text-primary">Clear</button>
-                </div>
-
-                {filteredItineraries.length > 0 && (
-                  <DesktopScrollRow title="Itineraries">
-                    {filteredItineraries.slice(0, 8).map((it) => (
-                      <div key={it.id} className="flex-shrink-0 w-[220px] lg:w-[240px]">
-                        <PublicItineraryCard itinerary={it} />
-                      </div>
-                    ))}
-                  </DesktopScrollRow>
-                )}
-
-                {filteredExperiences.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-bold mb-4">Experiences</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5">
-                      {filteredExperiences.slice(0, 20).map((exp) => (
-                        <ProductCard key={exp.id} {...exp} compact />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {filteredExperiences.length === 0 && filteredItineraries.length === 0 && (
-                  <div className="text-center py-20">
-                    <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground">No results found</p>
-                  </div>
-                )}
+        <div className="pb-12 pt-2">
+          {hasSearchResults ? (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-foreground">Results for "{searchQuery}"</h2>
+                <button onClick={() => setSearchQuery("")} className="text-sm font-medium text-primary">Clear</button>
               </div>
-            ) : (
-              <>
-                {carouselRows.length > 0 ? (
-                  (() => {
-                    const elements: React.ReactNode[] = [];
 
-                    const poiRow = selectedDestId ? (() => {
-                      const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
-                      if (cityPois.length === 0) return null;
-                      return (
-                        <DesktopScrollRow key="pois" title={`Places to explore in ${selectedCityName}`} onViewAll={() => navigate(`/${destSlug}`)}>
-                          {cityPois.slice(0, 12).map((poi: any) => (
+              {filteredItineraries.length > 0 && (
+                <DesktopScrollRow title="Itineraries">
+                  {filteredItineraries.slice(0, 8).map((it) => (
+                    <div key={it.id} className="flex-shrink-0 w-[220px] lg:w-[240px]">
+                      <PublicItineraryCard itinerary={it} />
+                    </div>
+                  ))}
+                </DesktopScrollRow>
+              )}
+
+              {filteredExperiences.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-4">Experiences</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5">
+                    {filteredExperiences.slice(0, 20).map((exp) => (
+                      <ProductCard key={exp.id} {...exp} compact />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {filteredExperiences.length === 0 && filteredItineraries.length === 0 && (
+                <div className="text-center py-20">
+                  <SearchIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground">No results found</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {carouselRows.length > 0 ? (
+                (() => {
+                  const elements: React.ReactNode[] = [];
+
+                  const poiRow = selectedDestId ? (() => {
+                    const cityPois = pois.filter((p: any) => p.destination_id === selectedDestId);
+                    if (cityPois.length === 0) return null;
+                    return (
+                      <DesktopScrollRow key="pois" title={`Places to explore in ${selectedCityName}`} onViewAll={() => navigate(`/${destSlug}`)}>
+                        {cityPois.slice(0, 12).map((poi: any) => (
+                          <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
+                        ))}
+                      </DesktopScrollRow>
+                    );
+                  })() : null;
+
+                  carouselRows.forEach((carousel, idx) => {
+                    if (idx === 2 && poiRow) elements.push(poiRow);
+
+                    const title = carousel.name.replace('{city}', selectedCityName || 'your city');
+                    const resolvedSlug = carousel.slug.replace('city', selectedCityName ? slugify(selectedCityName) : 'city');
+
+                    const manualProductIds   = carousel.manualItems.filter(i => i.type === 'product').map(i => i.id);
+                    const manualItineraryIds = carousel.manualItems.filter(i => i.type === 'itinerary').map(i => i.id);
+                    const manualPoiIds       = carousel.manualItems.filter(i => i.type === 'poi').map(i => i.id);
+
+                    if (carousel.contentType === 'itinerary') {
+                      const items = manualItineraryIds.length > 0
+                        ? cityFilteredItineraries.filter(it => manualItineraryIds.includes((it as any).dbId || it.id))
+                        : cityFilteredItineraries.slice(0, 8);
+                      if (items.length === 0) return;
+                      elements.push(
+                        <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
+                          {items.slice(0, 10).map((it) => (
+                            <div key={it.id} className="flex-shrink-0 w-[210px] lg:w-[230px]">
+                              <PublicItineraryCard itinerary={it} />
+                            </div>
+                          ))}
+                        </DesktopScrollRow>
+                      );
+                    } else if (carousel.contentType === 'product') {
+                      const items = manualProductIds.length > 0
+                        ? experiences.filter(exp => manualProductIds.includes(exp.id))
+                        : cityFilteredExperiences.slice(0, 10);
+                      if (items.length === 0) return;
+                      elements.push(
+                        <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
+                          {items.slice(0, 12).map((exp) => (
+                            <div key={exp.id} className="flex-shrink-0 w-[190px] lg:w-[210px]">
+                              <ProductCard {...exp} compact />
+                            </div>
+                          ))}
+                        </DesktopScrollRow>
+                      );
+                    } else if (carousel.contentType === 'poi') {
+                      const allPoisForCarousel = manualPoiIds.length > 0
+                        ? pois.filter((p: any) => manualPoiIds.includes(p.id))
+                        : selectedDestId
+                          ? pois.filter((p: any) => p.destination_id === selectedDestId)
+                          : pois;
+                      if (allPoisForCarousel.length === 0) return;
+                      elements.push(
+                        <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
+                          {allPoisForCarousel.slice(0, 12).map((poi: any) => (
                             <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
                           ))}
                         </DesktopScrollRow>
                       );
-                    })() : null;
+                    }
+                  });
 
-                    carouselRows.forEach((carousel, idx) => {
-                      if (idx === 2 && poiRow) elements.push(poiRow);
-
-                      const title = carousel.name.replace('{city}', selectedCityName || 'your city');
-                      const resolvedSlug = carousel.slug.replace('city', selectedCityName ? slugify(selectedCityName) : 'city');
-
-                      const manualProductIds   = carousel.manualItems.filter(i => i.type === 'product').map(i => i.id);
-                      const manualItineraryIds = carousel.manualItems.filter(i => i.type === 'itinerary').map(i => i.id);
-                      const manualPoiIds       = carousel.manualItems.filter(i => i.type === 'poi').map(i => i.id);
-
-                      if (carousel.contentType === 'itinerary') {
-                        const items = manualItineraryIds.length > 0
-                          ? cityFilteredItineraries.filter(it => manualItineraryIds.includes((it as any).dbId || it.id))
-                          : cityFilteredItineraries.slice(0, 8);
-                        if (items.length === 0) return;
-                        elements.push(
-                          <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
-                            {items.slice(0, 10).map((it) => (
-                              <div key={it.id} className="flex-shrink-0 w-[200px] lg:w-[220px]">
-                                <PublicItineraryCard itinerary={it} />
-                              </div>
-                            ))}
-                          </DesktopScrollRow>
-                        );
-                      } else if (carousel.contentType === 'product') {
-                        const items = manualProductIds.length > 0
-                          ? experiences.filter(exp => manualProductIds.includes(exp.id))
-                          : cityFilteredExperiences.slice(0, 10);
-                        if (items.length === 0) return;
-                        elements.push(
-                          <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
-                            {items.slice(0, 12).map((exp) => (
-                              <div key={exp.id} className="flex-shrink-0 w-[180px] lg:w-[200px]">
-                                <ProductCard {...exp} compact />
-                              </div>
-                            ))}
-                          </DesktopScrollRow>
-                        );
-                      } else if (carousel.contentType === 'poi') {
-                        const allPoisForCarousel = manualPoiIds.length > 0
-                          ? pois.filter((p: any) => manualPoiIds.includes(p.id))
-                          : selectedDestId
-                            ? pois.filter((p: any) => p.destination_id === selectedDestId)
-                            : pois;
-                        if (allPoisForCarousel.length === 0) return;
-                        elements.push(
-                          <DesktopScrollRow key={carousel.id} title={title} onViewAll={() => navigate(`/collections/${resolvedSlug}`)}>
-                            {allPoisForCarousel.slice(0, 12).map((poi: any) => (
-                              <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
-                            ))}
-                          </DesktopScrollRow>
-                        );
-                      }
-                    });
-
-                    if (carouselRows.length < 3 && poiRow) elements.push(poiRow);
-                    return <>{elements}</>;
-                  })()
-                ) : null}
-              </>
-            )}
-          </div>
-
-          <CityRail
-            selectedCity={selectedCity}
-            onCitySelect={handleCitySelect}
-            destinations={allDestinations}
-          />
+                  if (carouselRows.length < 3 && poiRow) elements.push(poiRow);
+                  return <>{elements}</>;
+                })()
+              ) : null}
+            </>
+          )}
         </div>
       </div>
     </MainLayout>
