@@ -17,6 +17,7 @@ interface ProductCardProps {
   price: string;
   slug?: string;
   compact?: boolean;
+  square?: boolean;
 }
 
 export const ProductCard = ({
@@ -31,6 +32,7 @@ export const ProductCard = ({
   price,
   slug,
   compact = false,
+  square = false,
 }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -63,7 +65,7 @@ export const ProductCard = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="relative overflow-hidden rounded-xl bg-muted aspect-[4/3]">
+        <div className={cn("relative overflow-hidden rounded-xl bg-muted", square ? "aspect-square" : "aspect-[4/3]")}>
           {!imageLoaded && (
             <div className="absolute inset-0 bg-muted animate-pulse" />
           )}
