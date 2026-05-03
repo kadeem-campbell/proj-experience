@@ -15,7 +15,7 @@ import { BrowseDestination } from "@/hooks/useDestinations";
 import { useDestinations } from "@/hooks/useDestinations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProductListings } from "@/hooks/useProductListings";
-import { useHomeCarousels } from "@/hooks/useHomeCarousels";
+import { useHomeCarousels, useHomeCategories, matchesContext, resolveCarouselItems, type ResolvedItem } from "@/hooks/useHomeCarousels";
 import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
