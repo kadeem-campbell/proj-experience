@@ -101,72 +101,114 @@ const DesktopScrollRow = ({
   );
 };
 
-// ─── Desktop Search Bar (inline, Spotify-style) ──────────────────
+// ─── Top search bar (full width, Spotify-style) ───────────────────
 const DesktopSearchBar = ({
   searchQuery,
   onSearchChange,
+}: {
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+}) => (
+  <div className="sticky top-0 z-20 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-background/85 backdrop-blur-md border-b border-border/40 mb-6">
+    <div className="relative max-w-xl">
+      <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <Input
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="What do you want to explore?"
+        className="pl-10 pr-10 h-11 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
+      />
+      {searchQuery && (
+        <button onClick={() => onSearchChange("")} className="absolute right-4 top-1/2 -translate-y-1/2">
+          <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+        </button>
+      )}
+    </div>
+  </div>
+);
+
+// ─── Right-rail city filter ───────────────────────────────────────
+const CityRail = ({
   selectedCity,
   onCitySelect,
   destinations,
 }: {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
   selectedCity: BrowseDestination | null;
   onCitySelect: (city: BrowseDestination | null) => void;
   destinations: BrowseDestination[];
-}) => {
-  const [cityOpen, setCityOpen] = useState(false);
-
-  return (
-    <div className="flex items-center gap-3 mb-8">
-      {/* City filter pills */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-        <button
-          onClick={() => onCitySelect(null)}
-          className={cn(
-            "shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all",
-            !selectedCity 
-              ? "bg-foreground text-background" 
-              : "bg-muted text-foreground hover:bg-muted/80"
-          )}
-        >
-          All
-        </button>
-        {destinations.map((d) => (
+}) => (
+  <aside className="hidden lg:block w-[240px] shrink-0 sticky top-[80px] self-start max-h-[calc(100vh-100px)] overflow-y-auto pl-6 border-l border-border/40 scrollbar-hide">
+    <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Filter by city</p>
+    <div className="space-y-1">
+      <button
+        onClick={() => onCitySelect(null)}
+        className={cn(
+          "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+          !selectedCity ? "bg-foreground text-background" : "text-foreground hover:bg-muted"
+        )}
+      >
+        <span className="w-5 h-5 rounded-full bg-muted-foreground/10 flex items-center justify-center text-[10px] font-bold">★</span>
+        All cities
+      </button>
+      {destinations.map((d) => {
+        const active = selectedCity?.id === d.id;
+        return (
           <button
             key={d.id}
-            onClick={() => onCitySelect(selectedCity?.id === d.id ? null : d)}
+            onClick={() => onCitySelect(active ? null : d)}
             className={cn(
-              "shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all",
-              selectedCity?.id === d.id 
-                ? "bg-foreground text-background" 
-                : "bg-muted text-foreground hover:bg-muted/80"
+              "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+              active ? "bg-foreground text-background" : "text-foreground hover:bg-muted"
             )}
           >
-            {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full" alt="" />}
-            {d.name}
+            {d.flag_svg_url ? (
+              <img src={d.flag_svg_url} className="w-5 h-5 rounded-full object-cover shrink-0" alt="" />
+            ) : (
+              <span className="w-5 h-5 rounded-full bg-muted shrink-0" />
+            )}
+            <span className="truncate">{d.name}</span>
           </button>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="relative ml-auto min-w-[240px]">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="What do you want to explore?"
-          className="pl-9 pr-9 h-10 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
-        />
-        {searchQuery && (
-          <button onClick={() => onSearchChange("")} className="absolute right-3 top-1/2 -translate-y-1/2">
-            <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-          </button>
-        )}
-      </div>
+        );
+      })}
     </div>
-  );
-};
+  </aside>
+);
+
+// ─── Tablet horizontal city pills (no right rail on tablet) ───────
+const TabletCityPills = ({
+  selectedCity,
+  onCitySelect,
+  destinations,
+}: {
+  selectedCity: BrowseDestination | null;
+  onCitySelect: (city: BrowseDestination | null) => void;
+  destinations: BrowseDestination[];
+}) => (
+  <div className="lg:hidden flex items-center gap-2 overflow-x-auto scrollbar-hide mb-6 -mx-6 px-6">
+    <button
+      onClick={() => onCitySelect(null)}
+      className={cn(
+        "shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
+        !selectedCity ? "bg-foreground text-background" : "bg-muted text-foreground"
+      )}
+    >
+      All
+    </button>
+    {destinations.map((d) => (
+      <button
+        key={d.id}
+        onClick={() => onCitySelect(selectedCity?.id === d.id ? null : d)}
+        className={cn(
+          "shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
+          selectedCity?.id === d.id ? "bg-foreground text-background" : "bg-muted text-foreground"
+        )}
+      >
+        {d.flag_svg_url && <img src={d.flag_svg_url} className="w-3.5 h-3.5 rounded-full" alt="" />}
+        {d.name}
+      </button>
+    ))}
+  </div>
+);
 
 // ─── POI Card for desktop ────────────────────────────────────────
 const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
