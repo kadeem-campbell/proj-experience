@@ -203,7 +203,7 @@ const DesktopTopBar = ({
             </button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-64 p-1.5">
-            {destinations.map((d) => null) /* spacer for diff context */}
+            
             {destinations.map((d) => (
               <button
                 key={d.id}
