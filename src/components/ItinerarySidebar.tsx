@@ -15,6 +15,9 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
 import { useItineraries } from "@/hooks/useItineraries";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal } from "@/components/AuthModal";
@@ -87,9 +90,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       return bDate - aDate;
     });
 
-  // Primary nav (ChatGPT-style: condensed, 32px rows, icon + label)
+  // Primary nav (Home removed — brand row replaces it)
   const navItems = [
-    { to: "/", icon: Home, label: "Home", active: location.pathname === "/" || location.pathname === "/search" },
     { to: "/things-to-do", icon: Compass, label: "Explore", active: location.pathname.startsWith("/things-to-do") },
     { to: "/itineraries", icon: Globe, label: "Itineraries", active: location.pathname === "/itineraries" },
     { to: "/liked", icon: Heart, label: "Liked", active: location.pathname === "/liked" },
@@ -101,12 +103,24 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       className="border-r border-border/40 bg-background"
     >
       <SidebarContent className="bg-background">
-        {/* Top toolbar — matches ChatGPT's "new chat" + search row */}
+        {/* Spacer for the floating sidebar trigger */}
         <div className="h-12" aria-hidden="true" />
 
+        {/* Brand row — Swam logo + name (ChatGPT-style) */}
+        <Link
+          to="/"
+          className="mx-2 flex items-center gap-2.5 px-2 h-9 rounded-lg hover:bg-muted text-foreground transition-colors"
+        >
+          <div className="w-6 h-6 rounded-md bg-foreground text-background flex items-center justify-center shrink-0">
+            <Compass className="w-3.5 h-3.5" strokeWidth={2.5} />
+          </div>
+          <span className="text-[14px] font-bold tracking-tight">Swam</span>
+        </Link>
+
+        {/* New itinerary + Search row */}
         <div className="px-2 pt-1 pb-2 flex items-center gap-1">
           <button
-            onClick={() => { setIsCreating(true); }}
+            onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
             className="flex-1 flex items-center gap-2.5 px-2.5 h-9 rounded-lg hover:bg-muted text-[13.5px] font-medium text-foreground transition-colors"
             title="New itinerary"
           >
@@ -170,29 +184,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
               </div>
               <SidebarGroupContent>
                 <SidebarMenu className="gap-0">
-                  {isCreating && (
-                    <div className="px-2 py-1">
-                      <div className="flex items-center gap-1.5">
-                        <Input
-                          value={newItineraryName}
-                          onChange={(e) => setNewItineraryName(e.target.value)}
-                          placeholder="Trip name…"
-                          className="h-8 text-[13px] bg-muted border-0"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleCreate();
-                            if (e.key === "Escape") { setIsCreating(false); setNewItineraryName(""); }
-                          }}
-                          autoFocus
-                        />
-                        <Button size="icon" className="h-7 w-7 shrink-0" onClick={handleCreate}>
-                          <Check className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { setIsCreating(false); setNewItineraryName(""); }}>
-                          <X className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  {/* Inline create removed — uses modal dialog */}
 
                   {sortedItineraries.map((itinerary) => {
                     const isPinned = pinnedIds.includes(itinerary.id);
@@ -267,7 +259,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                     );
                   })}
 
-                  {sortedItineraries.length === 0 && !isCreating && (
+                  {sortedItineraries.length === 0 && (
                     <p className="text-[12px] text-muted-foreground px-3 py-2">
                       {filter ? "No matches" : "No itineraries yet"}
                     </p>
@@ -330,6 +322,28 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       )}
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+
+      {/* New itinerary modal */}
+      <Dialog open={isCreating} onOpenChange={(o) => { if (!o) { setIsCreating(false); setNewItineraryName(""); } }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>New itinerary</DialogTitle>
+            <DialogDescription>Give your trip a name to get started.</DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newItineraryName}
+            onChange={(e) => setNewItineraryName(e.target.value)}
+            placeholder="e.g. Zanzibar in October"
+            className="h-10"
+            onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setIsCreating(false); setNewItineraryName(""); }}>Cancel</Button>
+            <Button onClick={handleCreate}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sidebar>
   );
 };
