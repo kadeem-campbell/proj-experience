@@ -97,49 +97,32 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
 
   return (
     <Sidebar
-      collapsible="icon"
-      className={cn(
-        "border-r border-border/40 bg-background transition-all duration-200",
-        !collapsed && "w-[260px]"
-      )}
+      collapsible="offcanvas"
+      className="border-r border-border/40 bg-background"
     >
       <SidebarContent className="bg-background">
         {/* Top toolbar — matches ChatGPT's "new chat" + search row */}
         <div className="h-12" aria-hidden="true" />
 
-        {!isCollapsedView && (
-          <div className="px-2 pt-1 pb-2 flex items-center gap-1">
-            <button
-              onClick={() => { setIsCreating(true); }}
-              className="flex-1 flex items-center gap-2.5 px-2.5 h-9 rounded-lg hover:bg-muted text-[13.5px] font-medium text-foreground transition-colors"
-              title="New itinerary"
-            >
-              <SquarePen className="w-4 h-4 shrink-0" />
-              <span>New itinerary</span>
-            </button>
-            <button
-              onClick={() => setSearchOpen(o => !o)}
-              className="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-foreground transition-colors"
-              title="Search itineraries"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        <div className="px-2 pt-1 pb-2 flex items-center gap-1">
+          <button
+            onClick={() => { setIsCreating(true); }}
+            className="flex-1 flex items-center gap-2.5 px-2.5 h-9 rounded-lg hover:bg-muted text-[13.5px] font-medium text-foreground transition-colors"
+            title="New itinerary"
+          >
+            <SquarePen className="w-4 h-4 shrink-0" />
+            <span>New itinerary</span>
+          </button>
+          <button
+            onClick={() => setSearchOpen(o => !o)}
+            className="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-foreground transition-colors"
+            title="Search itineraries"
+          >
+            <Search className="w-4 h-4" />
+          </button>
+        </div>
 
-        {isCollapsedView && (
-          <div className="px-2 pt-1 pb-2 flex flex-col items-center gap-1">
-            <button
-              onClick={() => setIsCreating(true)}
-              className="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-foreground"
-              title="New itinerary"
-            >
-              <SquarePen className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {!isCollapsedView && searchOpen && (
+        {searchOpen && (
           <div className="px-2 pb-2">
             <Input
               value={filter}
@@ -168,7 +151,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                     >
                       <Link to={item.to}>
                         <item.icon className="w-4 h-4 shrink-0" />
-                        {!isCollapsedView && <span>{item.label}</span>}
+                        {<span>{item.label}</span>}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -178,7 +161,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           </SidebarGroup>
 
           {/* Itineraries list — "Chats" style */}
-          {!isCollapsedView && (
+          {(
             <SidebarGroup className="pt-3 pb-1">
               <div className="px-3 pb-1">
                 <p className="text-[11px] font-semibold text-muted-foreground/80">

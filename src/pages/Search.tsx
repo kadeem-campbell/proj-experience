@@ -40,43 +40,21 @@ const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
   Safari: catSafari,
 };
 
-// ─── Spotify-style Desktop Scroll Row ────────────────────────────
-const DesktopScrollRow = ({ 
-  title, 
+// ─── Spotify-style Desktop Grid Row (no horizontal scroll) ────────
+const DesktopGridRow = ({
+  title,
   onViewAll,
-  children 
-}: { 
+  children,
+  cols = "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7",
+}: {
   title: string;
   onViewAll?: () => void;
   children: React.ReactNode;
+  cols?: string;
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const checkScroll = useCallback(() => {
-    if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanScrollLeft(scrollLeft > 4);
-    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 4);
-  }, []);
-
-  useEffect(() => {
-    checkScroll();
-    const el = scrollRef.current;
-    if (el) el.addEventListener('scroll', checkScroll, { passive: true });
-    return () => { if (el) el.removeEventListener('scroll', checkScroll); };
-  }, [checkScroll]);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (!scrollRef.current) return;
-    const amount = scrollRef.current.clientWidth * 0.7;
-    scrollRef.current.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
-  };
-
   return (
-    <div className="mb-10 relative">
-      <div className="flex items-end justify-between mb-4">
+    <div className="mb-10">
+      <div className="mb-4">
         {onViewAll ? (
           <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left">
             {title}
@@ -84,42 +62,9 @@ const DesktopScrollRow = ({
         ) : (
           <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
         )}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!canScrollLeft}
-              className={cn(
-                "w-9 h-9 rounded-full border border-border flex items-center justify-center transition-all",
-                canScrollLeft ? "bg-background hover:bg-muted text-foreground" : "bg-background/50 text-muted-foreground/40 cursor-not-allowed"
-              )}
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!canScrollRight}
-              className={cn(
-                "w-9 h-9 rounded-full border border-border flex items-center justify-center transition-all",
-                canScrollRight ? "bg-background hover:bg-muted text-foreground" : "bg-background/50 text-muted-foreground/40 cursor-not-allowed"
-              )}
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </div>
-
-      <div
-        ref={scrollRef}
-        className="overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        <div className="inline-flex gap-5" style={{ minWidth: '100%' }}>
-          {children}
-        </div>
+      <div className={cn("grid gap-5", cols)}>
+        {children}
       </div>
     </div>
   );
@@ -270,7 +215,7 @@ const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: 
   const navigate = useNavigate();
   return (
     <div 
-      className="flex-shrink-0 w-[200px] cursor-pointer group"
+      className="cursor-pointer group"
       onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
     >
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted">
@@ -567,13 +512,11 @@ const SearchPage = () => {
               </div>
 
               {filteredItineraries.length > 0 && (
-                <DesktopScrollRow title="Itineraries">
+                <DesktopGridRow title="Itineraries">
                   {filteredItineraries.slice(0, 8).map((it) => (
-                    <div key={it.id} className="flex-shrink-0 w-[260px]">
-                      <PublicItineraryCard itinerary={it} />
-                    </div>
+                    <PublicItineraryCard key={it.id} itinerary={it} />
                   ))}
-                </DesktopScrollRow>
+                </DesktopGridRow>
               )}
 
               {filteredExperiences.length > 0 && (
@@ -646,16 +589,20 @@ const SearchPage = () => {
 
                 return (
                   <>
-                    {/* Featured hero carousel */}
-                    <DesktopScrollRow title={featured.title} onViewAll={featured.onTitleClick}>
+                    {/* Featured hero — larger cards in fewer columns */}
+                    <DesktopGridRow
+                      title={featured.title}
+                      onViewAll={featured.onTitleClick}
+                      cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    >
                       {featured.items.slice(0, 8).map((it: any) => (
-                        <div key={`${it.type}-${it.data.id}`} className="flex-shrink-0 w-[420px]">
+                        <div key={`${it.type}-${it.data.id}`}>
                           {it.type === 'product' && (
                             <button
                               onClick={() => navigate(`/things-to-do/${destSlug || slugify(it.data.location || 'explore')}/${it.data.slug || it.data.id}`)}
                               className="w-full text-left group"
                             >
-                              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-muted">
+                              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-muted">
                                 {it.data.image ? (
                                   <img src={it.data.image} alt={it.data.title} loading="lazy" className="w-full h-full object-cover" />
                                 ) : (
@@ -674,34 +621,26 @@ const SearchPage = () => {
                           )}
                         </div>
                       ))}
-                    </DesktopScrollRow>
+                    </DesktopGridRow>
 
                     {/* Remaining carousels */}
                     {rest.map((c) => (
-                      <DesktopScrollRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
+                      <DesktopGridRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
                         {c.items.map((it: any) => {
                           if (it.type === 'product') {
-                            return (
-                              <div key={`prod-${it.data.id}`} className="flex-shrink-0 w-[210px]">
-                                <ProductCard {...it.data} compact />
-                              </div>
-                            );
+                            return <ProductCard key={`prod-${it.data.id}`} {...it.data} compact />;
                           }
                           if (it.type === 'itinerary') {
-                            return (
-                              <div key={`itin-${it.data.id}`} className="flex-shrink-0 w-[240px]">
-                                <PublicItineraryCard itinerary={it.data} />
-                              </div>
-                            );
+                            return <PublicItineraryCard key={`itin-${it.data.id}`} itinerary={it.data} />;
                           }
                           return <DesktopPoiCard key={`poi-${it.data.id}`} poi={it.data} destinationSlug={destSlug} />;
                         })}
-                      </DesktopScrollRow>
+                      </DesktopGridRow>
                     ))}
 
                     {/* POI row at the bottom, optimised for desktop */}
                     {pois.length > 0 && (
-                      <DesktopScrollRow
+                      <DesktopGridRow
                         title={selectedCityName ? `Places to explore in ${selectedCityName}` : 'Places to explore'}
                         onViewAll={destSlug ? () => navigate(`/${destSlug}`) : undefined}
                       >
@@ -710,7 +649,7 @@ const SearchPage = () => {
                           .map((poi: any) => (
                             <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
                           ))}
-                      </DesktopScrollRow>
+                      </DesktopGridRow>
                     )}
                   </>
                 );
