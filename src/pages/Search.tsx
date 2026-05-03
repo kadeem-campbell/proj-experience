@@ -23,6 +23,8 @@ import { slugify } from "@/utils/slugUtils";
 import { Compass, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 import catBeaches from "@/assets/cat-beaches.png";
 import catNightlife from "@/assets/cat-nightlife.png";
