@@ -317,12 +317,16 @@ export type Database = {
           launch_status: string | null
           longitude: number | null
           name: string
+          publish_state: string
           readiness_score: number | null
           safety_score: number | null
+          seo_description: string | null
+          seo_title: string | null
           short_description: string | null
           slug: string
           updated_at: string | null
           vibe_description: string | null
+          visibility_output_state: string
           visibility_state: string
         }
         Insert: {
@@ -342,12 +346,16 @@ export type Database = {
           launch_status?: string | null
           longitude?: number | null
           name: string
+          publish_state?: string
           readiness_score?: number | null
           safety_score?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
           short_description?: string | null
           slug: string
           updated_at?: string | null
           vibe_description?: string | null
+          visibility_output_state?: string
           visibility_state?: string
         }
         Update: {
@@ -367,12 +375,16 @@ export type Database = {
           launch_status?: string | null
           longitude?: number | null
           name?: string
+          publish_state?: string
           readiness_score?: number | null
           safety_score?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
           short_description?: string | null
           slug?: string
           updated_at?: string | null
           vibe_description?: string | null
+          visibility_output_state?: string
           visibility_state?: string
         }
         Relationships: [
@@ -669,34 +681,67 @@ export type Database = {
       }
       categories: {
         Row: {
+          cover_image: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
           emoji: string | null
           icon_image: string | null
           id: string
+          indexability_state: string
           is_active: boolean | null
+          long_description: string | null
           name: string
+          publish_state: string
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string | null
+          slug: string | null
+          updated_at: string
+          visibility_output_state: string
+          visibility_state: string
         }
         Insert: {
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
           emoji?: string | null
           icon_image?: string | null
           id?: string
+          indexability_state?: string
           is_active?: boolean | null
+          long_description?: string | null
           name: string
+          publish_state?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+          visibility_output_state?: string
+          visibility_state?: string
         }
         Update: {
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
           emoji?: string | null
           icon_image?: string | null
           id?: string
+          indexability_state?: string
           is_active?: boolean | null
+          long_description?: string | null
           name?: string
+          publish_state?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+          visibility_output_state?: string
+          visibility_state?: string
         }
         Relationships: []
       }
@@ -853,10 +898,14 @@ export type Database = {
           indexability_state: string | null
           is_active: boolean | null
           name: string
+          publish_state: string
+          seo_description: string | null
+          seo_title: string | null
           slug: string
           tag: string | null
           updated_at: string | null
           url: string | null
+          visibility_output_state: string
         }
         Insert: {
           collection_type?: string
@@ -870,10 +919,14 @@ export type Database = {
           indexability_state?: string | null
           is_active?: boolean | null
           name: string
+          publish_state?: string
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
           tag?: string | null
           updated_at?: string | null
           url?: string | null
+          visibility_output_state?: string
         }
         Update: {
           collection_type?: string
@@ -887,10 +940,14 @@ export type Database = {
           indexability_state?: string | null
           is_active?: boolean | null
           name?: string
+          publish_state?: string
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
           tag?: string | null
           updated_at?: string | null
           url?: string | null
+          visibility_output_state?: string
         }
         Relationships: [
           {
@@ -970,19 +1027,26 @@ export type Database = {
           default_language: string | null
           flag_svg_url: string | null
           id: string
+          indexability_state: string
           is_active: boolean | null
           iso_alpha2: string | null
           iso_alpha3: string | null
           iso_code: string
           iso_numeric: string | null
+          long_description: string | null
           name: string
           name_common: string | null
           name_official: string | null
           population: number | null
+          publish_state: string
           region: string | null
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string | null
           slug: string | null
           tld: string | null
           updated_at: string | null
+          visibility_output_state: string
         }
         Insert: {
           area_sq_km?: number | null
@@ -994,19 +1058,26 @@ export type Database = {
           default_language?: string | null
           flag_svg_url?: string | null
           id?: string
+          indexability_state?: string
           is_active?: boolean | null
           iso_alpha2?: string | null
           iso_alpha3?: string | null
           iso_code: string
           iso_numeric?: string | null
+          long_description?: string | null
           name: string
           name_common?: string | null
           name_official?: string | null
           population?: number | null
+          publish_state?: string
           region?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
           slug?: string | null
           tld?: string | null
           updated_at?: string | null
+          visibility_output_state?: string
         }
         Update: {
           area_sq_km?: number | null
@@ -1018,19 +1089,26 @@ export type Database = {
           default_language?: string | null
           flag_svg_url?: string | null
           id?: string
+          indexability_state?: string
           is_active?: boolean | null
           iso_alpha2?: string | null
           iso_alpha3?: string | null
           iso_code?: string
           iso_numeric?: string | null
+          long_description?: string | null
           name?: string
           name_common?: string | null
           name_official?: string | null
           population?: number | null
+          publish_state?: string
           region?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
           slug?: string | null
           tld?: string | null
           updated_at?: string | null
+          visibility_output_state?: string
         }
         Relationships: [
           {
@@ -1316,12 +1394,16 @@ export type Database = {
           long_description: string | null
           longitude: number | null
           name: string
+          publish_state: string
           readiness_score: number | null
+          seo_description: string | null
+          seo_title: string | null
           short_description: string | null
           short_name: string | null
           slug: string
           timezone: string | null
           updated_at: string | null
+          visibility_output_state: string
           visibility_state: string
         }
         Insert: {
@@ -1348,12 +1430,16 @@ export type Database = {
           long_description?: string | null
           longitude?: number | null
           name: string
+          publish_state?: string
           readiness_score?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
           short_description?: string | null
           short_name?: string | null
           slug: string
           timezone?: string | null
           updated_at?: string | null
+          visibility_output_state?: string
           visibility_state?: string
         }
         Update: {
@@ -1380,12 +1466,16 @@ export type Database = {
           long_description?: string | null
           longitude?: number | null
           name?: string
+          publish_state?: string
           readiness_score?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
           short_description?: string | null
           short_name?: string | null
           slug?: string
           timezone?: string | null
           updated_at?: string | null
+          visibility_output_state?: string
           visibility_state?: string
         }
         Relationships: [
@@ -2359,10 +2449,14 @@ export type Database = {
           latitude: number | null
           legacy_creator_id: string | null
           longitude: number | null
+          publish_state: string
+          seo_description: string | null
+          seo_title: string | null
           slug: string
           social_links: Json | null
           updated_at: string | null
           username: string
+          visibility_output_state: string
         }
         Insert: {
           area_id?: string | null
@@ -2378,10 +2472,14 @@ export type Database = {
           latitude?: number | null
           legacy_creator_id?: string | null
           longitude?: number | null
+          publish_state?: string
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
           social_links?: Json | null
           updated_at?: string | null
           username: string
+          visibility_output_state?: string
         }
         Update: {
           area_id?: string | null
@@ -2397,10 +2495,14 @@ export type Database = {
           latitude?: number | null
           legacy_creator_id?: string | null
           longitude?: number | null
+          publish_state?: string
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
           social_links?: Json | null
           updated_at?: string | null
           username?: string
+          visibility_output_state?: string
         }
         Relationships: [
           {
@@ -3309,10 +3411,14 @@ export type Database = {
           phone: string | null
           poi_type: string | null
           price_level: number | null
+          publish_state: string
           readiness_score: number | null
+          seo_description: string | null
+          seo_title: string | null
           short_description: string | null
           slug: string
           updated_at: string | null
+          visibility_output_state: string
           visibility_state: string
           website_url: string | null
           wikidata_id: string | null
@@ -3338,10 +3444,14 @@ export type Database = {
           phone?: string | null
           poi_type?: string | null
           price_level?: number | null
+          publish_state?: string
           readiness_score?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
           short_description?: string | null
           slug: string
           updated_at?: string | null
+          visibility_output_state?: string
           visibility_state?: string
           website_url?: string | null
           wikidata_id?: string | null
@@ -3367,10 +3477,14 @@ export type Database = {
           phone?: string | null
           poi_type?: string | null
           price_level?: number | null
+          publish_state?: string
           readiness_score?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
           short_description?: string | null
           slug?: string
           updated_at?: string | null
+          visibility_output_state?: string
           visibility_state?: string
           website_url?: string | null
           wikidata_id?: string | null
@@ -4229,7 +4343,10 @@ export type Database = {
           is_active: boolean | null
           like_count: number | null
           name: string
+          publish_state: string
           save_count: number | null
+          seo_description: string | null
+          seo_title: string | null
           slug: string
           source_type: string
           tag: string | null
@@ -4237,6 +4354,7 @@ export type Database = {
           updated_at: string | null
           url: string | null
           view_count: number | null
+          visibility_output_state: string
         }
         Insert: {
           copy_count?: number | null
@@ -4251,7 +4369,10 @@ export type Database = {
           is_active?: boolean | null
           like_count?: number | null
           name: string
+          publish_state?: string
           save_count?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
           source_type?: string
           tag?: string | null
@@ -4259,6 +4380,7 @@ export type Database = {
           updated_at?: string | null
           url?: string | null
           view_count?: number | null
+          visibility_output_state?: string
         }
         Update: {
           copy_count?: number | null
@@ -4273,7 +4395,10 @@ export type Database = {
           is_active?: boolean | null
           like_count?: number | null
           name?: string
+          publish_state?: string
           save_count?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
           source_type?: string
           tag?: string | null
@@ -4281,6 +4406,7 @@ export type Database = {
           updated_at?: string | null
           url?: string | null
           view_count?: number | null
+          visibility_output_state?: string
         }
         Relationships: [
           {
