@@ -58,22 +58,25 @@ const DesktopGridRow = ({
   gap?: string;
 }) => {
   return (
-    <div className="mb-8">
-      <div className="mb-4 flex items-end justify-between">
+    <div className="mb-10">
+      <div className="mb-5 flex items-end justify-between gap-4">
         {onViewAll ? (
           <button
             onClick={onViewAll}
-            className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left cursor-pointer"
+            className="group flex items-baseline gap-2 text-left cursor-pointer"
           >
-            {title}
+            <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none group-hover:opacity-70 transition-opacity">
+              {title}
+            </h2>
+            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
           </button>
         ) : (
-          <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
+          <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
         )}
         {onViewAll && (
           <button
             onClick={onViewAll}
-            className="text-[12px] font-bold text-muted-foreground hover:text-foreground tracking-wide uppercase"
+            className="text-[11px] font-bold text-muted-foreground hover:text-foreground tracking-[0.12em] uppercase transition-colors shrink-0"
           >
             Show all
           </button>
@@ -176,21 +179,25 @@ const DesktopTopBar = ({
               <ChevronDown className="w-4 h-4 opacity-60" />
             </button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-64 p-1.5">
-            
-            {destinations.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => { onCitySelect(selectedCity?.id === d.id ? null : d); setOpen(false); }}
-                className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-semibold text-left",
-                  selectedCity?.id === d.id ? "bg-muted" : "hover:bg-muted/60"
-                )}
-              >
-                {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />}
-                {d.name}
-              </button>
-            ))}
+          <PopoverContent align="end" sideOffset={8} className="w-72 p-2 rounded-2xl border-border/60 shadow-xl bg-popover/95 backdrop-blur-xl">
+            <div className="px-2 pt-1 pb-2 text-[10px] font-bold tracking-[0.14em] uppercase text-muted-foreground">Destinations</div>
+            {destinations.map((d) => {
+              const active = selectedCity?.id === d.id;
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => { onCitySelect(active ? null : d); setOpen(false); }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-left transition-colors",
+                    active ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
+                  )}
+                >
+                  {d.flag_svg_url && <img src={d.flag_svg_url} className="w-5 h-5 rounded-full object-cover ring-1 ring-border/60" alt="" />}
+                  <span className="flex-1 truncate">{d.name}</span>
+                  {active && <Check className="w-4 h-4 text-foreground shrink-0" />}
+                </button>
+              );
+            })}
           </PopoverContent>
         </Popover>
       </div>
@@ -523,25 +530,29 @@ const DesktopPoiCirclesRow = ({
   if (!pois || pois.length === 0) return null;
   const items = pois.slice(0, max);
   return (
-    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 pt-5 pb-6 border-b border-border/50">
-      <h3 className="text-[18px] font-extrabold text-foreground tracking-tight mb-4">Places</h3>
-      <div className="flex items-start gap-5 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 pt-6 pb-7 border-b border-border/50">
+      <div className="flex items-baseline justify-between mb-5">
+        <h3 className="text-[20px] font-extrabold text-foreground tracking-[-0.02em]">Places</h3>
+        <span className="text-[11px] font-bold text-muted-foreground tracking-[0.12em] uppercase">Tap to explore</span>
+      </div>
+      <div className="flex items-start gap-6 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {items.map((poi) => (
           <button
             key={poi.id}
             onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
-            className="shrink-0 w-[128px] flex flex-col items-start gap-2.5 group"
+            className="shrink-0 w-[132px] flex flex-col items-start gap-3 group"
           >
-            <div className="w-[128px] h-[128px] rounded-full overflow-hidden bg-muted shadow-md group-hover:shadow-lg transition-shadow">
+            <div className="relative w-[132px] h-[132px] rounded-full overflow-hidden bg-muted ring-1 ring-border/40 group-hover:ring-2 group-hover:ring-foreground/80 transition-all duration-300">
               {poi.cover_image ? (
                 <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-muted to-muted/40" />
               )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="w-full text-left px-0.5">
-              <p className="text-[14px] font-bold text-foreground line-clamp-1">{poi.name}</p>
-              <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5">{poi.poi_type || 'Place'}</p>
+            <div className="w-full text-left px-1">
+              <p className="text-[14px] font-extrabold text-foreground tracking-tight line-clamp-1">{poi.name}</p>
+              <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5 capitalize">{poi.poi_type || 'Place'}</p>
             </div>
           </button>
         ))}
