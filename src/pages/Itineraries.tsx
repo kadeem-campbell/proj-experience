@@ -293,73 +293,116 @@ const ItinerariesPage = () => {
     );
   }
 
-  // Desktop
-  const popularItems = allItineraries.filter((i: any) => i.tag === 'popular');
-  const restItems = allItineraries.filter((i: any) => i.tag !== 'popular');
+  // ─── Desktop / Tablet (mobile-style horizontal carousels) ──────
+  const popularItems = allItineraries.filter((i: any) => i.tag === 'popular').slice(0, 12);
+  const faveItems = allItineraries.filter((i: any) => i.tag === 'fave').slice(0, 12);
+  const recentItems = [...allItineraries].sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 12);
+  const zanzibarItems = allItineraries.filter((i: any) => i.name?.toLowerCase().includes('zanzibar')).slice(0, 12);
+  const safariItems = allItineraries.filter((i: any) =>
+    i.name?.toLowerCase().includes('safari') || i.name?.toLowerCase().includes('serengeti') || i.name?.toLowerCase().includes('maasai')
+  ).slice(0, 12);
+  const beachItems = allItineraries.filter((i: any) =>
+    i.name?.toLowerCase().includes('beach') || i.name?.toLowerCase().includes('island') || i.name?.toLowerCase().includes('diani') || i.name?.toLowerCase().includes('mombasa')
+  ).slice(0, 12);
+
+  const filteredAll = useMemo(() => {
+    if (!searchQuery.trim()) return allItineraries;
+    const q = searchQuery.toLowerCase();
+    return allItineraries.filter((i: any) =>
+      i.name?.toLowerCase().includes(q) || i.creatorName?.toLowerCase().includes(q)
+    );
+  }, [searchQuery, allItineraries]);
+
+  const Row = ({ title, items, onTitle }: { title: string; items: any[]; onTitle?: () => void }) => {
+    if (!items || items.length === 0) return null;
+    return (
+      <div className="mb-10">
+        <button onClick={onTitle} className="flex items-center gap-1.5 mb-4 group">
+          <h2 className="text-lg font-bold text-foreground">{title}</h2>
+        </button>
+        <div className="overflow-x-auto scrollbar-hide pb-1 -mx-5 lg:-mx-8 px-5 lg:px-8">
+          <div className="inline-flex gap-4">
+            {items.map((it: any) => (
+              <div key={it.id} className="flex-shrink-0 w-[200px] lg:w-[220px]">
+                <PublicItineraryCard itinerary={it} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <MainLayout>
-      <div className="flex flex-col h-full">
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 px-6 lg:px-10 py-4">
-          <div className="max-w-[1600px] mx-auto flex items-center gap-3 justify-between">
-            <div className="flex items-center gap-3">
-              <Link to="/">
-                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 hover:bg-muted/70">
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                {getIcon()}
-                <h1 className="text-xl lg:text-2xl font-bold">{getTitle()}</h1>
-              </div>
-              <span className="text-muted-foreground text-sm">({allItineraries.length})</span>
-            </div>
-            <div className="flex items-center bg-muted/50 border border-border/50 rounded-full px-4 py-2 w-80 hover:bg-muted/70 hover:border-border transition-all duration-200">
-              <Search className="w-4 h-4 text-muted-foreground mr-3" />
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search itineraries..."
-                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto text-sm placeholder:text-muted-foreground/60"
-              />
-            </div>
+      <SEOHead
+        title="Curated Itineraries — Trip Plans & Guides"
+        description="Browse curated travel itineraries and trip plans across Africa. Find inspiration for your next adventure."
+        canonicalPath="/itineraries"
+        indexability="public_indexed"
+      />
+      <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto pb-12">
+        <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/85 backdrop-blur-md flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-2 mr-auto">
+            {getIcon()}
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground">{getTitle()}</h1>
+            <span className="text-sm text-muted-foreground">{allItineraries.length}</span>
+          </div>
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search itineraries..."
+              className="pl-10 h-10 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
+            />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
-          <div className="max-w-[1600px] mx-auto">
-            {/* Featured section */}
-            {(section && featuredItems.length > 0 ? featuredItems : popularItems).length > 0 && (
+        {searchQuery.trim() ? (
+          <div className="pt-4">
+            <h2 className="text-base font-semibold text-muted-foreground mb-4">{filteredAll.length} results</h2>
+            {filteredAll.length === 0 ? (
+              <div className="text-center py-20">
+                <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-muted-foreground">No itineraries found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 lg:gap-5">
+                {filteredAll.map((it: any) => (
+                  <PublicItineraryCard key={it.id} itinerary={it} />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="pt-4">
+            {section && featuredItems.length > 0 && (
               <div className="mb-10">
-                <h2 className="text-lg font-bold mb-4">{section ? getTitle() : "Attractions you can't miss"}</h2>
-                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-                  {(section && featuredItems.length > 0 ? featuredItems : popularItems).slice(0, 10).map((itinerary: any) => (
-                    <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
+                <h2 className="text-lg font-bold text-foreground mb-4">{getTitle()}</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 lg:gap-5">
+                  {featuredItems.map((it: any) => (
+                    <PublicItineraryCard key={it.id} itinerary={it} />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Rest */}
-            {(section ? remainingItems : restItems).length > 0 && (
-              <div>
-                <h2 className="text-lg font-bold mb-4">All itineraries</h2>
-                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
-                  {(section ? remainingItems : restItems).map((itinerary: any) => (
-                    <PublicItineraryCard key={itinerary.id} itinerary={itinerary} />
-                  ))}
-                </div>
-              </div>
-            )}
+            <Row title="Attractions you can't miss" items={popularItems} />
+            <Row title="Staff picks" items={faveItems} />
+            <Row title="Zanzibar getaways" items={zanzibarItems} />
+            <Row title="Beach & island life" items={beachItems} />
+            <Row title="Safari adventures" items={safariItems} />
+            <Row title="Recently added" items={recentItems} />
 
             {allItineraries.length === 0 && (
-              <div className="text-center py-16">
+              <div className="text-center py-20">
                 <p className="text-muted-foreground">No itineraries found</p>
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </MainLayout>
   );
