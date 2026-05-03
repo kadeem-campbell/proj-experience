@@ -114,14 +114,14 @@ const DesktopTopBar = ({
 }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/90 backdrop-blur-md">
+    <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-5 pb-4 bg-background/85 backdrop-blur-xl border-b border-border/40">
       <div className="flex items-center gap-3">
         {/* iOS-style segmented toggle (sliding knob) */}
-        <div className="relative inline-flex items-center bg-muted rounded-full p-1 shrink-0 h-11 w-[260px]">
+        <div className="relative inline-flex items-center bg-muted/70 rounded-full p-1 shrink-0 h-11 w-[260px] ring-1 ring-border/40">
           <span
             aria-hidden
             className={cn(
-              "absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-background shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+              "absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-background shadow-[0_1px_2px_rgba(0,0,0,0.06),0_2px_8px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
               mode === 'things' ? "translate-x-0" : "translate-x-[calc(100%+4px)]"
             )}
             style={{ left: 4 }}
@@ -129,7 +129,7 @@ const DesktopTopBar = ({
           <button
             onClick={() => onModeChange('things')}
             className={cn(
-              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold transition-colors",
+              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold tracking-tight transition-colors",
               mode === 'things' ? "text-foreground" : "text-muted-foreground"
             )}
           >
@@ -138,7 +138,7 @@ const DesktopTopBar = ({
           <button
             onClick={() => onModeChange('itineraries')}
             className={cn(
-              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold transition-colors",
+              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold tracking-tight transition-colors",
               mode === 'itineraries' ? "text-foreground" : "text-muted-foreground"
             )}
           >
@@ -153,7 +153,7 @@ const DesktopTopBar = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search things to do, itineraries, places…"
-            className="pl-10 pr-10 h-11 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
+            className="pl-10 pr-10 h-11 rounded-full bg-muted/70 border-0 ring-1 ring-border/40 text-[13.5px] focus-visible:ring-1 focus-visible:ring-foreground/20 focus-visible:bg-background transition-all"
           />
           {searchQuery && (
             <button onClick={() => onSearchChange("")} className="absolute right-4 top-1/2 -translate-y-1/2">
