@@ -165,7 +165,7 @@ const DesktopTopBar = ({
         {/* City dropdown (right) */}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <button className="shrink-0 flex items-center gap-2.5 h-11 px-5 rounded-full bg-muted hover:bg-muted/80 text-[14px] font-bold text-foreground">
+            <button className="shrink-0 flex items-center gap-2.5 h-11 px-5 rounded-full bg-muted/70 ring-1 ring-border/40 hover:bg-muted text-[13.5px] font-bold text-foreground transition-colors">
               {selectedCity ? (
                 <>
                   {selectedCity.flag_svg_url && (
