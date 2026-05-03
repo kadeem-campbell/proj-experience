@@ -309,29 +309,37 @@ const VibeFilterRow = ({
           <PopoverTrigger asChild>
             <button
               className={cn(
-                "h-8 px-3.5 rounded-full text-[12.5px] font-bold border flex items-center gap-1.5 transition-colors",
+                "h-9 px-4 rounded-full text-[13px] font-bold flex items-center gap-1.5 transition-all",
                 vibes[g.key]
-                  ? "bg-primary/10 text-primary border-primary/40"
-                  : "bg-background text-foreground/80 border-border hover:border-primary/60"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "bg-muted/60 text-foreground hover:bg-muted"
               )}
             >
               {vibes[g.key] || g.label}
-              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", vibes[g.key] ? "opacity-80" : "opacity-50")} />
             </button>
           </PopoverTrigger>
-          <PopoverContent align="start" className="w-48 p-1.5">
-            {g.opts.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => onChange({ ...vibes, [g.key]: vibes[g.key] === opt ? null : opt })}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-[13px] font-semibold",
-                  vibes[g.key] === opt ? "bg-muted text-foreground" : "hover:bg-muted/60 text-foreground/80"
-                )}
-              >
-                {opt}
-              </button>
-            ))}
+          <PopoverContent
+            align="start"
+            sideOffset={8}
+            className="w-56 p-1.5 rounded-2xl border-border/60 shadow-xl bg-popover/95 backdrop-blur-xl"
+          >
+            {g.opts.map((opt) => {
+              const selected = vibes[g.key] === opt;
+              return (
+                <button
+                  key={opt}
+                  onClick={() => onChange({ ...vibes, [g.key]: selected ? null : opt })}
+                  className={cn(
+                    "w-full flex items-center justify-between gap-2 text-left px-3 py-2.5 rounded-xl text-[13.5px] font-semibold transition-colors",
+                    selected ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
+                  )}
+                >
+                  <span>{opt}</span>
+                  {selected && <Check className="w-4 h-4 text-foreground shrink-0" />}
+                </button>
+              );
+            })}
           </PopoverContent>
         </Popover>
       ))}
@@ -342,32 +350,40 @@ const VibeFilterRow = ({
           <PopoverTrigger asChild>
             <button
               className={cn(
-                "h-8 px-3.5 rounded-full text-[12.5px] font-bold border flex items-center gap-1.5 transition-colors",
+                "h-9 px-4 rounded-full text-[13px] font-bold flex items-center gap-1.5 transition-all",
                 activeCat
-                  ? "bg-primary/10 text-primary border-primary/40"
-                  : "bg-background text-foreground/80 border-border hover:border-primary/60"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "bg-muted/60 text-foreground hover:bg-muted"
               )}
             >
               {activeCat?.name || 'Category'}
-              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", activeCat ? "opacity-80" : "opacity-50")} />
             </button>
           </PopoverTrigger>
-          <PopoverContent align="start" className="w-56 p-1.5 max-h-[320px] overflow-y-auto">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => onCategoryChange(activeCategoryId === cat.id ? null : cat.id)}
-                className={cn(
-                  "w-full flex items-center gap-2 text-left px-2.5 py-2 rounded-md text-[13px] font-semibold",
-                  activeCategoryId === cat.id ? "bg-muted text-foreground" : "hover:bg-muted/60 text-foreground/80"
-                )}
-              >
-                {cat.iconUrl && (
-                  <img src={cat.iconUrl} alt="" className="w-5 h-5 rounded-md object-cover" />
-                )}
-                {cat.name}
-              </button>
-            ))}
+          <PopoverContent
+            align="start"
+            sideOffset={8}
+            className="w-64 p-1.5 max-h-[340px] overflow-y-auto rounded-2xl border-border/60 shadow-xl bg-popover/95 backdrop-blur-xl"
+          >
+            {categories.map((cat) => {
+              const selected = activeCategoryId === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => onCategoryChange(selected ? null : cat.id)}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 text-left px-2.5 py-2 rounded-xl text-[13.5px] font-semibold transition-colors",
+                    selected ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
+                  )}
+                >
+                  {cat.iconUrl && (
+                    <img src={cat.iconUrl} alt="" className="w-6 h-6 rounded-lg object-cover" />
+                  )}
+                  <span className="flex-1 truncate">{cat.name}</span>
+                  {selected && <Check className="w-4 h-4 text-foreground shrink-0" />}
+                </button>
+              );
+            })}
           </PopoverContent>
         </Popover>
       )}
