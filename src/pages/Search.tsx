@@ -605,7 +605,6 @@ const SearchPage = () => {
                     <DesktopGridRow
                       title={featured.title}
                       onViewAll={featured.onTitleClick}
-                      cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     >
                       {featured.items.slice(0, 8).map((it: any) => (
                         <div key={`${it.type}-${it.data.id}`}>
