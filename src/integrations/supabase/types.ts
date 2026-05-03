@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       activity_types: {
         Row: {
+          cover_image: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
@@ -24,14 +25,22 @@ export type Database = {
           icon_image: string | null
           icon_url: string | null
           id: string
+          indexability_state: string
           is_active: boolean | null
           legacy_category_id: string | null
+          long_description: string | null
           name: string
+          publish_state: string
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string | null
           show_on_home: boolean
           slug: string
           updated_at: string | null
+          visibility_output_state: string
         }
         Insert: {
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -40,14 +49,22 @@ export type Database = {
           icon_image?: string | null
           icon_url?: string | null
           id?: string
+          indexability_state?: string
           is_active?: boolean | null
           legacy_category_id?: string | null
+          long_description?: string | null
           name: string
+          publish_state?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
           show_on_home?: boolean
           slug: string
           updated_at?: string | null
+          visibility_output_state?: string
         }
         Update: {
+          cover_image?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
@@ -56,12 +73,19 @@ export type Database = {
           icon_image?: string | null
           icon_url?: string | null
           id?: string
+          indexability_state?: string
           is_active?: boolean | null
           legacy_category_id?: string | null
+          long_description?: string | null
           name?: string
+          publish_state?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
           show_on_home?: boolean
           slug?: string
           updated_at?: string | null
+          visibility_output_state?: string
         }
         Relationships: [
           {
