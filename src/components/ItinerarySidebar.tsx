@@ -102,7 +102,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       collapsible="icon"
       className="border-r border-sidebar-border bg-sidebar"
     >
-      <SidebarContent className="bg-background">
+      <SidebarContent className="bg-sidebar">
         {collapsed ? (
           <>
             {/* Collapsed: stacked icon column with toggle on top */}
