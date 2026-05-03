@@ -259,7 +259,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                     );
                   })}
 
-                  {sortedItineraries.length === 0 && !isCreating && (
+                  {sortedItineraries.length === 0 && (
                     <p className="text-[12px] text-muted-foreground px-3 py-2">
                       {filter ? "No matches" : "No itineraries yet"}
                     </p>
