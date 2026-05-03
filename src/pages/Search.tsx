@@ -218,6 +218,7 @@ const SearchPage = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const [activeCategoryId] = useState<string | null>(null);
 
   // Fetch POIs
   const { data: pois = [] } = useQuery({
