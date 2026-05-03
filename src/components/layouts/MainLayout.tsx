@@ -43,7 +43,6 @@ export const MainLayout = ({
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <SidebarToggleButton />
       <div className="h-screen flex w-full bg-background overflow-hidden">
         <ItinerarySidebar
           searchQuery={searchQuery}
