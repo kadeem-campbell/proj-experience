@@ -100,7 +100,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-border/40 bg-background"
+      className="border-r border-sidebar-border bg-sidebar"
     >
       <SidebarContent className="bg-background">
         {collapsed ? (
