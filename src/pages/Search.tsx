@@ -820,6 +820,46 @@ const SearchPage = () => {
                       ))}
                     </DesktopGridRow>
 
+                    {/* Ctrip-style ranked Top Lists — 2 columns */}
+                    {(() => {
+                      const cityPois = selectedDestId
+                        ? pois.filter((p: any) => p.destination_id === selectedDestId)
+                        : pois;
+                      const topPlaces = cityPois.slice(0, 5);
+                      const topProducts = (selectedDestId
+                        ? experiences.filter(e => e.destinationId === selectedDestId)
+                        : experiences
+                      ).slice(0, 5);
+                      if (topPlaces.length === 0 && topProducts.length === 0) return null;
+                      const placeTitle = selectedCityName
+                        ? `Best places in ${selectedCityName}`
+                        : 'Best places to explore';
+                      const productTitle = selectedCityName
+                        ? `Top things to do in ${selectedCityName}`
+                        : 'Top things to do by travellers';
+                      return (
+                        <div className="mb-10 grid grid-cols-1 lg:grid-cols-2 gap-5">
+                          {topPlaces.length > 0 && (
+                            <RankedTopList
+                              title={placeTitle}
+                              badgeLabel="Editor's pick"
+                              items={topPlaces}
+                              destinationSlug={destSlug}
+                              onTitleClick={destSlug ? () => navigate(`/${destSlug}`) : undefined}
+                            />
+                          )}
+                          {topProducts.length > 0 && (
+                            <RankedTopList
+                              title={productTitle}
+                              badgeLabel="Top rated"
+                              items={topProducts}
+                              destinationSlug={destSlug}
+                            />
+                          )}
+                        </div>
+                      );
+                    })()}
+
                     {/* Remaining carousels */}
                     {rest.map((c) => (
                       <DesktopGridRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
