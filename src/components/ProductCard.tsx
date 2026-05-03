@@ -17,6 +17,7 @@ interface ProductCardProps {
   price: string;
   slug?: string;
   compact?: boolean;
+  square?: boolean;
 }
 
 export const ProductCard = ({
