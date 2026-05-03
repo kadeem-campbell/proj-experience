@@ -530,25 +530,29 @@ const DesktopPoiCirclesRow = ({
   if (!pois || pois.length === 0) return null;
   const items = pois.slice(0, max);
   return (
-    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 pt-5 pb-6 border-b border-border/50">
-      <h3 className="text-[18px] font-extrabold text-foreground tracking-tight mb-4">Places</h3>
-      <div className="flex items-start gap-5 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 pt-6 pb-7 border-b border-border/50">
+      <div className="flex items-baseline justify-between mb-5">
+        <h3 className="text-[20px] font-extrabold text-foreground tracking-[-0.02em]">Places</h3>
+        <span className="text-[11px] font-bold text-muted-foreground tracking-[0.12em] uppercase">Tap to explore</span>
+      </div>
+      <div className="flex items-start gap-6 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {items.map((poi) => (
           <button
             key={poi.id}
             onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
-            className="shrink-0 w-[128px] flex flex-col items-start gap-2.5 group"
+            className="shrink-0 w-[132px] flex flex-col items-start gap-3 group"
           >
-            <div className="w-[128px] h-[128px] rounded-full overflow-hidden bg-muted shadow-md group-hover:shadow-lg transition-shadow">
+            <div className="relative w-[132px] h-[132px] rounded-full overflow-hidden bg-muted ring-1 ring-border/40 group-hover:ring-2 group-hover:ring-foreground/80 transition-all duration-300">
               {poi.cover_image ? (
                 <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-muted to-muted/40" />
               )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="w-full text-left px-0.5">
-              <p className="text-[14px] font-bold text-foreground line-clamp-1">{poi.name}</p>
-              <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5">{poi.poi_type || 'Place'}</p>
+            <div className="w-full text-left px-1">
+              <p className="text-[14px] font-extrabold text-foreground tracking-tight line-clamp-1">{poi.name}</p>
+              <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5 capitalize">{poi.poi_type || 'Place'}</p>
             </div>
           </button>
         ))}
