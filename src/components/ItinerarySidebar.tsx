@@ -139,13 +139,12 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
               <span className="text-[14px] font-bold tracking-tight">Swam</span>
             </Link>
 
-            {/* New itinerary button (proper button style) */}
+            {/* New itinerary button */}
             <div className="px-2 pt-2">
               <Button
                 onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-                className="w-full h-9 rounded-lg gap-2 text-[13px] font-semibold"
+                className="w-full h-9 rounded-lg text-[13px] font-semibold"
               >
-                <SquarePen className="w-4 h-4" />
                 New itinerary
               </Button>
             </div>
