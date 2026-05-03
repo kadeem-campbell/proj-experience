@@ -514,9 +514,7 @@ const SearchPage = () => {
               {filteredItineraries.length > 0 && (
                 <DesktopGridRow title="Itineraries">
                   {filteredItineraries.slice(0, 8).map((it) => (
-                    <div key={it.id} className="flex-shrink-0 w-[260px]">
-                      <PublicItineraryCard itinerary={it} />
-                    </div>
+                    <PublicItineraryCard key={it.id} itinerary={it} />
                   ))}
                 </DesktopGridRow>
               )}
