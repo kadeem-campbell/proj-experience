@@ -740,15 +740,21 @@ const SearchPage = () => {
           destinations={allDestinations}
         />
 
-        <DesktopCategoryRow
-          categories={homeCategories}
-          activeCategoryId={activeCategoryId}
-          onSelect={setActiveCategoryId}
+        {/* Spotify-style POI circles row (replaces icon category row) */}
+        <DesktopPoiCirclesRow
+          pois={selectedDestId ? pois.filter((p: any) => p.destination_id === selectedDestId) : pois}
+          destinationSlug={destSlug}
         />
 
-        {/* Customisable vibe filters */}
-        <div className="pt-4">
-          <VibeFilterRow vibes={vibes} onChange={setVibes} />
+        {/* Customisable vibe filters (now includes Categories) */}
+        <div className="pt-2">
+          <VibeFilterRow
+            vibes={vibes}
+            onChange={setVibes}
+            categories={homeCategories}
+            activeCategoryId={activeCategoryId}
+            onCategoryChange={setActiveCategoryId}
+          />
         </div>
 
         <div className="pb-12 pt-4">
