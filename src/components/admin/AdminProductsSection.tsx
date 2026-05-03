@@ -675,6 +675,7 @@ export const AdminProductsSection = () => {
         filterOptions={[
           { key: 'visibility_output_state', label: 'Visibility', options: [{ value: 'internal_only', label: 'Internal' }, { value: 'public', label: 'Public' }] },
           { key: 'publish_state', label: 'Publish', options: [{ value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }] },
+          { key: 'indexability_state', label: 'Index', options: [{ value: 'public_indexed', label: 'Indexed' }, { value: 'public_noindex', label: 'Noindex' }, { value: 'draft_unpublished', label: 'Draft (unpublished)' }] },
         ]}
         bulkActions={[
           {
