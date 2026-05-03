@@ -325,6 +325,7 @@ const SearchPage = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [mode, setMode] = useState<'things' | 'itineraries'>('things');
   const { data: homeCategories = [] } = useHomeCategories();
 
   // Fetch POIs
