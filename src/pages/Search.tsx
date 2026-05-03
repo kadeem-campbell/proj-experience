@@ -691,7 +691,17 @@ const SearchPage = () => {
           onSelect={setActiveCategoryId}
         />
 
-        <div className="pb-12 pt-6">
+        {/* Ctrip-style city quick-picks + customisable vibe filters */}
+        <div className="pt-4">
+          <CityQuickPicks
+            destinations={allDestinations}
+            selectedCity={selectedCity}
+            onSelect={handleCitySelect}
+          />
+          <VibeFilterRow vibes={vibes} onChange={setVibes} />
+        </div>
+
+        <div className="pb-12 pt-4">
           {hasSearchResults ? (
             <div>
               <div className="flex items-center justify-between mb-6">
