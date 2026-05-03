@@ -99,53 +99,70 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
 
   return (
     <Sidebar
-      collapsible="offcanvas"
+      collapsible="icon"
       className="border-r border-border/40 bg-background"
     >
       <SidebarContent className="bg-background">
         {/* Spacer for the floating sidebar trigger */}
         <div className="h-12" aria-hidden="true" />
 
-        {/* Brand row — Swam logo + name (ChatGPT-style) */}
-        <Link
-          to="/"
-          className="mx-2 flex items-center gap-2.5 px-2 h-9 rounded-lg hover:bg-muted text-foreground transition-colors"
-        >
-          <div className="w-6 h-6 rounded-md bg-foreground text-background flex items-center justify-center shrink-0">
-            <Compass className="w-3.5 h-3.5" strokeWidth={2.5} />
-          </div>
-          <span className="text-[14px] font-bold tracking-tight">Swam</span>
-        </Link>
+        {collapsed ? (
+          <>
+            {/* Brand mark only */}
+            <div className="px-0 flex flex-col items-center gap-2">
+              <Link
+                to="/"
+                title="Swam"
+                className="w-9 h-9 rounded-md bg-foreground text-background flex items-center justify-center"
+              >
+                <Compass className="w-4 h-4" strokeWidth={2.5} />
+              </Link>
+              <button
+                onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+                className="w-9 h-9 rounded-md bg-muted hover:bg-muted/80 flex items-center justify-center text-foreground"
+                title="New itinerary"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Brand row — Swam logo + name */}
+            <Link
+              to="/"
+              className="mx-2 flex items-center gap-2.5 px-2 h-9 rounded-lg hover:bg-muted text-foreground transition-colors"
+            >
+              <div className="w-6 h-6 rounded-md bg-foreground text-background flex items-center justify-center shrink-0">
+                <Compass className="w-3.5 h-3.5" strokeWidth={2.5} />
+              </div>
+              <span className="text-[14px] font-bold tracking-tight">Swam</span>
+            </Link>
 
-        {/* New itinerary + Search row */}
-        <div className="px-2 pt-1 pb-2 flex items-center gap-1">
-          <button
-            onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-            className="flex-1 flex items-center gap-2.5 px-2.5 h-9 rounded-lg hover:bg-muted text-[13.5px] font-medium text-foreground transition-colors"
-            title="New itinerary"
-          >
-            <SquarePen className="w-4 h-4 shrink-0" />
-            <span>New itinerary</span>
-          </button>
-          <button
-            onClick={() => setSearchOpen(o => !o)}
-            className="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-foreground transition-colors"
-            title="Search itineraries"
-          >
-            <Search className="w-4 h-4" />
-          </button>
-        </div>
+            {/* New itinerary button (proper button style) */}
+            <div className="px-2 pt-2">
+              <Button
+                onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+                className="w-full h-9 rounded-lg gap-2 text-[13px] font-semibold"
+              >
+                <SquarePen className="w-4 h-4" />
+                New itinerary
+              </Button>
+            </div>
 
-        {searchOpen && (
-          <div className="px-2 pb-2">
-            <Input
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder="Search itineraries"
-              className="h-8 text-[13px] bg-muted border-0"
-              autoFocus
-            />
-          </div>
+            {/* Permanent search input */}
+            <div className="px-2 pt-2 pb-1">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  placeholder="Search itineraries"
+                  className="h-8 pl-8 text-[13px] bg-muted border-0"
+                />
+              </div>
+            </div>
+          </>
         )}
 
         <ScrollArea className="flex-1">
