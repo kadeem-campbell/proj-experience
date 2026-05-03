@@ -77,10 +77,10 @@ const DesktopGridRow = ({
           </button>
         )}
       </div>
-      {/* Single row, clipped — items past the visible column are hidden */}
-      <div className={cn("flex overflow-hidden", gap)}>
-        {(Array.isArray(children) ? children : [children]).map((child, i) => (
-          <div key={i} className={cn("shrink-0 min-w-0", itemBasis)}>
+      {/* Always 5 cols on desktop, fewer on smaller screens — extras hidden */}
+      <div className={cn("grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 grid-rows-1 overflow-hidden", gap)}>
+        {(Array.isArray(children) ? children : [children]).slice(0, 5).map((child, i) => (
+          <div key={i} className="min-w-0">
             {child}
           </div>
         ))}
