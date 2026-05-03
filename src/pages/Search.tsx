@@ -20,8 +20,25 @@ import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/utils/slugUtils";
-import { Compass, Map as MapIcon, MapPinned, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin } from "lucide-react";
+import { Compass, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+import catBeaches from "@/assets/cat-beaches.png";
+import catNightlife from "@/assets/cat-nightlife.png";
+import catNature from "@/assets/cat-nature.png";
+import catAdventure from "@/assets/cat-adventure.png";
+import catFood from "@/assets/cat-food.png";
+import catSafari from "@/assets/cat-safari.png";
+
+const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
+  Beaches: catBeaches,
+  Nightlife: catNightlife,
+  Nature: catNature,
+  Adventure: catAdventure,
+  Food: catFood,
+  Safari: catSafari,
+};
 
 // ─── Spotify-style Desktop Scroll Row ────────────────────────────
 const DesktopScrollRow = ({ 
@@ -60,13 +77,14 @@ const DesktopScrollRow = ({
   return (
     <div className="mb-10 relative">
       <div className="flex items-end justify-between mb-4">
-        <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
+        {onViewAll ? (
+          <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left">
+            {title}
+          </button>
+        ) : (
+          <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
+        )}
         <div className="flex items-center gap-3">
-          {onViewAll && (
-            <button onClick={onViewAll} className="text-[13px] font-semibold text-foreground hover:underline underline-offset-4">
-              See all
-            </button>
-          )}
           <div className="flex items-center gap-2">
             <button
               onClick={() => scroll('left')}
@@ -107,69 +125,110 @@ const DesktopScrollRow = ({
   );
 };
 
-// ─── Top search bar (sticky) ───────────────────────────────────────
-const DesktopSearchBar = ({
+// ─── Top bar: mode toggle + search + city dropdown ─────────────────
+const DesktopTopBar = ({
+  mode,
+  onModeChange,
   searchQuery,
   onSearchChange,
-}: {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-}) => (
-  <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/85 backdrop-blur-md">
-    <div className="relative max-w-xl">
-      <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-      <Input
-        value={searchQuery}
-        onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="What do you want to explore?"
-        className="pl-10 pr-10 h-11 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
-      />
-      {searchQuery && (
-        <button onClick={() => onSearchChange("")} className="absolute right-4 top-1/2 -translate-y-1/2">
-          <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-        </button>
-      )}
-    </div>
-  </div>
-);
-
-// ─── Horizontal city pill row (same style as mobile) ───────────────
-const CityPillRow = ({
   selectedCity,
   onCitySelect,
   destinations,
 }: {
+  mode: 'things' | 'itineraries';
+  onModeChange: (m: 'things' | 'itineraries') => void;
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
   selectedCity: BrowseDestination | null;
   onCitySelect: (city: BrowseDestination | null) => void;
   destinations: BrowseDestination[];
-}) => (
-  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-3 -mx-5 lg:-mx-8 px-5 lg:px-8">
-    <button
-      onClick={() => onCitySelect(null)}
-      className={cn(
-        "shrink-0 px-4 py-2 rounded-full text-[13px] font-semibold transition-all",
-        !selectedCity ? "bg-foreground text-background shadow-sm" : "bg-muted text-foreground hover:bg-muted/80"
-      )}
-    >
-      All
-    </button>
-    {destinations.map((d) => (
-      <button
-        key={d.id}
-        onClick={() => onCitySelect(selectedCity?.id === d.id ? null : d)}
-        className={cn(
-          "shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all",
-          selectedCity?.id === d.id ? "bg-foreground text-background shadow-sm" : "bg-muted text-foreground hover:bg-muted/80"
-        )}
-      >
-        {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />}
-        {d.name}
-      </button>
-    ))}
-  </div>
-);
+}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/90 backdrop-blur-md">
+      <div className="flex items-center gap-3">
+        {/* Mode toggle (Delivery/Pickup style) */}
+        <div className="flex items-center bg-muted rounded-full p-1 shrink-0">
+          <button
+            onClick={() => onModeChange('things')}
+            className={cn(
+              "px-4 h-9 rounded-full text-[13px] font-bold transition-all",
+              mode === 'things' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+            )}
+          >
+            Things to do
+          </button>
+          <button
+            onClick={() => onModeChange('itineraries')}
+            className={cn(
+              "px-4 h-9 rounded-full text-[13px] font-bold transition-all",
+              mode === 'itineraries' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+            )}
+          >
+            Itineraries
+          </button>
+        </div>
 
-// ─── Desktop category icon row (Uber Eats style) ───────────────────
+        {/* Search (flex grow) */}
+        <div className="relative flex-1">
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search things to do, itineraries, places…"
+            className="pl-10 pr-10 h-11 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
+          />
+          {searchQuery && (
+            <button onClick={() => onSearchChange("")} className="absolute right-4 top-1/2 -translate-y-1/2">
+              <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+        </div>
+
+        {/* City dropdown (right) */}
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button className="shrink-0 flex items-center gap-2 h-11 px-4 rounded-full bg-muted hover:bg-muted/80 text-[13px] font-bold text-foreground">
+              {selectedCity?.flag_svg_url && (
+                <img src={selectedCity.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />
+              )}
+              <MapPin className="w-4 h-4" />
+              <span className="max-w-[140px] truncate">{selectedCity?.name || 'All destinations'}</span>
+              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-64 p-1.5">
+            <button
+              onClick={() => { onCitySelect(null); setOpen(false); }}
+              className={cn(
+                "w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-semibold text-left",
+                !selectedCity ? "bg-muted" : "hover:bg-muted/60"
+              )}
+            >
+              <Compass className="w-4 h-4" />
+              All destinations
+            </button>
+            {destinations.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => { onCitySelect(d); setOpen(false); }}
+                className={cn(
+                  "w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-semibold text-left",
+                  selectedCity?.id === d.id ? "bg-muted" : "hover:bg-muted/60"
+                )}
+              >
+                {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />}
+                {d.name}
+              </button>
+            ))}
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+};
+
+// ─── Desktop category icon row (uses same images as mobile) ────────
 const DesktopCategoryRow = ({
   categories,
   activeCategoryId,
@@ -179,33 +238,29 @@ const DesktopCategoryRow = ({
   activeCategoryId: string | null;
   onSelect: (id: string | null) => void;
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   if (categories.length === 0) return null;
   return (
-    <div className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pb-3">
-      <div ref={scrollRef} className="flex items-start gap-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 py-4 border-b border-border/50">
+      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {categories.map((cat) => {
           const isActive = activeCategoryId === cat.id;
+          const icon = cat.iconUrl || DEFAULT_CATEGORY_ICONS[cat.name] || catNature;
           return (
             <button
               key={cat.id}
               onClick={() => onSelect(isActive ? null : cat.id)}
               className={cn(
-                "shrink-0 flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-[84px]",
-                isActive ? "bg-muted" : "hover:bg-muted/60"
+                "shrink-0 flex flex-col items-center gap-1.5 px-4 py-2 transition-all min-w-[88px] relative",
+                isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <div className="w-14 h-14 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                {cat.iconUrl ? (
-                  <img src={cat.iconUrl} alt={cat.name} className="w-full h-full object-cover" />
-                ) : (
-                  <Compass className="w-5 h-5 text-muted-foreground" />
-                )}
+              <div className={cn(
+                "w-16 h-16 rounded-full overflow-hidden flex items-center justify-center transition-all",
+                isActive ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : "bg-muted"
+              )}>
+                <img src={icon} alt={cat.name} className="w-full h-full object-cover" />
               </div>
-              <span className={cn(
-                "text-[12px] font-semibold tracking-tight",
-                isActive ? "text-foreground" : "text-foreground/80"
-              )}>{cat.name}</span>
+              <span className="text-[12px] font-semibold tracking-tight">{cat.name}</span>
             </button>
           );
         })}
@@ -270,6 +325,7 @@ const SearchPage = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [mode, setMode] = useState<'things' | 'itineraries'>('things');
   const { data: homeCategories = [] } = useHomeCategories();
 
   // Fetch POIs
@@ -490,7 +546,15 @@ const SearchPage = () => {
       />
 
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
-        <DesktopSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+        <DesktopTopBar
+          mode={mode}
+          onModeChange={setMode}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedCity={selectedCity}
+          onCitySelect={handleCitySelect}
+          destinations={allDestinations}
+        />
 
         <DesktopCategoryRow
           categories={homeCategories}
@@ -498,13 +562,7 @@ const SearchPage = () => {
           onSelect={setActiveCategoryId}
         />
 
-        <CityPillRow
-          selectedCity={selectedCity}
-          onCitySelect={handleCitySelect}
-          destinations={allDestinations}
-        />
-
-        <div className="pb-12 pt-2">
+        <div className="pb-12 pt-6">
           {hasSearchResults ? (
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -515,7 +573,7 @@ const SearchPage = () => {
               {filteredItineraries.length > 0 && (
                 <DesktopScrollRow title="Itineraries">
                   {filteredItineraries.slice(0, 8).map((it) => (
-                    <div key={it.id} className="flex-shrink-0 w-[220px] lg:w-[240px]">
+                    <div key={it.id} className="flex-shrink-0 w-[260px]">
                       <PublicItineraryCard itinerary={it} />
                     </div>
                   ))}
@@ -524,7 +582,7 @@ const SearchPage = () => {
 
               {filteredExperiences.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-bold mb-4">Experiences</h3>
+                  <h3 className="text-lg font-bold mb-4">Things to do</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5">
                     {filteredExperiences.slice(0, 20).map((exp) => (
                       <ProductCard key={exp.id} {...exp} compact />
@@ -542,75 +600,125 @@ const SearchPage = () => {
             </div>
           ) : (
             <>
-              {carouselRows.length > 0 ? (
-                (() => {
-                  const elements: React.ReactNode[] = [];
-                  const productById = new Map(experiences.map(p => [p.id, p]));
-                  const itinByDbId  = new Map(allItinerariesData.map((it: any) => [it.dbId || it.id, it]));
-                  const poiById     = new Map(pois.map((p: any) => [p.id, p]));
+              {(() => {
+                const productById = new Map(experiences.map(p => [p.id, p]));
+                const itinByDbId  = new Map(allItinerariesData.map((it: any) => [it.dbId || it.id, it]));
+                const poiById     = new Map(pois.map((p: any) => [p.id, p]));
 
-                  carouselRows.forEach((carousel) => {
-                    const title = carousel.name.replace(/\{city\}/g, selectedCityName || 'Explore');
-                    const linkedCollectionSlug = (carousel.resolutionMode === 'collection' && carousel.collectionIds.length === 1)
-                      ? collectionSlugMap.get(carousel.collectionIds[0])
-                      : undefined;
-                    const targetSlug = linkedCollectionSlug || carousel.slug;
-                    const onTitleClick = targetSlug ? () => navigate(`/collections/${targetSlug}`) : undefined;
+                // Resolve all carousels with their items
+                const resolvedCarousels = carouselRows.map((carousel) => {
+                  const title = carousel.name.replace(/\{city\}/g, selectedCityName || 'Explore');
+                  const linkedCollectionSlug = (carousel.resolutionMode === 'collection' && carousel.collectionIds.length === 1)
+                    ? collectionSlugMap.get(carousel.collectionIds[0])
+                    : undefined;
+                  const targetSlug = linkedCollectionSlug || carousel.slug;
+                  const onTitleClick = targetSlug ? () => navigate(`/collections/${targetSlug}`) : undefined;
 
-                    const resolved = resolveCarouselItems(carousel, {
-                      selectedDestId,
-                      activeCategoryId,
-                      productDestMap,
-                      productCatMap,
-                      itinDestMap,
-                      poiDestMap,
-                      collectionContents,
-                      collectionDestMap,
-                      collectionCatMap,
-                      allProductIds,
-                    });
-                    if (resolved.length === 0) return;
-
-                    const productItems   = resolved.filter(r => r.type === 'product').map(r => productById.get(r.id)).filter(Boolean) as any[];
-                    const itineraryItems = resolved.filter(r => r.type === 'itinerary').map(r => itinByDbId.get(r.id)).filter(Boolean) as any[];
-                    const poiItems       = resolved.filter(r => r.type === 'poi').map(r => poiById.get(r.id)).filter(Boolean) as any[];
-
-                    if (productItems.length > 0) {
-                      elements.push(
-                        <DesktopScrollRow key={carousel.id + '-prod'} title={title} onViewAll={onTitleClick}>
-                          {productItems.map((exp: any) => (
-                            <div key={exp.id} className="flex-shrink-0 w-[190px] lg:w-[210px]">
-                              <ProductCard {...exp} compact />
-                            </div>
-                          ))}
-                        </DesktopScrollRow>
-                      );
-                    }
-                    if (itineraryItems.length > 0) {
-                      elements.push(
-                        <DesktopScrollRow key={carousel.id + '-itin'} title={title} onViewAll={onTitleClick}>
-                          {itineraryItems.map((it: any) => (
-                            <div key={it.id} className="flex-shrink-0 w-[210px] lg:w-[230px]">
-                              <PublicItineraryCard itinerary={it} />
-                            </div>
-                          ))}
-                        </DesktopScrollRow>
-                      );
-                    }
-                    if (poiItems.length > 0) {
-                      elements.push(
-                        <DesktopScrollRow key={carousel.id + '-poi'} title={title} onViewAll={onTitleClick}>
-                          {poiItems.map((poi: any) => (
-                            <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
-                          ))}
-                        </DesktopScrollRow>
-                      );
-                    }
+                  const resolved = resolveCarouselItems(carousel, {
+                    selectedDestId, activeCategoryId,
+                    productDestMap, productCatMap, itinDestMap, poiDestMap,
+                    collectionContents, collectionDestMap, collectionCatMap, allProductIds,
                   });
 
-                  return <>{elements}</>;
-                })()
-              ) : null}
+                  let items = resolved
+                    .map(r => {
+                      if (r.type === 'product')   return { type: r.type, data: productById.get(r.id) };
+                      if (r.type === 'itinerary') return { type: r.type, data: itinByDbId.get(r.id) };
+                      if (r.type === 'poi')       return { type: r.type, data: poiById.get(r.id) };
+                      return null;
+                    })
+                    .filter((x: any): x is { type: string; data: any } => !!x && !!x.data);
+
+                  // Apply mode filter (Things to do vs Itineraries)
+                  if (mode === 'itineraries') items = items.filter(i => i.type === 'itinerary');
+                  else items = items.filter(i => i.type !== 'itinerary');
+
+                  return { carousel, title, onTitleClick, items };
+                }).filter(c => c.items.length > 0);
+
+                if (resolvedCarousels.length === 0) {
+                  return (
+                    <div className="text-center py-20">
+                      <Compass className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                      <p className="text-muted-foreground">Nothing here yet for this filter.</p>
+                    </div>
+                  );
+                }
+
+                // Featured = first carousel rendered as large hero cards
+                const [featured, ...rest] = resolvedCarousels;
+
+                return (
+                  <>
+                    {/* Featured hero carousel */}
+                    <DesktopScrollRow title={featured.title} onViewAll={featured.onTitleClick}>
+                      {featured.items.slice(0, 8).map((it: any) => (
+                        <div key={`${it.type}-${it.data.id}`} className="flex-shrink-0 w-[420px]">
+                          {it.type === 'product' && (
+                            <button
+                              onClick={() => navigate(`/things-to-do/${destSlug || slugify(it.data.location || 'explore')}/${it.data.slug || it.data.id}`)}
+                              className="w-full text-left group"
+                            >
+                              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-muted">
+                                {it.data.image ? (
+                                  <img src={it.data.image} alt={it.data.title} loading="lazy" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-muted to-muted/40" />
+                                )}
+                              </div>
+                              <h3 className="mt-3 text-[15px] font-bold text-foreground line-clamp-1">{it.data.title}</h3>
+                              <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5">{it.data.location}</p>
+                            </button>
+                          )}
+                          {it.type === 'itinerary' && (
+                            <PublicItineraryCard itinerary={it.data} />
+                          )}
+                          {it.type === 'poi' && (
+                            <DesktopPoiCard poi={it.data} destinationSlug={destSlug} />
+                          )}
+                        </div>
+                      ))}
+                    </DesktopScrollRow>
+
+                    {/* Remaining carousels */}
+                    {rest.map((c) => (
+                      <DesktopScrollRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
+                        {c.items.map((it: any) => {
+                          if (it.type === 'product') {
+                            return (
+                              <div key={`prod-${it.data.id}`} className="flex-shrink-0 w-[210px]">
+                                <ProductCard {...it.data} compact />
+                              </div>
+                            );
+                          }
+                          if (it.type === 'itinerary') {
+                            return (
+                              <div key={`itin-${it.data.id}`} className="flex-shrink-0 w-[240px]">
+                                <PublicItineraryCard itinerary={it.data} />
+                              </div>
+                            );
+                          }
+                          return <DesktopPoiCard key={`poi-${it.data.id}`} poi={it.data} destinationSlug={destSlug} />;
+                        })}
+                      </DesktopScrollRow>
+                    ))}
+
+                    {/* POI row at the bottom, optimised for desktop */}
+                    {pois.length > 0 && (
+                      <DesktopScrollRow
+                        title={selectedCityName ? `Places to explore in ${selectedCityName}` : 'Places to explore'}
+                        onViewAll={destSlug ? () => navigate(`/${destSlug}`) : undefined}
+                      >
+                        {(selectedDestId ? pois.filter((p: any) => p.destination_id === selectedDestId) : pois)
+                          .slice(0, 14)
+                          .map((poi: any) => (
+                            <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
+                          ))}
+                      </DesktopScrollRow>
+                    )}
+                  </>
+                );
+              })()}
             </>
           )}
         </div>
