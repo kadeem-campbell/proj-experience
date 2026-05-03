@@ -45,8 +45,9 @@ const DesktopGridRow = ({
   title,
   onViewAll,
   children,
-  itemBasis = "basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 2xl:basis-[14.2857%]",
-  gap = "gap-6",
+  // Bigger cards: fewer per row. At 2xl ~6 columns max (Spotify-like).
+  itemBasis = "basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6",
+  gap = "gap-4",
 }: {
   title: string;
   onViewAll?: () => void;
@@ -58,14 +59,20 @@ const DesktopGridRow = ({
     <div className="mb-8">
       <div className="mb-4 flex items-end justify-between">
         {onViewAll ? (
-          <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:underline text-left">
+          <button
+            onClick={onViewAll}
+            className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left cursor-pointer"
+          >
             {title}
           </button>
         ) : (
           <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
         )}
         {onViewAll && (
-          <button onClick={onViewAll} className="text-[12px] font-bold text-muted-foreground hover:text-foreground tracking-wide uppercase">
+          <button
+            onClick={onViewAll}
+            className="text-[12px] font-bold text-muted-foreground hover:text-foreground tracking-wide uppercase"
+          >
             Show all
           </button>
         )}
