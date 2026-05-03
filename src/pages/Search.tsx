@@ -124,67 +124,108 @@ const DesktopScrollRow = ({
   );
 };
 
-// ─── Top search bar (sticky) ───────────────────────────────────────
-const DesktopSearchBar = ({
+// ─── Top bar: mode toggle + search + city dropdown ─────────────────
+const DesktopTopBar = ({
+  mode,
+  onModeChange,
   searchQuery,
   onSearchChange,
-}: {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-}) => (
-  <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/85 backdrop-blur-md">
-    <div className="relative max-w-xl">
-      <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-      <Input
-        value={searchQuery}
-        onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="What do you want to explore?"
-        className="pl-10 pr-10 h-11 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
-      />
-      {searchQuery && (
-        <button onClick={() => onSearchChange("")} className="absolute right-4 top-1/2 -translate-y-1/2">
-          <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-        </button>
-      )}
-    </div>
-  </div>
-);
-
-// ─── Horizontal city pill row (same style as mobile) ───────────────
-const CityPillRow = ({
   selectedCity,
   onCitySelect,
   destinations,
 }: {
+  mode: 'things' | 'itineraries';
+  onModeChange: (m: 'things' | 'itineraries') => void;
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
   selectedCity: BrowseDestination | null;
   onCitySelect: (city: BrowseDestination | null) => void;
   destinations: BrowseDestination[];
-}) => (
-  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-3 -mx-5 lg:-mx-8 px-5 lg:px-8">
-    <button
-      onClick={() => onCitySelect(null)}
-      className={cn(
-        "shrink-0 px-4 py-2 rounded-full text-[13px] font-semibold transition-all",
-        !selectedCity ? "bg-foreground text-background shadow-sm" : "bg-muted text-foreground hover:bg-muted/80"
-      )}
-    >
-      All
-    </button>
-    {destinations.map((d) => (
-      <button
-        key={d.id}
-        onClick={() => onCitySelect(selectedCity?.id === d.id ? null : d)}
-        className={cn(
-          "shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-all",
-          selectedCity?.id === d.id ? "bg-foreground text-background shadow-sm" : "bg-muted text-foreground hover:bg-muted/80"
-        )}
-      >
-        {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />}
-        {d.name}
-      </button>
-    ))}
-  </div>
-);
+}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/90 backdrop-blur-md">
+      <div className="flex items-center gap-3">
+        {/* Mode toggle (Delivery/Pickup style) */}
+        <div className="flex items-center bg-muted rounded-full p-1 shrink-0">
+          <button
+            onClick={() => onModeChange('things')}
+            className={cn(
+              "px-4 h-9 rounded-full text-[13px] font-bold transition-all",
+              mode === 'things' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+            )}
+          >
+            Things to do
+          </button>
+          <button
+            onClick={() => onModeChange('itineraries')}
+            className={cn(
+              "px-4 h-9 rounded-full text-[13px] font-bold transition-all",
+              mode === 'itineraries' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+            )}
+          >
+            Itineraries
+          </button>
+        </div>
+
+        {/* Search (flex grow) */}
+        <div className="relative flex-1">
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search things to do, itineraries, places…"
+            className="pl-10 pr-10 h-11 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-border"
+          />
+          {searchQuery && (
+            <button onClick={() => onSearchChange("")} className="absolute right-4 top-1/2 -translate-y-1/2">
+              <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+        </div>
+
+        {/* City dropdown (right) */}
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button className="shrink-0 flex items-center gap-2 h-11 px-4 rounded-full bg-muted hover:bg-muted/80 text-[13px] font-bold text-foreground">
+              {selectedCity?.flag_svg_url && (
+                <img src={selectedCity.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />
+              )}
+              <MapPin className="w-4 h-4" />
+              <span className="max-w-[140px] truncate">{selectedCity?.name || 'All destinations'}</span>
+              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-64 p-1.5">
+            <button
+              onClick={() => { onCitySelect(null); setOpen(false); }}
+              className={cn(
+                "w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-semibold text-left",
+                !selectedCity ? "bg-muted" : "hover:bg-muted/60"
+              )}
+            >
+              <Compass className="w-4 h-4" />
+              All destinations
+            </button>
+            {destinations.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => { onCitySelect(d); setOpen(false); }}
+                className={cn(
+                  "w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-semibold text-left",
+                  selectedCity?.id === d.id ? "bg-muted" : "hover:bg-muted/60"
+                )}
+              >
+                {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />}
+                {d.name}
+              </button>
+            ))}
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+};
 
 // ─── Desktop category icon row (Uber Eats style) ───────────────────
 const DesktopCategoryRow = ({
