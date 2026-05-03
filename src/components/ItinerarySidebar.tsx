@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Plus, Trash2, Check, X, Compass, Heart,
-  Pin, User, Home, Globe, Search, SquarePen, MoreHorizontal,
+  Pin, User, Home, Globe, Search, SquarePen, MoreHorizontal, PanelLeft, PanelLeftClose,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
