@@ -322,6 +322,28 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       )}
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+
+      {/* New itinerary modal */}
+      <Dialog open={isCreating} onOpenChange={(o) => { if (!o) { setIsCreating(false); setNewItineraryName(""); } }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>New itinerary</DialogTitle>
+            <DialogDescription>Give your trip a name to get started.</DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newItineraryName}
+            onChange={(e) => setNewItineraryName(e.target.value)}
+            placeholder="e.g. Zanzibar in October"
+            className="h-10"
+            onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setIsCreating(false); setNewItineraryName(""); }}>Cancel</Button>
+            <Button onClick={handleCreate}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sidebar>
   );
 };
