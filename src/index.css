@@ -70,13 +70,13 @@ All colors MUST be HSL.
     --radius: 0.5rem;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 93%;
-    --sidebar-foreground: 0 0% 8%;
+    --sidebar-background: 220 14% 96%;
+    --sidebar-foreground: 220 13% 9%;
     --sidebar-primary: 346 82% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 95%;
-    --sidebar-accent-foreground: 0 0% 8%;
-    --sidebar-border: 0 0% 90%;
+    --sidebar-accent: 220 14% 92%;
+    --sidebar-accent-foreground: 220 13% 9%;
+    --sidebar-border: 220 13% 89%;
     --sidebar-ring: 346 82% 51%;
   }
 
