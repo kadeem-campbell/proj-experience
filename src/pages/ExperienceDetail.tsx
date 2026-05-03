@@ -378,17 +378,20 @@ export default function ExperienceDetail() {
     enabled: !!product?.activity_type_id,
   });
 
-  // Deterministic fake like count seeded from product ID
-  const seededLikeCount = useMemo(() => {
-    if (!product) return 0;
-    const id = product?.id || '';
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = ((hash << 5) - hash) + id.charCodeAt(i);
-      hash |= 0;
-    }
-    return 47 + Math.abs(hash % 400); // range 47–446
-  }, [product?.id]);
+  // Real like count from user_likes
+  const { data: seededLikeCount = 0 } = useQuery({
+    queryKey: ["product-like-count", product?.id],
+    queryFn: async () => {
+      if (!product?.id) return 0;
+      const { count } = await supabase
+        .from("user_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("item_id", product.id)
+        .eq("item_type", "product");
+      return count || 0;
+    },
+    enabled: !!product?.id,
+  });
 
   const experience = useMemo(() => {
     if (product) {
