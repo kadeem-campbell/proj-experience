@@ -627,7 +627,7 @@ const SearchPage = () => {
                       if (r.type === 'poi')       return { type: r.type, data: poiById.get(r.id) };
                       return null;
                     })
-                    .filter((x): x is { type: string; data: any } => !!x && !!x.data);
+                    .filter((x: any): x is { type: string; data: any } => !!x && !!x.data);
 
                   // Apply mode filter (Things to do vs Itineraries)
                   if (mode === 'itineraries') items = items.filter(i => i.type === 'itinerary');
