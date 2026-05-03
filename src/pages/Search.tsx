@@ -788,7 +788,7 @@ const SearchPage = () => {
         />
 
         {/* Customisable vibe filters (now includes Categories) */}
-        <div className="pt-2">
+        <div className="pt-6 pb-2">
           <VibeFilterRow
             vibes={vibes}
             onChange={setVibes}
