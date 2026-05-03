@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { usePoiBySlug, usePoiMedia, usePoiProducts } from "@/hooks/usePoiBySlug";
