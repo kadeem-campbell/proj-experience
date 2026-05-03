@@ -304,14 +304,85 @@ const SearchPage = () => {
     });
   }, [searchQuery, cityFilteredItineraries]);
 
-  // Build carousel rows from homeCarousels (same as mobile)
+  // Build carousel rows from homeCarousels (use unified context filter, same as mobile)
   const carouselRows = useMemo(() => {
-    return homeCarousels.filter((carousel) => {
-      if (carousel.destinationIds.length === 0) return true;
-      if (!selectedDestId) return false;
-      return carousel.destinationIds.includes(selectedDestId);
+    return homeCarousels.filter((c) => matchesContext(c, selectedDestId, activeCategoryId));
+  }, [homeCarousels, selectedDestId, activeCategoryId]);
+
+  // Lookup maps for the unified resolver (mirrors MobileHomeView)
+  const productDestMap = useMemo(() => {
+    const m = new Map<string, string | null>();
+    experiences.forEach(p => m.set(p.id, p.destinationId || null));
+    return m;
+  }, [experiences]);
+  const productCatMap = useMemo(() => {
+    const m = new Map<string, string | null>();
+    experiences.forEach(p => m.set(p.id, (p as any).activityTypeId || null));
+    return m;
+  }, [experiences]);
+  const itinDestMap = useMemo(() => {
+    const m = new Map<string, string | null>();
+    allItinerariesData.forEach((it: any) => m.set(it.dbId || it.id, it.destinationId || null));
+    return m;
+  }, [allItinerariesData]);
+  const poiDestMap = useMemo(() => {
+    const m = new Map<string, string | null>();
+    pois.forEach((p: any) => m.set(p.id, p.destination_id || null));
+    return m;
+  }, [pois]);
+  const allProductIds = useMemo(() => experiences.map(p => p.id), [experiences]);
+
+  const referencedCollectionIds = useMemo(() => {
+    const ids = new Set<string>();
+    homeCarousels.forEach(c => c.collectionIds.forEach(id => ids.add(id)));
+    return Array.from(ids);
+  }, [homeCarousels]);
+
+  const { data: collectionContentsRaw } = useQuery({
+    queryKey: ["desktop-collection-items", referencedCollectionIds.sort().join(",")],
+    enabled: referencedCollectionIds.length > 0,
+    queryFn: async () => {
+      const [itemsRes, destsRes, catsRes, slugRes] = await Promise.all([
+        (supabase as any).from("collection_items").select("collection_id, item_id, item_type, position").in("collection_id", referencedCollectionIds).order("position"),
+        (supabase as any).from("collection_destinations").select("collection_id, destination_id").in("collection_id", referencedCollectionIds),
+        (supabase as any).from("collection_categories").select("collection_id, activity_type_id").in("collection_id", referencedCollectionIds),
+        (supabase as any).from("collections").select("id, slug").in("id", referencedCollectionIds),
+      ]);
+      return { items: itemsRes.data || [], destinations: destsRes.data || [], categories: catsRes.data || [], slugs: slugRes.data || [] };
+    },
+    staleTime: 30 * 1000,
+  });
+
+  const collectionContents = useMemo(() => {
+    const m = new Map<string, ResolvedItem[]>();
+    ((collectionContentsRaw as any)?.items || []).forEach((r: any) => {
+      const t = r.item_type === "experience" ? "product" : r.item_type;
+      if (!["product","itinerary","poi","area"].includes(t)) return;
+      const arr = m.get(r.collection_id) || [];
+      arr.push({ type: t, id: r.item_id });
+      m.set(r.collection_id, arr);
     });
-  }, [homeCarousels, selectedDestId]);
+    return m;
+  }, [collectionContentsRaw]);
+  const collectionDestMap = useMemo(() => {
+    const m = new Map<string, string[]>();
+    ((collectionContentsRaw as any)?.destinations || []).forEach((r: any) => {
+      const arr = m.get(r.collection_id) || []; arr.push(r.destination_id); m.set(r.collection_id, arr);
+    });
+    return m;
+  }, [collectionContentsRaw]);
+  const collectionCatMap = useMemo(() => {
+    const m = new Map<string, string[]>();
+    ((collectionContentsRaw as any)?.categories || []).forEach((r: any) => {
+      const arr = m.get(r.collection_id) || []; arr.push(r.activity_type_id); m.set(r.collection_id, arr);
+    });
+    return m;
+  }, [collectionContentsRaw]);
+  const collectionSlugMap = useMemo(() => {
+    const m = new Map<string, string>();
+    ((collectionContentsRaw as any)?.slugs || []).forEach((r: any) => { if (r.slug) m.set(r.id, r.slug); });
+    return m;
+  }, [collectionContentsRaw]);
 
   const hasSearchResults = searchQuery.trim().length > 0;
 
