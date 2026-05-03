@@ -34,7 +34,24 @@ export function EntityVisibilityControls({ item, onChange, entityType, pathHint 
   );
 
   const [improving, setImproving] = useState(false);
+  const [pinging, setPinging] = useState(false);
   const { toast } = useToast();
+
+  const pingIndexNow = async () => {
+    if (!entityType || !item.id) return;
+    setPinging(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('indexnow-ping', {
+        body: { entityType, entityId: item.id },
+      });
+      if (error) throw error;
+      toast({ title: 'Notified search engines', description: `${data?.urls || 0} URLs sent to Bing, Yandex, Naver, Seznam, Google.` });
+    } catch (e: any) {
+      toast({ title: 'Ping failed', description: e.message || String(e), variant: 'destructive' });
+    } finally {
+      setPinging(false);
+    }
+  };
 
   const improveSeo = async () => {
     if (!entityType || !item.id) return;
