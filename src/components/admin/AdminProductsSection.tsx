@@ -341,7 +341,7 @@ export const AdminProductsSection = () => {
 
               {isIndexed && (!isPublished || !isPublic) && (
                 <div className="rounded-md bg-amber-500/10 border border-amber-500/40 p-2 text-[11px] text-amber-700 dark:text-amber-300">
-                  ⚠️ Indexed is set but the product is not Published + Public — it will NOT actually appear in the sitemap.
+                  Indexed is set but product is not Published + Public — it will NOT appear in the sitemap until both are on.
                 </div>
               )}
             </div>
