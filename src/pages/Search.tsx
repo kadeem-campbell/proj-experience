@@ -215,7 +215,7 @@ const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: 
   const navigate = useNavigate();
   return (
     <div 
-      className="flex-shrink-0 w-[200px] cursor-pointer group"
+      className="cursor-pointer group"
       onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
     >
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted">
