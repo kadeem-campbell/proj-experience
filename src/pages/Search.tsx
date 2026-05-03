@@ -58,44 +58,50 @@ const DesktopScrollRow = ({
   };
 
   return (
-    <div className="mb-8 group/row relative">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold text-foreground tracking-tight">{title}</h2>
-        {onViewAll && (
-          <button onClick={onViewAll} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-            Show all
-          </button>
-        )}
-      </div>
-      
-      <div className="relative">
-        {canScrollLeft && (
-          <button
-            onClick={() => scroll('left')}
-            className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity hover:bg-muted"
-          >
-            <ChevronLeft className="w-4 h-4 text-foreground" />
-          </button>
-        )}
-
-        <div 
-          ref={scrollRef}
-          className="overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          <div className="inline-flex gap-4" style={{ minWidth: '100%' }}>
-            {children}
+    <div className="mb-10 relative">
+      <div className="flex items-end justify-between mb-4">
+        <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
+        <div className="flex items-center gap-3">
+          {onViewAll && (
+            <button onClick={onViewAll} className="text-[13px] font-semibold text-foreground hover:underline underline-offset-4">
+              See all
+            </button>
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className={cn(
+                "w-9 h-9 rounded-full border border-border flex items-center justify-center transition-all",
+                canScrollLeft ? "bg-background hover:bg-muted text-foreground" : "bg-background/50 text-muted-foreground/40 cursor-not-allowed"
+              )}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className={cn(
+                "w-9 h-9 rounded-full border border-border flex items-center justify-center transition-all",
+                canScrollRight ? "bg-background hover:bg-muted text-foreground" : "bg-background/50 text-muted-foreground/40 cursor-not-allowed"
+              )}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
+      </div>
 
-        {canScrollRight && (
-          <button
-            onClick={() => scroll('right')}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-opacity hover:bg-muted"
-          >
-            <ChevronRight className="w-4 h-4 text-foreground" />
-          </button>
-        )}
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        <div className="inline-flex gap-5" style={{ minWidth: '100%' }}>
+          {children}
+        </div>
       </div>
     </div>
   );
