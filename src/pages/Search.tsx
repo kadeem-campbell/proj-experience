@@ -285,16 +285,23 @@ const MOOD_OPTIONS = ["Romantic", "Family", "Adrenaline", "Slow & chilled", "Foo
 const VibeFilterRow = ({
   vibes,
   onChange,
+  categories = [],
+  activeCategoryId = null,
+  onCategoryChange,
 }: {
   vibes: VibeFilters;
   onChange: (v: VibeFilters) => void;
+  categories?: { id: string; name: string; iconUrl: string | null }[];
+  activeCategoryId?: string | null;
+  onCategoryChange?: (id: string | null) => void;
 }) => {
   const groups: Array<{ key: keyof VibeFilters; label: string; opts: string[] }> = [
     { key: 'time', label: 'Time', opts: TIME_OPTIONS },
     { key: 'season', label: 'Season', opts: SEASON_OPTIONS },
     { key: 'mood', label: 'Vibe', opts: MOOD_OPTIONS },
   ];
-  const hasAny = !!(vibes.time || vibes.season || vibes.mood);
+  const activeCat = categories.find(c => c.id === activeCategoryId) || null;
+  const hasAny = !!(vibes.time || vibes.season || vibes.mood || activeCategoryId);
   return (
     <div className="flex items-center gap-2 flex-wrap mb-2">
       {groups.map((g) => (
@@ -328,9 +335,49 @@ const VibeFilterRow = ({
           </PopoverContent>
         </Popover>
       ))}
+
+      {/* Categories pill — same style as Time/Season/Vibe */}
+      {categories.length > 0 && onCategoryChange && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "h-8 px-3.5 rounded-full text-[12.5px] font-bold border flex items-center gap-1.5 transition-colors",
+                activeCat
+                  ? "bg-primary/10 text-primary border-primary/40"
+                  : "bg-background text-foreground/80 border-border hover:border-primary/60"
+              )}
+            >
+              {activeCat?.name || 'Category'}
+              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-1.5 max-h-[320px] overflow-y-auto">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => onCategoryChange(activeCategoryId === cat.id ? null : cat.id)}
+                className={cn(
+                  "w-full flex items-center gap-2 text-left px-2.5 py-2 rounded-md text-[13px] font-semibold",
+                  activeCategoryId === cat.id ? "bg-muted text-foreground" : "hover:bg-muted/60 text-foreground/80"
+                )}
+              >
+                {cat.iconUrl && (
+                  <img src={cat.iconUrl} alt="" className="w-5 h-5 rounded-md object-cover" />
+                )}
+                {cat.name}
+              </button>
+            ))}
+          </PopoverContent>
+        </Popover>
+      )}
+
       {hasAny && (
         <button
-          onClick={() => onChange({ time: null, season: null, mood: null })}
+          onClick={() => {
+            onChange({ time: null, season: null, mood: null });
+            onCategoryChange?.(null);
+          }}
           className="h-8 px-2.5 text-[12px] font-bold text-muted-foreground hover:text-foreground"
         >
           Clear
