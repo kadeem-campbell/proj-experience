@@ -116,7 +116,17 @@ const AdminPanel = () => {
     }
   };
 
-  const groups = SECTIONS.reduce((acc, s) => {
+  const filteredSections = useMemo(() => {
+    const q = navFilter.trim().toLowerCase();
+    if (!q) return SECTIONS;
+    return SECTIONS.filter(s =>
+      s.label.toLowerCase().includes(q) ||
+      s.id.toLowerCase().includes(q) ||
+      s.group.toLowerCase().includes(q)
+    );
+  }, [navFilter]);
+
+  const groups = filteredSections.reduce((acc, s) => {
     if (!acc[s.group]) acc[s.group] = [];
     acc[s.group].push(s);
     return acc;
