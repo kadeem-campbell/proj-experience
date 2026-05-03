@@ -250,8 +250,7 @@ const PublicItinerary = () => {
   const socialProof = useMemo(() => {
     if (!itinerary) return null;
     const baseLikes = (itinerary as any).likeCount || 0;
-    const seed = itinerary.id.charCodeAt(0) + itinerary.experiences.length;
-    const savedBy = baseLikes + (80 + (seed % 200)) + likeCountDelta;
+    const savedBy = baseLikes + likeCountDelta;
     return { savedBy };
   }, [itinerary, likeCountDelta]);
 
@@ -1067,11 +1066,11 @@ const PublicItinerary = () => {
 
         {/* Social proof / owned sharing bar */}
         <div className="px-4 py-2 border-b border-border/30 flex items-center justify-between">
-          {!isOwned && socialProof ? (
+          {!isOwned && socialProof && socialProof.savedBy > 0 ? (
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Heart className="w-3.5 h-3.5 text-primary/70" />
-                <span>Liked by <span className="font-semibold text-foreground">{socialProof.savedBy}</span> people</span>
+                <span>Liked by <span className="font-semibold text-foreground">{socialProof.savedBy}</span> {socialProof.savedBy === 1 ? 'person' : 'people'}</span>
               </span>
             </div>
           ) : isOwned ? (

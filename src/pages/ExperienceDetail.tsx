@@ -378,17 +378,20 @@ export default function ExperienceDetail() {
     enabled: !!product?.activity_type_id,
   });
 
-  // Deterministic fake like count seeded from product ID
-  const seededLikeCount = useMemo(() => {
-    if (!product) return 0;
-    const id = product?.id || '';
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = ((hash << 5) - hash) + id.charCodeAt(i);
-      hash |= 0;
-    }
-    return 47 + Math.abs(hash % 400); // range 47–446
-  }, [product?.id]);
+  // Real like count from user_likes
+  const { data: seededLikeCount = 0 } = useQuery({
+    queryKey: ["product-like-count", product?.id],
+    queryFn: async () => {
+      if (!product?.id) return 0;
+      const { count } = await supabase
+        .from("user_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("item_id", product.id)
+        .eq("item_type", "product");
+      return count || 0;
+    },
+    enabled: !!product?.id,
+  });
 
   const experience = useMemo(() => {
     if (product) {
@@ -720,10 +723,12 @@ export default function ExperienceDetail() {
                 </h1>
                 {/* Social proof pills */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <Heart className="w-3 h-3 fill-white/50 text-white/50" />
-                    {likedByCount} saves
-                  </span>
+                  {likedByCount > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <Heart className="w-3 h-3 fill-white/50 text-white/50" />
+                      {likedByCount} {likedByCount === 1 ? 'save' : 'saves'}
+                    </span>
+                  )}
                   {experience.price && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-[6px] rounded-full text-[11px] text-white/90 font-semibold" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.08)' }}>
                       From {experience.price}
@@ -918,8 +923,11 @@ export default function ExperienceDetail() {
                 {linkedPoi && experience.location && <span className="text-base">{experience.location}</span>}
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />Saved by <strong className="text-foreground">{likedByCount}</strong> travellers this month</span>
-                {experience.price && <><span className="text-muted-foreground/40">·</span><span className="font-medium text-foreground">{experience.price}</span></>}
+                {likedByCount > 0 && (
+                  <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5 fill-primary/30 text-primary/60" />Saved by <strong className="text-foreground">{likedByCount}</strong> {likedByCount === 1 ? 'traveller' : 'travellers'}</span>
+                )}
+                {likedByCount > 0 && experience.price && <span className="text-muted-foreground/40">·</span>}
+                {experience.price && <span className="font-medium text-foreground">{experience.price}</span>}
               </div>
             </div>
 
@@ -942,7 +950,7 @@ export default function ExperienceDetail() {
                 <button onClick={handleLikeClick} className={cn("w-full mt-3 h-11 rounded-xl font-medium text-sm flex items-center justify-center gap-2 border transition-all", liked ? "bg-primary/5 border-primary/20 text-primary" : "bg-card border-border text-muted-foreground hover:text-foreground")}>
                   <Heart className={cn("w-4 h-4", liked && "fill-primary")} />{liked ? "Liked" : "Like"}
                 </button>
-                <p className="text-center text-xs text-muted-foreground mt-2.5">Liked by <span className="text-primary font-medium">{likedByCount}</span></p>
+                {likedByCount > 0 && <p className="text-center text-xs text-muted-foreground mt-2.5">Liked by <span className="text-primary font-medium">{likedByCount}</span></p>}
               </div>
 
               {/* In Your Itineraries */}
