@@ -237,7 +237,7 @@ const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: 
       className="cursor-pointer group"
       onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
     >
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted">
+      <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
         {poi.cover_image ? (
           <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
