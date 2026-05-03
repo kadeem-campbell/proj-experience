@@ -74,9 +74,14 @@ const SECTIONS = [
 ];
 
 const AdminPanel = () => {
-  const [activeSection, setActiveSection] = useState('overview');
+  const { section } = useParams<{ section?: string }>();
+  const navigate = useNavigate();
+  const validIds = SECTIONS.map(s => s.id);
+  const activeSection = section && validIds.includes(section) ? section : 'overview';
+  const setActiveSection = (id: string) => navigate(id === 'overview' ? '/admin' : `/admin/${id}`);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebar, setMobileSidebar] = useState(false);
+  const [navFilter, setNavFilter] = useState('');
 
   const renderSection = () => {
     switch (activeSection) {
