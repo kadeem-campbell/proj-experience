@@ -192,7 +192,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           </SidebarGroup>
 
           {/* Itineraries list — "Chats" style */}
-          {(
+          {!collapsed && (
             <SidebarGroup className="pt-3 pb-1">
               <div className="px-3 pb-1">
                 <p className="text-[11px] font-semibold text-muted-foreground/80">
