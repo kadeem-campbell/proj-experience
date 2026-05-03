@@ -465,7 +465,7 @@ const DesktopPoiCirclesRow = ({
   if (!pois || pois.length === 0) return null;
   const items = pois.slice(0, max);
   return (
-    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 py-5 border-b border-border/50">
+    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 pt-5 pb-6 border-b border-border/50">
       <h3 className="text-[18px] font-extrabold text-foreground tracking-tight mb-4">Places</h3>
       <div className="flex items-start gap-5 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {items.map((poi) => (
