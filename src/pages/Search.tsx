@@ -45,8 +45,8 @@ const DesktopGridRow = ({
   title,
   onViewAll,
   children,
-  // Bigger cards: fewer per row. At 2xl ~6 columns max (Spotify-like).
-  itemBasis = "basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6",
+  // Cap at 5 per row on desktop/tablet
+  itemBasis = "basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/5",
   gap = "gap-4",
 }: {
   title: string;
