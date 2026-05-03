@@ -40,7 +40,7 @@ const setPinnedIds = (ids: string[]) => localStorage.setItem(PINNED_KEY, JSON.st
 export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
 
