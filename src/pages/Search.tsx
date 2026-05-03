@@ -40,31 +40,43 @@ const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
   Safari: catSafari,
 };
 
-// ─── Spotify-style Desktop Grid Row (no horizontal scroll) ────────
+// ─── Spotify-style Desktop Single-Row (clipped, no horizontal drag) ────
 const DesktopGridRow = ({
   title,
   onViewAll,
   children,
-  cols = "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7",
+  itemBasis = "basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 2xl:basis-[14.2857%]",
+  gap = "gap-6",
 }: {
   title: string;
   onViewAll?: () => void;
   children: React.ReactNode;
-  cols?: string;
+  itemBasis?: string;
+  gap?: string;
 }) => {
   return (
-    <div className="mb-10">
-      <div className="mb-4">
+    <div className="mb-8">
+      <div className="mb-4 flex items-end justify-between">
         {onViewAll ? (
-          <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left">
+          <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:underline text-left">
             {title}
           </button>
         ) : (
           <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
         )}
+        {onViewAll && (
+          <button onClick={onViewAll} className="text-[12px] font-bold text-muted-foreground hover:text-foreground tracking-wide uppercase">
+            Show all
+          </button>
+        )}
       </div>
-      <div className={cn("grid gap-5", cols)}>
-        {children}
+      {/* Single row, clipped — items past the visible column are hidden */}
+      <div className={cn("flex overflow-hidden", gap)}>
+        {(Array.isArray(children) ? children : [children]).map((child, i) => (
+          <div key={i} className={cn("shrink-0 min-w-0", itemBasis)}>
+            {child}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -593,7 +605,6 @@ const SearchPage = () => {
                     <DesktopGridRow
                       title={featured.title}
                       onViewAll={featured.onTitleClick}
-                      cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     >
                       {featured.items.slice(0, 8).map((it: any) => (
                         <div key={`${it.type}-${it.data.id}`}>
