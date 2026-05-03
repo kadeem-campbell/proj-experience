@@ -224,10 +224,11 @@ const AdminPanel = () => {
           </Button>
 
           {/* Breadcrumb */}
-          <div className="flex items-center gap-1.5 text-sm">
-            <span className="text-muted-foreground">Admin</span>
-            <span className="text-muted-foreground">/</span>
-            <span className="font-medium">{SECTIONS.find(s => s.id === activeSection)?.label}</span>
+          <div className="flex items-center gap-1.5 text-sm min-w-0">
+            <button onClick={() => setActiveSection('overview')} className="text-muted-foreground hover:text-foreground shrink-0">Admin</button>
+            <span className="text-muted-foreground shrink-0">/</span>
+            <span className="font-medium truncate">{SECTIONS.find(s => s.id === activeSection)?.label}</span>
+            <code className="hidden md:inline-block ml-2 px-1.5 py-0.5 rounded bg-muted text-[10px] text-muted-foreground font-mono">/admin/{activeSection === 'overview' ? '' : activeSection}</code>
           </div>
 
           {/* Quick actions */}
