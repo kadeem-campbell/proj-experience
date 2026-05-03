@@ -492,6 +492,12 @@ const SearchPage = () => {
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
         <DesktopSearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
+        <DesktopCategoryRow
+          categories={homeCategories}
+          activeCategoryId={activeCategoryId}
+          onSelect={setActiveCategoryId}
+        />
+
         <CityPillRow
           selectedCity={selectedCity}
           onCitySelect={handleCitySelect}
