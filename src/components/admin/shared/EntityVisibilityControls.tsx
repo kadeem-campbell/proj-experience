@@ -4,7 +4,7 @@
  */
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Radio } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,7 +13,7 @@ interface Props {
   item: any;
   onChange: (field: string, value: any) => void;
   /** entity_type for the improve-entity-seo function (omit to hide AI button) */
-  entityType?: 'destination' | 'country' | 'area' | 'poi' | 'itinerary' | 'category' | 'host' | 'collection';
+  entityType?: 'destination' | 'country' | 'area' | 'poi' | 'itinerary' | 'category' | 'host' | 'collection' | 'product';
   /** path label e.g. '/zanzibar' for context message */
   pathHint?: string;
 }
@@ -34,7 +34,24 @@ export function EntityVisibilityControls({ item, onChange, entityType, pathHint 
   );
 
   const [improving, setImproving] = useState(false);
+  const [pinging, setPinging] = useState(false);
   const { toast } = useToast();
+
+  const pingIndexNow = async () => {
+    if (!entityType || !item.id) return;
+    setPinging(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('indexnow-ping', {
+        body: { entityType, entityId: item.id },
+      });
+      if (error) throw error;
+      toast({ title: 'Notified search engines', description: `${data?.urls || 0} URLs sent to Bing, Yandex, Naver, Seznam, Google.` });
+    } catch (e: any) {
+      toast({ title: 'Ping failed', description: e.message || String(e), variant: 'destructive' });
+    } finally {
+      setPinging(false);
+    }
+  };
 
   const improveSeo = async () => {
     if (!entityType || !item.id) return;
@@ -103,10 +120,17 @@ export function EntityVisibilityControls({ item, onChange, entityType, pathHint 
       )}
 
       {entityType && item.id && (
-        <Button type="button" size="sm" variant="outline" className="w-full" disabled={improving} onClick={improveSeo}>
-          <Sparkles className="w-3 h-3 mr-1" />
-          {improving ? 'Improving…' : 'Improve SEO + description with AI'}
-        </Button>
+        <div className="space-y-1.5">
+          <Button type="button" size="sm" variant="outline" className="w-full" disabled={improving} onClick={improveSeo}>
+            <Sparkles className="w-3 h-3 mr-1" />
+            {improving ? 'Improving…' : 'Improve SEO + description with AI'}
+          </Button>
+          <Button type="button" size="sm" variant="outline" className="w-full" disabled={pinging || !isIndexed} onClick={pingIndexNow}>
+            <Radio className="w-3 h-3 mr-1" />
+            {pinging ? 'Pinging…' : 'Notify Bing/ChatGPT/Yandex now'}
+          </Button>
+          {!isIndexed && <p className="text-[10px] text-muted-foreground">Mark as Indexed first to enable instant ping.</p>}
+        </div>
       )}
     </div>
   );
