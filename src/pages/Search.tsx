@@ -620,7 +620,7 @@ const SearchPage = () => {
                               onClick={() => navigate(`/things-to-do/${destSlug || slugify(it.data.location || 'explore')}/${it.data.slug || it.data.id}`)}
                               className="w-full text-left group"
                             >
-                              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-muted">
+                              <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
                                 {it.data.image ? (
                                   <img src={it.data.image} alt={it.data.title} loading="lazy" className="w-full h-full object-cover" />
                                 ) : (
