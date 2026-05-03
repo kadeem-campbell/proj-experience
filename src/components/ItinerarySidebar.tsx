@@ -165,39 +165,9 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         )}
 
         <ScrollArea className="flex-1">
-          {/* Primary nav */}
-          <SidebarGroup className="py-0">
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-0">
-                {navItems.map(item => (
-                  <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={item.active}
-                      tooltip={item.label}
-                      className={cn(
-                        "h-9 gap-2.5 rounded-lg text-[13.5px] font-medium text-foreground/85 hover:bg-muted hover:text-foreground data-[active=true]:bg-muted data-[active=true]:text-foreground",
-                      )}
-                    >
-                      <Link to={item.to}>
-                        <item.icon className="w-4 h-4 shrink-0" />
-                        {<span>{item.label}</span>}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {/* Itineraries list — "Chats" style */}
+          {/* Itineraries list — no nav, no title (search bar above already labels it) */}
           {!collapsed && (
-            <SidebarGroup className="pt-3 pb-1">
-              <div className="px-3 pb-1">
-                <p className="text-[11px] font-semibold text-muted-foreground/80">
-                  Itineraries
-                </p>
-              </div>
+            <SidebarGroup className="pt-2 pb-1">
               <SidebarGroupContent>
                 <SidebarMenu className="gap-0">
                   {/* Inline create removed — uses modal dialog */}
