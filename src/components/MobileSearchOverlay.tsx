@@ -338,7 +338,23 @@ export const MobileSearchOverlay = ({
 
   const handleNavigate = (path: string) => {
     addToRecentSearches(searchQuery);
-    if (!isDedicatedSearchRoute) onClose();
+    // Ensure "Back" from the detail page returns to search results.
+    // If the overlay was opened on top of another page (no /search URL),
+    // push /search into history first so back navigation lands here.
+    if (!isDedicatedSearchRoute) {
+      const params = new URLSearchParams();
+      if (searchQuery) params.set('q', searchQuery);
+      if (selectedCity) params.set('city', selectedCity);
+      if (typeFilter) params.set('type', typeFilter);
+      const searchUrl = `/search${params.toString() ? '?' + params.toString() : ''}`;
+      sessionStorage.setItem('lastSearchUrl', searchUrl);
+      onClose();
+      navigate(searchUrl);
+      // Defer the detail navigation so /search becomes a real history entry
+      setTimeout(() => navigate(path), 0);
+      return;
+    }
+    sessionStorage.setItem('lastSearchUrl', window.location.pathname + window.location.search);
     navigate(path);
   };
 
