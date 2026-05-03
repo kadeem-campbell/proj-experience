@@ -20,8 +20,25 @@ import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/utils/slugUtils";
-import { Compass, Map as MapIcon, MapPinned, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin } from "lucide-react";
+import { Compass, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+import catBeaches from "@/assets/cat-beaches.png";
+import catNightlife from "@/assets/cat-nightlife.png";
+import catNature from "@/assets/cat-nature.png";
+import catAdventure from "@/assets/cat-adventure.png";
+import catFood from "@/assets/cat-food.png";
+import catSafari from "@/assets/cat-safari.png";
+
+const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
+  Beaches: catBeaches,
+  Nightlife: catNightlife,
+  Nature: catNature,
+  Adventure: catAdventure,
+  Food: catFood,
+  Safari: catSafari,
+};
 
 // ─── Spotify-style Desktop Scroll Row ────────────────────────────
 const DesktopScrollRow = ({ 
