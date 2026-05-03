@@ -385,9 +385,11 @@ export const AdminLocationsSection = () => {
               { key: 'continent', label: 'Continent', width: 'w-[100px]', render: (c: any) => <span className="text-xs text-muted-foreground">{c.continent || '—'}</span> },
               { key: 'is_active', label: 'Status', width: 'w-[80px]', render: (c: any) => <Badge variant={c.is_active ? 'default' : 'secondary'} className="text-[10px]">{c.is_active ? 'Active' : 'Off'}</Badge> },
             ]}
-            defaultItem={{ name: '', slug: '', iso_code: '', iso_alpha2: '', flag_svg_url: '', is_active: true }}
+            defaultItem={{ name: '', slug: '', iso_code: '', iso_alpha2: '', flag_svg_url: '', is_active: true, publish_state: 'published', visibility_output_state: 'public', indexability_state: 'public_indexed' }}
             renderForm={(item: any, onChange) => (
               <div className="space-y-3">
+                <EntityVisibilityControls item={item} onChange={onChange} entityType="country" pathHint={item.slug ? `/countries/${item.slug}` : undefined} />
+                <SeoBlock item={item} onChange={onChange} />
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) { onChange('slug', toSlug(e.target.value)); } }} /></div>
                   <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
