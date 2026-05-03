@@ -179,21 +179,25 @@ const DesktopTopBar = ({
               <ChevronDown className="w-4 h-4 opacity-60" />
             </button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-64 p-1.5">
-            
-            {destinations.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => { onCitySelect(selectedCity?.id === d.id ? null : d); setOpen(false); }}
-                className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-semibold text-left",
-                  selectedCity?.id === d.id ? "bg-muted" : "hover:bg-muted/60"
-                )}
-              >
-                {d.flag_svg_url && <img src={d.flag_svg_url} className="w-4 h-4 rounded-full object-cover" alt="" />}
-                {d.name}
-              </button>
-            ))}
+          <PopoverContent align="end" sideOffset={8} className="w-72 p-2 rounded-2xl border-border/60 shadow-xl bg-popover/95 backdrop-blur-xl">
+            <div className="px-2 pt-1 pb-2 text-[10px] font-bold tracking-[0.14em] uppercase text-muted-foreground">Destinations</div>
+            {destinations.map((d) => {
+              const active = selectedCity?.id === d.id;
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => { onCitySelect(active ? null : d); setOpen(false); }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-left transition-colors",
+                    active ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
+                  )}
+                >
+                  {d.flag_svg_url && <img src={d.flag_svg_url} className="w-5 h-5 rounded-full object-cover ring-1 ring-border/60" alt="" />}
+                  <span className="flex-1 truncate">{d.name}</span>
+                  {active && <Check className="w-4 h-4 text-foreground shrink-0" />}
+                </button>
+              );
+            })}
           </PopoverContent>
         </Popover>
       </div>
