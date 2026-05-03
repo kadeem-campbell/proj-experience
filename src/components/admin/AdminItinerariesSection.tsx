@@ -120,7 +120,7 @@ export const AdminItinerariesSection = () => {
           },
           { key: 'is_active', label: 'Status', width: 'w-[80px]', render: (i: any) => <Badge variant={i.is_active ? 'default' : 'secondary'} className="text-[10px]">{i.is_active ? 'Active' : 'Off'}</Badge> },
         ]}
-        defaultItem={{ name: '', slug: '', description: '', cover_image: '', tag: 'popular', is_active: true, experiences: [] }}
+        defaultItem={{ name: '', slug: '', description: '', cover_image: '', tag: 'popular', is_active: true, experiences: [], publish_state: 'draft', visibility_output_state: 'internal_only', indexability_state: 'public_noindex' }}
         renderForm={(item: any, onChange) => (
           <Tabs defaultValue="details" className="w-full">
             <TabsList className="h-auto flex-wrap gap-1">
@@ -130,6 +130,11 @@ export const AdminItinerariesSection = () => {
             </TabsList>
 
             <TabsContent value="details" className="space-y-3 mt-3">
+              <EntityVisibilityControls item={item} onChange={onChange} entityType="itinerary" pathHint={item.slug ? `/itineraries/${item.slug}` : undefined} />
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label className="text-xs text-muted-foreground">SEO Title (≤60)</Label><Input value={item.seo_title || ''} onChange={e => onChange('seo_title', e.target.value)} maxLength={60} /></div>
+                <div><Label className="text-xs text-muted-foreground">SEO Description (≤155)</Label><Input value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} maxLength={155} /></div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
                 <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
