@@ -72,8 +72,9 @@ const fetchPublicItineraries = async (): Promise<PublicItinerary[]> => {
     });
 
     const productMeta: Record<string, any> = {};
-    if (productIds.size > 0) {
-      const ids = Array.from(productIds);
+    const allProductIds = new Set<string>([...productIds, ...jsonbProductIds]);
+    if (allProductIds.size > 0) {
+      const ids = Array.from(allProductIds);
       for (let i = 0; i < ids.length; i += 100) {
         const { data: prods } = await supabase
           .from("products")
