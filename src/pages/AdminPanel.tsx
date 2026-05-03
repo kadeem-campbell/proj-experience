@@ -149,8 +149,26 @@ const AdminPanel = () => {
         </div>
       </div>
 
+      {/* Filter */}
+      {!sidebarCollapsed && (
+        <div className="p-2 border-b border-border/50">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Input
+              value={navFilter}
+              onChange={(e) => setNavFilter(e.target.value)}
+              placeholder="Filter sections…"
+              className="h-8 pl-7 text-xs"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Nav */}
       <div className="flex-1 overflow-y-auto py-2">
+        {Object.keys(groups).length === 0 && !sidebarCollapsed && (
+          <p className="px-4 py-3 text-xs text-muted-foreground">No sections match "{navFilter}"</p>
+        )}
         {Object.entries(groups).map(([group, items]) => (
           <div key={group} className="mb-2">
             {!sidebarCollapsed && (
