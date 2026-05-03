@@ -80,6 +80,8 @@ const App = () => (
             <Route path="/monetise" element={<Monetise />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin/:section" element={<AdminPanel />} />
+            <Route path="/admin/:section/:entityId" element={<AdminPanel />} />
             <Route path="/management" element={<ManagementDashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/my-itineraries" element={<MyItineraries />} />
