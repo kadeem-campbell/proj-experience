@@ -451,6 +451,47 @@ const RankedTopList = ({
   );
 };
 
+// ─── Spotify-style POI circles row ─────────────────────────────
+const DesktopPoiCirclesRow = ({
+  pois,
+  destinationSlug,
+  max = 10,
+}: {
+  pois: any[];
+  destinationSlug?: string;
+  max?: number;
+}) => {
+  const navigate = useNavigate();
+  if (!pois || pois.length === 0) return null;
+  const items = pois.slice(0, max);
+  return (
+    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 py-5 border-b border-border/50">
+      <h3 className="text-[18px] font-extrabold text-foreground tracking-tight mb-4">Places</h3>
+      <div className="flex items-start gap-5 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        {items.map((poi) => (
+          <button
+            key={poi.id}
+            onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
+            className="shrink-0 w-[128px] flex flex-col items-start gap-2.5 group"
+          >
+            <div className="w-[128px] h-[128px] rounded-full overflow-hidden bg-muted shadow-md group-hover:shadow-lg transition-shadow">
+              {poi.cover_image ? (
+                <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-muted to-muted/40" />
+              )}
+            </div>
+            <div className="w-full text-left px-0.5">
+              <p className="text-[14px] font-bold text-foreground line-clamp-1">{poi.name}</p>
+              <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5">{poi.poi_type || 'Place'}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 
 // ─── POI Card for desktop ────────────────────────────────────────
 const DesktopPoiCard = ({ poi, destinationSlug }: { poi: any; destinationSlug?: string }) => {
