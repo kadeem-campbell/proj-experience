@@ -4,7 +4,7 @@
  */
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Radio } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,7 +13,7 @@ interface Props {
   item: any;
   onChange: (field: string, value: any) => void;
   /** entity_type for the improve-entity-seo function (omit to hide AI button) */
-  entityType?: 'destination' | 'country' | 'area' | 'poi' | 'itinerary' | 'category' | 'host' | 'collection';
+  entityType?: 'destination' | 'country' | 'area' | 'poi' | 'itinerary' | 'category' | 'host' | 'collection' | 'product';
   /** path label e.g. '/zanzibar' for context message */
   pathHint?: string;
 }
