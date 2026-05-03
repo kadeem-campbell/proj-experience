@@ -40,43 +40,21 @@ const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
   Safari: catSafari,
 };
 
-// ─── Spotify-style Desktop Scroll Row ────────────────────────────
-const DesktopScrollRow = ({ 
-  title, 
+// ─── Spotify-style Desktop Grid Row (no horizontal scroll) ────────
+const DesktopGridRow = ({
+  title,
   onViewAll,
-  children 
-}: { 
+  children,
+  cols = "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7",
+}: {
   title: string;
   onViewAll?: () => void;
   children: React.ReactNode;
+  cols?: string;
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const checkScroll = useCallback(() => {
-    if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanScrollLeft(scrollLeft > 4);
-    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 4);
-  }, []);
-
-  useEffect(() => {
-    checkScroll();
-    const el = scrollRef.current;
-    if (el) el.addEventListener('scroll', checkScroll, { passive: true });
-    return () => { if (el) el.removeEventListener('scroll', checkScroll); };
-  }, [checkScroll]);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (!scrollRef.current) return;
-    const amount = scrollRef.current.clientWidth * 0.7;
-    scrollRef.current.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
-  };
-
   return (
-    <div className="mb-10 relative">
-      <div className="flex items-end justify-between mb-4">
+    <div className="mb-10">
+      <div className="mb-4">
         {onViewAll ? (
           <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left">
             {title}
@@ -84,42 +62,9 @@ const DesktopScrollRow = ({
         ) : (
           <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
         )}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!canScrollLeft}
-              className={cn(
-                "w-9 h-9 rounded-full border border-border flex items-center justify-center transition-all",
-                canScrollLeft ? "bg-background hover:bg-muted text-foreground" : "bg-background/50 text-muted-foreground/40 cursor-not-allowed"
-              )}
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!canScrollRight}
-              className={cn(
-                "w-9 h-9 rounded-full border border-border flex items-center justify-center transition-all",
-                canScrollRight ? "bg-background hover:bg-muted text-foreground" : "bg-background/50 text-muted-foreground/40 cursor-not-allowed"
-              )}
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </div>
-
-      <div
-        ref={scrollRef}
-        className="overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        <div className="inline-flex gap-5" style={{ minWidth: '100%' }}>
-          {children}
-        </div>
+      <div className={cn("grid gap-5", cols)}>
+        {children}
       </div>
     </div>
   );
