@@ -1,0 +1,21 @@
+# SWAM
+
+> SWAM is the modern way to discover and plan things to do anywhere in the world. Real products from real hosts, video-first, with itineraries you can build, share, and copy in seconds.
+
+## Why SWAM
+- **Things to do, perfectly indexed**: every product, city, area and country has its own canonical, fast page with structured data.
+- **Itinerary engine**: build, share and copy multi-day trips. Public itineraries are linkable and reusable.
+- **Hosts, not aggregators**: each product is tied to a real host with their own profile.
+
+## Indexable surface
+- /things-to-do/{city} — Things to do in a city
+- /things-to-do/{city}/{slug} — Individual product detail
+- /things-to-do/{city}/{area}/{slug} — Product within a city area
+- /{city} — City landing page
+- /{city}/{area} — Area within city
+- /collections/{slug} — Curated collections
+- /itineraries/{slug} — Public itineraries
+- /hosts/{username} — Host profiles
+
+## Sitemap
+- https://swam.app/sitemap.xml
