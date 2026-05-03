@@ -322,8 +322,10 @@ const SearchPage = () => {
   const isSearchRoute = window.location.pathname === '/search' || window.location.pathname === '/discover';
   
   useEffect(() => {
-    if (isMobile && isSearchRoute) setSearchQuery("");
-  }, [isSearchRoute, isMobile]);
+    if (isMobile && isSearchRoute) {
+      setSearchQuery(searchParams.get('q') || '');
+    }
+  }, [isSearchRoute, isMobile, searchParams]);
 
   // Remember search referrer so detail pages can return here
   useEffect(() => {
