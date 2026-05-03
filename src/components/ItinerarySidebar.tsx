@@ -90,9 +90,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       return bDate - aDate;
     });
 
-  // Primary nav (ChatGPT-style: condensed, 32px rows, icon + label)
+  // Primary nav (Home removed — brand row replaces it)
   const navItems = [
-    { to: "/", icon: Home, label: "Home", active: location.pathname === "/" || location.pathname === "/search" },
     { to: "/things-to-do", icon: Compass, label: "Explore", active: location.pathname.startsWith("/things-to-do") },
     { to: "/itineraries", icon: Globe, label: "Itineraries", active: location.pathname === "/itineraries" },
     { to: "/liked", icon: Heart, label: "Liked", active: location.pathname === "/liked" },
