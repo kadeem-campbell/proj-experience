@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { PublicItineraryCard } from "@/components/PublicItineraryCard";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 import { MobileHomeView } from "@/components/MobileHomeView";
+import { MobileShell } from "@/components/MobileShell";
 import { useItineraries } from "@/hooks/useItineraries";
 import { usePopularItineraries } from "@/hooks/usePublicItineraries";
 
@@ -335,13 +336,15 @@ const SearchPage = () => {
   }, [isSearchRoute, searchParams]);
 
   if (isMobile && isSearchRoute) return (
-    <MobileSearchOverlay
-      isOpen={true}
-      onClose={() => navigate(-1)}
-      searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
-      onSearch={(q) => setSearchQuery(q)}
-    />
+    <MobileShell hideTopBar className="bg-background">
+      <MobileSearchOverlay
+        isOpen={true}
+        onClose={() => navigate(-1)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={(q) => setSearchQuery(q)}
+      />
+    </MobileShell>
   );
 
   if (isMobile) return (
