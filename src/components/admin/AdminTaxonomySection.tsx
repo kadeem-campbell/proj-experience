@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EntityVisibilityControls } from './shared/EntityVisibilityControls';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
@@ -95,15 +96,22 @@ export const AdminTaxonomySection = () => {
               { key: 'slug', label: 'Slug', width: 'flex-1', render: (a: any) => <span className="text-xs font-mono text-muted-foreground">{a.slug}</span> },
               { key: 'display_order', label: 'Order', width: 'w-[60px]' },
             ]}
-            defaultItem={{ name: '', slug: '', emoji: '', description: '', display_order: 0, is_active: true }}
+            defaultItem={{ name: '', slug: '', emoji: '', description: '', display_order: 0, is_active: true, publish_state: 'published', visibility_output_state: 'public', indexability_state: 'public_indexed' }}
             renderForm={(item: any, onChange) => (
               <div className="space-y-3">
+                <EntityVisibilityControls item={item} onChange={onChange} entityType="category" pathHint={item.slug ? `/category/${item.slug}` : undefined} />
                 <div className="grid grid-cols-3 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={item.name || ''} onChange={e => { onChange('name', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
                   <div><Label className="text-xs text-muted-foreground">Slug</Label><Input value={item.slug || ''} onChange={e => onChange('slug', e.target.value)} className="font-mono text-xs" /></div>
                   <div><Label className="text-xs text-muted-foreground">Emoji</Label><Input value={item.emoji || ''} onChange={e => onChange('emoji', e.target.value)} /></div>
                 </div>
-                <div><Label className="text-xs text-muted-foreground">Description</Label><Textarea value={item.description || ''} onChange={e => onChange('description', e.target.value)} rows={2} /></div>
+                <div><Label className="text-xs text-muted-foreground">Short Description</Label><Textarea value={item.short_description || item.description || ''} onChange={e => { onChange('short_description', e.target.value); onChange('description', e.target.value); }} rows={2} /></div>
+                <div><Label className="text-xs text-muted-foreground">Long Description</Label><Textarea value={item.long_description || ''} onChange={e => onChange('long_description', e.target.value)} rows={3} /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">SEO Title (≤60)</Label><Input value={item.seo_title || ''} onChange={e => onChange('seo_title', e.target.value)} maxLength={60} /></div>
+                  <div><Label className="text-xs text-muted-foreground">SEO Description (≤155)</Label><Input value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} maxLength={155} /></div>
+                </div>
+                <div><Label className="text-xs text-muted-foreground">Cover Image URL</Label><Input value={item.cover_image || ''} onChange={e => onChange('cover_image', e.target.value)} /></div>
                 <div><Label className="text-xs text-muted-foreground">Display Order</Label><Input type="number" value={item.display_order || 0} onChange={e => onChange('display_order', parseInt(e.target.value) || 0)} /></div>
               </div>
             )}

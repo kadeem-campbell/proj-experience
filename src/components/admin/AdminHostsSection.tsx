@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EntityVisibilityControls } from './shared/EntityVisibilityControls';
 
 const toSlug = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
 
@@ -97,9 +98,14 @@ export const AdminHostsSection = () => {
               { key: 'slug', label: 'Slug', width: 'flex-1', render: (h: any) => <span className="text-xs font-mono text-muted-foreground">{h.slug}</span> },
               { key: 'is_active', label: 'Status', width: 'w-[80px]', render: (h: any) => <Badge variant={h.is_active ? 'default' : 'secondary'} className="text-[10px]">{h.is_active ? 'Active' : 'Off'}</Badge> },
             ]}
-            defaultItem={{ username: '', display_name: '', slug: '', bio: '', avatar_url: '', is_active: true, is_verified: false }}
+            defaultItem={{ username: '', display_name: '', slug: '', bio: '', avatar_url: '', is_active: true, is_verified: false, publish_state: 'draft', visibility_output_state: 'internal_only', indexability_state: 'public_noindex' }}
             renderForm={(item: any, onChange) => (
               <div className="space-y-3">
+                <EntityVisibilityControls item={item} onChange={onChange} entityType="host" pathHint={item.slug ? `/hosts/${item.slug}` : undefined} />
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">SEO Title (≤60)</Label><Input value={item.seo_title || ''} onChange={e => onChange('seo_title', e.target.value)} maxLength={60} /></div>
+                  <div><Label className="text-xs text-muted-foreground">SEO Description (≤155)</Label><Input value={item.seo_description || ''} onChange={e => onChange('seo_description', e.target.value)} maxLength={155} /></div>
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div><Label className="text-xs text-muted-foreground">Username</Label><Input value={item.username || ''} onChange={e => { onChange('username', e.target.value); if (!item.id) onChange('slug', toSlug(e.target.value)); }} /></div>
                   <div><Label className="text-xs text-muted-foreground">Display Name</Label><Input value={item.display_name || ''} onChange={e => onChange('display_name', e.target.value)} /></div>
