@@ -512,13 +512,13 @@ const SearchPage = () => {
               </div>
 
               {filteredItineraries.length > 0 && (
-                <DesktopScrollRow title="Itineraries">
+                <DesktopGridRow title="Itineraries">
                   {filteredItineraries.slice(0, 8).map((it) => (
                     <div key={it.id} className="flex-shrink-0 w-[260px]">
                       <PublicItineraryCard itinerary={it} />
                     </div>
                   ))}
-                </DesktopScrollRow>
+                </DesktopGridRow>
               )}
 
               {filteredExperiences.length > 0 && (
@@ -592,7 +592,7 @@ const SearchPage = () => {
                 return (
                   <>
                     {/* Featured hero carousel */}
-                    <DesktopScrollRow title={featured.title} onViewAll={featured.onTitleClick}>
+                    <DesktopGridRow title={featured.title} onViewAll={featured.onTitleClick}>
                       {featured.items.slice(0, 8).map((it: any) => (
                         <div key={`${it.type}-${it.data.id}`} className="flex-shrink-0 w-[420px]">
                           {it.type === 'product' && (
@@ -619,11 +619,11 @@ const SearchPage = () => {
                           )}
                         </div>
                       ))}
-                    </DesktopScrollRow>
+                    </DesktopGridRow>
 
                     {/* Remaining carousels */}
                     {rest.map((c) => (
-                      <DesktopScrollRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
+                      <DesktopGridRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
                         {c.items.map((it: any) => {
                           if (it.type === 'product') {
                             return (
@@ -641,12 +641,12 @@ const SearchPage = () => {
                           }
                           return <DesktopPoiCard key={`poi-${it.data.id}`} poi={it.data} destinationSlug={destSlug} />;
                         })}
-                      </DesktopScrollRow>
+                      </DesktopGridRow>
                     ))}
 
                     {/* POI row at the bottom, optimised for desktop */}
                     {pois.length > 0 && (
-                      <DesktopScrollRow
+                      <DesktopGridRow
                         title={selectedCityName ? `Places to explore in ${selectedCityName}` : 'Places to explore'}
                         onViewAll={destSlug ? () => navigate(`/${destSlug}`) : undefined}
                       >
@@ -655,7 +655,7 @@ const SearchPage = () => {
                           .map((poi: any) => (
                             <DesktopPoiCard key={poi.id} poi={poi} destinationSlug={destSlug} />
                           ))}
-                      </DesktopScrollRow>
+                      </DesktopGridRow>
                     )}
                   </>
                 );
