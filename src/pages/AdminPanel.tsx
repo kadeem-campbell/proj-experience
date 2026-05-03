@@ -2,7 +2,8 @@
  * Unified Admin Panel — central operating system for SWAM.
  * Replaces all legacy admin workflows with one integrated system.
  */
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { AdminCarouselManager } from '@/components/AdminCarouselManager';
 import { Button } from '@/components/ui/button';
