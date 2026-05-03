@@ -111,13 +111,21 @@ const DesktopTopBar = ({
   return (
     <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-4 pb-3 bg-background/90 backdrop-blur-md">
       <div className="flex items-center gap-3">
-        {/* Mode toggle (Delivery/Pickup style) */}
-        <div className="flex items-center bg-muted rounded-full p-1 shrink-0">
+        {/* iOS-style segmented toggle (sliding knob) */}
+        <div className="relative inline-flex items-center bg-muted rounded-full p-1 shrink-0 h-11 w-[260px]">
+          <span
+            aria-hidden
+            className={cn(
+              "absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-background shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+              mode === 'things' ? "translate-x-0" : "translate-x-[calc(100%+4px)]"
+            )}
+            style={{ left: 4 }}
+          />
           <button
             onClick={() => onModeChange('things')}
             className={cn(
-              "px-4 h-9 rounded-full text-[13px] font-bold transition-all",
-              mode === 'things' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold transition-colors",
+              mode === 'things' ? "text-foreground" : "text-muted-foreground"
             )}
           >
             Things to do
@@ -125,8 +133,8 @@ const DesktopTopBar = ({
           <button
             onClick={() => onModeChange('itineraries')}
             className={cn(
-              "px-4 h-9 rounded-full text-[13px] font-bold transition-all",
-              mode === 'itineraries' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold transition-colors",
+              mode === 'itineraries' ? "text-foreground" : "text-muted-foreground"
             )}
           >
             Itineraries
@@ -277,16 +285,23 @@ const MOOD_OPTIONS = ["Romantic", "Family", "Adrenaline", "Slow & chilled", "Foo
 const VibeFilterRow = ({
   vibes,
   onChange,
+  categories = [],
+  activeCategoryId = null,
+  onCategoryChange,
 }: {
   vibes: VibeFilters;
   onChange: (v: VibeFilters) => void;
+  categories?: { id: string; name: string; iconUrl: string | null }[];
+  activeCategoryId?: string | null;
+  onCategoryChange?: (id: string | null) => void;
 }) => {
   const groups: Array<{ key: keyof VibeFilters; label: string; opts: string[] }> = [
     { key: 'time', label: 'Time', opts: TIME_OPTIONS },
     { key: 'season', label: 'Season', opts: SEASON_OPTIONS },
     { key: 'mood', label: 'Vibe', opts: MOOD_OPTIONS },
   ];
-  const hasAny = !!(vibes.time || vibes.season || vibes.mood);
+  const activeCat = categories.find(c => c.id === activeCategoryId) || null;
+  const hasAny = !!(vibes.time || vibes.season || vibes.mood || activeCategoryId);
   return (
     <div className="flex items-center gap-2 flex-wrap mb-2">
       {groups.map((g) => (
@@ -320,9 +335,49 @@ const VibeFilterRow = ({
           </PopoverContent>
         </Popover>
       ))}
+
+      {/* Categories pill — same style as Time/Season/Vibe */}
+      {categories.length > 0 && onCategoryChange && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "h-8 px-3.5 rounded-full text-[12.5px] font-bold border flex items-center gap-1.5 transition-colors",
+                activeCat
+                  ? "bg-primary/10 text-primary border-primary/40"
+                  : "bg-background text-foreground/80 border-border hover:border-primary/60"
+              )}
+            >
+              {activeCat?.name || 'Category'}
+              <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-1.5 max-h-[320px] overflow-y-auto">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => onCategoryChange(activeCategoryId === cat.id ? null : cat.id)}
+                className={cn(
+                  "w-full flex items-center gap-2 text-left px-2.5 py-2 rounded-md text-[13px] font-semibold",
+                  activeCategoryId === cat.id ? "bg-muted text-foreground" : "hover:bg-muted/60 text-foreground/80"
+                )}
+              >
+                {cat.iconUrl && (
+                  <img src={cat.iconUrl} alt="" className="w-5 h-5 rounded-md object-cover" />
+                )}
+                {cat.name}
+              </button>
+            ))}
+          </PopoverContent>
+        </Popover>
+      )}
+
       {hasAny && (
         <button
-          onClick={() => onChange({ time: null, season: null, mood: null })}
+          onClick={() => {
+            onChange({ time: null, season: null, mood: null });
+            onCategoryChange?.(null);
+          }}
           className="h-8 px-2.5 text-[12px] font-bold text-muted-foreground hover:text-foreground"
         >
           Clear
@@ -389,6 +444,47 @@ const RankedTopList = ({
               <p className="text-[11.5px] text-muted-foreground line-clamp-1 mt-0.5">{it.poi_type || it.location || it.category}</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─── Spotify-style POI circles row ─────────────────────────────
+const DesktopPoiCirclesRow = ({
+  pois,
+  destinationSlug,
+  max = 10,
+}: {
+  pois: any[];
+  destinationSlug?: string;
+  max?: number;
+}) => {
+  const navigate = useNavigate();
+  if (!pois || pois.length === 0) return null;
+  const items = pois.slice(0, max);
+  return (
+    <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 py-5 border-b border-border/50">
+      <h3 className="text-[18px] font-extrabold text-foreground tracking-tight mb-4">Places</h3>
+      <div className="flex items-start gap-5 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        {items.map((poi) => (
+          <button
+            key={poi.id}
+            onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
+            className="shrink-0 w-[128px] flex flex-col items-start gap-2.5 group"
+          >
+            <div className="w-[128px] h-[128px] rounded-full overflow-hidden bg-muted shadow-md group-hover:shadow-lg transition-shadow">
+              {poi.cover_image ? (
+                <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-muted to-muted/40" />
+              )}
+            </div>
+            <div className="w-full text-left px-0.5">
+              <p className="text-[14px] font-bold text-foreground line-clamp-1">{poi.name}</p>
+              <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5">{poi.poi_type || 'Place'}</p>
+            </div>
           </button>
         ))}
       </div>
@@ -685,15 +781,21 @@ const SearchPage = () => {
           destinations={allDestinations}
         />
 
-        <DesktopCategoryRow
-          categories={homeCategories}
-          activeCategoryId={activeCategoryId}
-          onSelect={setActiveCategoryId}
+        {/* Spotify-style POI circles row (replaces icon category row) */}
+        <DesktopPoiCirclesRow
+          pois={selectedDestId ? pois.filter((p: any) => p.destination_id === selectedDestId) : pois}
+          destinationSlug={destSlug}
         />
 
-        {/* Customisable vibe filters */}
-        <div className="pt-4">
-          <VibeFilterRow vibes={vibes} onChange={setVibes} />
+        {/* Customisable vibe filters (now includes Categories) */}
+        <div className="pt-2">
+          <VibeFilterRow
+            vibes={vibes}
+            onChange={setVibes}
+            categories={homeCategories}
+            activeCategoryId={activeCategoryId}
+            onCategoryChange={setActiveCategoryId}
+          />
         </div>
 
         <div className="pb-12 pt-4">
