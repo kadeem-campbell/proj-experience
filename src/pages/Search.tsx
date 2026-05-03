@@ -40,30 +40,38 @@ const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
   Safari: catSafari,
 };
 
-// ─── Spotify-style Desktop Grid Row (no horizontal scroll) ────────
+// ─── Spotify-style Desktop Single-Row (no horizontal drag, clipped) ────────
 const DesktopGridRow = ({
   title,
   onViewAll,
   children,
-  cols = "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7",
+  cols = "grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7",
+  gap = "gap-6",
 }: {
   title: string;
   onViewAll?: () => void;
   children: React.ReactNode;
   cols?: string;
+  gap?: string;
 }) => {
   return (
-    <div className="mb-10">
-      <div className="mb-4">
+    <div className="mb-8">
+      <div className="mb-4 flex items-end justify-between">
         {onViewAll ? (
-          <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:opacity-70 transition-opacity text-left">
+          <button onClick={onViewAll} className="text-[22px] font-extrabold text-foreground tracking-tight hover:underline text-left">
             {title}
           </button>
         ) : (
           <h2 className="text-[22px] font-extrabold text-foreground tracking-tight">{title}</h2>
         )}
+        {onViewAll && (
+          <button onClick={onViewAll} className="text-[12px] font-bold text-muted-foreground hover:text-foreground tracking-wide uppercase">
+            Show all
+          </button>
+        )}
       </div>
-      <div className={cn("grid gap-5", cols)}>
+      {/* Single-row grid: clipped so only the first row of cards is shown */}
+      <div className={cn("grid grid-rows-1 grid-flow-col auto-cols-fr overflow-hidden", cols, gap)}>
         {children}
       </div>
     </div>
