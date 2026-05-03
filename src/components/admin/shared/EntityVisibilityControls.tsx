@@ -103,10 +103,17 @@ export function EntityVisibilityControls({ item, onChange, entityType, pathHint 
       )}
 
       {entityType && item.id && (
-        <Button type="button" size="sm" variant="outline" className="w-full" disabled={improving} onClick={improveSeo}>
-          <Sparkles className="w-3 h-3 mr-1" />
-          {improving ? 'Improving…' : 'Improve SEO + description with AI'}
-        </Button>
+        <div className="space-y-1.5">
+          <Button type="button" size="sm" variant="outline" className="w-full" disabled={improving} onClick={improveSeo}>
+            <Sparkles className="w-3 h-3 mr-1" />
+            {improving ? 'Improving…' : 'Improve SEO + description with AI'}
+          </Button>
+          <Button type="button" size="sm" variant="outline" className="w-full" disabled={pinging || !isIndexed} onClick={pingIndexNow}>
+            <Radio className="w-3 h-3 mr-1" />
+            {pinging ? 'Pinging…' : 'Notify Bing/ChatGPT/Yandex now'}
+          </Button>
+          {!isIndexed && <p className="text-[10px] text-muted-foreground">Mark as Indexed first to enable instant ping.</p>}
+        </div>
       )}
     </div>
   );
