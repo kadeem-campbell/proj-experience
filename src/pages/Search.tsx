@@ -234,11 +234,8 @@ const SwamHero = ({
       </div>
 
       <div className="max-w-[1040px] mx-auto">
-        {/* Editorial headline — SF Pro Display, heavy (Spotify style) */}
-        <h1
-          className="text-center text-[44px] md:text-[68px] lg:text-[80px] leading-[0.95] font-extrabold text-foreground"
-          style={{ fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif', letterSpacing: '-0.5px', fontWeight: 800 }}
-        >
+        {/* Editorial headline */}
+        <h1 className="text-center text-[44px] md:text-[68px] lg:text-[80px] leading-[0.95] font-extrabold tracking-[-0.035em] text-foreground">
           <span className="block">Every place worth going,</span>
           <span className="block">
             <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
