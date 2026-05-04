@@ -53,9 +53,33 @@ const BrandLogo = ({ size = 40 }: { size?: number }) => (
 export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, open, width, setWidth, minWidth, maxWidth } = useSidebar();
   const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
+
+  // Drag-to-resize the sidebar (only when expanded)
+  const draggingRef = (typeof window !== "undefined") ? (window as any) : null;
+  const onResizeStart = (e: React.MouseEvent) => {
+    if (collapsed) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = width;
+    const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const onMove = (ev: MouseEvent) => {
+      const deltaRem = (ev.clientX - startX) / remPx;
+      setWidth(startWidth + deltaRem);
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
 
   const {
     itineraries, activeItineraryId, setActiveItinerary,
@@ -118,10 +142,19 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       <button
         onClick={toggleSidebar}
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="hidden md:flex absolute top-7 -right-4 z-30 w-8 h-8 rounded-full bg-background border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shadow-md transition-colors"
+        className="hidden md:flex absolute top-16 -right-4 z-30 w-8 h-8 rounded-full bg-background border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shadow-md transition-colors"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
+
+      {/* Drag handle to resize sidebar (only when expanded) */}
+      {!collapsed && (
+        <div
+          onMouseDown={onResizeStart}
+          className="hidden md:block absolute top-0 right-0 h-full w-1.5 cursor-col-resize z-20 hover:bg-border/60 transition-colors"
+          title="Drag to resize"
+        />
+      )}
 
       <SidebarContent className="bg-sidebar">
         {/* Brand row — logo only, matches screenshot */}
@@ -141,7 +174,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                 title={n.label}
                 className={cn(
                   "w-11 h-11 mx-auto rounded-xl flex items-center justify-center transition-colors",
-                  n.active ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  n.active ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 )}
               >
                 <n.icon className="w-5 h-5" strokeWidth={1.75} />
@@ -153,7 +186,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                 className={cn(
                   "flex items-center gap-3 h-11 px-3 rounded-xl text-[14px] transition-colors",
                   n.active
-                    ? "bg-muted text-foreground font-semibold"
+                    ? "bg-foreground/10 text-foreground font-semibold"
                     : "text-foreground/70 hover:text-foreground hover:bg-muted/60 font-medium"
                 )}
               >
