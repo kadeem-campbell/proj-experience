@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Plus, Trash2, Check, X, Heart,
+  Trash2, Check, X, Heart,
   Pin, Home, FileText, UserCircle, CalendarCheck, MoreHorizontal, ChevronLeft, ChevronRight, SquarePen, Search, Disc,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -162,6 +162,12 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
             <div className="flex items-center px-3 h-6 mb-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Itineraries</span>
             </div>
+            <button
+              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+              className="w-full h-9 px-3 mb-2 rounded-lg bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Create new itinerary
+            </button>
             {itineraries.length > 8 && (
               <>
                 <button
@@ -275,29 +281,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           )}
         </ScrollArea>
 
-        {/* Create new itinerary button */}
-        <div className={cn("mt-auto px-3 pb-2", collapsed && "flex justify-center px-0")}>
-          {collapsed ? (
-            <button
-              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-              title="New itinerary"
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-            >
-              <Plus className="w-[18px] h-[18px]" strokeWidth={1.75} />
-            </button>
-          ) : (
-            <button
-              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-              className="w-full flex items-center gap-2 h-9 px-3 rounded-lg text-[13px] font-medium text-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors"
-            >
-              <Plus className="w-4 h-4" strokeWidth={1.75} />
-              Create new itinerary
-            </button>
-          )}
-        </div>
-
         {/* Bottom collapse/expand toggle — matches reference screenshot */}
-        <div className="border-t border-border/60 py-3 px-3 flex justify-center">
+        <div className="mt-auto border-t border-border/60 py-3 pl-3 pr-0 flex justify-start">
           <button
             onClick={toggleSidebar}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
