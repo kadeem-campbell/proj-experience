@@ -142,13 +142,54 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       <button
         onClick={toggleSidebar}
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="hidden md:flex absolute top-7 -right-4 z-30 w-8 h-8 rounded-full bg-background border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shadow-md transition-colors"
+        className="hidden md:flex absolute top-16 -right-4 z-30 w-8 h-8 rounded-full bg-background border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shadow-md transition-colors"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
 
+      {/* Drag handle to resize sidebar (only when expanded) */}
+      {!collapsed && (
+        <div
+          onMouseDown={onResizeStart}
+          className="hidden md:block absolute top-0 right-0 h-full w-1.5 cursor-col-resize z-20 hover:bg-border/60 transition-colors"
+          title="Drag to resize"
+        />
+      )}
+
       <SidebarContent className="bg-sidebar">
         {/* Brand row — logo only, matches screenshot */}
+        <div className={cn("pt-5", collapsed ? "px-0 flex justify-center" : "px-4")}>
+          <Link to="/" aria-label="swam.app" className="inline-flex items-center group">
+            <BrandLogo size={40} />
+          </Link>
+        </div>
+
+        {/* Primary nav */}
+        <div className={cn("pt-8", collapsed ? "px-0" : "px-3")}>
+          <div className="space-y-1">
+            {navItems.map((n) => collapsed ? (
+              <Link
+                key={n.to}
+                to={n.to}
+                title={n.label}
+                className={cn(
+                  "w-11 h-11 mx-auto rounded-xl flex items-center justify-center transition-colors",
+                  n.active ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                )}
+              >
+                <n.icon className="w-5 h-5" strokeWidth={1.75} />
+              </Link>
+            ) : (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={cn(
+                  "flex items-center gap-3 h-11 px-3 rounded-xl text-[14px] transition-colors",
+                  n.active
+                    ? "bg-foreground/10 text-foreground font-semibold"
+                    : "text-foreground/70 hover:text-foreground hover:bg-muted/60 font-medium"
+                )}
+              >
         <div className={cn("pt-5", collapsed ? "px-0 flex justify-center" : "px-4")}>
           <Link to="/" aria-label="swam.app" className="inline-flex items-center group">
             <BrandLogo size={40} />
