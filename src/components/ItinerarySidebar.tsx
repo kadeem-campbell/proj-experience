@@ -190,38 +190,6 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                     : "text-foreground/70 hover:text-foreground hover:bg-muted/60 font-medium"
                 )}
               >
-        <div className={cn("pt-5", collapsed ? "px-0 flex justify-center" : "px-4")}>
-          <Link to="/" aria-label="swam.app" className="inline-flex items-center group">
-            <BrandLogo size={40} />
-          </Link>
-        </div>
-
-        {/* Primary nav */}
-        <div className={cn("pt-8", collapsed ? "px-0" : "px-3")}>
-          <div className="space-y-1">
-            {navItems.map((n) => collapsed ? (
-              <Link
-                key={n.to}
-                to={n.to}
-                title={n.label}
-                className={cn(
-                  "w-11 h-11 mx-auto rounded-xl flex items-center justify-center transition-colors",
-                  n.active ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                )}
-              >
-                <n.icon className="w-5 h-5" strokeWidth={1.75} />
-              </Link>
-            ) : (
-              <Link
-                key={n.to}
-                to={n.to}
-                className={cn(
-                  "flex items-center gap-3 h-11 px-3 rounded-xl text-[14px] transition-colors",
-                  n.active
-                    ? "bg-muted text-foreground font-semibold"
-                    : "text-foreground/70 hover:text-foreground hover:bg-muted/60 font-medium"
-                )}
-              >
                 <n.icon className="w-[18px] h-[18px]" strokeWidth={1.75} />
                 {n.label}
               </Link>
