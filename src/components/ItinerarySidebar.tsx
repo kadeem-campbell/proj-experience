@@ -223,7 +223,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         <ScrollArea className="flex-1">
           {/* Itineraries list — no nav, no title (search bar above already labels it) */}
           {!collapsed && (
-            <SidebarGroup className="pt-2 pb-1">
+            <SidebarGroup className="pt-0 pb-1">
               <SidebarGroupContent>
                 <SidebarMenu className="gap-0">
                   {/* Inline create removed — uses modal dialog */}
