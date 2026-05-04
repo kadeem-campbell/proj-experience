@@ -235,21 +235,6 @@ const SwamHero = ({
       </div>
 
       <div className="max-w-[1040px] mx-auto">
-        {/* Editorial headline */}
-        <h1 className="text-center text-[44px] md:text-[68px] lg:text-[80px] leading-[0.95] font-extrabold tracking-[-0.035em] text-foreground">
-          <span className="block">
-            <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
-              Every place
-            </span>{" "}
-            worth going,
-          </span>
-          <span className="block">intelligently curated.</span>
-        </h1>
-
-        <p className="mt-6 text-center text-[15px] md:text-[17px] text-muted-foreground max-w-[520px] mx-auto leading-[1.55] font-light">
-          A new kind of travel layer — humans set the taste, intelligence does the legwork.
-        </p>
-
         {/* Search — glass surface */}
         <div className="mt-10 mx-auto w-full max-w-[680px]">
           <button
