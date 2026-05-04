@@ -222,8 +222,8 @@ const SwamHero = ({
         <div className="absolute top-20 right-10 w-[280px] h-[280px] rounded-full bg-accent/10 blur-3xl" />
       </div>
 
-      <div className="max-w-[920px] mx-auto text-center">
-        <h1 className="text-[40px] md:text-[54px] leading-[1.05] font-extrabold tracking-[-0.035em] text-foreground whitespace-nowrap">
+      <div className="max-w-[820px] mx-auto text-center">
+        <h1 className="text-[34px] md:text-[44px] leading-[1.05] font-extrabold tracking-[-0.035em] text-foreground whitespace-nowrap">
           Travel built for{" "}
           <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
             the next generation
@@ -254,18 +254,6 @@ const SwamHero = ({
           </span>
         </button>
 
-        {/* Mode chips: Experiences / Itineraries */}
-        <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
-          {(['experiences', 'itineraries'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => onOpenSearch(t)}
-              className="h-9 px-4 rounded-full text-[13px] font-semibold text-foreground/80 bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-border/50 transition-colors capitalize"
-            >
-              {t}
-            </button>
-          ))}
-        </div>
       </div>
     </section>
   );
