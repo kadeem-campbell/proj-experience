@@ -103,78 +103,93 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       className="border-r border-sidebar-border bg-sidebar"
     >
       <SidebarContent className="bg-sidebar">
-        {collapsed ? (
-          <>
-            {/* Collapsed: stacked icon column with toggle on top */}
-            <div className="pt-3 px-0 flex flex-col items-center gap-2">
-              <button
-                onClick={toggleSidebar}
-                title="Expand sidebar"
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <PanelLeft className="w-4 h-4" />
-              </button>
+        {/* Brand row — toggle ALWAYS on the left, swam.app to its right (only when expanded) */}
+        <div className="pt-3 px-2">
+          <div className={cn("flex items-center gap-1", collapsed && "justify-center")}>
+            <button
+              onClick={toggleSidebar}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
+            >
+              {collapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+            </button>
+            {!collapsed && (
               <Link
                 to="/"
-                title="Swam"
-                className="w-9 h-9 rounded-lg bg-foreground text-background flex items-center justify-center"
+                className="flex-1 flex items-center px-2 h-9 rounded-lg hover:bg-muted transition-colors text-[20px] tracking-[-0.03em] text-foreground"
+                style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}
               >
-                <Compass className="w-4 h-4" strokeWidth={2.5} />
+                swam<span className="text-primary font-extrabold">.app</span>
               </Link>
-              <button
-                onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-                className="w-9 h-9 rounded-lg bg-muted hover:bg-muted/80 flex items-center justify-center text-foreground"
-                title="New itinerary"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Brand row — logo + name + integrated collapse button */}
-            <div className="pt-3 px-2">
-              <div className="flex items-center gap-1">
-                <Link
-                  to="/"
-                  className="flex-1 flex items-center px-2 h-9 rounded-lg hover:bg-muted transition-colors text-[20px] tracking-[-0.03em] text-foreground"
-                  style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}
-                >
-                  swam<span className="text-primary font-extrabold">.app</span>
-                </Link>
-                <button
-                  onClick={toggleSidebar}
-                  title="Collapse sidebar"
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
-                >
-                  <PanelLeftClose className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            )}
+          </div>
+        </div>
 
-            {/* New itinerary button */}
-            <div className="px-2 pt-2">
-              <Button
-                onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-                className="w-full h-9 rounded-lg text-[13px] font-semibold"
-              >
-                New itinerary
-              </Button>
-            </div>
+        {/* New itinerary — full button when expanded, icon-only when collapsed */}
+        <div className={cn("pt-2", collapsed ? "px-0 flex justify-center" : "px-2")}>
+          {collapsed ? (
+            <button
+              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+              title="New itinerary"
+              className="w-9 h-9 rounded-lg bg-foreground text-background hover:bg-foreground/90 flex items-center justify-center transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          ) : (
+            <Button
+              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+              className="w-full h-9 rounded-lg text-[13px] font-semibold"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              New itinerary
+            </Button>
+          )}
+        </div>
 
-            {/* Permanent search input — rounded rectangle, darker bg */}
-            <div className="px-2 pt-2 pb-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  placeholder="Search itineraries"
-                  className="h-10 pl-9 text-[14px] rounded-xl bg-foreground/[0.07] hover:bg-foreground/[0.09] focus-visible:bg-foreground/[0.09] border-0 ring-0 focus-visible:ring-0 placeholder:text-muted-foreground/70 transition-colors"
-                />
-              </div>
+        {/* Explore (icon row) — visible in both modes */}
+        <div className={cn("pt-2", collapsed ? "px-0 flex justify-center" : "px-2")}>
+          {collapsed ? (
+            <Link
+              to="/things-to-do"
+              title="Explore"
+              className={cn(
+                "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                location.pathname.startsWith("/things-to-do")
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              <Compass className="w-4 h-4" />
+            </Link>
+          ) : (
+            <Link
+              to="/things-to-do"
+              className={cn(
+                "flex items-center gap-2.5 h-9 px-2 rounded-lg text-[13px] font-semibold transition-colors",
+                location.pathname.startsWith("/things-to-do")
+                  ? "bg-muted text-foreground"
+                  : "text-foreground/80 hover:text-foreground hover:bg-muted"
+              )}
+            >
+              <Compass className="w-4 h-4" />
+              Explore
+            </Link>
+          )}
+        </div>
+
+        {/* Permanent search input — only when expanded */}
+        {!collapsed && (
+          <div className="px-2 pt-2 pb-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="Search itineraries"
+                className="h-10 pl-9 text-[14px] rounded-xl bg-foreground/[0.07] hover:bg-foreground/[0.09] focus-visible:bg-foreground/[0.09] border-0 ring-0 focus-visible:ring-0 placeholder:text-muted-foreground/70 transition-colors"
+              />
             </div>
-          </>
+          </div>
         )}
 
         <ScrollArea className="flex-1">
