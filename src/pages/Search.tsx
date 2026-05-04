@@ -1161,14 +1161,26 @@ const SearchPage = () => {
       />
 
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
-        <DesktopTopBar
-          mode={mode}
-          onModeChange={setMode}
+        <SwamHero
+          onOpenSearch={() => setSearchModalOpen(true)}
+          searchQuery={searchQuery}
+          selectedCityName={selectedCityName}
+        />
+
+        <SwamSearchModal
+          open={searchModalOpen}
+          onOpenChange={setSearchModalOpen}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          destinations={allDestinations}
           selectedCity={selectedCity}
           onCitySelect={handleCitySelect}
-          destinations={allDestinations}
+          vibes={vibes}
+          onVibesChange={setVibes}
+          categories={homeCategories}
+          activeCategoryId={activeCategoryId}
+          onCategoryChange={setActiveCategoryId}
+          pois={pois}
         />
 
         {/* Spotify-style POI circles row (replaces icon category row) */}
