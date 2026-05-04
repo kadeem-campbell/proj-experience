@@ -654,7 +654,7 @@ const DesktopPoiCirclesRow = ({
           <button
             key={poi.id}
             onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
-            className="min-w-0 flex flex-col items-start gap-3 group"
+            className="min-w-0 max-w-[160px] flex flex-col items-start gap-3 group"
           >
             <div className="relative w-full aspect-square rounded-full overflow-hidden bg-muted ring-1 ring-border/40 group-hover:ring-2 group-hover:ring-foreground/80 transition-all duration-300">
               {poi.cover_image ? (
