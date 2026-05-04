@@ -285,11 +285,22 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         </ScrollArea>
       </SidebarContent>
 
-      {/* Bottom — profile (ChatGPT-style row with name + 3-dot menu) */}
-      {!collapsed && (
-        <div className="mt-auto border-t border-border/40 p-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+      {/* Bottom — profile (always visible; collapses to avatar-only) */}
+      <div className={cn("mt-auto border-t border-border/40", collapsed ? "p-2 flex justify-center" : "p-2")}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            {collapsed ? (
+              <button
+                title={userProfile?.full_name || userProfile?.username || user?.email || "Sign in"}
+                className="w-9 h-9 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center overflow-hidden transition-colors"
+              >
+                {userProfile?.avatar_url ? (
+                  <img src={userProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-4 h-4 text-muted-foreground" />
+                )}
+              </button>
+            ) : (
               <button
                 className="w-full flex items-center gap-2.5 px-2 h-11 rounded-lg hover:bg-muted transition-colors text-left"
               >
@@ -310,30 +321,30 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                 </div>
                 {isAuthenticated && <MoreHorizontal className="w-4 h-4 text-muted-foreground shrink-0" />}
               </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="w-56">
-              {isAuthenticated ? (
-                <>
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut()}>
-                    <X className="w-4 h-4 mr-2" />
-                    Sign out
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <DropdownMenuItem onClick={() => setAuthModalOpen(true)}>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align={collapsed ? "start" : "end"} side="top" className="w-56">
+            {isAuthenticated ? (
+              <>
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
                   <User className="w-4 h-4 mr-2" />
-                  Sign in
+                  Profile
                 </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut()}>
+                  <X className="w-4 h-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <DropdownMenuItem onClick={() => setAuthModalOpen(true)}>
+                <User className="w-4 h-4 mr-2" />
+                Sign in
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
 
