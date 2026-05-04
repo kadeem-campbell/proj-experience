@@ -63,7 +63,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
     createItinerary, deleteItinerary, renameItinerary,
   } = useItineraries();
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, userProfile, signOut } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newItineraryName, setNewItineraryName] = useState("");
