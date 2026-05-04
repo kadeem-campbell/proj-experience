@@ -138,18 +138,18 @@ const DesktopTopBar = ({
           </button>
         </div>
 
-        {/* Search (flex grow) */}
+        {/* Search (flex grow) — macOS style */}
         <div className="relative flex-1">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-muted-foreground/70" strokeWidth={2} />
           <Input
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search things to do, itineraries, places…"
-            className="pl-10 pr-10 h-11 rounded-full bg-muted/70 border-0 ring-1 ring-border/40 text-[13.5px] focus-visible:ring-1 focus-visible:ring-foreground/20 focus-visible:bg-background transition-all"
+            placeholder="Search"
+            className="pl-9 pr-9 h-9 rounded-lg bg-muted/60 border-0 ring-1 ring-inset ring-border/50 text-[13px] font-medium text-foreground placeholder:text-muted-foreground/60 placeholder:font-normal shadow-[inset_0_1px_1px_rgba(0,0,0,0.04)] focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-foreground/25 focus-visible:bg-background/80 transition-all"
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange("")} className="absolute right-4 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+            <button onClick={() => onSearchChange("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <X className="w-3.5 h-3.5 text-muted-foreground/70 hover:text-foreground" />
             </button>
           )}
         </div>
