@@ -102,7 +102,7 @@ export const ProductCard = ({
           
           <div
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-            className="absolute bottom-2.5 right-2.5"
+            className="absolute bottom-2.5 right-2.5 md:hidden"
           >
             <ItinerarySelector
               experienceId={id}
