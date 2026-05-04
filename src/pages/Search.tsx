@@ -74,10 +74,10 @@ const DesktopGridRow = ({
           <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
         )}
       </div>
-      {/* Auto-fit experiences: 6 max @ ~1443px desktop, scales down to 5/4/3 gracefully — never wraps */}
+      {/* Auto-fill experiences: bounded max width prevents lone items from stretching; grid-auto-rows-0 + overflow-hidden hard-clips any wrap so it's ALWAYS one row */}
       <div
-        className={cn("grid grid-rows-1 overflow-hidden", gap)}
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}
+        className={cn("grid overflow-hidden [grid-auto-rows:0]", gap)}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 220px))" }}
       >
         {(Array.isArray(children) ? children : [children]).slice(0, 6).map((child, i) => (
           <div key={i} className="min-w-0">
@@ -645,10 +645,10 @@ const DesktopPoiCirclesRow = ({
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="text-[20px] font-extrabold text-foreground tracking-[-0.02em]">Places</h3>
       </div>
-      {/* Auto-fit places: 8 max @ ~1443px, 6 @ ~937px, scales gracefully — never wraps (grid-rows-1 + overflow-hidden) */}
+      {/* Auto-fill places: bounded max width keeps circles tidy when few items; grid-auto-rows-0 hard-clips any 2nd row */}
       <div
-        className="grid grid-rows-1 overflow-hidden gap-4 lg:gap-5"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))" }}
+        className="grid overflow-hidden [grid-auto-rows:0] gap-4 lg:gap-5"
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(110px, 150px))" }}
       >
         {items.map((poi) => (
           <button
