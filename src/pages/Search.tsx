@@ -645,10 +645,10 @@ const DesktopPoiCirclesRow = ({
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="text-[20px] font-extrabold text-foreground tracking-[-0.02em]">Places</h3>
       </div>
-      {/* Auto-fit places: 8 max @ ~1443px, 6 @ ~937px, scales gracefully — never wraps (grid-rows-1 + overflow-hidden) */}
+      {/* Auto-fill places: bounded max width keeps circles tidy when few items; grid-auto-rows-0 hard-clips any 2nd row */}
       <div
-        className="grid grid-rows-1 overflow-hidden gap-4 lg:gap-5"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))" }}
+        className="grid overflow-hidden [grid-auto-rows:0] gap-4 lg:gap-5"
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(110px, 150px))" }}
       >
         {items.map((poi) => (
           <button
