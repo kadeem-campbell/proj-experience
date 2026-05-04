@@ -186,24 +186,6 @@ export const FixedSearchHeader = ({
 
             {/* Right: Profile */}
             <div className="flex items-center gap-2 ml-auto">
-            {/* Right: Destination + Map + Profile */}
-            <div className="flex items-center gap-2 ml-auto">
-              {selectedCity && (
-                <button
-                  onClick={() => onCitySelect(null)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-semibold hover:bg-primary/12 transition-colors"
-                >
-                  <MapPin className="w-3 h-3" />
-                  {selectedCity.name}
-                  <X className="w-3 h-3 ml-0.5 opacity-60" />
-                </button>
-              )}
-              <button 
-                onClick={() => setCityDialogOpen(true)} 
-                className="p-2.5 rounded-full bg-muted/50 border border-border/50 hover:bg-muted hover:border-border transition-all duration-200"
-              >
-                <Map className="w-4.5 h-4.5 text-foreground/80" strokeWidth={2} />
-              </button>
 
               {!isMobile && (
                 <div className="shrink-0">
