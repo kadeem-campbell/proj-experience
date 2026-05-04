@@ -125,18 +125,10 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       </button>
 
       <SidebarContent className="bg-sidebar">
-        {/* Brand row */}
+        {/* Brand row — logo only, matches screenshot */}
         <div className={cn("pt-4", collapsed ? "px-0 flex justify-center" : "px-4")}>
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" aria-label="swam.app" className="inline-flex items-center group">
             <BrandLogo size={36} />
-            {!collapsed && (
-              <span
-                className="text-[20px] tracking-[-0.03em] text-foreground group-hover:opacity-80 transition-opacity"
-                style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}
-              >
-                swam<span className="text-primary font-extrabold">.app</span>
-              </span>
-            )}
           </Link>
         </div>
 
