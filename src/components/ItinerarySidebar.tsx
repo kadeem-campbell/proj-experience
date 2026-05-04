@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Plus, Trash2, Check, X, Compass, Heart,
-  Pin, User, Home, Globe, Search, SquarePen, MoreHorizontal, PanelLeft, PanelLeftClose,
+  Plus, Trash2, Check, X, Heart,
+  Pin, Home, FileText, UserCircle, CalendarCheck, MoreHorizontal, ChevronLeft, ChevronRight, SquarePen, Search, Disc,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,16 @@ const PINNED_KEY = "pinned_itineraries";
 const getPinnedIds = (): string[] => { try { return JSON.parse(localStorage.getItem(PINNED_KEY) || '[]'); } catch { return []; } };
 const setPinnedIds = (ids: string[]) => localStorage.setItem(PINNED_KEY, JSON.stringify(ids));
 
+const BrandLogo = ({ size = 36 }: { size?: number }) => (
+  <div
+    className="rounded-[10px] bg-foreground text-background flex items-center justify-center shrink-0"
+    style={{ width: size, height: size }}
+    aria-label="swam"
+  >
+    <Disc className="w-1/2 h-1/2" strokeWidth={2} />
+  </div>
+);
+
 export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -49,7 +59,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
     createItinerary, deleteItinerary, renameItinerary,
   } = useItineraries();
 
-  const { user, userProfile, signOut, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newItineraryName, setNewItineraryName] = useState("");
@@ -61,6 +71,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
 
   const handleCreate = () => {
     const name = newItineraryName.trim() || "New trip";
+    if (!isAuthenticated) { setAuthModalOpen(true); return; }
     createItinerary(name);
     setNewItineraryName("");
     setIsCreating(false);
@@ -76,8 +87,6 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
     setPinnedIds(newPinned);
   };
 
-  const isCollapsedView = collapsed || isMobile;
-
   const sortedItineraries = [...itineraries]
     .filter(it => !filter.trim() || it.name.toLowerCase().includes(filter.toLowerCase()))
     .sort((a, b) => {
@@ -90,144 +99,119 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       return bDate - aDate;
     });
 
-  // Primary nav (Home removed — brand row replaces it)
   const navItems = [
-    { to: "/things-to-do", icon: Compass, label: "Explore", active: location.pathname.startsWith("/things-to-do") },
-    { to: "/itineraries", icon: Globe, label: "Itineraries", active: location.pathname === "/itineraries" },
+    { to: "/", icon: Home, label: "Home", active: location.pathname === "/" },
+    { to: "/travellers", icon: UserCircle, label: "Travellers", active: location.pathname === "/travellers" },
+    { to: "/itineraries", icon: FileText, label: "Itineraries", active: location.pathname === "/itineraries" },
+    { to: "/feed", icon: CalendarCheck, label: "Feed", active: location.pathname === "/feed" },
     { to: "/liked", icon: Heart, label: "Liked", active: location.pathname === "/liked" },
   ];
 
   return (
     <Sidebar
-      collapsible="offcanvas"
-      className="border-r border-sidebar-border bg-sidebar"
+      collapsible="icon"
+      className="border-r-0 bg-sidebar"
     >
+      {/* Floating circular toggle on the outer right edge — matches screenshot */}
+      <button
+        onClick={toggleSidebar}
+        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        className="hidden md:flex absolute top-4 -right-3 z-30 w-6 h-6 rounded-full bg-background border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shadow-sm transition-colors"
+      >
+        {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+      </button>
+
       <SidebarContent className="bg-sidebar">
-        {/* Brand row — toggle ALWAYS on the left, swam.app to its right (only when expanded) */}
-        <div className="pt-3 px-2">
-          <div className={cn("flex items-center gap-1", collapsed && "justify-center")}>
-            <button
-              onClick={toggleSidebar}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
-            >
-              {collapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-            </button>
+        {/* Brand row */}
+        <div className={cn("pt-4", collapsed ? "px-0 flex justify-center" : "px-4")}>
+          <Link to="/" className="flex items-center gap-2 group">
+            <BrandLogo size={36} />
             {!collapsed && (
-              <Link
-                to="/"
-                className="flex-1 flex items-center px-2 h-9 rounded-lg hover:bg-muted transition-colors text-[20px] tracking-[-0.03em] text-foreground"
+              <span
+                className="text-[20px] tracking-[-0.03em] text-foreground group-hover:opacity-80 transition-opacity"
                 style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}
               >
                 swam<span className="text-primary font-extrabold">.app</span>
-              </Link>
+              </span>
             )}
+          </Link>
+        </div>
+
+        {/* Primary nav */}
+        <div className={cn("pt-6", collapsed ? "px-2" : "px-3")}>
+          <div className="space-y-1">
+            {navItems.map((n) => collapsed ? (
+              <Link
+                key={n.to}
+                to={n.to}
+                title={n.label}
+                className={cn(
+                  "w-10 h-10 mx-auto rounded-xl flex items-center justify-center transition-colors",
+                  n.active ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                )}
+              >
+                <n.icon className="w-[18px] h-[18px]" strokeWidth={1.75} />
+              </Link>
+            ) : (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={cn(
+                  "flex items-center gap-3 h-11 px-3 rounded-xl text-[14px] transition-colors",
+                  n.active
+                    ? "bg-muted text-foreground font-semibold shadow-sm"
+                    : "text-foreground/70 hover:text-foreground hover:bg-muted/60 font-medium"
+                )}
+              >
+                <n.icon className="w-[18px] h-[18px]" strokeWidth={1.75} />
+                {n.label}
+              </Link>
+            ))}
           </div>
         </div>
 
-        {/* New itinerary — full button when expanded, icon-only when collapsed */}
-        <div className={cn("pt-2", collapsed ? "px-0 flex justify-center" : "px-2")}>
-          {collapsed ? (
-            <button
-              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-              title="New itinerary"
-              className="w-9 h-9 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          ) : (
-            <Button
-              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-              className="w-full h-9 rounded-lg text-[13px] font-semibold"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              New itinerary
-            </Button>
-          )}
-        </div>
-
-        {/* Primary nav: Home + Explore (under SWAM label) */}
-        {(() => {
-          const navLinks = [
-            { to: "/", icon: Home, label: "Home", active: location.pathname === "/" },
-            { to: "/things-to-do", icon: Compass, label: "Explore", active: location.pathname.startsWith("/things-to-do") },
-          ];
-          return (
-            <div className={cn("pt-3", collapsed ? "px-0" : "px-2")}>
-              {!collapsed && (
-                <div className="px-2 h-6 flex items-center mb-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Swam</span>
-                </div>
-              )}
-              <div className={cn("space-y-0.5", collapsed && "flex flex-col items-center")}>
-                {navLinks.map((n) => collapsed ? (
-                  <Link
-                    key={n.to}
-                    to={n.to}
-                    title={n.label}
-                    className={cn(
-                      "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
-                      n.active ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <n.icon className="w-4 h-4" />
-                  </Link>
-                ) : (
-                  <Link
-                    key={n.to}
-                    to={n.to}
-                    className={cn(
-                      "flex items-center gap-2.5 h-9 px-2 rounded-lg text-[13px] font-semibold transition-colors",
-                      n.active ? "bg-muted text-foreground" : "text-foreground/80 hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <n.icon className="w-4 h-4" />
-                    {n.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Itineraries section header + optional search (only if many) */}
+        {/* Itineraries section header */}
         {!collapsed && (
-          <div className="px-2 pt-3">
-            <div className="flex items-center justify-between px-2 h-6 mb-1">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Itineraries</span>
-              {itineraries.length > 8 && (
+          <div className="px-3 pt-5">
+            <div className="flex items-center justify-between px-3 h-6 mb-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Your trips</span>
+              <button
+                onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+                className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                title="New itinerary"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {itineraries.length > 8 && (
+              <>
                 <button
                   onClick={() => setSearchOpen((v) => !v)}
-                  className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  title="Search itineraries"
-                >
-                  <Search className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-            {itineraries.length > 8 && searchOpen && (
-              <div className="relative mt-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  placeholder="Search itineraries"
-                  autoFocus
-                  className="h-9 pl-9 text-[13px] rounded-lg bg-foreground/[0.07] hover:bg-foreground/[0.09] focus-visible:bg-foreground/[0.09] border-0 ring-0 focus-visible:ring-0 placeholder:text-muted-foreground/70 transition-colors"
+                  className="hidden"
+                  aria-hidden
                 />
-              </div>
+                {searchOpen && (
+                  <div className="relative mt-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                      placeholder="Search trips"
+                      autoFocus
+                      className="h-9 pl-9 text-[13px] rounded-lg bg-foreground/[0.07] border-0"
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
 
         <ScrollArea className="flex-1">
-          {/* Itineraries list — no nav, no title (search bar above already labels it) */}
           {!collapsed && (
             <SidebarGroup className="pt-0 pb-1">
               <SidebarGroupContent>
                 <SidebarMenu className="gap-0">
-                  {/* Inline create removed — uses modal dialog */}
-
                   {sortedItineraries.map((itinerary) => {
                     const isPinned = pinnedIds.includes(itinerary.id);
                     const isActive = activeItineraryId === itinerary.id;
@@ -257,7 +241,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                             isActive={isActive}
                             onClick={() => { setActiveItinerary(itinerary.id); navigate(`/trip/${itinerary.id}`); }}
                             className={cn(
-                              "group/item h-8 rounded-lg text-[13px] font-normal text-foreground/80 hover:bg-muted hover:text-foreground data-[active=true]:bg-muted data-[active=true]:text-foreground",
+                              "group/item h-8 rounded-lg text-[13px] font-normal text-foreground/70 hover:bg-muted hover:text-foreground data-[active=true]:bg-muted data-[active=true]:text-foreground mx-1",
                             )}
                           >
                             {isPinned && <Pin className="w-3 h-3 shrink-0 text-foreground/60 rotate-45" />}
@@ -302,8 +286,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                   })}
 
                   {sortedItineraries.length === 0 && (
-                    <p className="text-[12px] text-muted-foreground px-3 py-2">
-                      {filter ? "No matches" : "No itineraries yet"}
+                    <p className="text-[12px] text-muted-foreground px-4 py-2">
+                      {filter ? "No matches" : "No trips yet"}
                     </p>
                   )}
                 </SidebarMenu>
@@ -313,70 +297,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         </ScrollArea>
       </SidebarContent>
 
-      {/* Bottom — profile (always visible; collapses to avatar-only) */}
-      <div className={cn("mt-auto border-t border-border/40", collapsed ? "p-2 flex justify-center" : "p-2")}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            {collapsed ? (
-              <button
-                title={userProfile?.full_name || userProfile?.username || user?.email || "Sign in"}
-                className="w-9 h-9 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center overflow-hidden transition-colors"
-              >
-                {userProfile?.avatar_url ? (
-                  <img src={userProfile.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-4 h-4 text-muted-foreground" />
-                )}
-              </button>
-            ) : (
-              <button
-                className="w-full flex items-center gap-2.5 px-2 h-11 rounded-lg hover:bg-muted transition-colors text-left"
-              >
-                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                  {userProfile?.avatar_url ? (
-                    <img src={userProfile.avatar_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-3.5 h-3.5 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-foreground truncate leading-tight">
-                    {userProfile?.full_name || userProfile?.username || user?.email?.split("@")[0] || "Sign in"}
-                  </p>
-                  {isAuthenticated && (
-                    <p className="text-[11px] text-muted-foreground truncate leading-tight">Free plan</p>
-                  )}
-                </div>
-                {isAuthenticated && <MoreHorizontal className="w-4 h-4 text-muted-foreground shrink-0" />}
-              </button>
-            )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align={collapsed ? "start" : "end"} side="top" className="w-56">
-            {isAuthenticated ? (
-              <>
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  <User className="w-4 h-4 mr-2" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>
-                  <X className="w-4 h-4 mr-2" />
-                  Sign out
-                </DropdownMenuItem>
-              </>
-            ) : (
-              <DropdownMenuItem onClick={() => setAuthModalOpen(true)}>
-                <User className="w-4 h-4 mr-2" />
-                Sign in
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
 
-      {/* New itinerary modal */}
       <Dialog open={isCreating} onOpenChange={(o) => { if (!o) { setIsCreating(false); setNewItineraryName(""); } }}>
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
