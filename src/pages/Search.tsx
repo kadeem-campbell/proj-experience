@@ -204,6 +204,262 @@ const CityPickerBody = ({
   );
 };
 
+// ─── Swam Hero: brand intro + integrated search trigger ───────────
+const SwamHero = ({
+  onOpenSearch,
+  searchQuery,
+  selectedCityName,
+}: {
+  onOpenSearch: () => void;
+  searchQuery: string;
+  selectedCityName: string;
+}) => {
+  return (
+    <section className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pt-10 pb-12 mb-2 overflow-hidden">
+      {/* Soft brand glow */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[680px] h-[680px] rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute top-20 right-10 w-[280px] h-[280px] rounded-full bg-accent/10 blur-3xl" />
+      </div>
+
+      <div className="max-w-[920px] mx-auto text-center">
+        <span className="inline-flex items-center gap-2 px-3 h-7 rounded-full bg-foreground/[0.04] border border-border/60 text-[11px] font-bold tracking-[0.16em] uppercase text-muted-foreground mb-5">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Swam · Travel reimagined
+        </span>
+        <h1 className="text-[44px] md:text-[58px] leading-[1.02] font-extrabold tracking-[-0.035em] text-foreground">
+          Travel built for{" "}
+          <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
+            the next generation
+          </span>
+        </h1>
+        <p className="mt-4 text-[16px] md:text-[17px] text-muted-foreground max-w-[620px] mx-auto leading-relaxed">
+          Discover places, plan itineraries and find the right vibe — curated by humans, powered by intelligence.
+        </p>
+
+        {/* Big search trigger */}
+        <button
+          onClick={onOpenSearch}
+          className="group mt-8 mx-auto w-full max-w-[640px] flex items-center gap-3 h-[60px] pl-5 pr-2 rounded-full bg-background border border-border/70 shadow-[0_10px_40px_-12px_hsl(var(--foreground)/0.18)] hover:shadow-[0_14px_44px_-10px_hsl(var(--primary)/0.25)] hover:border-primary/40 transition-all"
+        >
+          <SearchIcon className="w-5 h-5 text-muted-foreground shrink-0" />
+          <span className="flex-1 text-left text-[15px] font-medium text-foreground/70 truncate">
+            {searchQuery
+              ? searchQuery
+              : selectedCityName
+                ? `Explore ${selectedCityName} — places, vibes, seasons…`
+                : "Where to? Try a city, vibe, or season"}
+          </span>
+          <span className="hidden sm:flex items-center gap-1.5 h-9 px-3 mr-1 rounded-full bg-muted text-[11.5px] font-bold uppercase tracking-wider text-muted-foreground">
+            ⌘ K
+          </span>
+          <span className="flex items-center justify-center w-11 h-11 rounded-full bg-primary text-primary-foreground group-hover:scale-105 transition-transform">
+            <ArrowRightIcon />
+          </span>
+        </button>
+
+        {/* Quick chips */}
+        <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
+          {["Beaches", "Safari", "Nightlife", "Foodie", "Off the beaten path"].map((t) => (
+            <button
+              key={t}
+              onClick={onOpenSearch}
+              className="h-8 px-3.5 rounded-full text-[12.5px] font-semibold text-foreground/70 bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-border/50 transition-colors"
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Tiny inline arrow to avoid an extra import
+const ArrowRightIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14M13 5l7 7-7 7" />
+  </svg>
+);
+
+// ─── Big Swam Search Modal with all filters ───────────────────────
+const SwamSearchModal = ({
+  open,
+  onOpenChange,
+  searchQuery,
+  onSearchChange,
+  destinations,
+  selectedCity,
+  onCitySelect,
+  vibes,
+  onVibesChange,
+  categories,
+  activeCategoryId,
+  onCategoryChange,
+  pois,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+  destinations: BrowseDestination[];
+  selectedCity: BrowseDestination | null;
+  onCitySelect: (c: BrowseDestination | null) => void;
+  vibes: VibeFilters;
+  onVibesChange: (v: VibeFilters) => void;
+  categories: { id: string; name: string; iconUrl: string | null }[];
+  activeCategoryId: string | null;
+  onCategoryChange: (id: string | null) => void;
+  pois: any[];
+}) => {
+  const liveDestinations = destinations.filter((d) => d.launch_status === "live");
+
+  const Section = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div>
+      <div className="text-[10.5px] font-bold tracking-[0.16em] uppercase text-muted-foreground mb-2.5">{label}</div>
+      <div className="flex flex-wrap gap-2">{children}</div>
+    </div>
+  );
+
+  const Pill = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+    <button
+      onClick={onClick}
+      className={cn(
+        "h-9 px-3.5 rounded-full text-[13px] font-semibold border transition-all flex items-center gap-1.5",
+        active
+          ? "bg-foreground text-background border-foreground"
+          : "bg-background text-foreground/80 border-border hover:border-foreground/40"
+      )}
+    >
+      {children}
+    </button>
+  );
+
+  const navigate = useNavigate();
+  const trendingPois = pois.slice(0, 6);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[920px] w-[95vw] p-0 rounded-3xl overflow-hidden border border-border/70 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.35)]">
+        {/* Search header */}
+        <div className="px-6 pt-6 pb-4 border-b border-border/60">
+          <div className="relative flex items-center bg-muted/60 rounded-2xl px-5 h-14">
+            <SearchIcon className="w-5 h-5 text-muted-foreground mr-3 shrink-0" />
+            <input
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search places, vibes, experiences…"
+              className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[17px] text-foreground placeholder:text-muted-foreground/70"
+            />
+            {searchQuery && (
+              <button onClick={() => onSearchChange("")} className="p-1 rounded-full">
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Filter body */}
+        <div className="px-6 py-6 max-h-[60vh] overflow-y-auto space-y-6">
+          <Section label="Country / City">
+            <Pill active={!selectedCity} onClick={() => onCitySelect(null)}>All destinations</Pill>
+            {liveDestinations.map((d) => (
+              <Pill
+                key={d.id}
+                active={selectedCity?.id === d.id}
+                onClick={() => onCitySelect(selectedCity?.id === d.id ? null : d)}
+              >
+                {d.flag_svg_url && <img src={d.flag_svg_url} alt="" className="w-4 h-4 rounded-full object-cover" />}
+                {d.name}
+              </Pill>
+            ))}
+          </Section>
+
+          <Section label="Time of day">
+            {TIME_OPTIONS.map((opt) => (
+              <Pill key={opt} active={vibes.time === opt} onClick={() => onVibesChange({ ...vibes, time: vibes.time === opt ? null : opt })}>
+                {opt}
+              </Pill>
+            ))}
+          </Section>
+
+          <Section label="Season">
+            {SEASON_OPTIONS.map((opt) => (
+              <Pill key={opt} active={vibes.season === opt} onClick={() => onVibesChange({ ...vibes, season: vibes.season === opt ? null : opt })}>
+                {opt}
+              </Pill>
+            ))}
+          </Section>
+
+          <Section label="Vibe">
+            {MOOD_OPTIONS.map((opt) => (
+              <Pill key={opt} active={vibes.mood === opt} onClick={() => onVibesChange({ ...vibes, mood: vibes.mood === opt ? null : opt })}>
+                {opt}
+              </Pill>
+            ))}
+          </Section>
+
+          {categories.length > 0 && (
+            <Section label="Category">
+              {categories.map((cat) => (
+                <Pill
+                  key={cat.id}
+                  active={activeCategoryId === cat.id}
+                  onClick={() => onCategoryChange(activeCategoryId === cat.id ? null : cat.id)}
+                >
+                  {cat.iconUrl && <img src={cat.iconUrl} alt="" className="w-4 h-4 rounded-md object-cover" />}
+                  {cat.name}
+                </Pill>
+              ))}
+            </Section>
+          )}
+
+          {trendingPois.length > 0 && (
+            <div>
+              <div className="text-[10.5px] font-bold tracking-[0.16em] uppercase text-muted-foreground mb-2.5">Trending places</div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+                {trendingPois.map((p: any) => (
+                  <button
+                    key={p.id}
+                    onClick={() => { onOpenChange(false); navigate(`/things-to-do/explore/${p.slug}`); }}
+                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted/60 transition-colors text-left"
+                  >
+                    <div className="w-11 h-11 rounded-lg overflow-hidden bg-muted shrink-0">
+                      {p.cover_image && <img src={p.cover_image} alt={p.name} className="w-full h-full object-cover" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13.5px] font-bold text-foreground truncate">{p.name}</p>
+                      <p className="text-[11.5px] text-muted-foreground capitalize truncate">{p.poi_type || 'Place'}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div className="px-6 py-4 border-t border-border/60 flex items-center justify-between bg-muted/20">
+          <button
+            onClick={() => {
+              onSearchChange("");
+              onCitySelect(null);
+              onVibesChange({ time: null, season: null, mood: null });
+              onCategoryChange(null);
+            }}
+            className="text-[13px] font-semibold text-muted-foreground hover:text-foreground"
+          >
+            Clear all
+          </button>
+          <Button onClick={() => onOpenChange(false)} className="rounded-full h-11 px-7 font-bold">
+            Show results
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // ─── Top bar: mode toggle + search + city dropdown ─────────────────
 const DesktopTopBar = ({
   mode,
