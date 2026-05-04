@@ -139,7 +139,7 @@ const DesktopTopBar = ({
         </div>
 
         {/* Search (flex grow) — exact same as mobile */}
-        <div className="relative flex-1 min-w-0 flex items-center bg-muted rounded-xl px-3.5 py-2.5 h-11">
+        <div className="relative flex-1 min-w-0 flex items-center bg-muted rounded-full px-4 py-2.5 h-11">
           <SearchIcon className="w-[18px] h-[18px] text-muted-foreground mr-2 shrink-0" />
           <input
             value={searchQuery}

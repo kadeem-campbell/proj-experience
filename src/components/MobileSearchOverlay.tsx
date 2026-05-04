@@ -379,7 +379,7 @@ export const MobileSearchOverlay = ({
         <div className="px-4 pt-[calc(env(safe-area-inset-top,8px)+12px)] pb-2.5">
           <form onSubmit={handleSubmit}>
             <div className="flex items-center gap-2.5">
-              <div className="flex-1 min-w-0 flex items-center bg-muted rounded-xl px-3.5 py-2.5">
+              <div className="flex-1 min-w-0 flex items-center bg-muted rounded-full px-4 py-2.5">
                 <Search className="w-[18px] h-[18px] text-muted-foreground mr-2 shrink-0" />
                 <input
                   ref={inputRef}
