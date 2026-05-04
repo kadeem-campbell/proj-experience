@@ -234,23 +234,14 @@ const SwamHero = ({
       </div>
 
       <div className="max-w-[1040px] mx-auto">
-        {/* Eyebrow */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-          </span>
-          <span className="text-[10.5px] font-semibold tracking-[0.32em] uppercase text-muted-foreground">
-            The Travel Marketplace · Live
-          </span>
-        </div>
-
-        {/* Editorial headline */}
-        <h1 className="text-center text-[44px] md:text-[68px] lg:text-[80px] leading-[0.95] tracking-[-0.045em] font-semibold text-foreground">
-          <span className="block">Every place worth</span>
-          <span className="block italic font-light text-foreground/90">
-            going,{" "}
-            <span className="not-italic font-semibold bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
+        {/* Editorial headline — SF Pro Display, heavy (Spotify style) */}
+        <h1
+          className="text-center text-[44px] md:text-[68px] lg:text-[80px] leading-[0.95] font-extrabold text-foreground"
+          style={{ fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif', letterSpacing: '-0.5px', fontWeight: 800 }}
+        >
+          <span className="block">Every place worth going,</span>
+          <span className="block">
+            <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
               intelligently
             </span>{" "}
             curated.
