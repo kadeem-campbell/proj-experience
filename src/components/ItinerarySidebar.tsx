@@ -105,7 +105,6 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   const navItems = [
     { to: "/", icon: Home, label: "Home", active: location.pathname === "/" },
     { to: "/travellers", icon: UserCircle, label: "Travellers", active: location.pathname === "/travellers" },
-    { to: "/itineraries", icon: FileText, label: "Itineraries", active: location.pathname === "/itineraries" },
     { to: "/feed", icon: CalendarCheck, label: "Feed", active: location.pathname === "/feed" },
     { to: "/liked", icon: Heart, label: "Liked", active: location.pathname === "/liked" },
   ];
