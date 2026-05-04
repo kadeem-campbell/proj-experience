@@ -631,7 +631,7 @@ const RankedTopList = ({
 const DesktopPoiCirclesRow = ({
   pois,
   destinationSlug,
-  max = 5,
+  max = 7,
 }: {
   pois: any[];
   destinationSlug?: string;
@@ -639,13 +639,16 @@ const DesktopPoiCirclesRow = ({
 }) => {
   const navigate = useNavigate();
   if (!pois || pois.length === 0) return null;
-  const items = pois.slice(0, Math.min(max, 5));
+  const items = pois.slice(0, Math.min(max, 7));
   return (
     <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 pt-6 pb-7 border-b border-border/50">
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="text-[20px] font-extrabold text-foreground tracking-[-0.02em]">Places</h3>
       </div>
-      <div className="grid grid-cols-5 gap-4 lg:gap-6">
+      <div
+        className="grid gap-4 lg:gap-6"
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))" }}
+      >
         {items.map((poi) => (
           <button
             key={poi.id}
