@@ -363,22 +363,26 @@ const TIME_OPTIONS = ["Morning", "Afternoon", "Evening", "Late night"];
 const SEASON_OPTIONS = ["Dry season", "Green season", "Festivals", "Migration"];
 const MOOD_OPTIONS = ["Romantic", "Family", "Adrenaline", "Slow & chilled", "Foodie", "Off the beaten path"];
 
-const FilterModal = ({
+const FilterPopover = ({
   label,
   value,
   onClear,
+  align = "start",
+  width = 280,
   children,
 }: {
   label: string;
   value: string | null;
   onClear: () => void;
+  align?: "start" | "end" | "center";
+  width?: number;
   children: (close: () => void) => React.ReactNode;
 }) => {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <button
           className={cn(
             "h-9 px-4 rounded-full text-[13px] font-bold flex items-center gap-1.5 transition-all",
@@ -390,30 +394,31 @@ const FilterModal = ({
           {value || label}
           <ChevronDown className={cn("w-3.5 h-3.5", value ? "opacity-80" : "opacity-50")} />
         </button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[460px] p-0 rounded-3xl border-border/60 shadow-2xl bg-popover overflow-hidden gap-0">
-        <div className="flex items-center justify-between px-6 pt-5 pb-4">
-          <h2 className="text-[22px] font-extrabold tracking-tight">{label}</h2>
+      </PopoverTrigger>
+      <PopoverContent
+        align={align}
+        sideOffset={8}
+        style={{ width }}
+        className="p-0 rounded-2xl border border-border/60 shadow-[0_12px_40px_rgba(0,0,0,0.12)] bg-popover overflow-hidden"
+      >
+        <div className="px-2 pt-2 pb-1.5">
+          <div className="flex items-center justify-between px-2 pt-1 pb-2">
+            <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-muted-foreground">{label}</span>
+            {value && (
+              <button
+                onClick={() => { onClear(); close(); }}
+                className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
-        <div className="px-6 pb-5 max-h-[60vh] overflow-y-auto">
+        <div className="px-2 pb-2 max-h-[360px] overflow-y-auto">
           {children(close)}
         </div>
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border/60 bg-muted/30">
-          <button
-            onClick={() => { onClear(); }}
-            className="text-[14px] font-semibold text-foreground/70 hover:text-foreground"
-          >
-            Reset
-          </button>
-          <Button
-            onClick={close}
-            className="h-10 px-6 rounded-full bg-foreground text-background hover:bg-foreground/90 font-bold"
-          >
-            Apply
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   );
 };
 
