@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Trash2, Check, X, Heart,
-  Pin, Home, FileText, UserCircle, CalendarCheck, MoreHorizontal, ChevronLeft, ChevronRight, SquarePen, Search, Disc,
+  Pin, Home, FileText, UserCircle, CalendarCheck, MoreHorizontal, ChevronLeft, ChevronRight, SquarePen, Search, Disc, User, LogOut,
 } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
