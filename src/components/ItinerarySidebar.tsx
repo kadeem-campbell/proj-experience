@@ -118,21 +118,21 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       <button
         onClick={toggleSidebar}
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="hidden md:flex absolute top-4 -right-3 z-30 w-6 h-6 rounded-full bg-background border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shadow-sm transition-colors"
+        className="hidden md:flex absolute top-5 -right-4 z-30 w-8 h-8 rounded-full bg-background border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shadow-md transition-colors"
       >
-        {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
 
       <SidebarContent className="bg-sidebar">
         {/* Brand row — logo only, matches screenshot */}
         <div className={cn("pt-4", collapsed ? "px-0 flex justify-center" : "px-4")}>
           <Link to="/" aria-label="swam.app" className="inline-flex items-center group">
-            <BrandLogo size={36} />
+            <BrandLogo size={40} />
           </Link>
         </div>
 
         {/* Primary nav */}
-        <div className={cn("pt-6", collapsed ? "px-2" : "px-3")}>
+        <div className={cn("pt-6", collapsed ? "px-0" : "px-3")}>
           <div className="space-y-1">
             {navItems.map((n) => collapsed ? (
               <Link
@@ -140,11 +140,11 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                 to={n.to}
                 title={n.label}
                 className={cn(
-                  "w-10 h-10 mx-auto rounded-xl flex items-center justify-center transition-colors",
+                  "w-11 h-11 mx-auto rounded-xl flex items-center justify-center transition-colors",
                   n.active ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 )}
               >
-                <n.icon className="w-[18px] h-[18px]" strokeWidth={1.75} />
+                <n.icon className="w-5 h-5" strokeWidth={1.75} />
               </Link>
             ) : (
               <Link
