@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { Link } from "react-router-dom";
+import { PanelLeft } from "lucide-react";
+import { SidebarProvider, SidebarInset, useSidebar } from "@/components/ui/sidebar";
 import { ItinerarySidebar } from "@/components/ItinerarySidebar";
 import { ItineraryPanel } from "@/components/ItineraryPanel";
 import { BrowseDestination } from "@/hooks/useDestinations";
