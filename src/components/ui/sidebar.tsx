@@ -36,6 +36,10 @@ type SidebarContext = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  width: number
+  setWidth: (w: number) => void
+  minWidth: number
+  maxWidth: number
 }
 
 const SidebarContext = React.createContext<SidebarContext | null>(null)
@@ -72,8 +76,6 @@ const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
 
-    // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(() => {
       if (typeof document === "undefined") return defaultOpen
       const match = document.cookie.match(new RegExp(`(?:^|; )${SIDEBAR_COOKIE_NAME}=([^;]+)`))
@@ -89,21 +91,33 @@ const SidebarProvider = React.forwardRef<
         } else {
           _setOpen(openState)
         }
-
-        // This sets the cookie to keep the sidebar state.
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
       },
       [setOpenProp, open]
     )
 
-    // Helper to toggle the sidebar.
+    // Resizable width (only applies when expanded)
+    const [width, _setWidth] = React.useState<number>(() => {
+      if (typeof window === "undefined") return SIDEBAR_WIDTH_DEFAULT_REM
+      const stored = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY)
+      const parsed = stored ? parseFloat(stored) : NaN
+      if (!isNaN(parsed)) {
+        return Math.min(SIDEBAR_WIDTH_MAX_REM, Math.max(SIDEBAR_WIDTH_MIN_REM, parsed))
+      }
+      return SIDEBAR_WIDTH_DEFAULT_REM
+    })
+    const setWidth = React.useCallback((w: number) => {
+      const clamped = Math.min(SIDEBAR_WIDTH_MAX_REM, Math.max(SIDEBAR_WIDTH_MIN_REM, w))
+      _setWidth(clamped)
+      try { window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped)) } catch {}
+    }, [])
+
     const toggleSidebar = React.useCallback(() => {
       return isMobile
         ? setOpenMobile((open) => !open)
         : setOpen((open) => !open)
     }, [isMobile, setOpen, setOpenMobile])
 
-    // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (
@@ -119,8 +133,6 @@ const SidebarProvider = React.forwardRef<
       return () => window.removeEventListener("keydown", handleKeyDown)
     }, [toggleSidebar])
 
-    // We add a state so that we can do data-state="expanded" or "collapsed".
-    // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? "expanded" : "collapsed"
 
     const contextValue = React.useMemo<SidebarContext>(
@@ -132,8 +144,12 @@ const SidebarProvider = React.forwardRef<
         openMobile,
         setOpenMobile,
         toggleSidebar,
+        width,
+        setWidth,
+        minWidth: SIDEBAR_WIDTH_MIN_REM,
+        maxWidth: SIDEBAR_WIDTH_MAX_REM,
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, width, setWidth]
     )
 
     return (
@@ -142,7 +158,7 @@ const SidebarProvider = React.forwardRef<
           <div
             style={
               {
-                "--sidebar-width": SIDEBAR_WIDTH,
+                "--sidebar-width": `${width}rem`,
                 "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
                 ...style,
               } as React.CSSProperties
