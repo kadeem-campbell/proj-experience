@@ -210,7 +210,7 @@ const SwamHero = ({
   searchQuery,
   selectedCityName,
 }: {
-  onOpenSearch: () => void;
+  onOpenSearch: (mode?: 'experiences' | 'itineraries') => void;
   searchQuery: string;
   selectedCityName: string;
 }) => {
@@ -223,9 +223,6 @@ const SwamHero = ({
       </div>
 
       <div className="max-w-[920px] mx-auto text-center">
-        <span className="inline-flex items-center gap-2 px-3 h-7 rounded-full bg-foreground/[0.04] border border-border/60 text-[11px] font-bold tracking-[0.16em] uppercase text-muted-foreground mb-5">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Swam · Travel reimagined
-        </span>
         <h1 className="text-[44px] md:text-[58px] leading-[1.02] font-extrabold tracking-[-0.035em] text-foreground">
           Travel built for{" "}
           <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
