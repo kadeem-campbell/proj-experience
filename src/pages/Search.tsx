@@ -74,13 +74,13 @@ const DesktopGridRow = ({
           <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
         )}
       </div>
-      {/* Auto-fill experiences: bounded max width prevents lone items from stretching; grid-auto-rows-0 + overflow-hidden hard-clips any wrap so it's ALWAYS one row */}
+      {/* Auto-fill experiences: 1fr fills available width so no empty gap on right; per-cell max-width prevents lone items from stretching across the row; grid-auto-rows:0 + overflow-hidden hard-clips any 2nd row so it's ALWAYS one row */}
       <div
         className={cn("grid overflow-hidden [grid-auto-rows:0]", gap)}
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 220px))" }}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))" }}
       >
         {(Array.isArray(children) ? children : [children]).slice(0, 6).map((child, i) => (
-          <div key={i} className="min-w-0">
+          <div key={i} className="min-w-0 max-w-[260px]">
             {child}
           </div>
         ))}
@@ -645,16 +645,16 @@ const DesktopPoiCirclesRow = ({
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="text-[20px] font-extrabold text-foreground tracking-[-0.02em]">Places</h3>
       </div>
-      {/* Auto-fill places: bounded max width keeps circles tidy when few items; grid-auto-rows-0 hard-clips any 2nd row */}
+      {/* Auto-fill places: 1fr fills available width; grid-auto-rows:0 hard-clips any 2nd row */}
       <div
         className="grid overflow-hidden [grid-auto-rows:0] gap-4 lg:gap-5"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(110px, 150px))" }}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))" }}
       >
         {items.map((poi) => (
           <button
             key={poi.id}
             onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
-            className="min-w-0 flex flex-col items-start gap-3 group"
+            className="min-w-0 max-w-[160px] flex flex-col items-start gap-3 group"
           >
             <div className="relative w-full aspect-square rounded-full overflow-hidden bg-muted ring-1 ring-border/40 group-hover:ring-2 group-hover:ring-foreground/80 transition-all duration-300">
               {poi.cover_image ? (
