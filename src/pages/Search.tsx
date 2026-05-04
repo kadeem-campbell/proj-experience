@@ -215,7 +215,7 @@ const SwamHero = ({
   selectedCityName: string;
 }) => {
   return (
-    <section className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pt-10 pb-12 mb-2 overflow-hidden">
+    <section className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pt-12 pb-8 mb-2 overflow-hidden">
       {/* Soft brand glow */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[680px] h-[680px] rounded-full bg-primary/10 blur-3xl" />
