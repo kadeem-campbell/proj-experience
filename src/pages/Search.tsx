@@ -65,13 +65,13 @@ const DesktopGridRow = ({
             onClick={onViewAll}
             className="group inline-flex items-center gap-1 text-left cursor-pointer"
           >
-            <h2 className="text-[19px] font-bold text-foreground tracking-[-0.015em] leading-none">
+            <h2 className="text-[18px] font-semibold text-foreground tracking-[-0.015em] leading-none">
               {title}
             </h2>
-            <ChevronRight className="w-4 h-4 text-foreground/40 group-hover:translate-x-0.5 transition-transform relative top-[1px]" />
+            <ChevronRight className="w-3.5 h-3.5 text-foreground/30 group-hover:translate-x-0.5 transition-transform relative top-[1px]" />
           </button>
         ) : (
-          <h2 className="text-[19px] font-bold text-foreground tracking-[-0.015em] leading-none">{title}</h2>
+          <h2 className="text-[18px] font-semibold text-foreground tracking-[-0.015em] leading-none">{title}</h2>
         )}
       </div>
       {/* Auto-fill experiences: 1fr fills available width so no empty gap on right; per-cell max-width prevents lone items from stretching across the row; grid-auto-rows:0 + overflow-hidden hard-clips any 2nd row so it's ALWAYS one row */}
@@ -1264,7 +1264,7 @@ const SearchPage = () => {
                                 <div className="w-full h-full bg-gradient-to-br from-muted to-muted/40" />
                               )}
                             </div>
-                            <h3 className="mt-3 text-[15px] font-bold text-foreground line-clamp-1">{it.data.title}</h3>
+                            <h3 className="mt-1.5 text-[15px] font-bold text-foreground line-clamp-1">{it.data.title}</h3>
                             <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5">{it.data.location}</p>
                           </button>
                         ) : (

@@ -120,7 +120,7 @@ export const ProductCard = ({
           </div>
         </div>
 
-        <div className="mt-2.5 space-y-0.5">
+        <div className="mt-1.5 space-y-0.5">
           <h3 className={cn(
             "font-semibold line-clamp-1 text-foreground leading-snug",
             compact ? "text-sm" : "text-[15px]"
