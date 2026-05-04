@@ -169,7 +169,7 @@ const DesktopTopBar = ({
                   <span className="max-w-[160px] truncate">{selectedCity.name}</span>
                 </>
               ) : (
-                <Map className="w-5 h-5 text-muted-foreground" />
+                <MapIcon className="w-5 h-5 text-muted-foreground" />
               )}
               <ChevronDown className="w-4 h-4 opacity-60" />
             </button>
