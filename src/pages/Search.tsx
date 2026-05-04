@@ -1170,7 +1170,8 @@ const SearchPage = () => {
           categories={homeCategories}
           activeCategoryId={activeCategoryId}
           onCategoryChange={setActiveCategoryId}
-          pois={pois}
+          mode={mode}
+          onModeChange={setMode}
         />
 
         {/* Spotify-style POI circles row (replaces icon category row) */}
