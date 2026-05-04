@@ -372,45 +372,6 @@ const SwamSearchModal = ({
             ))}
           </Section>
 
-          <Section label="Time of day">
-            {TIME_OPTIONS.map((opt) => (
-              <Pill key={opt} active={vibes.time === opt} onClick={() => onVibesChange({ ...vibes, time: vibes.time === opt ? null : opt })}>
-                {opt}
-              </Pill>
-            ))}
-          </Section>
-
-          <Section label="Season">
-            {SEASON_OPTIONS.map((opt) => (
-              <Pill key={opt} active={vibes.season === opt} onClick={() => onVibesChange({ ...vibes, season: vibes.season === opt ? null : opt })}>
-                {opt}
-              </Pill>
-            ))}
-          </Section>
-
-          <Section label="Vibe">
-            {MOOD_OPTIONS.map((opt) => (
-              <Pill key={opt} active={vibes.mood === opt} onClick={() => onVibesChange({ ...vibes, mood: vibes.mood === opt ? null : opt })}>
-                {opt}
-              </Pill>
-            ))}
-          </Section>
-
-          {categories.length > 0 && (
-            <Section label="Category">
-              {categories.map((cat) => (
-                <Pill
-                  key={cat.id}
-                  active={activeCategoryId === cat.id}
-                  onClick={() => onCategoryChange(activeCategoryId === cat.id ? null : cat.id)}
-                >
-                  {cat.iconUrl && <img src={cat.iconUrl} alt="" className="w-4 h-4 rounded-md object-cover" />}
-                  {cat.name}
-                </Pill>
-              ))}
-            </Section>
-          )}
-
           {trendingPois.length > 0 && (
             <div>
               <div className="text-[10.5px] font-bold tracking-[0.16em] uppercase text-muted-foreground mb-2.5">Trending places</div>
