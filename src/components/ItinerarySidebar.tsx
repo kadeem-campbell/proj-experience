@@ -37,13 +37,16 @@ const PINNED_KEY = "pinned_itineraries";
 const getPinnedIds = (): string[] => { try { return JSON.parse(localStorage.getItem(PINNED_KEY) || '[]'); } catch { return []; } };
 const setPinnedIds = (ids: string[]) => localStorage.setItem(PINNED_KEY, JSON.stringify(ids));
 
-const BrandLogo = ({ size = 36 }: { size?: number }) => (
+const BrandLogo = ({ size = 40 }: { size?: number }) => (
   <div
-    className="rounded-[10px] bg-foreground text-background flex items-center justify-center shrink-0"
+    className="rounded-[12px] bg-foreground flex items-center justify-center shrink-0"
     style={{ width: size, height: size }}
     aria-label="swam"
   >
-    <Disc className="w-1/2 h-1/2" strokeWidth={2} />
+    <svg viewBox="0 0 24 24" width={size * 0.55} height={size * 0.55} fill="none">
+      <circle cx="12" cy="12" r="9" stroke="hsl(var(--background))" strokeWidth="2" />
+      <circle cx="12" cy="12" r="2.2" fill="hsl(var(--background))" />
+    </svg>
   </div>
 );
 

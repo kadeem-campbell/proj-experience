@@ -222,49 +222,17 @@ const DesktopTopBar = ({
   onCitySelect: (city: BrowseDestination | null) => void;
   destinations: BrowseDestination[];
 }) => {
-  const [open, setOpen] = useState(false);
   return (
     <div className="sticky top-0 z-20 -mx-5 lg:-mx-8 px-5 lg:px-8 pt-5 pb-4 bg-background/85 backdrop-blur-xl border-b border-border/40">
-      <div className="flex items-center gap-3">
-        {/* iOS-style segmented toggle (sliding knob) */}
-        <div className="relative inline-flex items-center bg-muted/70 rounded-full p-1 shrink-0 h-11 w-[260px] ring-1 ring-border/40">
-          <span
-            aria-hidden
-            className={cn(
-              "absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-background shadow-[0_1px_2px_rgba(0,0,0,0.06),0_2px_8px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-              mode === 'things' ? "translate-x-0" : "translate-x-[calc(100%+4px)]"
-            )}
-            style={{ left: 4 }}
-          />
-          <button
-            onClick={() => onModeChange('things')}
-            className={cn(
-              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold tracking-tight transition-colors",
-              mode === 'things' ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
-            Things to do
-          </button>
-          <button
-            onClick={() => onModeChange('itineraries')}
-            className={cn(
-              "relative z-10 flex-1 h-9 rounded-full text-[13px] font-bold tracking-tight transition-colors",
-              mode === 'itineraries' ? "text-foreground" : "text-muted-foreground"
-            )}
-          >
-            Itineraries
-          </button>
-        </div>
-
-        {/* Search (flex grow) — exact same as mobile */}
-        <div className="relative flex-1 min-w-0 flex items-center bg-muted rounded-full px-4 py-2.5 h-11">
+      <div className="flex items-center gap-3 pr-28">
+        {/* Search pill — matches reference screenshot */}
+        <div className="relative flex-1 min-w-0 flex items-center bg-muted/60 ring-1 ring-border/50 rounded-full px-4 h-11 max-w-[560px]">
           <SearchIcon className="w-[18px] h-[18px] text-muted-foreground mr-2 shrink-0" />
           <input
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search"
-            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[17px] text-foreground placeholder:text-muted-foreground/60 leading-tight"
-            style={{ fontSize: '17px', WebkitAppearance: 'none' }}
+            placeholder="Search anything"
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[15px] text-foreground placeholder:text-muted-foreground/70 leading-tight"
           />
           {searchQuery && (
             <button onClick={() => onSearchChange("")} className="p-0.5 rounded-full shrink-0 ml-1">
@@ -274,36 +242,6 @@ const DesktopTopBar = ({
             </button>
           )}
         </div>
-
-        {/* City picker — Spotify/ChatGPT-style anchored dropdown */}
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <button className="shrink-0 flex items-center gap-2.5 h-11 px-5 rounded-full bg-muted/70 ring-1 ring-border/40 hover:bg-muted text-[13.5px] font-bold text-foreground transition-colors">
-              {selectedCity ? (
-                <>
-                  {selectedCity.flag_svg_url && (
-                    <img src={selectedCity.flag_svg_url} className="w-5 h-5 rounded-full object-cover" alt="" />
-                  )}
-                  <span className="max-w-[160px] truncate">{selectedCity.name}</span>
-                </>
-              ) : (
-                <MapIcon className="w-5 h-5 text-muted-foreground" />
-              )}
-              <ChevronDown className="w-4 h-4 opacity-60" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="end"
-            sideOffset={8}
-            className="w-[320px] p-0 rounded-2xl border border-border/60 shadow-[0_12px_40px_rgba(0,0,0,0.12)] bg-popover overflow-hidden"
-          >
-            <CityPickerBody
-              destinations={destinations}
-              selectedCity={selectedCity}
-              onCitySelect={(c) => { onCitySelect(c); setOpen(false); }}
-            />
-          </PopoverContent>
-        </Popover>
       </div>
     </div>
   );
