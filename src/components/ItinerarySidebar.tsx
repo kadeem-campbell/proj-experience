@@ -192,8 +192,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
 
         {/* Itineraries section header + optional search (only if many) */}
         {!collapsed && (
-          <div className="px-2 pt-4 pb-1">
-            <div className="flex items-center justify-between px-2 h-6">
+          <div className="px-2 pt-3">
+            <div className="flex items-center justify-between px-2 h-6 mb-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Itineraries</span>
               {itineraries.length > 8 && (
                 <button
