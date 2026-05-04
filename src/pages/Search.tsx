@@ -248,9 +248,9 @@ const DesktopTopBar = ({
           )}
         </div>
 
-        {/* City picker — modern modal */}
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+        {/* City picker — Spotify/ChatGPT-style anchored dropdown */}
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
             <button className="shrink-0 flex items-center gap-2.5 h-11 px-5 rounded-full bg-muted/70 ring-1 ring-border/40 hover:bg-muted text-[13.5px] font-bold text-foreground transition-colors">
               {selectedCity ? (
                 <>
@@ -264,15 +264,19 @@ const DesktopTopBar = ({
               )}
               <ChevronDown className="w-4 h-4 opacity-60" />
             </button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden">
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            sideOffset={8}
+            className="w-[320px] p-0 rounded-2xl border border-border/60 shadow-[0_12px_40px_rgba(0,0,0,0.12)] bg-popover overflow-hidden"
+          >
             <CityPickerBody
               destinations={destinations}
               selectedCity={selectedCity}
               onCitySelect={(c) => { onCitySelect(c); setOpen(false); }}
             />
-          </DialogContent>
-        </Dialog>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );
