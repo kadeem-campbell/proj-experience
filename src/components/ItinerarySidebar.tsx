@@ -138,14 +138,6 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       collapsible="icon"
       className="border-r-0 bg-sidebar"
     >
-      {/* Drag handle to resize sidebar (only when expanded) */}
-      {!collapsed && (
-        <div
-          onMouseDown={onResizeStart}
-          className="hidden md:block absolute top-0 right-0 h-full w-1.5 cursor-col-resize z-20 hover:bg-border/60 transition-colors"
-          title="Drag to resize"
-        />
-      )}
 
       <SidebarContent className="bg-sidebar">
         {/* Brand row — logo only, matches screenshot */}
@@ -315,14 +307,11 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         </ScrollArea>
 
         {/* Bottom collapse/expand toggle — matches reference screenshot */}
-        <div className={cn("mt-auto border-t border-border/60 py-3", collapsed ? "px-0 flex justify-center" : "px-4")}>
+        <div className="mt-auto border-t border-border/60 py-3 px-3 flex justify-center">
           <button
             onClick={toggleSidebar}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className={cn(
-              "flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors",
-              collapsed ? "w-9 h-9" : "w-9 h-9"
-            )}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
           >
             {collapsed ? <ChevronRight className="w-[18px] h-[18px]" strokeWidth={1.75} /> : <ChevronLeft className="w-[18px] h-[18px]" strokeWidth={1.75} />}
           </button>
