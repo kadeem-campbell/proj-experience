@@ -222,8 +222,8 @@ const SwamHero = ({
         <div className="absolute top-20 right-10 w-[280px] h-[280px] rounded-full bg-accent/10 blur-3xl" />
       </div>
 
-      <div className="max-w-[920px] mx-auto text-center">
-        <h1 className="text-[40px] md:text-[54px] leading-[1.05] font-extrabold tracking-[-0.035em] text-foreground whitespace-nowrap">
+      <div className="max-w-[820px] mx-auto text-center">
+        <h1 className="text-[34px] md:text-[44px] leading-[1.05] font-extrabold tracking-[-0.035em] text-foreground whitespace-nowrap">
           Travel built for{" "}
           <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
             the next generation
