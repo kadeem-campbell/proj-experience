@@ -20,7 +20,7 @@ import { usePublicItineraries } from "@/hooks/usePublicItineraries";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/utils/slugUtils";
-import { Compass, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin, ChevronDown, Check } from "lucide-react";
+import { Compass, ChevronLeft, ChevronRight, Search as SearchIcon, X, MapPin, Map as MapIcon, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
