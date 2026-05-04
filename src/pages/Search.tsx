@@ -363,22 +363,26 @@ const TIME_OPTIONS = ["Morning", "Afternoon", "Evening", "Late night"];
 const SEASON_OPTIONS = ["Dry season", "Green season", "Festivals", "Migration"];
 const MOOD_OPTIONS = ["Romantic", "Family", "Adrenaline", "Slow & chilled", "Foodie", "Off the beaten path"];
 
-const FilterModal = ({
+const FilterPopover = ({
   label,
   value,
   onClear,
+  align = "start",
+  width = 280,
   children,
 }: {
   label: string;
   value: string | null;
   onClear: () => void;
+  align?: "start" | "end" | "center";
+  width?: number;
   children: (close: () => void) => React.ReactNode;
 }) => {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <button
           className={cn(
             "h-9 px-4 rounded-full text-[13px] font-bold flex items-center gap-1.5 transition-all",
@@ -390,30 +394,31 @@ const FilterModal = ({
           {value || label}
           <ChevronDown className={cn("w-3.5 h-3.5", value ? "opacity-80" : "opacity-50")} />
         </button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[460px] p-0 rounded-3xl border-border/60 shadow-2xl bg-popover overflow-hidden gap-0">
-        <div className="flex items-center justify-between px-6 pt-5 pb-4">
-          <h2 className="text-[22px] font-extrabold tracking-tight">{label}</h2>
+      </PopoverTrigger>
+      <PopoverContent
+        align={align}
+        sideOffset={8}
+        style={{ width }}
+        className="p-0 rounded-2xl border border-border/60 shadow-[0_12px_40px_rgba(0,0,0,0.12)] bg-popover overflow-hidden"
+      >
+        <div className="px-2 pt-2 pb-1.5">
+          <div className="flex items-center justify-between px-2 pt-1 pb-2">
+            <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-muted-foreground">{label}</span>
+            {value && (
+              <button
+                onClick={() => { onClear(); close(); }}
+                className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
-        <div className="px-6 pb-5 max-h-[60vh] overflow-y-auto">
+        <div className="px-2 pb-2 max-h-[360px] overflow-y-auto">
           {children(close)}
         </div>
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border/60 bg-muted/30">
-          <button
-            onClick={() => { onClear(); }}
-            className="text-[14px] font-semibold text-foreground/70 hover:text-foreground"
-          >
-            Reset
-          </button>
-          <Button
-            onClick={close}
-            className="h-10 px-6 rounded-full bg-foreground text-background hover:bg-foreground/90 font-bold"
-          >
-            Apply
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   );
 };
 
@@ -442,14 +447,14 @@ const VibeFilterRow = ({
       {groups.map((g) => {
         const current = vibes[g.key];
         return (
-          <FilterModal
+          <FilterPopover
             key={g.key}
             label={g.label}
             value={current}
             onClear={() => onChange({ ...vibes, [g.key]: null })}
           >
             {(close) => (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col">
                 {g.opts.map((opt) => {
                   const selected = current === opt;
                   return (
@@ -457,56 +462,58 @@ const VibeFilterRow = ({
                       key={opt}
                       onClick={() => {
                         onChange({ ...vibes, [g.key]: selected ? null : opt });
+                        close();
                       }}
                       className={cn(
-                        "h-10 px-4 rounded-full text-[14px] font-semibold transition-all border",
-                        selected
-                          ? "bg-foreground text-background border-foreground"
-                          : "bg-background text-foreground border-border hover:border-foreground/40"
+                        "w-full flex items-center gap-3 px-2 py-2 rounded-lg text-[13.5px] font-semibold text-left transition-colors",
+                        selected ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
                       )}
                     >
-                      {opt}
+                      <span className="flex-1 truncate">{opt}</span>
+                      {selected && <Check className="w-4 h-4 text-foreground shrink-0" />}
                     </button>
                   );
                 })}
               </div>
             )}
-          </FilterModal>
+          </FilterPopover>
         );
       })}
 
-      {/* Categories pill — same modal style */}
+      {/* Categories pill — same dropdown style */}
       {categories.length > 0 && onCategoryChange && (
-        <FilterModal
+        <FilterPopover
           label="Category"
           value={activeCat?.name ?? null}
           onClear={() => onCategoryChange(null)}
+          width={300}
         >
-          {() => (
-            <div className="grid grid-cols-2 gap-2">
+          {(close) => (
+            <div className="flex flex-col">
               {categories.map((cat) => {
                 const selected = activeCategoryId === cat.id;
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => onCategoryChange(selected ? null : cat.id)}
+                    onClick={() => { onCategoryChange(selected ? null : cat.id); close(); }}
                     className={cn(
-                      "h-12 px-3 rounded-2xl flex items-center gap-2.5 text-[14px] font-semibold transition-all border text-left",
-                      selected
-                        ? "bg-foreground text-background border-foreground"
-                        : "bg-background text-foreground border-border hover:border-foreground/40"
+                      "w-full flex items-center gap-3 px-2 py-2 rounded-lg text-[13.5px] font-semibold text-left transition-colors",
+                      selected ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
                     )}
                   >
-                    {cat.iconUrl && (
-                      <img src={cat.iconUrl} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                    {cat.iconUrl ? (
+                      <img src={cat.iconUrl} alt="" className="w-6 h-6 rounded-md object-cover ring-1 ring-border/60 shrink-0" />
+                    ) : (
+                      <div className="w-6 h-6 rounded-md bg-muted ring-1 ring-border/60 shrink-0" />
                     )}
                     <span className="flex-1 truncate">{cat.name}</span>
+                    {selected && <Check className="w-4 h-4 text-foreground shrink-0" />}
                   </button>
                 );
               })}
             </div>
           )}
-        </FilterModal>
+        </FilterPopover>
       )}
 
       {hasAny && (
