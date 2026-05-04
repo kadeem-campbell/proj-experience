@@ -137,14 +137,10 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
               <div className="flex items-center gap-1">
                 <Link
                   to="/"
-                  className="flex-1 flex items-center gap-2 px-2 h-9 rounded-lg hover:bg-muted transition-colors"
+                  className="flex-1 flex items-center px-2 h-9 rounded-lg hover:bg-muted transition-colors text-[20px] tracking-[-0.03em] text-foreground"
+                  style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}
                 >
-                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center shrink-0 shadow-sm">
-                    <Compass className="w-3.5 h-3.5" strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[15px] font-extrabold tracking-[-0.02em] bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
-                    Swam
-                  </span>
+                  swam<span className="text-primary font-extrabold">.app</span>
                 </Link>
                 <button
                   onClick={toggleSidebar}
