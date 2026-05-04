@@ -1173,6 +1173,42 @@ const SearchPage = () => {
       />
 
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
+        {/* Curated playlist-style featured card */}
+        <div className="pt-6 mb-2">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#c2562a] to-[#7d2f12] shadow-[0_30px_80px_-30px_hsl(var(--primary)/0.45)]">
+            <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] items-stretch min-h-[320px] md:min-h-[360px]">
+              <div className="relative z-10 p-8 md:p-12 flex flex-col justify-between text-white">
+                <div>
+                  <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-white/80">Curated Collection</p>
+                  <h2 className="mt-4 text-[40px] md:text-[56px] leading-[0.95] font-extrabold tracking-[-0.02em]">
+                    BLINDING LIGHT
+                  </h2>
+                  <p className="mt-5 text-[15px] md:text-[16px] leading-[1.5] text-white/85 max-w-[420px] font-light">
+                    A handpicked itinerary of sunlit cities, golden coastlines and unforgettable evenings — set the taste, we'll handle the rest.
+                  </p>
+                </div>
+                <div className="mt-8 flex items-center gap-4 text-[13px] text-white/80">
+                  <span className="flex items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10z"/></svg>
+                    <span className="font-medium">83,012 likes</span>
+                  </span>
+                  <span className="text-white/40">·</span>
+                  <span>18 places · 3 cities</span>
+                </div>
+              </div>
+              <div className="relative h-[220px] md:h-auto">
+                <img
+                  src={curatedHero}
+                  alt="Curated travel collection"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#c2562a] via-[#c2562a]/40 to-transparent md:from-[#c2562a] md:via-[#c2562a]/30 md:to-transparent" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <SwamHero
           onOpenSearch={(m) => {
             if (m) setMode(m === 'experiences' ? 'things' : 'itineraries');
