@@ -1158,13 +1158,16 @@ const SearchPage = () => {
       />
 
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
-        {/* Curated playlist-style featured card */}
-        <div className="pt-6 mb-2">
+        {/* Hero — editorial card with integrated search */}
+        <div className="pt-6 mb-10">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#c2562a] to-[#7d2f12] shadow-[0_30px_80px_-30px_hsl(var(--primary)/0.45)]">
-            <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] items-stretch min-h-[320px] md:min-h-[360px]">
+            <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr] items-stretch min-h-[380px] md:min-h-[440px]">
               <div className="relative z-10 p-8 md:p-12 flex flex-col justify-between text-white">
                 <div>
-                  <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-white/80">The Travel Marketplace</p>
+                  <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-white/80 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/90 animate-pulse" />
+                    The Travel Marketplace
+                  </p>
                   <h1 className="mt-4 text-[40px] md:text-[56px] leading-[0.95] font-extrabold tracking-[-0.02em]">
                     Every place worth going,<br />intelligently curated.
                   </h1>
@@ -1172,13 +1175,41 @@ const SearchPage = () => {
                     A new kind of travel layer — humans set the taste, intelligence does the legwork.
                   </p>
                 </div>
-                <div className="mt-8 flex items-center gap-4 text-[13px] text-white/80">
-                  <span className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/90 animate-pulse" />
-                    <span className="font-medium">Live · curated daily</span>
-                  </span>
-                  <span className="text-white/40">·</span>
-                  <span>Hosts, places & itineraries</span>
+
+                {/* Integrated search */}
+                <div className="mt-8">
+                  <button
+                    onClick={() => setSearchModalOpen(true)}
+                    className="group relative w-full flex items-center gap-3 h-[58px] pl-5 pr-2 rounded-2xl bg-white/95 backdrop-blur-xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.4)] hover:bg-white transition-all duration-300"
+                  >
+                    <SearchIcon className="w-[18px] h-[18px] text-foreground/55 shrink-0" strokeWidth={2.25} />
+                    <span className="flex-1 text-left text-[15px] font-normal text-foreground/60 truncate">
+                      {searchQuery
+                        ? searchQuery
+                        : selectedCityName
+                          ? `Explore ${selectedCityName} — places, vibes, seasons`
+                          : "Where to? A city, a vibe, a season…"}
+                    </span>
+                    <kbd className="hidden sm:flex items-center gap-1 h-7 px-2 mr-2 rounded-md border border-foreground/10 bg-foreground/5 text-[10.5px] font-medium tracking-wide text-foreground/60">
+                      <span className="text-[11px] leading-none">⌘</span>K
+                    </kbd>
+                    <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-foreground text-background shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)] transition-shadow duration-300">
+                      <ArrowRightIcon />
+                    </span>
+                  </button>
+
+                  <div className="mt-4 flex items-center flex-wrap gap-1.5 text-[12.5px]">
+                    <span className="text-white/65 mr-1">Try</span>
+                    {["Tokyo in spring", "Lisbon at sunset", "Slow Mexico City"].map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => setSearchModalOpen(true)}
+                        className="px-3 py-1.5 rounded-full border border-white/25 bg-white/10 backdrop-blur-md text-white/90 hover:bg-white/20 hover:border-white/40 transition-colors"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="relative h-[220px] md:h-auto">
@@ -1186,22 +1217,12 @@ const SearchPage = () => {
                   src={curatedHero}
                   alt="Curated travel collection"
                   className="absolute inset-0 w-full h-full object-cover"
-                  loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#c2562a] via-[#c2562a]/40 to-transparent md:from-[#c2562a] md:via-[#c2562a]/30 md:to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#c2562a] via-[#c2562a]/30 to-transparent md:from-[#c2562a] md:via-[#c2562a]/20 md:to-transparent" />
               </div>
             </div>
           </div>
         </div>
-
-        <SwamHero
-          onOpenSearch={(m) => {
-            if (m) setMode(m === 'experiences' ? 'things' : 'itineraries');
-            setSearchModalOpen(true);
-          }}
-          searchQuery={searchQuery}
-          selectedCityName={selectedCityName}
-        />
 
         <SwamSearchModal
           open={searchModalOpen}
