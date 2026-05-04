@@ -76,7 +76,7 @@ const DesktopGridRow = ({
       </div>
       {/* Auto-fill experiences: 1fr fills available width so no empty gap on right; per-cell max-width prevents lone items from stretching across the row; grid-auto-rows:0 + overflow-hidden hard-clips any 2nd row so it's ALWAYS one row */}
       <div
-        className={cn("grid overflow-hidden [grid-auto-rows:0]", gap)}
+        className={cn("grid overflow-hidden [grid-template-rows:auto] [grid-auto-rows:0]", gap)}
         style={{ gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))" }}
       >
         {(Array.isArray(children) ? children : [children]).slice(0, 6).map((child, i) => (
