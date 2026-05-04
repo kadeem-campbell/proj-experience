@@ -183,15 +183,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         {/* Itineraries section header */}
         {!collapsed && (
           <div className="px-3 pt-5">
-            <div className="flex items-center justify-between px-3 h-6 mb-1">
+            <div className="flex items-center px-3 h-6 mb-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Itineraries</span>
-              <button
-                onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-                className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                title="New itinerary"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
             </div>
             {itineraries.length > 8 && (
               <>
