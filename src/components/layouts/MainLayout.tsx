@@ -52,7 +52,6 @@ export const MainLayout = ({
 
         <SidebarInset className="flex-1 flex flex-col min-w-0">
           <div className="flex flex-1 overflow-hidden relative">
-            <div className="flex flex-1 overflow-hidden relative">
             <main data-scroll-root="true" className="flex-1 overflow-auto min-w-0">
               {children}
             </main>
