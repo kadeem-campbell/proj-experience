@@ -138,14 +138,15 @@ const DesktopTopBar = ({
           </button>
         </div>
 
-        {/* Search (flex grow) — same as mobile */}
-        <div className="relative flex-1 flex items-center bg-muted rounded-xl px-3.5 h-11">
+        {/* Search (flex grow) — exact same as mobile */}
+        <div className="relative flex-1 min-w-0 flex items-center bg-muted rounded-xl px-3.5 py-2.5 h-11">
           <SearchIcon className="w-[18px] h-[18px] text-muted-foreground mr-2 shrink-0" />
           <input
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search"
-            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[15px] text-foreground placeholder:text-muted-foreground/60 leading-tight"
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[17px] text-foreground placeholder:text-muted-foreground/60 leading-tight"
+            style={{ fontSize: '17px', WebkitAppearance: 'none' }}
           />
           {searchQuery && (
             <button onClick={() => onSearchChange("")} className="p-0.5 rounded-full shrink-0 ml-1">
