@@ -65,10 +65,10 @@ const DesktopGridRow = ({
             onClick={onViewAll}
             className="group inline-flex items-center gap-1.5 text-left cursor-pointer"
           >
-            <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none group-hover:opacity-70 transition-opacity">
+            <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">
               {title}
             </h2>
-            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all relative top-[1px]" />
+            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:translate-x-0.5 transition-transform relative top-[1px]" />
           </button>
         ) : (
           <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
