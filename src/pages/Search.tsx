@@ -74,9 +74,12 @@ const DesktopGridRow = ({
           <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
         )}
       </div>
-      {/* 4 cards per row, single row only — extras hidden */}
-      <div className={cn("grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-rows-1 overflow-hidden", gap)}>
-        {(Array.isArray(children) ? children : [children]).slice(0, 4).map((child, i) => (
+      {/* Auto-fit up to 6 cards per row, scales down with width — no horizontal scroll */}
+      <div
+        className={cn("grid grid-rows-1 overflow-hidden", gap)}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))" }}
+      >
+        {(Array.isArray(children) ? children : [children]).slice(0, 6).map((child, i) => (
           <div key={i} className="min-w-0">
             {child}
           </div>
