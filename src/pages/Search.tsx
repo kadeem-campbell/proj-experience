@@ -157,9 +157,9 @@ const DesktopTopBar = ({
           )}
         </div>
 
-        {/* City dropdown (right) */}
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
+        {/* City picker — modern modal */}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
             <button className="shrink-0 flex items-center gap-2.5 h-11 px-5 rounded-full bg-muted/70 ring-1 ring-border/40 hover:bg-muted text-[13.5px] font-bold text-foreground transition-colors">
               {selectedCity ? (
                 <>
@@ -173,28 +173,15 @@ const DesktopTopBar = ({
               )}
               <ChevronDown className="w-4 h-4 opacity-60" />
             </button>
-          </PopoverTrigger>
-          <PopoverContent align="end" sideOffset={8} className="w-72 p-2 rounded-2xl border-border/60 shadow-xl bg-popover/95 backdrop-blur-xl">
-            <div className="px-2 pt-1 pb-2 text-[10px] font-bold tracking-[0.14em] uppercase text-muted-foreground">Destinations</div>
-            {destinations.map((d) => {
-              const active = selectedCity?.id === d.id;
-              return (
-                <button
-                  key={d.id}
-                  onClick={() => { onCitySelect(active ? null : d); setOpen(false); }}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold text-left transition-colors",
-                    active ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
-                  )}
-                >
-                  {d.flag_svg_url && <img src={d.flag_svg_url} className="w-5 h-5 rounded-full object-cover ring-1 ring-border/60" alt="" />}
-                  <span className="flex-1 truncate">{d.name}</span>
-                  {active && <Check className="w-4 h-4 text-foreground shrink-0" />}
-                </button>
-              );
-            })}
-          </PopoverContent>
-        </Popover>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden">
+            <CityPickerBody
+              destinations={destinations}
+              selectedCity={selectedCity}
+              onCitySelect={(c) => { onCitySelect(c); setOpen(false); }}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
