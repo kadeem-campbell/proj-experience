@@ -74,10 +74,10 @@ const DesktopGridRow = ({
           <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
         )}
       </div>
-      {/* Auto-fit up to 6 cards per row, scales gracefully with viewport — never wraps */}
+      {/* Auto-fit experiences: 6 max @ ~1443px desktop, scales down to 5/4/3 gracefully — never wraps */}
       <div
         className={cn("grid grid-rows-1 overflow-hidden", gap)}
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(115px, 1fr))" }}
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}
       >
         {(Array.isArray(children) ? children : [children]).slice(0, 6).map((child, i) => (
           <div key={i} className="min-w-0">
