@@ -1174,23 +1174,6 @@ const SearchPage = () => {
           onModeChange={setMode}
         />
 
-        {/* Spotify-style POI circles row (replaces icon category row) */}
-        <DesktopPoiCirclesRow
-          pois={selectedDestId ? pois.filter((p: any) => p.destination_id === selectedDestId) : pois}
-          destinationSlug={destSlug}
-        />
-
-        {/* Customisable vibe filters (now includes Categories) */}
-        <div className="pt-6 pb-2">
-          <VibeFilterRow
-            vibes={vibes}
-            onChange={setVibes}
-            categories={homeCategories}
-            activeCategoryId={activeCategoryId}
-            onCategoryChange={setActiveCategoryId}
-          />
-        </div>
-
         <div className="pb-12 pt-4">
           {hasSearchResults ? (
             <div>
