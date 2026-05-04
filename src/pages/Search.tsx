@@ -1272,43 +1272,46 @@ const SearchPage = () => {
                   );
                 }
 
-                // Featured = first carousel rendered as large hero cards
-                const [featured, ...rest] = resolvedCarousels;
+                // First two carousels render above the "Best places" / top lists section
+                const topCarousels = resolvedCarousels.slice(0, 2);
+                const rest = resolvedCarousels.slice(2);
+
+                const renderCarousel = (c: typeof resolvedCarousels[number], featured = false) => (
+                  <DesktopGridRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
+                    {(featured ? c.items.slice(0, 8) : c.items).map((it: any) => {
+                      if (it.type === 'product') {
+                        return featured ? (
+                          <button
+                            key={`prod-${it.data.id}`}
+                            onClick={() => navigate(`/things-to-do/${destSlug || slugify(it.data.location || 'explore')}/${it.data.slug || it.data.id}`)}
+                            className="w-full text-left group"
+                          >
+                            <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
+                              {it.data.image ? (
+                                <img src={it.data.image} alt={it.data.title} loading="lazy" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-muted to-muted/40" />
+                              )}
+                            </div>
+                            <h3 className="mt-3 text-[15px] font-bold text-foreground line-clamp-1">{it.data.title}</h3>
+                            <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5">{it.data.location}</p>
+                          </button>
+                        ) : (
+                          <ProductCard key={`prod-${it.data.id}`} {...it.data} compact square />
+                        );
+                      }
+                      if (it.type === 'itinerary') {
+                        return <PublicItineraryCard key={`itin-${it.data.id}`} itinerary={it.data} />;
+                      }
+                      return <DesktopPoiCard key={`poi-${it.data.id}`} poi={it.data} destinationSlug={destSlug} />;
+                    })}
+                  </DesktopGridRow>
+                );
 
                 return (
                   <>
-                    {/* Featured hero — larger cards in fewer columns */}
-                    <DesktopGridRow
-                      title={featured.title}
-                      onViewAll={featured.onTitleClick}
-                    >
-                      {featured.items.slice(0, 8).map((it: any) => (
-                        <div key={`${it.type}-${it.data.id}`}>
-                          {it.type === 'product' && (
-                            <button
-                              onClick={() => navigate(`/things-to-do/${destSlug || slugify(it.data.location || 'explore')}/${it.data.slug || it.data.id}`)}
-                              className="w-full text-left group"
-                            >
-                              <div className="relative aspect-square rounded-xl overflow-hidden bg-muted">
-                                {it.data.image ? (
-                                  <img src={it.data.image} alt={it.data.title} loading="lazy" className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full bg-gradient-to-br from-muted to-muted/40" />
-                                )}
-                              </div>
-                              <h3 className="mt-3 text-[15px] font-bold text-foreground line-clamp-1">{it.data.title}</h3>
-                              <p className="text-[12px] text-muted-foreground line-clamp-1 mt-0.5">{it.data.location}</p>
-                            </button>
-                          )}
-                          {it.type === 'itinerary' && (
-                            <PublicItineraryCard itinerary={it.data} />
-                          )}
-                          {it.type === 'poi' && (
-                            <DesktopPoiCard poi={it.data} destinationSlug={destSlug} />
-                          )}
-                        </div>
-                      ))}
-                    </DesktopGridRow>
+                    {/* First two carousels */}
+                    {topCarousels.map((c, i) => renderCarousel(c, i === 0))}
 
                     {/* Ctrip-style ranked Top Lists — 2 columns */}
                     {(() => {
@@ -1351,19 +1354,7 @@ const SearchPage = () => {
                     })()}
 
                     {/* Remaining carousels */}
-                    {rest.map((c) => (
-                      <DesktopGridRow key={c.carousel.id} title={c.title} onViewAll={c.onTitleClick}>
-                        {c.items.map((it: any) => {
-                          if (it.type === 'product') {
-                            return <ProductCard key={`prod-${it.data.id}`} {...it.data} compact square />;
-                          }
-                          if (it.type === 'itinerary') {
-                            return <PublicItineraryCard key={`itin-${it.data.id}`} itinerary={it.data} />;
-                          }
-                          return <DesktopPoiCard key={`poi-${it.data.id}`} poi={it.data} destinationSlug={destSlug} />;
-                        })}
-                      </DesktopGridRow>
-                    ))}
+                    {rest.map((c) => renderCarousel(c))}
 
                     {/* POI row at the bottom, optimised for desktop */}
                     {pois.length > 0 && (
