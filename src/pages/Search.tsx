@@ -292,7 +292,8 @@ const SwamSearchModal = ({
   categories,
   activeCategoryId,
   onCategoryChange,
-  pois,
+  mode,
+  onModeChange,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -306,7 +307,8 @@ const SwamSearchModal = ({
   categories: { id: string; name: string; iconUrl: string | null }[];
   activeCategoryId: string | null;
   onCategoryChange: (id: string | null) => void;
-  pois: any[];
+  mode: 'things' | 'itineraries';
+  onModeChange: (m: 'things' | 'itineraries') => void;
 }) => {
   const liveDestinations = destinations.filter((d) => d.launch_status === "live");
 
@@ -331,21 +333,32 @@ const SwamSearchModal = ({
     </button>
   );
 
-  const navigate = useNavigate();
-  const trendingPois = pois.slice(0, 6);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[920px] w-[95vw] p-0 rounded-3xl overflow-hidden border border-border/70 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.35)]">
-        {/* Search header */}
-        <div className="px-6 pt-6 pb-4 border-b border-border/60">
+        {/* Search header with mode toggle */}
+        <div className="px-6 pt-6 pb-4 border-b border-border/60 space-y-3">
+          <div className="inline-flex items-center bg-muted/60 rounded-full p-1">
+            {(['things', 'itineraries'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => onModeChange(m)}
+                className={cn(
+                  "h-8 px-4 rounded-full text-[12.5px] font-bold transition-colors",
+                  mode === m ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {m === 'things' ? 'Experiences' : 'Itineraries'}
+              </button>
+            ))}
+          </div>
           <div className="relative flex items-center bg-muted/60 rounded-2xl px-5 h-14">
             <SearchIcon className="w-5 h-5 text-muted-foreground mr-3 shrink-0" />
             <input
               autoFocus
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search places, vibes, experiences…"
+              placeholder={mode === 'itineraries' ? "Search itineraries…" : "Search experiences, vibes, places…"}
               className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[17px] text-foreground placeholder:text-muted-foreground/70"
             />
             {searchQuery && (
@@ -372,27 +385,43 @@ const SwamSearchModal = ({
             ))}
           </Section>
 
-          {trendingPois.length > 0 && (
-            <div>
-              <div className="text-[10.5px] font-bold tracking-[0.16em] uppercase text-muted-foreground mb-2.5">Trending places</div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                {trendingPois.map((p: any) => (
-                  <button
-                    key={p.id}
-                    onClick={() => { onOpenChange(false); navigate(`/things-to-do/explore/${p.slug}`); }}
-                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted/60 transition-colors text-left"
-                  >
-                    <div className="w-11 h-11 rounded-lg overflow-hidden bg-muted shrink-0">
-                      {p.cover_image && <img src={p.cover_image} alt={p.name} className="w-full h-full object-cover" />}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[13.5px] font-bold text-foreground truncate">{p.name}</p>
-                      <p className="text-[11.5px] text-muted-foreground capitalize truncate">{p.poi_type || 'Place'}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+          <Section label="Time of day">
+            {TIME_OPTIONS.map((opt) => (
+              <Pill key={opt} active={vibes.time === opt} onClick={() => onVibesChange({ ...vibes, time: vibes.time === opt ? null : opt })}>
+                {opt}
+              </Pill>
+            ))}
+          </Section>
+
+          <Section label="Season">
+            {SEASON_OPTIONS.map((opt) => (
+              <Pill key={opt} active={vibes.season === opt} onClick={() => onVibesChange({ ...vibes, season: vibes.season === opt ? null : opt })}>
+                {opt}
+              </Pill>
+            ))}
+          </Section>
+
+          <Section label="Vibe">
+            {MOOD_OPTIONS.map((opt) => (
+              <Pill key={opt} active={vibes.mood === opt} onClick={() => onVibesChange({ ...vibes, mood: vibes.mood === opt ? null : opt })}>
+                {opt}
+              </Pill>
+            ))}
+          </Section>
+
+          {categories.length > 0 && (
+            <Section label="Category">
+              {categories.map((cat) => (
+                <Pill
+                  key={cat.id}
+                  active={activeCategoryId === cat.id}
+                  onClick={() => onCategoryChange(activeCategoryId === cat.id ? null : cat.id)}
+                >
+                  {cat.iconUrl && <img src={cat.iconUrl} alt="" className="w-4 h-4 rounded-md object-cover" />}
+                  {cat.name}
+                </Pill>
+              ))}
+            </Section>
           )}
         </div>
 
@@ -1141,7 +1170,8 @@ const SearchPage = () => {
           categories={homeCategories}
           activeCategoryId={activeCategoryId}
           onCategoryChange={setActiveCategoryId}
-          pois={pois}
+          mode={mode}
+          onModeChange={setMode}
         />
 
         {/* Spotify-style POI circles row (replaces icon category row) */}
