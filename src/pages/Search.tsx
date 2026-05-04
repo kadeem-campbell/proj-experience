@@ -1120,7 +1120,10 @@ const SearchPage = () => {
 
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
         <SwamHero
-          onOpenSearch={() => setSearchModalOpen(true)}
+          onOpenSearch={(m) => {
+            if (m) setMode(m === 'experiences' ? 'things' : 'itineraries');
+            setSearchModalOpen(true);
+          }}
           searchQuery={searchQuery}
           selectedCityName={selectedCityName}
         />
