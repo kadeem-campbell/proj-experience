@@ -53,9 +53,33 @@ const BrandLogo = ({ size = 40 }: { size?: number }) => (
 export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, open, width, setWidth, minWidth, maxWidth } = useSidebar();
   const collapsed = state === "collapsed";
   const isMobile = useIsMobile();
+
+  // Drag-to-resize the sidebar (only when expanded)
+  const draggingRef = (typeof window !== "undefined") ? (window as any) : null;
+  const onResizeStart = (e: React.MouseEvent) => {
+    if (collapsed) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = width;
+    const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const onMove = (ev: MouseEvent) => {
+      const deltaRem = (ev.clientX - startX) / remPx;
+      setWidth(startWidth + deltaRem);
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
 
   const {
     itineraries, activeItineraryId, setActiveItinerary,
