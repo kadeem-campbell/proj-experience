@@ -153,6 +153,15 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
                 {n.label}
               </Link>
             ))}
+            {collapsed && (
+              <button
+                onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+                title="Create new itinerary"
+                className="w-11 h-11 mx-auto mt-2 rounded-xl flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <span className="text-xl leading-none">+</span>
+              </button>
+            )}
           </div>
         </div>
 
