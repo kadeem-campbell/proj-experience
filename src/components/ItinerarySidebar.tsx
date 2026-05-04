@@ -146,39 +146,46 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           )}
         </div>
 
-        {/* Primary nav: Home + Explore */}
+        {/* Primary nav: Home + Explore (under SWAM label) */}
         {(() => {
           const navLinks = [
             { to: "/", icon: Home, label: "Home", active: location.pathname === "/" },
             { to: "/things-to-do", icon: Compass, label: "Explore", active: location.pathname.startsWith("/things-to-do") },
           ];
           return (
-            <div className={cn("pt-2 space-y-0.5", collapsed ? "px-0 flex flex-col items-center" : "px-2")}>
-              {navLinks.map((n) => collapsed ? (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  title={n.label}
-                  className={cn(
-                    "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
-                    n.active ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  <n.icon className="w-4 h-4" />
-                </Link>
-              ) : (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  className={cn(
-                    "flex items-center gap-2.5 h-9 px-2 rounded-lg text-[13px] font-semibold transition-colors",
-                    n.active ? "bg-muted text-foreground" : "text-foreground/80 hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  <n.icon className="w-4 h-4" />
-                  {n.label}
-                </Link>
-              ))}
+            <div className={cn("pt-3", collapsed ? "px-0" : "px-2")}>
+              {!collapsed && (
+                <div className="px-2 h-6 flex items-center">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Swam</span>
+                </div>
+              )}
+              <div className={cn("space-y-0.5", collapsed && "flex flex-col items-center")}>
+                {navLinks.map((n) => collapsed ? (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    title={n.label}
+                    className={cn(
+                      "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                      n.active ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <n.icon className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    className={cn(
+                      "flex items-center gap-2.5 h-9 px-2 rounded-lg text-[13px] font-semibold transition-colors",
+                      n.active ? "bg-muted text-foreground" : "text-foreground/80 hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <n.icon className="w-4 h-4" />
+                    {n.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           );
         })()}
