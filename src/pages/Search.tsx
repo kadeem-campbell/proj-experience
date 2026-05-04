@@ -229,14 +229,14 @@ const SwamHero = ({
             the next generation
           </span>
         </h1>
-        <p className="mt-4 text-[16px] md:text-[17px] text-muted-foreground max-w-[620px] mx-auto leading-relaxed">
+        <p className="mt-3 text-[15px] md:text-[16px] text-muted-foreground max-w-[560px] mx-auto leading-relaxed">
           Discover places, plan itineraries and find the right vibe — curated by humans, powered by intelligence.
         </p>
 
         {/* Big search trigger */}
         <button
           onClick={() => onOpenSearch()}
-          className="group mt-8 mx-auto w-full max-w-[640px] flex items-center gap-3 h-[60px] pl-5 pr-2 rounded-full bg-background border border-border/70 shadow-[0_10px_40px_-12px_hsl(var(--foreground)/0.18)] hover:shadow-[0_14px_44px_-10px_hsl(var(--primary)/0.25)] hover:border-primary/40 transition-all"
+          className="group mt-5 mx-auto w-full max-w-[640px] flex items-center gap-3 h-[60px] pl-5 pr-2 rounded-full bg-background border border-border/70 shadow-[0_10px_40px_-12px_hsl(var(--foreground)/0.18)] hover:shadow-[0_14px_44px_-10px_hsl(var(--primary)/0.25)] hover:border-primary/40 transition-all"
         >
           <SearchIcon className="w-5 h-5 text-muted-foreground shrink-0" />
           <span className="flex-1 text-left text-[15px] font-medium text-foreground/70 truncate">
