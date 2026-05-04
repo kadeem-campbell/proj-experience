@@ -300,7 +300,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         </ScrollArea>
 
         {/* Create new itinerary button */}
-        <div className={cn("px-3 pb-2", collapsed && "flex justify-center px-0")}>
+        <div className={cn("mt-auto px-3 pb-2", collapsed && "flex justify-center px-0")}>
           {collapsed ? (
             <button
               onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
