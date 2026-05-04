@@ -1,16 +1,7 @@
-import { ReactNode, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { User, LogOut } from "lucide-react";
+import { ReactNode } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { ItinerarySidebar } from "@/components/ItinerarySidebar";
 import { ItineraryPanel } from "@/components/ItineraryPanel";
-import { NotificationBell } from "@/components/NotificationBell";
-import { AuthModal } from "@/components/AuthModal";
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/useAuth";
 import { BrowseDestination } from "@/hooks/useDestinations";
 import { useIsBelowDesktop } from "@/hooks/use-mobile";
 
