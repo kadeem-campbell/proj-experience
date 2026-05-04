@@ -628,7 +628,7 @@ const RankedTopList = ({
 const DesktopPoiCirclesRow = ({
   pois,
   destinationSlug,
-  max = 10,
+  max = 5,
 }: {
   pois: any[];
   destinationSlug?: string;
@@ -636,20 +636,20 @@ const DesktopPoiCirclesRow = ({
 }) => {
   const navigate = useNavigate();
   if (!pois || pois.length === 0) return null;
-  const items = pois.slice(0, max);
+  const items = pois.slice(0, Math.min(max, 5));
   return (
     <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 pt-6 pb-7 border-b border-border/50">
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="text-[20px] font-extrabold text-foreground tracking-[-0.02em]">Places</h3>
       </div>
-      <div className="flex items-start gap-6 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+      <div className="grid grid-cols-5 gap-4 lg:gap-6">
         {items.map((poi) => (
           <button
             key={poi.id}
             onClick={() => navigate(`/things-to-do/${destinationSlug || 'explore'}/${poi.slug}`)}
-            className="shrink-0 w-[132px] flex flex-col items-start gap-3 group"
+            className="min-w-0 flex flex-col items-start gap-3 group"
           >
-            <div className="relative w-[132px] h-[132px] rounded-full overflow-hidden bg-muted ring-1 ring-border/40 group-hover:ring-2 group-hover:ring-foreground/80 transition-all duration-300">
+            <div className="relative w-full aspect-square rounded-full overflow-hidden bg-muted ring-1 ring-border/40 group-hover:ring-2 group-hover:ring-foreground/80 transition-all duration-300">
               {poi.cover_image ? (
                 <img src={poi.cover_image} alt={poi.name} loading="lazy" className="w-full h-full object-cover" />
               ) : (
