@@ -223,7 +223,7 @@ const SwamHero = ({
       </div>
 
       <div className="max-w-[920px] mx-auto text-center">
-        <h1 className="text-[44px] md:text-[58px] leading-[1.02] font-extrabold tracking-[-0.035em] text-foreground">
+        <h1 className="text-[40px] md:text-[54px] leading-[1.05] font-extrabold tracking-[-0.035em] text-foreground whitespace-nowrap">
           Travel built for{" "}
           <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
             the next generation
