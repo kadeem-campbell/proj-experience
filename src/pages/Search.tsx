@@ -1158,49 +1158,51 @@ const SearchPage = () => {
       />
 
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
-        {/* Hero — editorial card with integrated search */}
+        {/* Hero — Spotify-style banner with integrated search */}
         <div className="pt-4 mb-8">
-          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#c2562a] to-[#7d2f12] shadow-[0_24px_60px_-28px_hsl(var(--primary)/0.45)]">
-            <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] items-stretch min-h-[260px] md:min-h-[300px]">
-              <div className="relative z-10 p-7 md:p-9 flex flex-col justify-between text-white">
-                <div>
-                  <p className="text-[10.5px] font-semibold tracking-[0.2em] uppercase text-white/75 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/90 animate-pulse" />
-                    The Travel Marketplace
-                  </p>
-                  <h1 className="mt-3 text-[32px] md:text-[42px] leading-[1] font-extrabold tracking-[-0.02em]">
-                    Every place worth going,<br />intelligently curated.
-                  </h1>
-                </div>
+          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#c2562a] via-[#a04220] to-[#5a2210] shadow-[0_24px_60px_-28px_hsl(var(--primary)/0.45)]">
+            {/* Background image — full bleed, faded into gradient like Spotify */}
+            <div className="absolute inset-0">
+              <img
+                src={curatedHero}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover object-right opacity-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#5a2210] via-[#a04220]/80 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#3d1608]/70 via-transparent to-transparent" />
+            </div>
 
-                {/* Integrated search — compact, premium */}
+            {/* Content */}
+            <div className="relative z-10 p-7 md:p-10 flex flex-col justify-end min-h-[320px] md:min-h-[360px] text-white">
+              <p className="text-[10.5px] font-semibold tracking-[0.22em] uppercase text-white/85 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                The Travel Marketplace
+              </p>
+              <h1 className="mt-3 text-[40px] md:text-[60px] lg:text-[72px] leading-[0.95] font-extrabold tracking-[-0.025em] max-w-[760px] drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)]">
+                Every place worth going,<br className="hidden md:block" /> intelligently curated.
+              </h1>
+
+              {/* Integrated search — prominent pill, sits inside the banner */}
+              <div className="mt-7 max-w-[620px]">
                 <button
                   onClick={() => setSearchModalOpen(true)}
-                  className="group mt-6 relative w-full flex items-center gap-3 h-[52px] pl-4 pr-1.5 rounded-full bg-white/95 backdrop-blur-xl shadow-[0_14px_40px_-18px_rgba(0,0,0,0.45)] hover:bg-white transition-all duration-200"
+                  className="group relative w-full flex items-center gap-3 h-[60px] pl-5 pr-2 rounded-full bg-white/[0.97] backdrop-blur-xl shadow-[0_18px_50px_-18px_rgba(0,0,0,0.55)] hover:bg-white transition-all duration-200"
                 >
-                  <SearchIcon className="w-[17px] h-[17px] text-foreground/55 shrink-0" strokeWidth={2.25} />
-                  <span className="flex-1 text-left text-[14.5px] font-normal text-foreground/60 truncate">
+                  <SearchIcon className="w-[18px] h-[18px] text-foreground/60 shrink-0" strokeWidth={2.5} />
+                  <span className="flex-1 text-left text-[15px] font-normal text-foreground/65 truncate">
                     {searchQuery
                       ? searchQuery
                       : selectedCityName
-                        ? `Explore ${selectedCityName}`
-                        : "A city, a vibe, a season…"}
+                        ? `Explore ${selectedCityName} — places, vibes, seasons`
+                        : "Where to? A city, a vibe, a season…"}
                   </span>
-                  <kbd className="hidden sm:flex items-center gap-0.5 h-6 px-1.5 mr-1 rounded-md bg-foreground/[0.06] text-[10px] font-medium tracking-wide text-foreground/55">
+                  <kbd className="hidden sm:flex items-center gap-0.5 h-7 px-2 mr-1 rounded-md bg-foreground/[0.06] text-[10.5px] font-medium tracking-wide text-foreground/55">
                     ⌘K
                   </kbd>
-                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-foreground text-background">
+                  <span className="flex items-center justify-center w-12 h-12 rounded-full bg-foreground text-background transition-transform duration-200 group-hover:scale-105">
                     <ArrowRightIcon />
                   </span>
                 </button>
-              </div>
-              <div className="relative h-[180px] md:h-auto">
-                <img
-                  src={curatedHero}
-                  alt="Curated travel collection"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#c2562a] via-[#c2562a]/20 to-transparent md:from-[#c2562a] md:via-transparent md:to-transparent" />
               </div>
             </div>
           </div>
