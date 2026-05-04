@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Trash2, Check, X, Heart,
-  Pin, Home, FileText, UserCircle, CalendarCheck, MoreHorizontal, ChevronLeft, ChevronRight, SquarePen, Search, Disc,
+  Pin, Home, FileText, UserCircle, CalendarCheck, MoreHorizontal, ChevronLeft, ChevronRight, SquarePen, Search, Disc, User, LogOut,
 } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuSeparator,
+  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -62,7 +63,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
     createItinerary, deleteItinerary, renameItinerary,
   } = useItineraries();
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, userProfile, signOut } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newItineraryName, setNewItineraryName] = useState("");
@@ -290,8 +291,73 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           )}
         </ScrollArea>
 
-        {/* Bottom collapse/expand toggle — matches reference screenshot */}
-        <div className="mt-auto border-t border-border/60 py-3 pl-3 pr-0 flex justify-start">
+        {/* Bottom: profile + collapse/expand toggle */}
+        <div className={cn("mt-auto border-t border-border/60 py-3", collapsed ? "px-0 flex flex-col items-center gap-2" : "px-3 flex flex-col gap-1")}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              {collapsed ? (
+                <button
+                  className="w-9 h-9 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center overflow-hidden transition-colors ring-1 ring-border"
+                  aria-label="Account"
+                >
+                  {userProfile?.avatar_url ? (
+                    <img src={userProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </button>
+              ) : (
+                <button
+                  className="flex items-center gap-3 h-11 px-2 rounded-xl hover:bg-muted/60 transition-colors text-left w-full"
+                  aria-label="Account"
+                >
+                  <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden ring-1 ring-border shrink-0">
+                    {userProfile?.avatar_url ? (
+                      <img src={userProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-[13px] font-semibold text-foreground truncate">
+                      {isAuthenticated ? (userProfile?.full_name || userProfile?.username || user?.email?.split("@")[0]) : "Sign in"}
+                    </span>
+                    {isAuthenticated && user?.email && (
+                      <span className="block text-[11px] text-muted-foreground truncate">{user.email}</span>
+                    )}
+                  </span>
+                </button>
+              )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="top" className="w-56">
+              {isAuthenticated ? (
+                <>
+                  <DropdownMenuLabel className="font-normal">
+                    <p className="text-sm font-medium truncate">
+                      {userProfile?.full_name || userProfile?.username || user?.email?.split("@")[0]}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="w-4 h-4 mr-2" />
+                    View profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Log out
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <DropdownMenuItem onClick={() => setAuthModalOpen(true)}>
+                  <User className="w-4 h-4 mr-2" />
+                  Sign in
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <button
             onClick={toggleSidebar}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
