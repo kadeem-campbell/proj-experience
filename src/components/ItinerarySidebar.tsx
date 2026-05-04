@@ -162,15 +162,15 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
               </Button>
             </div>
 
-            {/* Permanent search input */}
+            {/* Permanent search input — rounded rectangle, darker bg */}
             <div className="px-2 pt-2 pb-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   placeholder="Search itineraries"
-                  className="h-9 pl-9 text-[13px] bg-muted border-0"
+                  className="h-10 pl-9 text-[14px] rounded-xl bg-foreground/[0.07] hover:bg-foreground/[0.09] focus-visible:bg-foreground/[0.09] border-0 ring-0 focus-visible:ring-0 placeholder:text-muted-foreground/70 transition-colors"
                 />
               </div>
             </div>
