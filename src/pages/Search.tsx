@@ -1178,7 +1178,7 @@ const SearchPage = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 The Travel Marketplace
               </p>
-              <h1 className="mt-3 text-[40px] md:text-[60px] lg:text-[72px] leading-[0.95] font-extrabold tracking-[-0.025em] max-w-[760px] drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)]">
+              <h1 className="mt-3 text-[26px] md:text-[34px] lg:text-[40px] leading-[1.05] font-extrabold tracking-[-0.02em] max-w-[560px] drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)]">
                 Every place worth going,<br className="hidden md:block" /> intelligently curated.
               </h1>
 
