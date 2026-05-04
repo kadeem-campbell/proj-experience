@@ -138,15 +138,6 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       collapsible="icon"
       className="border-r-0 bg-sidebar"
     >
-      {/* Floating circular toggle on the outer right edge — matches screenshot */}
-      <button
-        onClick={toggleSidebar}
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="hidden md:flex absolute top-16 -right-4 z-30 w-8 h-8 rounded-full bg-background border border-border items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shadow-md transition-colors"
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
-
       {/* Drag handle to resize sidebar (only when expanded) */}
       {!collapsed && (
         <div
