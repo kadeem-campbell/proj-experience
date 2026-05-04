@@ -929,6 +929,19 @@ const SearchPage = () => {
   const [mode, setMode] = useState<'things' | 'itineraries'>('things');
   const { data: homeCategories = [] } = useHomeCategories();
   const [vibes, setVibes] = useState<VibeFilters>({ time: null, season: null, mood: null });
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+
+  // ⌘K / Ctrl+K to open search modal
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchModalOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Fetch POIs
   const { data: pois = [] } = useQuery({
