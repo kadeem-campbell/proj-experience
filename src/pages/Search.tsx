@@ -254,18 +254,6 @@ const SwamHero = ({
           </span>
         </button>
 
-        {/* Mode chips: Experiences / Itineraries */}
-        <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
-          {(['experiences', 'itineraries'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => onOpenSearch(t)}
-              className="h-9 px-4 rounded-full text-[13px] font-semibold text-foreground/80 bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-border/50 transition-colors capitalize"
-            >
-              {t}
-            </button>
-          ))}
-        </div>
       </div>
     </section>
   );
