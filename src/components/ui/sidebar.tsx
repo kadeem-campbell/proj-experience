@@ -77,7 +77,11 @@ const SidebarProvider = React.forwardRef<
     const [openMobile, setOpenMobile] = React.useState(false)
 
     const [_open, _setOpen] = React.useState(() => {
-      if (typeof document === "undefined") return defaultOpen
+      if (typeof window === "undefined") return defaultOpen
+      try {
+        const ls = window.localStorage.getItem(SIDEBAR_COOKIE_NAME)
+        if (ls === "true" || ls === "false") return ls === "true"
+      } catch {}
       const match = document.cookie.match(new RegExp(`(?:^|; )${SIDEBAR_COOKIE_NAME}=([^;]+)`))
       if (match) return match[1] === "true"
       return defaultOpen
@@ -92,6 +96,7 @@ const SidebarProvider = React.forwardRef<
           _setOpen(openState)
         }
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        try { window.localStorage.setItem(SIDEBAR_COOKIE_NAME, String(openState)) } catch {}
       },
       [setOpenProp, open]
     )
