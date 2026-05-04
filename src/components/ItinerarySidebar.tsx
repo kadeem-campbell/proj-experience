@@ -99,7 +99,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
 
   return (
     <Sidebar
-      collapsible="icon"
+      collapsible="offcanvas"
       className="border-r border-sidebar-border bg-sidebar"
     >
       <SidebarContent className="bg-sidebar">
