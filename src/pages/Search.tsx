@@ -138,18 +138,20 @@ const DesktopTopBar = ({
           </button>
         </div>
 
-        {/* Search (flex grow) — Revolut-style pill */}
-        <div className="relative flex-1">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground/60" strokeWidth={2.25} />
-          <Input
+        {/* Search (flex grow) — same as mobile */}
+        <div className="relative flex-1 flex items-center bg-muted rounded-xl px-3.5 h-11">
+          <SearchIcon className="w-[18px] h-[18px] text-muted-foreground mr-2 shrink-0" />
+          <input
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search"
-            className="pl-11 pr-10 h-11 rounded-full bg-muted border-0 ring-0 text-[15px] font-medium text-foreground placeholder:text-muted-foreground/70 placeholder:font-normal shadow-none focus-visible:ring-2 focus-visible:ring-foreground/15 focus-visible:bg-muted transition-all"
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[15px] text-foreground placeholder:text-muted-foreground/60 leading-tight"
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange("")} className="absolute right-3.5 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-muted-foreground/70 hover:text-foreground" />
+            <button onClick={() => onSearchChange("")} className="p-0.5 rounded-full shrink-0 ml-1">
+              <div className="w-[18px] h-[18px] rounded-full bg-muted-foreground/40 flex items-center justify-center">
+                <X className="w-3 h-3 text-background" strokeWidth={3} />
+              </div>
             </button>
           )}
         </div>
