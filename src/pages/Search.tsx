@@ -210,7 +210,7 @@ const SwamHero = ({
   searchQuery,
   selectedCityName,
 }: {
-  onOpenSearch: () => void;
+  onOpenSearch: (mode?: 'experiences' | 'itineraries') => void;
   searchQuery: string;
   selectedCityName: string;
 }) => {
@@ -223,9 +223,6 @@ const SwamHero = ({
       </div>
 
       <div className="max-w-[920px] mx-auto text-center">
-        <span className="inline-flex items-center gap-2 px-3 h-7 rounded-full bg-foreground/[0.04] border border-border/60 text-[11px] font-bold tracking-[0.16em] uppercase text-muted-foreground mb-5">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Swam · Travel reimagined
-        </span>
         <h1 className="text-[44px] md:text-[58px] leading-[1.02] font-extrabold tracking-[-0.035em] text-foreground">
           Travel built for{" "}
           <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
@@ -238,7 +235,7 @@ const SwamHero = ({
 
         {/* Big search trigger */}
         <button
-          onClick={onOpenSearch}
+          onClick={() => onOpenSearch()}
           className="group mt-8 mx-auto w-full max-w-[640px] flex items-center gap-3 h-[60px] pl-5 pr-2 rounded-full bg-background border border-border/70 shadow-[0_10px_40px_-12px_hsl(var(--foreground)/0.18)] hover:shadow-[0_14px_44px_-10px_hsl(var(--primary)/0.25)] hover:border-primary/40 transition-all"
         >
           <SearchIcon className="w-5 h-5 text-muted-foreground shrink-0" />
@@ -257,13 +254,13 @@ const SwamHero = ({
           </span>
         </button>
 
-        {/* Quick chips */}
+        {/* Mode chips: Experiences / Itineraries */}
         <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
-          {["Beaches", "Safari", "Nightlife", "Foodie", "Off the beaten path"].map((t) => (
+          {(['experiences', 'itineraries'] as const).map((t) => (
             <button
               key={t}
-              onClick={onOpenSearch}
-              className="h-8 px-3.5 rounded-full text-[12.5px] font-semibold text-foreground/70 bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-border/50 transition-colors"
+              onClick={() => onOpenSearch(t)}
+              className="h-9 px-4 rounded-full text-[13px] font-semibold text-foreground/80 bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-border/50 transition-colors capitalize"
             >
               {t}
             </button>
@@ -374,45 +371,6 @@ const SwamSearchModal = ({
               </Pill>
             ))}
           </Section>
-
-          <Section label="Time of day">
-            {TIME_OPTIONS.map((opt) => (
-              <Pill key={opt} active={vibes.time === opt} onClick={() => onVibesChange({ ...vibes, time: vibes.time === opt ? null : opt })}>
-                {opt}
-              </Pill>
-            ))}
-          </Section>
-
-          <Section label="Season">
-            {SEASON_OPTIONS.map((opt) => (
-              <Pill key={opt} active={vibes.season === opt} onClick={() => onVibesChange({ ...vibes, season: vibes.season === opt ? null : opt })}>
-                {opt}
-              </Pill>
-            ))}
-          </Section>
-
-          <Section label="Vibe">
-            {MOOD_OPTIONS.map((opt) => (
-              <Pill key={opt} active={vibes.mood === opt} onClick={() => onVibesChange({ ...vibes, mood: vibes.mood === opt ? null : opt })}>
-                {opt}
-              </Pill>
-            ))}
-          </Section>
-
-          {categories.length > 0 && (
-            <Section label="Category">
-              {categories.map((cat) => (
-                <Pill
-                  key={cat.id}
-                  active={activeCategoryId === cat.id}
-                  onClick={() => onCategoryChange(activeCategoryId === cat.id ? null : cat.id)}
-                >
-                  {cat.iconUrl && <img src={cat.iconUrl} alt="" className="w-4 h-4 rounded-md object-cover" />}
-                  {cat.name}
-                </Pill>
-              ))}
-            </Section>
-          )}
 
           {trendingPois.length > 0 && (
             <div>
@@ -1162,7 +1120,10 @@ const SearchPage = () => {
 
       <div className="px-5 lg:px-8 py-0 max-w-[1400px] mx-auto">
         <SwamHero
-          onOpenSearch={() => setSearchModalOpen(true)}
+          onOpenSearch={(m) => {
+            if (m) setMode(m === 'experiences' ? 'things' : 'itineraries');
+            setSearchModalOpen(true);
+          }}
           searchQuery={searchQuery}
           selectedCityName={selectedCityName}
         />
