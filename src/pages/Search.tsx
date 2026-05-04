@@ -65,10 +65,10 @@ const DesktopGridRow = ({
             onClick={onViewAll}
             className="group inline-flex items-center gap-1.5 text-left cursor-pointer"
           >
-            <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none group-hover:opacity-70 transition-opacity">
+            <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">
               {title}
             </h2>
-            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all relative top-[1px]" />
+            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:translate-x-0.5 transition-transform relative top-[1px]" />
           </button>
         ) : (
           <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
@@ -641,7 +641,6 @@ const DesktopPoiCirclesRow = ({
     <div className="-mx-5 lg:-mx-8 px-5 lg:px-8 pt-6 pb-7 border-b border-border/50">
       <div className="flex items-baseline justify-between mb-5">
         <h3 className="text-[20px] font-extrabold text-foreground tracking-[-0.02em]">Places</h3>
-        <span className="text-[11px] font-bold text-muted-foreground tracking-[0.12em] uppercase">Tap to explore</span>
       </div>
       <div className="flex items-start gap-6 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {items.map((poi) => (
