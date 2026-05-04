@@ -447,14 +447,14 @@ const VibeFilterRow = ({
       {groups.map((g) => {
         const current = vibes[g.key];
         return (
-          <FilterModal
+          <FilterPopover
             key={g.key}
             label={g.label}
             value={current}
             onClear={() => onChange({ ...vibes, [g.key]: null })}
           >
             {(close) => (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col">
                 {g.opts.map((opt) => {
                   const selected = current === opt;
                   return (
@@ -462,56 +462,58 @@ const VibeFilterRow = ({
                       key={opt}
                       onClick={() => {
                         onChange({ ...vibes, [g.key]: selected ? null : opt });
+                        close();
                       }}
                       className={cn(
-                        "h-10 px-4 rounded-full text-[14px] font-semibold transition-all border",
-                        selected
-                          ? "bg-foreground text-background border-foreground"
-                          : "bg-background text-foreground border-border hover:border-foreground/40"
+                        "w-full flex items-center gap-3 px-2 py-2 rounded-lg text-[13.5px] font-semibold text-left transition-colors",
+                        selected ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
                       )}
                     >
-                      {opt}
+                      <span className="flex-1 truncate">{opt}</span>
+                      {selected && <Check className="w-4 h-4 text-foreground shrink-0" />}
                     </button>
                   );
                 })}
               </div>
             )}
-          </FilterModal>
+          </FilterPopover>
         );
       })}
 
-      {/* Categories pill — same modal style */}
+      {/* Categories pill — same dropdown style */}
       {categories.length > 0 && onCategoryChange && (
-        <FilterModal
+        <FilterPopover
           label="Category"
           value={activeCat?.name ?? null}
           onClear={() => onCategoryChange(null)}
+          width={300}
         >
-          {() => (
-            <div className="grid grid-cols-2 gap-2">
+          {(close) => (
+            <div className="flex flex-col">
               {categories.map((cat) => {
                 const selected = activeCategoryId === cat.id;
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => onCategoryChange(selected ? null : cat.id)}
+                    onClick={() => { onCategoryChange(selected ? null : cat.id); close(); }}
                     className={cn(
-                      "h-12 px-3 rounded-2xl flex items-center gap-2.5 text-[14px] font-semibold transition-all border text-left",
-                      selected
-                        ? "bg-foreground text-background border-foreground"
-                        : "bg-background text-foreground border-border hover:border-foreground/40"
+                      "w-full flex items-center gap-3 px-2 py-2 rounded-lg text-[13.5px] font-semibold text-left transition-colors",
+                      selected ? "bg-foreground/5 text-foreground" : "hover:bg-foreground/5 text-foreground/80"
                     )}
                   >
-                    {cat.iconUrl && (
-                      <img src={cat.iconUrl} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                    {cat.iconUrl ? (
+                      <img src={cat.iconUrl} alt="" className="w-6 h-6 rounded-md object-cover ring-1 ring-border/60 shrink-0" />
+                    ) : (
+                      <div className="w-6 h-6 rounded-md bg-muted ring-1 ring-border/60 shrink-0" />
                     )}
                     <span className="flex-1 truncate">{cat.name}</span>
+                    {selected && <Check className="w-4 h-4 text-foreground shrink-0" />}
                   </button>
                 );
               })}
             </div>
           )}
-        </FilterModal>
+        </FilterPopover>
       )}
 
       {hasAny && (
