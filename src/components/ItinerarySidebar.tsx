@@ -155,7 +155,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           return (
             <div className={cn("pt-3", collapsed ? "px-0" : "px-2")}>
               {!collapsed && (
-                <div className="px-2 h-6 flex items-center">
+                <div className="px-2 h-6 flex items-center mb-1">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Swam</span>
                 </div>
               )}
