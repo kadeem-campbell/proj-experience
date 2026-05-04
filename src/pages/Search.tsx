@@ -235,7 +235,7 @@ const SwamHero = ({
 
         {/* Big search trigger */}
         <button
-          onClick={onOpenSearch}
+          onClick={() => onOpenSearch()}
           className="group mt-8 mx-auto w-full max-w-[640px] flex items-center gap-3 h-[60px] pl-5 pr-2 rounded-full bg-background border border-border/70 shadow-[0_10px_40px_-12px_hsl(var(--foreground)/0.18)] hover:shadow-[0_14px_44px_-10px_hsl(var(--primary)/0.25)] hover:border-primary/40 transition-all"
         >
           <SearchIcon className="w-5 h-5 text-muted-foreground shrink-0" />
@@ -254,13 +254,13 @@ const SwamHero = ({
           </span>
         </button>
 
-        {/* Quick chips */}
+        {/* Mode chips: Experiences / Itineraries */}
         <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
-          {["Beaches", "Safari", "Nightlife", "Foodie", "Off the beaten path"].map((t) => (
+          {(['experiences', 'itineraries'] as const).map((t) => (
             <button
               key={t}
-              onClick={onOpenSearch}
-              className="h-8 px-3.5 rounded-full text-[12.5px] font-semibold text-foreground/70 bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-border/50 transition-colors"
+              onClick={() => onOpenSearch(t)}
+              className="h-9 px-4 rounded-full text-[13px] font-semibold text-foreground/80 bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-border/50 transition-colors capitalize"
             >
               {t}
             </button>
