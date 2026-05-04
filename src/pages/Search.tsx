@@ -1293,8 +1293,25 @@ const SearchPage = () => {
 
                 return (
                   <>
-                    {/* First two carousels */}
+                    {/* First two carousels (above the places row) */}
                     {topCarousels.map((c, i) => renderCarousel(c, i === 0))}
+
+                    {/* Spotify-style POI circles row */}
+                    <DesktopPoiCirclesRow
+                      pois={selectedDestId ? pois.filter((p: any) => p.destination_id === selectedDestId) : pois}
+                      destinationSlug={destSlug}
+                    />
+
+                    {/* Customisable vibe filters (now includes Categories) */}
+                    <div className="pt-6 pb-2">
+                      <VibeFilterRow
+                        vibes={vibes}
+                        onChange={setVibes}
+                        categories={homeCategories}
+                        activeCategoryId={activeCategoryId}
+                        onCategoryChange={setActiveCategoryId}
+                      />
+                    </div>
 
                     {/* Ctrip-style ranked Top Lists — 2 columns */}
                     {(() => {
