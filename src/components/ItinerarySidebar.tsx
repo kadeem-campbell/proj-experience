@@ -307,14 +307,11 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         </ScrollArea>
 
         {/* Bottom collapse/expand toggle — matches reference screenshot */}
-        <div className={cn("mt-auto border-t border-border/60 py-3", collapsed ? "px-0 flex justify-center" : "px-4")}>
+        <div className="mt-auto border-t border-border/60 py-3 px-3 flex justify-center">
           <button
             onClick={toggleSidebar}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className={cn(
-              "flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors",
-              collapsed ? "w-9 h-9" : "w-9 h-9"
-            )}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
           >
             {collapsed ? <ChevronRight className="w-[18px] h-[18px]" strokeWidth={1.75} /> : <ChevronLeft className="w-[18px] h-[18px]" strokeWidth={1.75} />}
           </button>
