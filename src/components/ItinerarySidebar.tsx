@@ -146,49 +146,70 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           )}
         </div>
 
-        {/* Explore (icon row) — visible in both modes */}
-        <div className={cn("pt-2", collapsed ? "px-0 flex justify-center" : "px-2")}>
-          {collapsed ? (
-            <Link
-              to="/things-to-do"
-              title="Explore"
-              className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
-                location.pathname.startsWith("/things-to-do")
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              <Compass className="w-4 h-4" />
-            </Link>
-          ) : (
-            <Link
-              to="/things-to-do"
-              className={cn(
-                "flex items-center gap-2.5 h-9 px-2 rounded-lg text-[13px] font-semibold transition-colors",
-                location.pathname.startsWith("/things-to-do")
-                  ? "bg-muted text-foreground"
-                  : "text-foreground/80 hover:text-foreground hover:bg-muted"
-              )}
-            >
-              <Compass className="w-4 h-4" />
-              Explore
-            </Link>
-          )}
-        </div>
-
-        {/* Permanent search input — only when expanded */}
-        {!collapsed && (
-          <div className="px-2 pt-2 pb-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                placeholder="Search itineraries"
-                className="h-10 pl-9 text-[14px] rounded-xl bg-foreground/[0.07] hover:bg-foreground/[0.09] focus-visible:bg-foreground/[0.09] border-0 ring-0 focus-visible:ring-0 placeholder:text-muted-foreground/70 transition-colors"
-              />
+        {/* Primary nav: Home + Explore */}
+        {(() => {
+          const navLinks = [
+            { to: "/", icon: Home, label: "Home", active: location.pathname === "/" },
+            { to: "/things-to-do", icon: Compass, label: "Explore", active: location.pathname.startsWith("/things-to-do") },
+          ];
+          return (
+            <div className={cn("pt-2 space-y-0.5", collapsed ? "px-0 flex flex-col items-center" : "px-2")}>
+              {navLinks.map((n) => collapsed ? (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  title={n.label}
+                  className={cn(
+                    "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                    n.active ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <n.icon className="w-4 h-4" />
+                </Link>
+              ) : (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  className={cn(
+                    "flex items-center gap-2.5 h-9 px-2 rounded-lg text-[13px] font-semibold transition-colors",
+                    n.active ? "bg-muted text-foreground" : "text-foreground/80 hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <n.icon className="w-4 h-4" />
+                  {n.label}
+                </Link>
+              ))}
             </div>
+          );
+        })()}
+
+        {/* Itineraries section header + optional search (only if many) */}
+        {!collapsed && (
+          <div className="px-2 pt-4 pb-1">
+            <div className="flex items-center justify-between px-2 h-6">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Itineraries</span>
+              {itineraries.length > 8 && (
+                <button
+                  onClick={() => setSearchOpen((v) => !v)}
+                  className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  title="Search itineraries"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            {itineraries.length > 8 && searchOpen && (
+              <div className="relative mt-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  placeholder="Search itineraries"
+                  autoFocus
+                  className="h-9 pl-9 text-[13px] rounded-lg bg-foreground/[0.07] hover:bg-foreground/[0.09] focus-visible:bg-foreground/[0.09] border-0 ring-0 focus-visible:ring-0 placeholder:text-muted-foreground/70 transition-colors"
+                />
+              </div>
+            )}
           </div>
         )}
 
