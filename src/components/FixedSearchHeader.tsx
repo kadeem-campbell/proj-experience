@@ -133,48 +133,59 @@ export const FixedSearchHeader = ({
               <h1 className="text-xl font-black tracking-tight text-foreground">SWAM</h1>
             </Link>
 
-            {/* Center: Search bar */}
-            <div className="flex-1 hidden md:block">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  placeholder="What do you want to explore?"
-                  className="pl-11 pr-10 h-10 text-sm bg-muted/50 border border-border/50 rounded-full focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/30 placeholder:text-muted-foreground/60 hover:bg-muted/70 hover:border-border transition-all duration-200"
-                  style={{ fontSize: "14px" }}
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => onSearchChange("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-full transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                )}
+            {/* Center: Segmented search bar — destination + query (Airbnb-inspired) */}
+            <div className="flex-1 hidden md:flex justify-center">
+              <div className="flex items-stretch w-full max-w-[680px] h-12 rounded-full bg-background border border-border/60 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] transition-shadow overflow-hidden">
+                {/* Where */}
+                <button
+                  onClick={() => setCityDialogOpen(true)}
+                  className="flex items-center gap-2.5 pl-5 pr-4 hover:bg-muted/50 transition-colors min-w-0 max-w-[42%]"
+                >
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+                    {selectedCity?.flag_svg_url ? (
+                      <img src={selectedCity.flag_svg_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <MapPin className="w-3.5 h-3.5 text-primary" />
+                    )}
+                  </div>
+                  <div className="text-left min-w-0">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none mb-0.5">Where</div>
+                    <div className="text-[13px] font-semibold text-foreground truncate leading-tight">
+                      {selectedCity?.name || "Anywhere"}
+                    </div>
+                  </div>
+                </button>
+
+                <div className="w-px bg-border/60 my-2.5" />
+
+                {/* What — search input */}
+                <div className="flex-1 relative flex items-center">
+                  <Input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    placeholder="Search things to do…"
+                    className="h-full pl-5 pr-14 text-[14px] bg-transparent border-0 rounded-none focus-visible:ring-0 placeholder:text-muted-foreground/70"
+                  />
+                  {searchQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => onSearchChange("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-muted rounded-full transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                  ) : (
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center pointer-events-none">
+                      <Search className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Right: Destination + Map + Profile */}
+            {/* Right: Profile */}
             <div className="flex items-center gap-2 ml-auto">
-              {selectedCity && (
-                <button
-                  onClick={() => onCitySelect(null)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-semibold hover:bg-primary/12 transition-colors"
-                >
-                  <MapPin className="w-3 h-3" />
-                  {selectedCity.name}
-                  <X className="w-3 h-3 ml-0.5 opacity-60" />
-                </button>
-              )}
-              <button 
-                onClick={() => setCityDialogOpen(true)} 
-                className="p-2.5 rounded-full bg-muted/50 border border-border/50 hover:bg-muted hover:border-border transition-all duration-200"
-              >
-                <Map className="w-4.5 h-4.5 text-foreground/80" strokeWidth={2} />
-              </button>
 
               {!isMobile && (
                 <div className="shrink-0">
