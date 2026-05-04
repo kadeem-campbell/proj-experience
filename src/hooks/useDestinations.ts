@@ -7,6 +7,8 @@ export interface BrowseDestination {
   slug: string;
   cover_image: string;
   flag_svg_url: string | null;
+  launch_status?: string | null;
+  launch_date?: string | null;
 }
 
 export const useDestinations = () => {
@@ -15,7 +17,7 @@ export const useDestinations = () => {
     queryFn: async (): Promise<BrowseDestination[]> => {
       const { data, error } = await supabase
         .from("destinations")
-        .select("id, name, slug, cover_image, flag_svg_url, country_id, countries!destinations_country_id_fkey(flag_svg_url)")
+        .select("id, name, slug, cover_image, flag_svg_url, launch_status, launch_date, country_id, countries!destinations_country_id_fkey(flag_svg_url)")
         .eq("is_active", true)
         .order("display_order");
 
@@ -30,6 +32,8 @@ export const useDestinations = () => {
         slug: d.slug,
         cover_image: d.cover_image || "",
         flag_svg_url: d.flag_svg_url || d.countries?.flag_svg_url || null,
+        launch_status: d.launch_status ?? null,
+        launch_date: d.launch_date ?? null,
       }));
     },
     staleTime: 5 * 60 * 1000,
