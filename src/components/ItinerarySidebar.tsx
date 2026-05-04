@@ -105,7 +105,6 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
   const navItems = [
     { to: "/", icon: Home, label: "Home", active: location.pathname === "/" },
     { to: "/travellers", icon: UserCircle, label: "Travellers", active: location.pathname === "/travellers" },
-    { to: "/itineraries", icon: FileText, label: "Itineraries", active: location.pathname === "/itineraries" },
     { to: "/feed", icon: CalendarCheck, label: "Feed", active: location.pathname === "/feed" },
     { to: "/liked", icon: Heart, label: "Liked", active: location.pathname === "/liked" },
   ];
@@ -125,18 +124,10 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       </button>
 
       <SidebarContent className="bg-sidebar">
-        {/* Brand row */}
+        {/* Brand row — logo only, matches screenshot */}
         <div className={cn("pt-4", collapsed ? "px-0 flex justify-center" : "px-4")}>
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" aria-label="swam.app" className="inline-flex items-center group">
             <BrandLogo size={36} />
-            {!collapsed && (
-              <span
-                className="text-[20px] tracking-[-0.03em] text-foreground group-hover:opacity-80 transition-opacity"
-                style={{ fontFamily: "-apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif", fontWeight: 800, letterSpacing: '-0.5px' }}
-              >
-                swam<span className="text-primary font-extrabold">.app</span>
-              </span>
-            )}
           </Link>
         </div>
 
@@ -177,7 +168,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         {!collapsed && (
           <div className="px-3 pt-5">
             <div className="flex items-center justify-between px-3 h-6 mb-1">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Your trips</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Itineraries</span>
               <button
                 onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
                 className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
