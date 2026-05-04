@@ -215,45 +215,93 @@ const SwamHero = ({
   selectedCityName: string;
 }) => {
   return (
-    <section className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pt-12 pb-6 mb-6 overflow-hidden border-b border-border/50">
-      {/* Soft brand glow */}
+    <section className="relative -mx-5 lg:-mx-8 px-5 lg:px-8 pt-14 md:pt-20 pb-10 md:pb-14 mb-8 overflow-hidden">
+      {/* Atmospheric depth — Vision Pro style soft prisms */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[680px] h-[680px] rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute top-20 right-10 w-[280px] h-[280px] rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute -top-40 left-[8%] w-[520px] h-[520px] rounded-full bg-[hsl(var(--primary)/0.08)] blur-[120px]" />
+        <div className="absolute top-10 right-[6%] w-[420px] h-[420px] rounded-full bg-[hsl(var(--accent)/0.07)] blur-[120px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[760px] h-[260px] rounded-full bg-[hsl(var(--foreground)/0.03)] blur-[100px]" />
+        {/* fine grid texture */}
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+          }}
+        />
       </div>
 
-      <div className="max-w-[820px] mx-auto text-center">
-        <h1 className="text-[34px] md:text-[44px] leading-[1.05] font-extrabold tracking-[-0.035em] text-foreground whitespace-nowrap">
-          Travel built for{" "}
-          <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
-            the next generation
+      <div className="max-w-[1040px] mx-auto">
+        {/* Eyebrow */}
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+          </span>
+          <span className="text-[10.5px] font-semibold tracking-[0.32em] uppercase text-muted-foreground">
+            The Travel Marketplace · Live
+          </span>
+        </div>
+
+        {/* Editorial headline */}
+        <h1 className="text-center text-[44px] md:text-[68px] lg:text-[80px] leading-[0.95] tracking-[-0.045em] font-semibold text-foreground">
+          <span className="block">Every place worth</span>
+          <span className="block italic font-light text-foreground/90">
+            going,{" "}
+            <span className="not-italic font-semibold bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
+              intelligently
+            </span>{" "}
+            curated.
           </span>
         </h1>
-        <p className="mt-3 text-[15px] md:text-[16px] text-muted-foreground max-w-[560px] mx-auto leading-relaxed">
-          Discover places, plan itineraries and find the right vibe — curated by humans, powered by intelligence.
+
+        <p className="mt-6 text-center text-[15px] md:text-[17px] text-muted-foreground max-w-[520px] mx-auto leading-[1.55] font-light">
+          A new kind of travel layer — humans set the taste, intelligence does the legwork.
         </p>
 
-        {/* Big search trigger */}
-        <button
-          onClick={() => onOpenSearch()}
-          className="group mt-5 mx-auto w-full max-w-[640px] flex items-center gap-3 h-[60px] pl-5 pr-2 rounded-full bg-background border border-border/70 shadow-[0_10px_40px_-12px_hsl(var(--foreground)/0.18)] hover:shadow-[0_14px_44px_-10px_hsl(var(--primary)/0.25)] hover:border-primary/40 transition-all"
-        >
-          <SearchIcon className="w-5 h-5 text-muted-foreground shrink-0" />
-          <span className="flex-1 text-left text-[15px] font-medium text-foreground/70 truncate">
-            {searchQuery
-              ? searchQuery
-              : selectedCityName
-                ? `Explore ${selectedCityName} — places, vibes, seasons…`
-                : "Where to? Try a city, vibe, or season"}
-          </span>
-          <span className="hidden sm:flex items-center gap-1.5 h-9 px-3 mr-1 rounded-full bg-muted text-[11.5px] font-bold uppercase tracking-wider text-muted-foreground">
-            ⌘ K
-          </span>
-          <span className="flex items-center justify-center w-11 h-11 rounded-full bg-primary text-primary-foreground group-hover:scale-105 transition-transform">
-            <ArrowRightIcon />
-          </span>
-        </button>
+        {/* Search — glass surface */}
+        <div className="mt-10 mx-auto w-full max-w-[680px]">
+          <button
+            onClick={() => onOpenSearch()}
+            className="group relative w-full flex items-center gap-3 h-[64px] pl-5 pr-2 rounded-2xl bg-background/60 backdrop-blur-xl border border-border/60 shadow-[0_1px_0_0_hsl(var(--background))_inset,0_20px_60px_-24px_hsl(var(--foreground)/0.22)] hover:border-foreground/20 hover:shadow-[0_1px_0_0_hsl(var(--background))_inset,0_24px_70px_-22px_hsl(var(--primary)/0.28)] transition-all duration-300"
+          >
+            <SearchIcon className="w-[18px] h-[18px] text-foreground/55 shrink-0" strokeWidth={2.25} />
+            <span className="flex-1 text-left text-[15px] font-normal text-foreground/55 truncate">
+              {searchQuery
+                ? searchQuery
+                : selectedCityName
+                  ? `Explore ${selectedCityName} — places, vibes, seasons`
+                  : "Where to? A city, a vibe, a season…"}
+            </span>
+            <kbd className="hidden sm:flex items-center gap-1 h-7 px-2 mr-2 rounded-md border border-border/70 bg-muted/40 text-[10.5px] font-medium tracking-wide text-muted-foreground">
+              <span className="text-[11px] leading-none">⌘</span>K
+            </kbd>
+            <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-foreground text-background group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+              <ArrowRightIcon />
+            </span>
+          </button>
 
+          {/* Quick taste chips */}
+          <div className="mt-5 flex items-center justify-center flex-wrap gap-1.5 text-[12.5px]">
+            <span className="text-muted-foreground/70 mr-1">Try</span>
+            {[
+              "Tokyo in spring",
+              "Lisbon at sunset",
+              "Slow Mexico City",
+              "Quiet Greek islands",
+            ].map((q) => (
+              <button
+                key={q}
+                onClick={() => onOpenSearch()}
+                className="px-3 py-1.5 rounded-full border border-border/60 bg-background/40 backdrop-blur-md text-foreground/75 hover:text-foreground hover:border-foreground/30 hover:bg-background/80 transition-colors"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
