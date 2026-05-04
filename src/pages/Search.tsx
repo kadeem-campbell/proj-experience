@@ -236,13 +236,13 @@ const SwamHero = ({
       <div className="max-w-[1040px] mx-auto">
         {/* Editorial headline */}
         <h1 className="text-center text-[44px] md:text-[68px] lg:text-[80px] leading-[0.95] font-extrabold tracking-[-0.035em] text-foreground">
-          <span className="block">Every place worth going,</span>
           <span className="block">
-            <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
-              intelligently
+            <span className="bg-gradient-to-br from-primary via-primary to-accent bg-clip-text text-transparent">
+              Every place
             </span>{" "}
-            curated.
+            worth going,
           </span>
+          <span className="block">intelligently curated.</span>
         </h1>
 
         <p className="mt-6 text-center text-[15px] md:text-[17px] text-muted-foreground max-w-[520px] mx-auto leading-[1.55] font-light">
@@ -266,7 +266,7 @@ const SwamHero = ({
             <kbd className="hidden sm:flex items-center gap-1 h-7 px-2 mr-2 rounded-md border border-border/70 bg-muted/40 text-[10.5px] font-medium tracking-wide text-muted-foreground">
               <span className="text-[11px] leading-none">⌘</span>K
             </kbd>
-            <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-foreground text-background group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+            <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.5)] group-hover:shadow-[0_10px_28px_-6px_hsl(var(--primary)/0.65)] transition-shadow duration-300">
               <ArrowRightIcon />
             </span>
           </button>
