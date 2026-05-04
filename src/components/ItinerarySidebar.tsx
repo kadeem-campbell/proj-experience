@@ -321,7 +321,7 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         </div>
 
         {/* Bottom collapse/expand toggle — matches reference screenshot */}
-        <div className="mt-auto border-t border-border/60 py-3 px-3 flex justify-center">
+        <div className="border-t border-border/60 py-3 px-3 flex justify-center">
           <button
             onClick={toggleSidebar}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
