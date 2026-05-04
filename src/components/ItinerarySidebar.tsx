@@ -183,15 +183,8 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
         {/* Itineraries section header */}
         {!collapsed && (
           <div className="px-3 pt-5">
-            <div className="flex items-center justify-between px-3 h-6 mb-1">
+            <div className="flex items-center px-3 h-6 mb-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Itineraries</span>
-              <button
-                onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
-                className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                title="New itinerary"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
             </div>
             {itineraries.length > 8 && (
               <>
@@ -306,8 +299,29 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
           )}
         </ScrollArea>
 
+        {/* Create new itinerary button */}
+        <div className={cn("mt-auto px-3 pb-2", collapsed && "flex justify-center px-0")}>
+          {collapsed ? (
+            <button
+              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+              title="New itinerary"
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            >
+              <Plus className="w-[18px] h-[18px]" strokeWidth={1.75} />
+            </button>
+          ) : (
+            <button
+              onClick={() => { setNewItineraryName(""); setIsCreating(true); }}
+              className="w-full flex items-center gap-2 h-9 px-3 rounded-lg text-[13px] font-medium text-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors"
+            >
+              <Plus className="w-4 h-4" strokeWidth={1.75} />
+              Create new itinerary
+            </button>
+          )}
+        </div>
+
         {/* Bottom collapse/expand toggle — matches reference screenshot */}
-        <div className="mt-auto border-t border-border/60 py-3 px-3 flex justify-center">
+        <div className="border-t border-border/60 py-3 px-3 flex justify-center">
           <button
             onClick={toggleSidebar}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
