@@ -59,19 +59,19 @@ const DesktopGridRow = ({
 }) => {
   return (
     <div className="mb-10">
-      <div className="mb-5">
+      <div className="mb-4">
         {onViewAll ? (
           <button
             onClick={onViewAll}
-            className="group inline-flex items-center gap-1.5 text-left cursor-pointer"
+            className="group inline-flex items-center gap-1 text-left cursor-pointer"
           >
-            <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">
+            <h2 className="text-[19px] font-bold text-foreground tracking-[-0.015em] leading-none">
               {title}
             </h2>
-            <ChevronRight className="w-5 h-5 text-foreground/40 group-hover:translate-x-0.5 transition-transform relative top-[1px]" />
+            <ChevronRight className="w-4 h-4 text-foreground/40 group-hover:translate-x-0.5 transition-transform relative top-[1px]" />
           </button>
         ) : (
-          <h2 className="text-[24px] font-extrabold text-foreground tracking-[-0.02em] leading-none">{title}</h2>
+          <h2 className="text-[19px] font-bold text-foreground tracking-[-0.015em] leading-none">{title}</h2>
         )}
       </div>
       {/* Auto-fill experiences: 1fr fills available width so no empty gap on right; per-cell max-width prevents lone items from stretching across the row; grid-auto-rows:0 + overflow-hidden hard-clips any 2nd row so it's ALWAYS one row */}
