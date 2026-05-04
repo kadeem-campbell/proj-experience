@@ -138,14 +138,6 @@ export const ItinerarySidebar = ({}: ItinerarySidebarProps) => {
       collapsible="icon"
       className="border-r-0 bg-sidebar"
     >
-      {/* Drag handle to resize sidebar (only when expanded) */}
-      {!collapsed && (
-        <div
-          onMouseDown={onResizeStart}
-          className="hidden md:block absolute top-0 right-0 h-full w-1.5 cursor-col-resize z-20 hover:bg-border/60 transition-colors"
-          title="Drag to resize"
-        />
-      )}
 
       <SidebarContent className="bg-sidebar">
         {/* Brand row — logo only, matches screenshot */}
