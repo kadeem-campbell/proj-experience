@@ -647,7 +647,7 @@ const DesktopPoiCirclesRow = ({
       </div>
       {/* Auto-fill places: 1fr fills available width; grid-auto-rows:0 hard-clips any 2nd row */}
       <div
-        className="grid overflow-hidden [grid-auto-rows:0] gap-4 lg:gap-5"
+        className="grid overflow-hidden [grid-template-rows:auto] [grid-auto-rows:0] gap-4 lg:gap-5"
         style={{ gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))" }}
       >
         {items.map((poi) => (
